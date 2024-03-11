@@ -394,17 +394,17 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .untilAsserted(() -> {
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
-        taskResourcesAfter
-            .forEach(task -> {
-                assertNotNull(task.getLastReconfigurationTime());
-                assertNull(task.getReconfigureRequestTime());
-                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-                assertEquals("updatedTitle", task.getTitle());
-                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                taskResourcesAfter
+                    .forEach(task -> {
+                        assertNotNull(task.getLastReconfigurationTime());
+                        assertNull(task.getReconfigureRequestTime());
+                        assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                        assertEquals("updatedTitle", task.getTitle());
+                        assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                    });
             });
-    });
     }
 
     @Test
