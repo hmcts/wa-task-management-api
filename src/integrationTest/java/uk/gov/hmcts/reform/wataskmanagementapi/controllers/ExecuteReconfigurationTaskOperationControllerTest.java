@@ -390,7 +390,10 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .untilAsserted(() -> {
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
         taskResourcesAfter
@@ -401,6 +404,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertEquals("updatedTitle", task.getTitle());
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
             });
+    });
     }
 
     @Test
