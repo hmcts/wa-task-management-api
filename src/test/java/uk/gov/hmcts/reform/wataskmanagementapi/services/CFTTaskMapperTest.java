@@ -2423,10 +2423,10 @@ class CFTTaskMapperTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key1"), stringValue("value1"),
                         booleanValue(false)
                 ),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key2"), stringValue("value2"),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key2"), stringValue(""),
                                                        booleanValue(false)
                 ),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key3"), stringValue("value3"),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key3"), stringValue(null),
                                                        booleanValue(false)
                 ),
                 new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key4"), stringValue("value4"),
