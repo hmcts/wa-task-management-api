@@ -1083,10 +1083,10 @@ class CaseConfigurationProviderServiceTest {
         Map<String, Object> taskAttributes = new ConcurrentHashMap<>();
         taskAttributes.put("taskType", "taskType");
         Map<String, String> additionalPropertiesMap = Map.of(
-            "additionalProperties_name3", "value3",
-            "additionalProperties_name4", "value4",
-            "additionalProperties_name5", "value5",
-            "additionalProperties_name6", "value6"
+            "name3", "value3",
+            "name4", "value4",
+            "name5", "value5",
+            "name6", "value6"
         );
         taskAttributes.put("additionalProperties", additionalPropertiesMap);
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);

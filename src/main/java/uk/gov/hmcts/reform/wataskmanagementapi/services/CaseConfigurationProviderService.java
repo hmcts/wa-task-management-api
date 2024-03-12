@@ -65,16 +65,8 @@ public class CaseConfigurationProviderService {
         CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
         String caseDataString = writeValueAsString(caseDetails.getData());
-        log.debug("Case Configuration : case data {}", caseDataString);
-
-        Map<String,String> additionalPropertiesMap =
-            (Map<String, String>) taskAttributes.get(ADDITIONAL_PROPERTIES_KEY);
-        // Copy all additional properties as top level elements in task attributes
-        if (additionalPropertiesMap != null && !additionalPropertiesMap.isEmpty()) {
-            taskAttributes.putAll(additionalPropertiesMap);
-        }
-
         String taskAttributesString = writeValueAsString(taskAttributes);
+        log.debug("Case Configuration : case data {}", caseDataString);
         log.debug("Case Configuration : task Attributes {}", taskAttributesString);
         String jurisdiction = caseDetails.getJurisdiction();
         String caseType = caseDetails.getCaseType();
