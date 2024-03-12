@@ -72,11 +72,7 @@ public class DateTypeConfiguratorTest {
             assertThat(dmnEvaluationResponses)
                 .hasSize(1)
                 .contains(
-                    ConfigurationDmnEvaluationResponse.builder()
-                        .name(CamundaValue.stringValue("nextHearingDate"))
-                        .value(CamundaValue.stringValue(nextHearingDate.getValue().getValue()))
-                        .canReconfigure(CamundaValue.booleanValue(true))
-                        .build()
+                    nextHearingDate
                 );
         }
 

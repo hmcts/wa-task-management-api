@@ -1198,11 +1198,7 @@ public class NextHearingDateTypeConfiguratorTest {
 
         assertThat(configurationDmnEvaluationResponses)
             .isEqualTo(List.of(
-                ConfigurationDmnEvaluationResponse.builder()
-                    .name(CamundaValue.stringValue("nextHearingDate"))
-                    .value(CamundaValue.stringValue(""))
-                    .canReconfigure(CamundaValue.booleanValue(true))
-                    .build()
+                nextHearingDate
             ));
     }
 }

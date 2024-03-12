@@ -506,24 +506,19 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         };
 
         initiateTask(taskVariables, assertConsumer);
-        log.info("after initiation assert");
 
         common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
 
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
-        log.info("after assign and validate");
-
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
             assigneeCredentials.getHeaders()
         );
-        log.info("after mark to reconfigure");
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
-
 
         result = restApiActions.get(
             "/task/{task-id}",
@@ -551,15 +546,15 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             assigneeCredentials.getHeaders()
         );
 
-        log.info("after reconfiguration execute");
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
 
         await().ignoreException(Exception.class)
+            .atLeast(5, TimeUnit.SECONDS)
             .pollInterval(5, SECONDS)
             .atMost(180, SECONDS)
-            .until(() -> {
+            .untilAsserted(() -> {
 
                 Response taskResult = restApiActions.get(
                     "/task/{task-id}",
@@ -577,10 +572,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.next_hearing_date", nullValue());
-
-                return true;
             });
-
         common.cleanUpTask(taskId);
     }
 

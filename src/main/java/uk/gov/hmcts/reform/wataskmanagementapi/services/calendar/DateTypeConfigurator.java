@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.CALCULATED_DATES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @Slf4j
@@ -191,7 +192,7 @@ public class DateTypeConfigurator {
                 ConfigurationDmnEvaluationResponse response = addEmptyConfiguration(dateTypeObject.dateTypeName);
                 Optional<ConfigurationDmnEvaluationResponse> reconfigureResponse =
                     dateProperties.stream().filter(r -> r.getName().getValue().equals(dateTypeObject.dateTypeName))
-                        .findFirst();
+                        .findFirst(); //Getting the first result as DateCalculator returns only one value
                 if (reconfigureResponse.isPresent()) {
                     response.setCanReconfigure(reconfigureResponse.get().getCanReconfigure());
                 }
@@ -243,7 +244,7 @@ public class DateTypeConfigurator {
         }
         //when configureDates is going through calculationOrder, and it's nextHearingDate & the value is empty,
         // add it to the filtered responses and return
-        if (dateTypeResponse != null && dateTypeName.equals("nextHearingDate")
+        if (dateTypeResponse != null && dateTypeName.equals(NEXT_HEARING_DATE.getType())
             && dateTypeResponse.getValue() != null && dateTypeResponse.getValue().getValue() != null
             && dateTypeResponse.getValue().getValue().isEmpty()
             && isReconfigureRequest && dateTypeResponse.getCanReconfigure() != null
