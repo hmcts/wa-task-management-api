@@ -66,7 +66,6 @@ public class CaseConfigurationProviderService {
 
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
-        log.debug("Case Configuration : case data {}", caseDataString);
         log.debug("Case Configuration : task Attributes {}", taskAttributesString);
         String jurisdiction = caseDetails.getJurisdiction();
         String caseType = caseDetails.getCaseType();
