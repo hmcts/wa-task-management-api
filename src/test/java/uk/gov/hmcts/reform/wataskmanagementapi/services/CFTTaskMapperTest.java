@@ -2449,6 +2449,14 @@ class CFTTaskMapperTest {
 
     }
 
+    @Test
+    void do_not_reconfigure_additional_attributes_fields_if_empty_list_returned() {
+        TaskResource taskResource = createTaskResource();
+        List<ConfigurationDmnEvaluationResponse> additionalPropertyDMNResponse = new ArrayList<>();
+        cftTaskMapper.reconfigureAdditionalTaskAttribute(taskResource, additionalPropertyDMNResponse);
+        assertNull(taskResource.getAdditionalProperties());
+    }
+
     private TaskResource createTaskResource() {
         return new TaskResource(
             "taskId",
