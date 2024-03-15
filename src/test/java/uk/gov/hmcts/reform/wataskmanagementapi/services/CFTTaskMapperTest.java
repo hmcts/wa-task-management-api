@@ -2319,11 +2319,6 @@ class CFTTaskMapperTest {
     void reconfigure_config_attributes_dmn_fields() {
         TaskResource taskResource = createTaskResource();
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource, "additionalProperties",
-                                               writeValueAsString(Map.of("roleAssignmentId", "1234567890")), true
-        );
-        assertEquals(taskResource.getAdditionalProperties(), Map.of("roleAssignmentId", "1234567890"));
-
         cftTaskMapper.reconfigureTaskAttribute(taskResource, "priorityDate",
                                                "2021-05-09T20:15", true
         );
@@ -2416,6 +2411,42 @@ class CFTTaskMapperTest {
         assertFalse(taskRolePermissions.getAuthorisations().isEmpty());
         assertTrue(taskRolePermissions.getAuthorisations().contains("SPECIFIC"));
         assertTrue(taskRolePermissions.getAuthorisations().contains("STANDARD"));
+    }
+
+    @Test
+    void reconfigure_config_additional_attributes_dmn_fields() {
+        TaskResource taskResource = createTaskResource();
+        List<ConfigurationDmnEvaluationResponse> additionalPropertyDMNResponse = asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_roleAssignmentId"),
+                        stringValue("roleAssignmentId"), booleanValue(true)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key1"), stringValue("value1"),
+                        booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key2"), stringValue(""),
+                                                       booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key3"), stringValue(null),
+                                                       booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key4"), stringValue("value4"),
+                        null
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key5"), stringValue(""),
+                        booleanValue(true)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key6"), stringValue(null),
+                        booleanValue(true)
+                )
+        );
+
+        cftTaskMapper.reconfigureAdditionalTaskAttribute(taskResource, additionalPropertyDMNResponse);
+
+        assertEquals("roleAssignmentId", taskResource.getAdditionalProperties().get("roleAssignmentId"));
+        assertEquals("", taskResource.getAdditionalProperties().get("key5"));
+        assertEquals(null, taskResource.getAdditionalProperties().get("key6"));
+        assertEquals(3, taskResource.getAdditionalProperties().size());
+
     }
 
     private TaskResource createTaskResource() {
