@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +40,9 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.equalToObject;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 
@@ -48,6 +50,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     public void setUp() {
@@ -477,6 +480,462 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 return true;
             });
 
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_reconfigure_multiple_additional_properties_after_validation_reconfigure_flag() {
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+                "roleAssignmentId", roleAssignmentId
+        );
+
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(
+                additionalProperties,
+                "requests/ccd/wa_case_data.json",
+                "reviewSpecificAccessRequestJudiciary2"
+        );
+        String taskId = taskVariables.getTaskId();
+
+        common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
+
+        initiateTask(taskVariables, assignerCredentials.getHeaders(), additionalProperties);
+
+        Response result = restApiActions.get(
+                "/task/{task-id}",
+                taskId,
+                assignerCredentials.getHeaders()
+        );
+
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.additional_properties", equalToObject(Map.of(
+                    "key1", "value1",
+                    "key2", "value2",
+                    "key3", "value3",
+                    "key4", "value4",
+                    "key5", "value5",
+                    "key6", "value6",
+                    "roleAssignmentId", roleAssignmentId
+
+                )));
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
+                                                         taskVariables.getCaseId()),
+                assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value());
+
+
+        result = restApiActions.get(
+                "/task/{task-id}",
+                taskId,
+                assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.task_state", is("assigned"))
+                .body("task.reconfigure_request_time", notNullValue())
+                .body("task.last_reconfiguration_time", nullValue())
+                .body("task.additional_properties",
+                        equalToObject(Map.of("key1", "value1",
+                                "key2", "value2",
+                                "key3", "value3",
+                                "key4", "value4",
+                                "key5", "value5",
+                                "key6", "value6",
+                                "roleAssignmentId", roleAssignmentId
+
+                        )));
+
+        result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                taskOperationRequestForExecuteReconfiguration(
+                        TaskOperationType.EXECUTE_RECONFIGURE,
+                        OffsetDateTime.now().minus(Duration.ofDays(1))
+                ),
+                assigneeCredentials.getHeaders()
+        );
+
+        result.body().prettyPrint();
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value());
+
+        await().ignoreException(Exception.class)
+                .atLeast(5, TimeUnit.SECONDS)
+                .pollInterval(5, SECONDS)
+                .atMost(180, SECONDS)
+                .untilAsserted(() -> {
+                    Response taskResult = restApiActions.get(
+                            "/task/{task-id}",
+                            taskId,
+                            assigneeCredentials.getHeaders()
+                    );
+
+                    taskResult.prettyPrint();
+
+                    taskResult.then().assertThat()
+                            .statusCode(HttpStatus.OK.value())
+                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .and().body("task.id", equalTo(taskId))
+                            .body("task.role_category", nullValue())
+                            .body("task.task_state", is("assigned"))
+                            .body("task.reconfigure_request_time", nullValue())
+                            .body("task.last_reconfiguration_time", notNullValue())
+                            .body("task.additional_properties",
+                                    /* As per camunda configuration below are canReconfigure and evaluated
+                                    Reconfiguration values
+                                    key1 canReconfigure true value taskAttributes.key1
+                                    key2 canReconfigure true and value "updatedvalue2"
+                                    key3 canReconfigure false and value updatedvalue3 but
+                                        as canReconfigure is set to false it should not reconfigure
+                                    key4 canReconfigure true and value empty
+                                    key5 canReconfigure empty and  value "updatedvalue5"" but
+                                        as canReconfigure is set to empty it should not reconfigure
+                                    key6 canReconfigure true and value null so can see in db that it is set to null
+                                    key7 canReconfigure true, initial value null and reconfigured value "updatedvalue7"
+
+                                    */
+                                    equalToObject(Map.of("key1", "value1",
+                                            "key2", "updatedvalue2",
+                                            "key3", "value3",
+                                            "key4", "",
+                                            "key5", "value5",
+                                            "key7", "updatedvalue7",
+                                            "roleAssignmentId", roleAssignmentId
+                                    ))
+                    );
+                });
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void
+        should_return_a_200_after_tasks_are_marked_and_executed_for_reconfigure_default_value_role_assignment_id() {
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId
+        );
+
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(
+                additionalProperties,
+                "requests/ccd/wa_case_data.json",
+                "reviewSpecificAccessRequestJudiciary"
+        );
+        String taskId = taskVariables.getTaskId();
+
+        common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
+
+        initiateTask(taskVariables, assignerCredentials.getHeaders(), additionalProperties);
+
+        Response result = restApiActions.get(
+                "/task/{task-id}",
+                taskId,
+                assignerCredentials.getHeaders()
+        );
+
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.additional_properties", equalToObject(Map.of(
+                        "roleAssignmentId", roleAssignmentId)));
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
+                        taskVariables.getCaseId()),
+                assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value());
+
+
+        result = restApiActions.get(
+                "/task/{task-id}",
+                taskId,
+                assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.task_state", is("assigned"))
+                .body("task.reconfigure_request_time", notNullValue())
+                .body("task.last_reconfiguration_time", nullValue())
+                .body("task.additional_properties", equalToObject(Map.of(
+                        "roleAssignmentId", roleAssignmentId)));
+
+
+        result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                taskOperationRequestForExecuteReconfiguration(
+                        TaskOperationType.EXECUTE_RECONFIGURE,
+                        OffsetDateTime.now().minus(Duration.ofDays(1))
+                ),
+                assigneeCredentials.getHeaders()
+        );
+
+        result.body().prettyPrint();
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value());
+
+        await().ignoreException(Exception.class)
+                .atLeast(5, TimeUnit.SECONDS)
+                .pollInterval(5, SECONDS)
+                .atMost(180, SECONDS)
+                .untilAsserted(() -> {
+                    Response taskResult = restApiActions.get(
+                            "/task/{task-id}",
+                            taskId,
+                            assigneeCredentials.getHeaders()
+                    );
+
+                    taskResult.prettyPrint();
+
+                    taskResult.then().assertThat()
+                            .statusCode(HttpStatus.OK.value())
+                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .and().body("task.id", equalTo(taskId))
+                            .body("task.task_state", is("assigned"))
+                            .body("task.reconfigure_request_time", nullValue())
+                            .body("task.last_reconfiguration_time", notNullValue())
+                            .body("task.additional_properties", equalToObject(Map.of(
+                                    "roleAssignmentId", roleAssignmentId)));
+                });
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void
+        should_return_a_200_after_tasks_are_marked_and_executed_for_reconfigure_no_default_value_role_assignment_id() {
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId
+        );
+
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(
+                additionalProperties,
+                "requests/ccd/wa_case_data.json",
+                "reviewSpecificAccessRequestJudiciary1"
+        );
+        String taskId = taskVariables.getTaskId();
+
+        common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
+
+        initiateTask(taskVariables, assignerCredentials.getHeaders(), additionalProperties);
+
+        Response result = restApiActions.get(
+                "/task/{task-id}",
+                taskId,
+                assignerCredentials.getHeaders()
+        );
+
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.additional_properties", equalToObject(Map.of(
+                        "roleAssignmentId", roleAssignmentId)));
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
+                        taskVariables.getCaseId()),
+                assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value());
+
+
+        result = restApiActions.get(
+                "/task/{task-id}",
+                taskId,
+                assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.task_state", is("assigned"))
+                .body("task.reconfigure_request_time", notNullValue())
+                .body("task.last_reconfiguration_time", nullValue())
+                .body("task.additional_properties", equalToObject(Map.of(
+                        "roleAssignmentId", roleAssignmentId)));
+
+
+        result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                taskOperationRequestForExecuteReconfiguration(
+                        TaskOperationType.EXECUTE_RECONFIGURE,
+                        OffsetDateTime.now().minus(Duration.ofDays(1))
+                ),
+                assigneeCredentials.getHeaders()
+        );
+
+        result.body().prettyPrint();
+        result.then().assertThat()
+                .statusCode(HttpStatus.OK.value());
+
+        await().ignoreException(Exception.class)
+                .atLeast(5, TimeUnit.SECONDS)
+                .pollInterval(5, SECONDS)
+                .atMost(180, SECONDS)
+                .untilAsserted(() -> {
+                    Response taskResult = restApiActions.get(
+                            "/task/{task-id}",
+                            taskId,
+                            assigneeCredentials.getHeaders()
+                    );
+
+                    taskResult.prettyPrint();
+
+                    taskResult.then().assertThat()
+                            .statusCode(HttpStatus.OK.value())
+                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .and().body("task.id", equalTo(taskId))
+                            .body("task.task_state", is("assigned"))
+                            .body("task.reconfigure_request_time", nullValue())
+                            .body("task.last_reconfiguration_time", notNullValue())
+                            .body("task.additional_properties", equalToObject(Map.of(
+                                    "roleAssignmentId", roleAssignmentId)));
+                });
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_set_next_hearing_date_to_empty_if_dmn_evaluates_to_empty_when_executed_for_reconfigure() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "endToEndTask",
+            "end To End Task"
+        );
+
+        common.setupStandardCaseManager(assignerCredentials.getHeaders(),
+                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
+        String taskId = taskVariables.getTaskId();
+        Consumer<Response> assertConsumer = (result) -> {
+            //Note: this is the TaskResource.class
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("end To End Task"))
+                .body("task.type", equalTo("endToEndTask"))
+                .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue())
+            .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        await().ignoreException(Exception.class)
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .untilAsserted(() -> {
+
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
+
+                taskResult.prettyPrint();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue())
+                    .body("task.next_hearing_date", nullValue());
+            });
         common.cleanUpTask(taskId);
     }
 

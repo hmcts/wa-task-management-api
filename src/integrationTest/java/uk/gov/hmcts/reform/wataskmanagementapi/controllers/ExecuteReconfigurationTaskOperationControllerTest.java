@@ -159,6 +159,65 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     }
 
     @Test
+    void should_execute_reconfigure_nextHearingDate_to_null_from_null() throws Exception {
+        //create mock task
+        String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+
+        //mark to reconfigure
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        //assert nextHearingDate is null before reconfiguration
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesBefore.forEach(task -> {
+            assertNull(task.getNextHearingDate());
+        });
+
+        //call to update nextHearingDate to empty
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(configurationDmnResponse(true));
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(permissionsResponse());
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
+
+        //execute reconfigure
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        //assert nextHearingDate is null after reconfiguration
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        taskResourcesAfter.forEach(task -> {
+            assertNull(task.getNextHearingDate());
+        }
+        );
+    }
+
+    @Test
     void should_execute_reconfigure_on_task_and_not_update_data_when_can_reconfigure_is_false() throws Exception {
         String caseIdToday = "caseId1-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();

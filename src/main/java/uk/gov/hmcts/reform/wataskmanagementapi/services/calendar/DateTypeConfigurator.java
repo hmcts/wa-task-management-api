@@ -18,11 +18,12 @@ import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.CALCULATED_DATES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.INTERMEDIATE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
 
 @Slf4j
 @Component
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.CyclomaticComplexity"})
 public class DateTypeConfigurator {
 
     public static final List<DateTypeObject> DEFAULT_DATE_TYPES = Arrays.stream(DateType.values())
@@ -88,7 +89,8 @@ public class DateTypeConfigurator {
                 );
                 log.info("Calculated value of {} is as {}", dateTypeObject.dateTypeName, dateTypeResponse);
                 calculatedResponses.get().add(dateTypeResponse);
-                filterOutOldValueAndAddDateType(configurationResponses, dateTypeObject, dateTypeResponse);
+                filterOutOldValueAndAddDateType(configurationResponses, dateTypeObject, dateTypeResponse,
+                                                isReconfigureRequest);
             });
 
         return configurationResponses.get();
@@ -186,9 +188,18 @@ public class DateTypeConfigurator {
                 calculatedConfigurations.get()
             );
         } else {
-            return isReconfigureRequest
-                ? addEmptyConfiguration(dateTypeObject.dateTypeName)
-                : getDefaultValueForConfiguration(dateTypeObject, configurationResponses, initiationDueDateFound);
+            if (isReconfigureRequest) {
+                ConfigurationDmnEvaluationResponse response = addEmptyConfiguration(dateTypeObject.dateTypeName);
+                Optional<ConfigurationDmnEvaluationResponse> reconfigureResponse =
+                    dateProperties.stream().filter(r -> r.getName().getValue().equals(dateTypeObject.dateTypeName))
+                        .findFirst(); //Getting the first result as DateCalculator returns only one value
+                if (reconfigureResponse.isPresent()) {
+                    response.setCanReconfigure(reconfigureResponse.get().getCanReconfigure());
+                }
+                return response;
+            } else {
+                return getDefaultValueForConfiguration(dateTypeObject, configurationResponses, initiationDueDateFound);
+            }
         }
     }
 
@@ -222,13 +233,23 @@ public class DateTypeConfigurator {
     private void filterOutOldValueAndAddDateType(
         AtomicReference<List<ConfigurationDmnEvaluationResponse>> configResponses,
         DateTypeObject dateTypeObject,
-        ConfigurationDmnEvaluationResponse dateTypeResponse) {
+        ConfigurationDmnEvaluationResponse dateTypeResponse,
+        boolean isReconfigureRequest) {
+        String dateTypeName = dateTypeObject.dateTypeName;
         List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
-            .filter(r -> !r.getName().getValue().contains(dateTypeObject.dateTypeName))
+            .filter(r -> !r.getName().getValue().contains(dateTypeName))
             .collect(Collectors.toList());
-
         if (dateTypeResponse != null) {
             Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).ifPresent(filtered::add);
+        }
+        //when configureDates is going through calculationOrder, and it's nextHearingDate & the value is empty,
+        // add it to the filtered responses and return
+        if (dateTypeResponse != null && dateTypeName.equals(NEXT_HEARING_DATE.getType())
+            && dateTypeResponse.getValue() != null && dateTypeResponse.getValue().getValue() != null
+            && dateTypeResponse.getValue().getValue().isEmpty()
+            && isReconfigureRequest && dateTypeResponse.getCanReconfigure() != null
+            && dateTypeResponse.getCanReconfigure().getValue()) {
+            Optional.of(dateTypeResponse).filter(r -> r.getValue().getValue().isBlank()).ifPresent(filtered::add);
         }
         configResponses.getAndSet(filtered);
     }
