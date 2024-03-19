@@ -677,12 +677,18 @@ public class CFTTaskMapper {
                         }
                     });
         //Get the value from optional object and if not present then set to null
-        taskResource.setAdditionalProperties(
+        if (!additionalProperties.isEmpty()) {
+            taskResource.setAdditionalProperties(
                 Collections.synchronizedMap(additionalProperties.entrySet().stream()
-                        .collect(HashMap::new,
-                                 (map,value) -> map.put(value.getKey(),
-                                                        value.getValue().isPresent() ? value.getValue().get() : null),
-                                 HashMap::putAll)));
+                                                .collect(
+                                                    HashMap::new,
+                                                    (map, value) -> map.put(
+                                                        value.getKey(),
+                                                        value.getValue().isPresent() ? value.getValue().get() : null
+                                                    ),
+                                                    HashMap::putAll
+                                                )));
+        }
     }
 
     private Map<String, String> extractAdditionalProperties(Object value) {
