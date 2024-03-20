@@ -17,6 +17,7 @@ l_location      text;
 l_role_category text;
 l_task_name     text;
 l_new_task      boolean;
+l_valid_history boolean DEFAULT false;
 
 task_history_cursor CURSOR FOR
     SELECT assignee, update_action, updated, state, jurisdiction, location, role_category, task_name
@@ -36,11 +37,12 @@ begin
     -- Exit the loop if no more rows are available
     EXIT WHEN NOT FOUND;
 
-    if (l_new_task) then
+    if (l_new_task and not l_valid_history) then
 
         if ((l_update_action = 'Configure' and l_state = 'UNASSIGNED')
             or (l_update_action = 'AutoAssign' and l_state = 'ASSIGNED')) then
             RAISE INFO 'Check to upsert task assignments record for : %', l_task_id;
+            l_valid_history = true;
             -- Call the function and pass the row data as parameters
             SELECT cft_task_db.upsert_task_assignment(l_task_id, l_assignee, l_update_action, l_updated, l_state, l_jurisdiction, l_location, l_role_category, l_task_name)
                 INTO l_update_id;
