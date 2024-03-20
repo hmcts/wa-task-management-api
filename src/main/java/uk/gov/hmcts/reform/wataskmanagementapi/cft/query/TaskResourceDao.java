@@ -163,6 +163,8 @@ public class TaskResourceDao {
                                                           PermissionRequirements permissionsRequired,
                                                           List<String> taskTypes) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+        log.info("Task types are {}", taskTypes.toString());
+        log.info("Role assignments are {}", roleAssignments.toString());
 
         final Predicate selectPredicate = TaskSearchQueryBuilder.buildQueryForCompletable(
             searchEventAndCase,

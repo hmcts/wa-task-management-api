@@ -123,6 +123,7 @@ public final class TaskSearchQueryBuilder {
             builder,
             root
         ));
+
         return builder.and(predicates.toArray(new Predicate[0]));
     }
 

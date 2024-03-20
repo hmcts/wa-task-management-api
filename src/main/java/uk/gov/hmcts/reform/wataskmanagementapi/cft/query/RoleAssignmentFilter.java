@@ -112,6 +112,7 @@ public final class RoleAssignmentFilter {
                                                               Join<TaskResource, TaskRoleResource> taskRoleResources) {
         final List<RoleAssignment> activeRoleAssignments = roleAssignments
             .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+        log.info("Active Role assignments are {}", activeRoleAssignments.toString());
 
         RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
             activeRoleAssignments,
@@ -373,6 +374,7 @@ public final class RoleAssignmentFilter {
             if (caseIds.size() == ONE) {
                 return builder.equal(root.get(CASE_ID_COLUMN), caseIds.iterator().next());
             }
+            log.info("Case Ids are {}", caseIds);
             return builder.in(root.get(CASE_ID_COLUMN)).value(caseIds);
         }
         return builder.conjunction();
