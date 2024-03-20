@@ -40,16 +40,22 @@ begin
 
         if ((l_update_action = 'Configure' and l_state = 'UNASSIGNED')
             or (l_update_action = 'AutoAssign' and l_state = 'ASSIGNED')) then
-          RAISE INFO 'Check to upsert task assignments record for : %', l_task_id;
+            RAISE INFO 'Check to upsert task assignments record for : %', l_task_id;
+            -- Call the function and pass the row data as parameters
+            SELECT cft_task_db.upsert_task_assignment(l_task_id, l_assignee, l_update_action, l_updated, l_state, l_jurisdiction, l_location, l_role_category, l_task_name)
+                INTO l_update_id;
         else
-          RAISE WARNING '% : Task with an incomplete history for assignments check and will therefore not be reported on.', l_task_id;
-          EXIT;
+            RAISE WARNING '% : Task with an incomplete history for assignments check and will therefore not be reported on.', l_task_id;
+            EXIT;
         end if;
+
+    else
+        -- Call the function and pass the row data as parameters
+        SELECT cft_task_db.upsert_task_assignment(l_task_id, l_assignee, l_update_action, l_updated, l_state, l_jurisdiction, l_location, l_role_category, l_task_name)
+            INTO l_update_id;
     end if;
 
-    -- Call the function and pass the row data as parameters
-    SELECT cft_task_db.upsert_task_assignment(l_task_id, l_assignee, l_update_action, l_updated, l_state, l_jurisdiction, l_location, l_role_category, l_task_name)
-        INTO l_update_id;
+
     END LOOP;
 
     CLOSE task_history_cursor;
