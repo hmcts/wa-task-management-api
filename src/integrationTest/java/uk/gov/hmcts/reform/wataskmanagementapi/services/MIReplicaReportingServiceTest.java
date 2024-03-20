@@ -350,12 +350,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
                         assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
                         assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
-                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId() + " : Task with an incomplete history for assignments check"));
+                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                         + " : Task with an incomplete history for assignments check"));
                         return true;
                     } else {
                         assertTrue(taskAssignmentsList.isEmpty());
                         if (! ("UNASSIGNED".equals(taskState) && "Configure".equals(lastUpdatedAction))) {
-                            assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId() + " : Task with an incomplete history for assignments check"));
+                            assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                         + " : Task with an incomplete history for assignments check"));
                         }
                         return true;
                     }
@@ -374,11 +376,13 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         assertFalse(reportableTaskList.isEmpty());
                         assertEquals(1, reportableTaskList.size());
                         assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
-                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId() + " : Task with an incomplete history"));
+                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                                        + " : Task with an incomplete history"));
                         return true;
                     } else {
                         assertTrue(reportableTaskList.isEmpty());
-                        assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId() + " : Task with an incomplete history"));
+                        assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                                        + " : Task with an incomplete history"));
                         return true;
                     }
                 });
