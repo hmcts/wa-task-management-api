@@ -14,10 +14,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaReconfigureInputVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ReconfigureInputVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -256,8 +256,8 @@ public class CFTTaskMapper {
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
-        CamundaReconfigureInputVariableDefinition task =
-            TaskEntityToCamundaReconfigureInputDefMapper.INSTANCE.map(taskResource);
+        ReconfigureInputVariableDefinition task =
+            TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
         return objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});
     }
 

@@ -10,7 +10,7 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaReconfigureInputVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ReconfigureInputVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -27,13 +27,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 
-class TaskEntityToCamundaReconfigureInputDefMapperTest {
-    private final TaskEntityToCamundaReconfigureInputDefMapper mapper =
-        Mappers.getMapper(TaskEntityToCamundaReconfigureInputDefMapper.class);
+class TaskEntityToReconfigureInputVariableDefMapperTest {
+    private final TaskEntityToReconfigureInputVariableDefMapper mapper =
+        Mappers.getMapper(TaskEntityToReconfigureInputVariableDefMapper.class);
     private TaskResource taskResource;
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private CamundaReconfigureInputVariableDefinition camundaReconfigureInputVarDef;
+    private ReconfigureInputVariableDefinition reconfigureInputVarDef;
 
     public static final Map<String, String> EXPECTED_ADDITIONAL_PROPERTIES = Map.of(
         "name1", "value1",
@@ -100,27 +100,27 @@ class TaskEntityToCamundaReconfigureInputDefMapperTest {
     }
 
     @Test
-    public void shouldMapFields_whenInvoked_BetweenTaskEntity_ReconfigureCamundaTaskDefinition() {
+    public void should_map_fields_when_mapper_invoked_between_task_entity_and_reconfigure_input_variable_definition() {
         // Mapping
-        camundaReconfigureInputVarDef = mapper.map(taskResource);
+        reconfigureInputVarDef = mapper.map(taskResource);
         // Then
-        assertThat(camundaReconfigureInputVarDef).isNotNull();
+        assertThat(reconfigureInputVarDef).isNotNull();
         Map<String, Object> dbTaskAttributes =
             objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
-        Map<String, Object> camundaReconfigInputs =
-            objectMapper.convertValue(camundaReconfigureInputVarDef, new TypeReference<HashMap<String, Object>>() {});
-        assertEquals(dbTaskAttributes.size(), camundaReconfigInputs.size());
+        Map<String, Object> reconfigInputAttributes =
+            objectMapper.convertValue(reconfigureInputVarDef, new TypeReference<HashMap<String, Object>>() {});
+        assertEquals(dbTaskAttributes.size(), reconfigInputAttributes.size());
 
         Set<String> dbTaskAttributeKeys = dbTaskAttributes.keySet();
-        Set<String> camundaReconfigInputKeys = camundaReconfigInputs.keySet();
-        Set<String> expectedOnlyInCamundaKeys = Set.of("name", "taskState", "dueDate", "caseManagementCategory");
-        camundaReconfigInputKeys.removeAll(dbTaskAttributeKeys);
+        Set<String> reconfigInputAttributeKeys = reconfigInputAttributes.keySet();
+        Set<String> expectedOnlyInReconfigInputKeys = Set.of("name", "taskState", "dueDate", "caseManagementCategory");
+        reconfigInputAttributeKeys.removeAll(dbTaskAttributeKeys);
 
-        assertThat(expectedOnlyInCamundaKeys).isEqualTo(camundaReconfigInputKeys);
-        assertEquals("aTaskName", camundaReconfigureInputVarDef.getName());
-        assertEquals(COMPLETED, camundaReconfigureInputVarDef.getTaskState());
+        assertThat(expectedOnlyInReconfigInputKeys).isEqualTo(reconfigInputAttributeKeys);
+        assertEquals("aTaskName", reconfigureInputVarDef.getName());
+        assertEquals(COMPLETED, reconfigureInputVarDef.getTaskState());
         assertEquals(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                     camundaReconfigureInputVarDef.getDueDate());
-        assertEquals("caseCategory", camundaReconfigureInputVarDef.getCaseManagementCategory());
+                     reconfigureInputVarDef.getDueDate());
+        assertEquals("caseCategory", reconfigureInputVarDef.getCaseManagementCategory());
     }
 }
