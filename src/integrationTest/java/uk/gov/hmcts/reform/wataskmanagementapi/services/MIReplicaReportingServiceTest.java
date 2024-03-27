@@ -359,7 +359,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         if (! ("UNASSIGNED".equals(taskState) && "Configure".equals(lastUpdatedAction))) {
                             assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId()
                                          + " : Task with an incomplete history for assignments check"));
-                        } // This is to cover "UNASSIGNED,Configure,false,true" where the taskHistory is valid but taskAssignment is not created yet.
+                        } // This is to cover "UNASSIGNED,Configure,false,true"
+                        // where the taskHistory is valid but taskAssignment is not created yet.
                         return true;
                     }
                 });
