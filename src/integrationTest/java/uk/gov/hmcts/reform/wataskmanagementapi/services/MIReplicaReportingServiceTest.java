@@ -331,23 +331,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         String taskState, String lastUpdatedAction,
                         boolean taskAssignmentExists, boolean reportableTaskExists) {
         String taskId = UUID.randomUUID().toString();
-
-        TaskResource taskResource = new TaskResource(taskId,
-                                                      "someTaskName",
-                                                      "someTaskType",
-                                                      CFTTaskState.valueOf(taskState),
-                                                      "987654",
-                                                      "someAssignee",
-                                                      lastUpdatedAction,
-                                                      "someJurisdiction",
-                                                      "someLocation",
-                                                      "someRoleCategory",
-                                                      OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"),
-                                                      OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"),
-                                                      OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00"),
-                                                      OffsetDateTime.parse("2023-04-01T20:15:45.345875+01:00"));
-        taskResourceRepository.save(taskResource);
-
+        TaskResource taskResource = createAndSaveThisTask(taskId, "someTaskName",
+                                        CFTTaskState.valueOf(taskState), lastUpdatedAction, "someAssignee");
         checkHistory(taskId, 1);
 
         await().ignoreException(AssertionFailedError.class)
@@ -356,23 +341,23 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskId);
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
 
                     if (taskAssignmentExists) {
                         assertFalse(taskAssignmentsList.isEmpty());
                         assertEquals(1, taskAssignmentsList.size());
-                        assertEquals(taskId, taskAssignmentsList.get(0).getTaskId());
-                        assertEquals("someTaskName", taskAssignmentsList.get(0).getTaskName());
-                        assertEquals("someAssignee", taskAssignmentsList.get(0).getAssignee());
+                        assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                        assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                        assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
                         assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
                         assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
-                        assertFalse(containerReplica.getLogs().contains(taskId
+                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId()
                                          + " : Task with an incomplete history for assignments check"));
                         return true;
                     } else {
                         assertTrue(taskAssignmentsList.isEmpty());
                         if (! ("UNASSIGNED".equals(taskState) && "Configure".equals(lastUpdatedAction))) {
-                            assertTrue(containerReplica.getLogs().contains(taskId
+                            assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId()
                                          + " : Task with an incomplete history for assignments check"));
                         }
                         return true;
@@ -973,6 +958,27 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResource.setJurisdiction("someJurisdiction");
         taskResource.setLocation("someLocation");
         taskResource.setRoleCategory("someRoleCategory");
+        return taskResourceRepository.save(taskResource);
+    }
+
+    private TaskResource createAndSaveThisTask(String taskId, String taskName,
+                                               CFTTaskState taskState, String lastAction, String assignee) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            taskName,
+            "someTaskType",
+            taskState,
+            "987654",
+            OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2023-03-26T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction(lastAction);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
+        taskResource.setJurisdiction("someJurisdiction");
+        taskResource.setLocation("someLocation");
+        taskResource.setRoleCategory("someRoleCategory");
+        taskResource.setAssignee(assignee);
         return taskResourceRepository.save(taskResource);
     }
 
