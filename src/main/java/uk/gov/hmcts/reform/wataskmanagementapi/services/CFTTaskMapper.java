@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ReconfigureInputVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -66,7 +67,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateC
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
         "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals",
-        "PMD.CognitiveComplexity", "PMD.ReturnEmptyCollectionRatherThanNull", "PMD.NullAssignment"
+        "PMD.CognitiveComplexity", "PMD.ReturnEmptyCollectionRatherThanNull", "PMD.NullAssignment","PMD.LawOfDemeter"
     })
 @Slf4j
 public class CFTTaskMapper {
@@ -255,8 +256,9 @@ public class CFTTaskMapper {
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
-        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
-        });
+        ReconfigureInputVariableDefinition task =
+            TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
+        return objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});
     }
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,

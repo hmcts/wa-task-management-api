@@ -939,6 +939,103 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "reconfigTaskAttributesTask",
+            "reconfigTaskAttributesTask"
+        );
+        String taskId = taskVariables.getTaskId();
+
+        common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
+
+        initiateTask(taskVariables, assignerCredentials.getHeaders());
+
+        Response result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assignerCredentials.getHeaders()
+        );
+
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId));
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
+                                                     taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.body().prettyPrint();
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+        await().ignoreException(Exception.class)
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .untilAsserted(() -> {
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
+
+                taskResult.prettyPrint();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue())
+                    .body("task.task_title",
+                          is("name - reconfigTaskAttributesTask - state - ASSIGNED - category - Protection"))
+                    .body("task.due_date", notNullValue())
+                    .body("task.role_category", is("CTSC"));
+            });
+        common.cleanUpTask(taskId);
+    }
+
     private TaskOperationRequest taskOperationRequestForMarkToReconfigure(TaskOperationType operationName,
                                                                           String caseId) {
         TaskOperation operation = TaskOperation.builder()

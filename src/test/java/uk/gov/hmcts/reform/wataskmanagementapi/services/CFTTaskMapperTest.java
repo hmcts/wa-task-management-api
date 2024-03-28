@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -1407,6 +1408,25 @@ class CFTTaskMapperTest {
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
         assertThat(taskAttributes).size().isEqualTo(42);
+    }
+
+    @Test
+    void should_convert_task_resource_to_map_object_with_updated_attribute_names() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        Map<String, Object> attributes = getDefaultAttributesWithWorkType(formattedCreatedDate, formattedDueDate);
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Map<String, Object> dbTaskAttributes =
+            objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
+        Map<String, Object> camundaTaskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
+
+        assertEquals(dbTaskAttributes.size(), camundaTaskAttributes.size());
+        assertEquals(dbTaskAttributes.get("taskName"), camundaTaskAttributes.get("name"));
+        assertEquals(dbTaskAttributes.get("state"), camundaTaskAttributes.get("taskState"));
+        assertEquals(dbTaskAttributes.get("caseCategory"), camundaTaskAttributes.get("caseManagementCategory"));
+        assertEquals(dbTaskAttributes.get("dueDateTime"), camundaTaskAttributes.get("dueDate"));
     }
 
     @Test
