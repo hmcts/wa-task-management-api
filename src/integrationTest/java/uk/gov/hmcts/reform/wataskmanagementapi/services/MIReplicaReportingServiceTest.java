@@ -319,6 +319,77 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+        "ASSIGNED,AutoAssign,true,true",
+        "UNASSIGNED,Configure,false,true",
+        "ASSIGNED,Configure,false,false",
+        "COMPLETED,AutoAssign,false,false",
+        "CANCELLED,Configure,false,false"
+    })
+    void should_test_task_assignments_and_reportable_tasks_with_and_without_valid_history(
+                        String taskState, String lastUpdatedAction,
+                        boolean taskAssignmentExists, boolean reportableTaskExists) {
+        String taskId = UUID.randomUUID().toString();
+        TaskResource taskResource = createAndSaveThisTask(taskId, "someTaskName",
+                                        CFTTaskState.valueOf(taskState), lastUpdatedAction, "someAssignee");
+        checkHistory(taskId, 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(20, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    if (taskAssignmentExists) {
+                        assertFalse(taskAssignmentsList.isEmpty());
+                        assertEquals(1, taskAssignmentsList.size());
+                        assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                        assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                        assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                        assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                        assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                         + " : Task with an incomplete history for assignments check"));
+                        return true;
+                    } else {
+                        assertTrue(taskAssignmentsList.isEmpty());
+                        if (! ("UNASSIGNED".equals(taskState) && "Configure".equals(lastUpdatedAction))) {
+                            assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                         + " : Task with an incomplete history for assignments check"));
+                        } // This is to cover "UNASSIGNED,Configure,false,true"
+                        // where the taskHistory is valid but taskAssignment is not created yet.
+                        return true;
+                    }
+                });
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(taskId);
+
+                    if (reportableTaskExists) {
+                        assertFalse(reportableTaskList.isEmpty());
+                        assertEquals(1, reportableTaskList.size());
+                        assertEquals(taskId, reportableTaskList.get(0).getTaskId());
+                        assertFalse(containerReplica.getLogs().contains(taskId
+                                                        + " : Task with an incomplete history"));
+                        return true;
+                    } else {
+                        assertTrue(reportableTaskList.isEmpty());
+                        assertTrue(containerReplica.getLogs().contains(taskId
+                                                        + " : Task with an incomplete history"));
+                        return true;
+                    }
+                });
+    }
+
     @Test
     void should_save_auto_assigned_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveAndAssignTask();
@@ -888,6 +959,27 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResource.setJurisdiction("someJurisdiction");
         taskResource.setLocation("someLocation");
         taskResource.setRoleCategory("someRoleCategory");
+        return taskResourceRepository.save(taskResource);
+    }
+
+    private TaskResource createAndSaveThisTask(String taskId, String taskName,
+                                               CFTTaskState taskState, String lastAction, String assignee) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            taskName,
+            "someTaskType",
+            taskState,
+            "987654",
+            OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2023-03-26T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction(lastAction);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
+        taskResource.setJurisdiction("someJurisdiction");
+        taskResource.setLocation("someLocation");
+        taskResource.setRoleCategory("someRoleCategory");
+        taskResource.setAssignee(assignee);
         return taskResourceRepository.save(taskResource);
     }
 
