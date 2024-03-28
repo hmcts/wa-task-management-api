@@ -24,7 +24,7 @@ import java.util.Set;
 @ToString
 @Getter
 @JsonIgnoreProperties
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.TooManyFields"})
 public class ReconfigureInputVariableDefinition {
     private String taskId;
     private String name;
