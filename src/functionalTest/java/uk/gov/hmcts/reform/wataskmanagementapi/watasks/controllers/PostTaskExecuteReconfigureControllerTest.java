@@ -941,11 +941,20 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
     @Test
     public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "reconfigTaskAttributesTask",
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId
+        );
+
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(
+            additionalProperties,
+            "requests/ccd/wa_case_data.json",
             "reconfigTaskAttributesTask"
         );
+
         String taskId = taskVariables.getTaskId();
+        String taskName = taskVariables.getTaskName();
+
 
         common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
 
@@ -1029,7 +1038,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.task_title",
-                          is("name - reconfigTaskAttributesTask - state - ASSIGNED - category - Protection"))
+                          is("name - " + taskName + " - state - ASSIGNED - category - Protection"))
                     .body("task.due_date", notNullValue())
                     .body("task.role_category", is("CTSC"));
             });

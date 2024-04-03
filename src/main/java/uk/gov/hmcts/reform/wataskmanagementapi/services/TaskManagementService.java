@@ -868,14 +868,11 @@ public class TaskManagementService {
     @SuppressWarnings("PMD.PreserveStackTrace")
     private TaskResource initiateTaskProcess(String taskId, Map<String, Object> taskAttributes) {
         try {
-            log.info("Initiate task attributes 1 {}", taskAttributes);
-
             TaskResource taskResource = cftTaskMapper.mapToTaskResource(
                 taskId,
                 taskAttributes
             );
-            cftTaskMapper.getTaskAttributes(taskResource);
-            log.info("Initiate task attributes 2{}", taskResource);
+
             taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
 
             taskResource = configureTask(taskResource, taskAttributes);

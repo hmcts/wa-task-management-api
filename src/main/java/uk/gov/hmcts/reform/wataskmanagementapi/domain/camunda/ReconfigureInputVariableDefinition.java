@@ -38,7 +38,7 @@ public class ReconfigureInputVariableDefinition {
     private Integer majorPriority;
     private Integer minorPriority;
     private String assignee;
-    private WorkTypeResource workTypeResource;
+    private String workType;
 
     private String roleCategory;
     private Boolean hasWarnings;

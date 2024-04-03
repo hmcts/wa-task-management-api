@@ -257,10 +257,14 @@ public class CFTTaskMapper {
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
         Map<String, Object> listOfAttributes = objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
+
         log.info("List of Attributes 1{}", listOfAttributes);
         ReconfigureInputVariableDefinition task =
             TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
-        return objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});
+        Map <String, Object> reconfigureTaskAttributes = objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});
+        log.info("List of reconfigureTaskAttributes 1{}", reconfigureTaskAttributes);
+
+        return reconfigureTaskAttributes;
     }
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
@@ -603,6 +607,7 @@ public class CFTTaskMapper {
                                           Object value,
                                           boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
+        log.info("key {}, value {}, canReconfigure {}, enumKey {}", key, value, canReconfigure, enumKey);
         if (enumKey.isPresent() & canReconfigure) {
             switch (enumKey.get()) {
                 case CASE_NAME:

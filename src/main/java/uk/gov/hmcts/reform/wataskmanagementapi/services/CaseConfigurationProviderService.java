@@ -66,7 +66,7 @@ public class CaseConfigurationProviderService {
 
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
-        log.debug("Case Configuration : task Attributes {}", taskAttributesString);
+        log.info("Case Configuration : task Attributes {}", taskAttributesString);
         String jurisdiction = caseDetails.getJurisdiction();
         String caseType = caseDetails.getCaseType();
         // Evaluate Dmns
@@ -77,7 +77,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-        log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
+        log.info("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
         taskConfigurationDmnResults
             .forEach(r -> {
@@ -103,7 +103,7 @@ public class CaseConfigurationProviderService {
                 caseDataString,
                 taskAttributesString
             );
-        log.debug("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
+        log.info("Case Configuration : permissionsDmn Results {}", permissionsDmnResults);
         List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
             = permissionsDmnResults.stream()
             .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
@@ -113,7 +113,7 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
-        log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
+        log.info("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
         // Enrich case configuration variables with extra variables
         Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
