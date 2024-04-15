@@ -33,22 +33,12 @@ public class ReconfigureInputVariableDefinition {
     private OffsetDateTime dueDate;
 
     private CFTTaskState taskState;
-
-    private TaskSystem taskSystem;
-
-    private SecurityClassification securityClassification;
-
     private String title;
     private String description;
-
-    private List<NoteResource> notes;
-
     private Integer majorPriority;
     private Integer minorPriority;
     private String assignee;
-    private Boolean autoAssigned;
-
-    private WorkTypeResource workTypeResource;
+    private String workType;
 
     private String roleCategory;
     private Boolean hasWarnings;
@@ -63,22 +53,9 @@ public class ReconfigureInputVariableDefinition {
     private String regionName;
     private String location;
     private String locationName;
-
-    private BusinessContext businessContext;
-
-    private String terminationReason;
-
     private OffsetDateTime created;
 
-    private ExecutionTypeResource executionTypeCode;
-
-    private Set<TaskRoleResource> taskRoleResources;
-
     private Map<String, String> additionalProperties;
-
-    private OffsetDateTime reconfigureRequestTime;
-
-    private OffsetDateTime lastReconfigurationTime;
 
     private String nextHearingId;
 
@@ -86,11 +63,4 @@ public class ReconfigureInputVariableDefinition {
 
     private OffsetDateTime priorityDate;
 
-    private OffsetDateTime lastUpdatedTimestamp;
-
-    private String lastUpdatedUser;
-
-    private String lastUpdatedAction;
-
-    private Boolean indexed;
 }
