@@ -256,8 +256,6 @@ public class CFTTaskMapper {
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
-        Map<String, Object> listOfAttributes = objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
-
         ReconfigureInputVariableDefinition task =
             TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
         return  objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});

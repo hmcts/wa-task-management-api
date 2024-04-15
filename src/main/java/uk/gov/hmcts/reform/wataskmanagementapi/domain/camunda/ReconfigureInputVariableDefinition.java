@@ -5,18 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 @AllArgsConstructor

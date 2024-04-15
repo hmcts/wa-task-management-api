@@ -1126,7 +1126,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.task_title", is("Title"))
-                    .body("task.work_type", is("hearing_work"))
+                    .body("task.work_type_id", is("hearing_work"))
                     .body("task.role_category", is("hearing_work"));
             });
         common.cleanUpTask(taskId);
