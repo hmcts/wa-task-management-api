@@ -364,7 +364,7 @@ dependencies {
 
   implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.15.3'
 
-  implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: '10.11.0'
 
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.2'
 
