@@ -42,8 +42,6 @@ public class ReconfigureInputVariableDefinition {
 
     private String roleCategory;
     private Boolean hasWarnings;
-
-    private OffsetDateTime assignmentExpiry;
     private String caseId;
     private String caseTypeId;
     private String caseName;
