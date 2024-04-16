@@ -258,7 +258,7 @@ public class CFTTaskMapper {
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
         ReconfigureInputVariableDefinition task =
             TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
-        return  objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});
+        return objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});
     }
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
