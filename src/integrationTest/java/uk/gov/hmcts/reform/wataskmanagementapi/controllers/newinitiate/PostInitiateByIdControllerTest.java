@@ -443,7 +443,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
             TITLE.value(), "A test task",
             CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate
+            DUE_DATE.value(), formattedDueDate,
+            "__processCategory__localCourtGatekeepingC100", true
         );
 
         InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);

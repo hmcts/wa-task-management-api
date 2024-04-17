@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,6 +99,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState.CONFIGURED;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 class CFTTaskMapperTest {
 
@@ -191,6 +193,29 @@ class CFTTaskMapperTest {
             taskResource.getPriorityDate()
         );
     }
+
+    @Test
+    void should_not_filter_process_categories() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        Map<String, Object> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate, null);
+
+        attributes.put("__processCategory__localCourtGatekeepingC100", true);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+
+        assertEquals("SOME_TASK_ID", taskResource.getTaskId());
+        assertEquals("someCamundaTaskName", taskResource.getTaskName());
+        assertEquals("someTaskType", taskResource.getTaskType());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getDueDateTime()
+        );
+        assertEquals(CFTTaskState.UNCONFIGURED, taskResource.getState());
+    }
+
 
     @Test
     void should_map_initiation_attributes_to_cft_task() {

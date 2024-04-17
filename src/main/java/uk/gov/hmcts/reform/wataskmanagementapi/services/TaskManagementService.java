@@ -758,6 +758,7 @@ public class TaskManagementService {
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
+
         return initiateTaskProcess(taskId, taskAttributes);
     }
 
