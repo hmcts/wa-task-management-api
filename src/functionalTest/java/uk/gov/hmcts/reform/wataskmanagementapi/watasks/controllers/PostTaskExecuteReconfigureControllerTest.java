@@ -45,6 +45,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 
@@ -1176,7 +1177,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("tasks.additional_properties",everyItem(is(nullValue())))
             .body("tasks.next_hearing_date", everyItem(is(nullValue())));
 
-      //  common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId);
     }
 
     private TaskOperationRequest taskOperationRequestForMarkToReconfigure(TaskOperationType operationName,
