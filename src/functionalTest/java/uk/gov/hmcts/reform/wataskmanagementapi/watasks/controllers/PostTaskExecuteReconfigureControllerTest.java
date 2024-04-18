@@ -951,7 +951,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             "reconfigTaskAttributesTask"
         );
         String taskId = taskVariables.getTaskId();
-        String taskName = taskVariables.getTaskName();
         common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
 
         initiateTask(taskVariables, assignerCredentials.getHeaders(), additionalProperties);
@@ -1029,6 +1028,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 );
 
                 taskResult.prettyPrint();
+                String taskName = taskVariables.getTaskName();
 
                 taskResult.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
@@ -1038,7 +1038,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.task_title",
-                          is("name - "+ taskName + " - state - ASSIGNED - category - Protection"))
+                          is("name - " + taskName + " - state - ASSIGNED - category - Protection"))
                     .body("task.due_date", notNullValue())
                     .body("task.role_category", is("CTSC"))
                     .body("task.additional_properties", equalToObject(Map.of(
