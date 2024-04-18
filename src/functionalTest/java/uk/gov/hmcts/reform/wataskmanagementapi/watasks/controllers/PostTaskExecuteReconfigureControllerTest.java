@@ -45,7 +45,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 
@@ -1149,7 +1149,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("tasks.size()", lessThanOrEqualTo(10))
+            .and().body("tasks.size()", greaterThanOrEqualTo(1))
             .body("tasks.id", everyItem(is(equalTo(taskId))))
             .body("tasks.task_state", everyItem(is(equalTo("assigned"))))
             .body("tasks.reconfigure_request_time", everyItem(is(nullValue())))
@@ -1164,12 +1164,12 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         result = restApiActions.post(
             "/task?first_result=0&max_results=10",
             searchTaskRequest,
-            ginIndexCaseworkerCredentials.getHeaders()
+            assigneeCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .and().body("tasks.size()", lessThanOrEqualTo(10))
+            .and().body("tasks.size()", greaterThanOrEqualTo(1))
             .body("tasks.id", everyItem(is(equalTo(taskId))))
             .body("tasks.task_state", everyItem(is(equalTo("assigned"))))
             .body("tasks.reconfigure_request_time", everyItem(is(nullValue())))
