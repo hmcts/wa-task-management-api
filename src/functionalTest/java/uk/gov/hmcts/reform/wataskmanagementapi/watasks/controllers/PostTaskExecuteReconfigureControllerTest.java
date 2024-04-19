@@ -970,6 +970,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .and().body("task.id", equalTo(taskId))
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
+                "key2", "value1",
                 "roleAssignmentId", roleAssignmentId
             )));
 
@@ -1043,6 +1044,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.role_category", is("CTSC"))
                     .body("task.additional_properties", equalToObject(Map.of(
                         "key1", "value1",
+                        "key2", "reconfigValue2",
                         "roleAssignmentId", roleAssignmentId
                     )));
             });
