@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
@@ -43,6 +44,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 
@@ -1033,6 +1036,147 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.due_date", notNullValue())
                     .body("task.role_category", is("CTSC"));
             });
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "endToEndTask",
+            "end To End Task"
+        );
+
+        common.setupStandardCaseManager(assignerCredentials.getHeaders(),
+                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
+        String taskId = taskVariables.getTaskId();
+        Consumer<Response> assertConsumer = (result) -> {
+            //Note: this is the TaskResource.class
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("end To End Task"))
+                .body("task.type", equalTo("endToEndTask"))
+                .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue())
+            .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        await().ignoreException(Exception.class)
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .untilAsserted(() -> {
+
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
+
+                taskResult.prettyPrint();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue())
+                    .body("task.additional_properties",nullValue())
+                    .body("task.next_hearing_date", nullValue());
+            });
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            taskVariables.getCaseId(),
+            "testEndToEndTask",
+            WA_JURISDICTION,
+            WA_CASE_TYPE
+        );
+
+        result = restApiActions.post(
+            "/task/search-for-completable",
+            decideAnApplicationSearchRequest,
+            assigneeCredentials.getHeaders()
+        );
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("tasks.size()", greaterThanOrEqualTo(1))
+            .body("tasks.id", everyItem(is(equalTo(taskId))))
+            .body("tasks.task_state", everyItem(is(equalTo("assigned"))))
+            .body("tasks.reconfigure_request_time", everyItem(is(nullValue())))
+            .body("tasks.last_reconfiguration_time", everyItem(is(notNullValue())))
+            .body("tasks.additional_properties",everyItem(is(nullValue())))
+            .body("tasks.next_hearing_date", everyItem(is(nullValue())));
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
+        ));
+        result = restApiActions.post(
+            "/task?first_result=0&max_results=10",
+            searchTaskRequest,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().body("tasks.size()", greaterThanOrEqualTo(1))
+            .body("tasks.id", everyItem(is(equalTo(taskId))))
+            .body("tasks.task_state", everyItem(is(equalTo("assigned"))))
+            .body("tasks.reconfigure_request_time", everyItem(is(nullValue())))
+            .body("tasks.last_reconfiguration_time", everyItem(is(notNullValue())))
+            .body("tasks.additional_properties",everyItem(is(nullValue())))
+            .body("tasks.next_hearing_date", everyItem(is(nullValue())));
+
         common.cleanUpTask(taskId);
     }
 
