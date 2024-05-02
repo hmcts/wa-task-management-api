@@ -124,8 +124,8 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                 try {
                     log.info("Re-configure task-id {}", taskId);
                     Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                        .findByIdAndObtainPessimisticWriteLock(taskId);
-
+                         .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(CFTTaskState.ASSIGNED,
+                                                                                      CFTTaskState.UNASSIGNED));
                     if (optionalTaskResource.isPresent()) {
                         TaskResource taskResource = optionalTaskResource.get();
                         taskResource = configureTaskService.reconfigureCFTTask(taskResource);

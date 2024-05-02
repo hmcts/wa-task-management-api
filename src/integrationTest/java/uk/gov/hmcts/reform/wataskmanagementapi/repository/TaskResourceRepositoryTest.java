@@ -218,6 +218,26 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void given_task_is_created_when_find_by_id_and_state() {
+
+        TaskResource createdTask = createTask(taskId, "tribunal-caseofficer", "IA",
+                                              "startAppeal", "someAssignee", "1623278362430412", CFTTaskState.ASSIGNED);
+        assertThat(createdTask.getTaskId()).isEqualTo(taskId);
+
+        final TaskResource taskResource =
+            taskResourceRepository.findByIdAndStateIn(taskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED))
+                .orElseThrow(
+                    () -> new ResourceNotFoundException("Couldn't find the Task created using the id: " + taskId)
+                );
+
+
+        assertAll(
+            () -> assertEquals(taskId, taskResource.getTaskId()),
+            () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.getState())
+        );
+    }
+
+    @Test
     void given_task_is_created_when_search_request_received_then_task_id_is_returned() {
         reindexTasks(taskId);
 

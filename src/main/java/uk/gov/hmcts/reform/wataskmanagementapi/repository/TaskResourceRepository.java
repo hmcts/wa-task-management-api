@@ -46,15 +46,17 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     String SHOW_WAL_LEVEL = "SHOW wal_level;";
 
+    String LOCK_TIMEOUT_STR = "javax.persistence.lock.timeout";
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
+    @QueryHints({@QueryHint(name = LOCK_TIMEOUT_STR, value = "0")})
     @Transactional
     @NonNull
     @Override
     Optional<TaskResource> findById(@NonNull String id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "5000")})
+    @QueryHints({@QueryHint(name = LOCK_TIMEOUT_STR, value = "5000")})
     @Transactional
     @NonNull
     @Query("select t from tasks t where t.taskId = :id")
@@ -77,6 +79,14 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     List<TaskResource> findByStateInAndReconfigureRequestTimeGreaterThan(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = LOCK_TIMEOUT_STR, value = "0")})
+    @Transactional
+    @NonNull
+    @Query("select t from tasks t where t.taskId = :id and state in (:states)")
+    Optional<TaskResource> findByIdAndStateIn(
+        String id, List<CFTTaskState> states);
+
     List<TaskResource> findByTaskIdInAndStateInAndReconfigureRequestTimeIsLessThan(
         List<String> taskIds, List<CFTTaskState> states, OffsetDateTime retry);
 
@@ -87,7 +97,7 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     @Modifying
     @QueryHints({
-        @QueryHint(name = "javax.persistence.lock.timeout", value = "0"),
+        @QueryHint(name = LOCK_TIMEOUT_STR, value = "0"),
         @QueryHint(name = "javax.persistence.query.timeout", value = "5000"),
         @QueryHint(name = "org.hibernate.timeout", value = "5")
     })

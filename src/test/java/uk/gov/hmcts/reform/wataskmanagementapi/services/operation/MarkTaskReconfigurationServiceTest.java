@@ -73,7 +73,7 @@ class MarkTaskReconfigurationServiceTest {
         List<TaskResource> taskResources = taskResources(null);
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(anyString(), anyList()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
         when(cftTaskDatabaseService.saveTask(any()))
@@ -99,6 +99,25 @@ class MarkTaskReconfigurationServiceTest {
         List<TaskResource> taskResources = cancelledTaskResources();
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(taskResources);
+
+        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
+            .markTasksToReconfigure(taskFilters);
+
+        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
+            .get("successfulTaskResources");
+
+        assertEquals(0, taskResourcesMarked);
+
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_state_is_changed_to_not_active() {
+        List<TaskResource> taskResources = taskResources(null);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
+        taskResources.get(0).setState(CFTTaskState.CANCELLED);
+        cftTaskDatabaseService.saveTask(taskResources.get(0));
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
 
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);

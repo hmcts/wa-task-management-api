@@ -78,6 +78,32 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_succeed_and_find_a_task_by_id_and_state() {
+        TaskResource taskResource = createAndSaveTask(ASSIGNED);
+
+        Optional<TaskResource> updatedTaskResource =
+            cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+                taskResource.getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+
+        assertNotNull(updatedTaskResource);
+        assertTrue(updatedTaskResource.isPresent());
+        assertEquals(taskResource.getTaskId(), updatedTaskResource.get().getTaskId());
+        assertEquals(taskResource.getTaskName(), updatedTaskResource.get().getTaskName());
+        assertEquals(taskResource.getTaskType(), updatedTaskResource.get().getTaskType());
+        assertEquals(ASSIGNED, updatedTaskResource.get().getState());
+    }
+
+    @Test
+    void should_return_empty_task_by_id_and_state_not_in_assigned_or_unassigned() {
+        TaskResource taskResource = createAndSaveTask(CANCELLED);
+        Optional<TaskResource> updatedTaskResource =
+            cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+                taskResource.getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+        assertNotNull(updatedTaskResource);
+        assertTrue(updatedTaskResource.isEmpty());
+    }
+
+    @Test
     void should_succeed_and_find_a_task_by_id_with_no_lock() {
 
         TaskResource taskResource = createAndSaveTask(UNCONFIGURED);
