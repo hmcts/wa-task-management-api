@@ -91,6 +91,7 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals(taskResource.getTaskName(), updatedTaskResource.get().getTaskName());
         assertEquals(taskResource.getTaskType(), updatedTaskResource.get().getTaskType());
         assertEquals(ASSIGNED, updatedTaskResource.get().getState());
+        cftTaskDatabaseService.deleteTasks(List.of(taskResource.getTaskId()));
     }
 
     @Test
