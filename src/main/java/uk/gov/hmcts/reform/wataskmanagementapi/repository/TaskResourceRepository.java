@@ -80,7 +80,7 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = LOCK_TIMEOUT_STR, value = "0")})
+    @QueryHints({@QueryHint(name = LOCK_TIMEOUT_STR, value = "5000")})
     @Transactional
     @NonNull
     @Query("select t from tasks t where t.taskId = :id and state in (:states)")

@@ -135,6 +135,17 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                         resetIndexed(taskResource);
                         successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
                     }
+                    else {
+                        optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+                        if (optionalTaskResource.isPresent()) {
+                            TaskResource taskResource = optionalTaskResource.get();
+                            log.info("did not execute Re-configure for Task Resource: taskId: {}, caseId: {}, state {}",
+                                     taskResource.getTaskId(), taskResource.getCaseId(), taskResource.getState());
+                        }
+                        else {
+                            log.info("Could not find task to reconfigure : taskId: {}", taskId);
+                        }
+                    }
                 } catch (Exception e) {
                     log.error("Error configuring task (id={}) ", taskId, e);
                     failedTaskIds.add(taskId);

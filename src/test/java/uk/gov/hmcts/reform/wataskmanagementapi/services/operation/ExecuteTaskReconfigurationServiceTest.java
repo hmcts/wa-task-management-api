@@ -195,15 +195,23 @@ class ExecuteTaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
             taskResources.get(3).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .thenReturn(Optional.empty());
+
+        when(cftTaskDatabaseService.findByIdOnly(taskResources.get(1).getTaskId()))
+            .thenReturn(Optional.of(taskResources.get(1)));
+        when(cftTaskDatabaseService.findByIdOnly(taskResources.get(2).getTaskId()))
+            .thenReturn(Optional.of(taskResources.get(2)));
+        when(cftTaskDatabaseService.findByIdOnly(taskResources.get(3).getTaskId()))
+            .thenReturn(Optional.of(taskResources.get(3)));
+
         when(configureTaskService.reconfigureCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
+            .thenReturn(taskResources.get(0));
+
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
+            .thenReturn(taskResources.get(0));
+
         when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
+            .thenReturn(taskResources.get(0));
+
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
