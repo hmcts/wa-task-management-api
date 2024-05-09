@@ -1,15 +1,15 @@
 -- PRE DEPLOYMENT DATA PREPARATION STEPS
  -----------------------------------------
- --  take a backup of all the task_id's into a CSV file OR create a temporary table as below
- CREATE TABLE tmp_task_ids_for_ia_role_category AS SELECT task_id FROM cft_task_db.tasks WHERE role_category is null and jurisdiction = 'IA';
-
--- PRE DEPLOYMENT DATA PREPARATION STEPS volumes calculated 07/05/24
+ -- PRE DEPLOYMENT DATA PREPARATION STEPS volumes calculated 07/05/24
 
  select count(*) from cft_task_db.tasks where role_category is null and jurisdiction = 'IA';
 
 --count|
 -------+
 --39846
+
+--  take a backup of all the task_id's into a CSV file OR create a temporary table as below
+CREATE TABLE tmp_task_ids_for_ia_role_category AS SELECT task_id FROM cft_task_db.tasks WHERE role_category is null and jurisdiction = 'IA';
 
 select count(*), task_name  from cft_task_db.tasks where role_category is null and jurisdiction = 'IA' group by task_name
 
