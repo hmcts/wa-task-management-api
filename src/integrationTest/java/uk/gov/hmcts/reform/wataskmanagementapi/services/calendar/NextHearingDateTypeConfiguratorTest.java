@@ -1173,4 +1173,32 @@ public class NextHearingDateTypeConfiguratorTest {
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
+    @Test
+    public void shouldReturnEmptyNextHearingDate() {
+        //if nextHearingDate is empty, then it should return empty nextHearingDate
+        String nextHearingDateValue = "";
+        String nextHearingDateDurationValue = "";
+
+        ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDate"))
+            .value(CamundaValue.stringValue(nextHearingDateValue))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDateDuration"))
+            .value(CamundaValue.stringValue(nextHearingDateDurationValue + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(true))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> configurationDmnEvaluationResponses = dateTypeConfigurator
+            .configureDates(List.of(nextHearingDate, nextHearingDateOrigin), false,
+                            true, taskAttributes
+            );
+
+        assertThat(configurationDmnEvaluationResponses)
+            .isEqualTo(List.of(
+                nextHearingDate
+            ));
+    }
 }

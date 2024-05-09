@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ReconfigureInputVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -36,6 +37,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -55,6 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService.ADDITIONAL_PROPERTIES_PREFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DATE_TIME_FORMATTER;
 
 
@@ -63,7 +67,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateC
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411",
         "PMD.ExcessiveMethodLength", "PMD.NPathComplexity", "PMD.AvoidDuplicateLiterals",
-        "PMD.CognitiveComplexity", "PMD.ReturnEmptyCollectionRatherThanNull"
+        "PMD.CognitiveComplexity", "PMD.ReturnEmptyCollectionRatherThanNull", "PMD.NullAssignment","PMD.LawOfDemeter"
     })
 @Slf4j
 public class CFTTaskMapper {
@@ -153,13 +157,20 @@ public class CFTTaskMapper {
 
         List<ConfigurationDmnEvaluationResponse> configurationDmnResponse = taskConfigurationResults
             .getConfigurationDmnResponse();
-        configurationDmnResponse.forEach(response -> reconfigureTaskAttribute(
+        configurationDmnResponse.stream().filter(response ->
+                !response.getName().getValue().startsWith(ADDITIONAL_PROPERTIES_PREFIX))
+                .forEach(response -> reconfigureTaskAttribute(
             taskResource,
             response.getName().getValue(),
             response.getValue().getValue(),
             response.getCanReconfigure() != null && response.getCanReconfigure().getValue()
             )
         );
+
+        List<ConfigurationDmnEvaluationResponse> configurationAdditionalAttributeDmnResponse =
+                configurationDmnResponse.stream().filter(response ->
+                        response.getName().getValue().startsWith(ADDITIONAL_PROPERTIES_PREFIX)).toList();
+        reconfigureAdditionalTaskAttribute(taskResource, configurationAdditionalAttributeDmnResponse);
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
@@ -245,8 +256,9 @@ public class CFTTaskMapper {
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
-        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
-        });
+        ReconfigureInputVariableDefinition task =
+            TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
+        return objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});
     }
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
@@ -442,8 +454,12 @@ public class CFTTaskMapper {
             }).collect(Collectors.toSet());
     }
 
-    private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
+    private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object optionalValue) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
+        Object value = optionalValue;
+        if (optionalValue instanceof Optional<?> opt) {
+            value = ((Optional<?>) optionalValue).isPresent() ? opt.get() : null;
+        }
         if (enumKey.isPresent()) {
             switch (enumKey.get()) {
                 case AUTO_ASSIGNED:
@@ -612,10 +628,6 @@ public class CFTTaskMapper {
                 case DESCRIPTION:
                     taskResource.setDescription((String) value);
                     break;
-                case ADDITIONAL_PROPERTIES:
-                    Map<String, String> additionalProperties = extractAdditionalProperties(value);
-                    taskResource.setAdditionalProperties(additionalProperties);
-                    break;
                 case PRIORITY_DATE:
                     taskResource.setPriorityDate(mapDate(value));
                     break;
@@ -636,9 +648,48 @@ public class CFTTaskMapper {
                 case DUE_DATE:
                     taskResource.setDueDateTime(mapDate(value));
                     break;
+                case TITLE:
+                    taskResource.setTitle((String) value);
+                    break;
                 default:
                     break;
             }
+        }
+    }
+
+    protected void reconfigureAdditionalTaskAttribute(TaskResource taskResource,
+                                            List<ConfigurationDmnEvaluationResponse>
+                                                    configurationAdditionalAttributeDmnResponse) {
+        Map<String, String> existingAdditionalProperties = taskResource.getAdditionalProperties();
+        Map<String, Optional<String>> additionalProperties = new ConcurrentHashMap<>();
+
+        //Use optionals to be able to set null values
+        if (existingAdditionalProperties != null) {
+            existingAdditionalProperties.entrySet().forEach(
+                    e -> additionalProperties.put(e.getKey(), Optional.ofNullable(e.getValue())));
+        }
+
+        configurationAdditionalAttributeDmnResponse.stream().filter(response -> response.getCanReconfigure() != null
+                && response.getCanReconfigure().getValue()).forEach(
+                    response -> {
+                        if (response.getName().getValue() != null && response.getValue() != null) {
+                            additionalProperties.put(response.getName().getValue()
+                                    .replace(ADDITIONAL_PROPERTIES_PREFIX, ""),
+                                    Optional.ofNullable(response.getValue().getValue()));
+                        }
+                    });
+        //Get the value from optional object and if not present then set to null
+        if (!additionalProperties.isEmpty()) {
+            taskResource.setAdditionalProperties(
+                Collections.synchronizedMap(additionalProperties.entrySet().stream()
+                                                .collect(
+                                                    HashMap::new,
+                                                    (map, value) -> map.put(
+                                                        value.getKey(),
+                                                        value.getValue().isPresent() ? value.getValue().get() : null
+                                                    ),
+                                                    HashMap::putAll
+                                                )));
         }
     }
 

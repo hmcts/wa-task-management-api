@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.consumer.roleassignment;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
+import au.com.dius.pact.consumer.dsl.PactDslJsonRootValue;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
@@ -45,9 +46,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServ
 @PactTestFor(providerName = "am_roleAssignment_queryAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest {
-
     private final String assigneeId = "14a21569-eb80-4681-b62c-6ae2ed069e5f";
     private final LocalDateTime validAtDate = LocalDateTime.parse("2021-12-04T00:00:00");
+
     @Autowired
     protected ObjectMapper objectMapper;
     @Autowired
@@ -89,7 +90,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
             )
             .matchHeader(
                 TOTAL_RECORDS,
-                "1",
+                "\\d+",
                 "1"
             )
             .status(HttpStatus.OK.value())
@@ -121,11 +122,25 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     }
 
     private DslPart createRoleAssignmentResponseSearchQueryResponse() {
+        final String id = "9785c98c-78f2-418b-ab74-a892c3ccca9f";
+
         return newJsonBody(o ->
             o.minArrayLike(
                 "roleAssignmentResponse", 1, 1,
-                roleAssignmentResponse ->
-                    roleAssignmentResponse.stringType("actorId", assigneeId)
+                roleAssignmentResponse -> roleAssignmentResponse
+                    .stringType("id", id)
+                    .stringValue("actorIdType", "IDAM")
+                    .stringType("actorId", assigneeId)
+                    .stringType("roleName", "senior-tribunal-caseworker")
+                    .stringValue("classification", "PRIVATE")
+                    .stringValue("grantType", "STANDARD")
+                    .stringValue("roleCategory", "LEGAL_OPERATIONS")
+                    .booleanValue("readOnly", false)
+                    .object("attributes", attribute -> attribute
+                        .stringType("jurisdiction", "IA")
+                        .stringType("primaryLocation", "500A2S"))
+                    .minArrayLike("authorisations", 0,
+                        PactDslJsonRootValue.stringMatcher("[a-zA-Z]*", "IAC"), 1)
             )).build();
     }
 
