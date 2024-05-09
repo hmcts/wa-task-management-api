@@ -13,7 +13,7 @@ select count(*), task_type  from cft_task_db.tasks where role_category is null a
 --count|task_type                          |
 -------+-----------------------------------+
 --    1|FastTrackDirections                |
---    1|reviewSpecificAccessRequestLegalOps|--note need to be amended below ***
+--    1|reviewSpecificAccessRequestLegalOps|
 
 select count(*) from cft_task_db.tasks where work_type is null and jurisdiction = 'CIVIL';
 
@@ -27,7 +27,7 @@ select count(*), task_type  from cft_task_db.tasks where work_type is null and j
 --count|task_type                        |
 -------+---------------------------------+
 --    3|FastTrackDirections              |
---    1|LegalAdvisorRevisitApplication   |--note need to add this below
+--    1|LegalAdvisorRevisitApplication   |
 --    7|transferCaseOffline              |
 --   13|transferCaseOfflineNotSuitableSDO|
 
@@ -36,7 +36,7 @@ select count(*), task_type  from cft_task_db.tasks where work_type is null and j
 update cft_task_db.tasks set role_category = 'JUDICIAL' where role_category is null and jurisdiction = 'CIVIL'  and task_type in ('FastTrackDirections');
 update cft_task_db.tasks set role_category = 'LEGAL_OPERATIONS' where role_category is null and jurisdiction = 'CIVIL' and task_type in ('reviewSpecificAccessRequestLegalOps');
 
-update cft_task_db.tasks set work_type = 'decision_making_work' where work_type is null and jurisdiction = 'CIVIL' and task_type in ('FastTrackDirections');
+update cft_task_db.tasks set work_type = 'decision_making_work' where work_type is null and jurisdiction = 'CIVIL' and task_type in ('FastTrackDirections','LegalAdvisorRevisitApplication');
 update cft_task_db.tasks set work_type = 'hearing_work' where work_type is null and jurisdiction = 'CIVIL' and task_type in ('transferCaseOfflineNotSuitableSDO','transferCaseOffline');
 
 -- POST IMPLEMENTATION VERIFICATION STEPS
