@@ -6,27 +6,27 @@
 
 --count|
 -------+
---39846
+--40032
 
 --  take a backup of all the task_id's into a CSV file OR create a temporary table as below
 CREATE TABLE tmp_task_ids_for_ia_role_category AS SELECT task_id FROM cft_task_db.tasks WHERE role_category is null and jurisdiction = 'IA';
 
-select count(*), task_name  from cft_task_db.tasks where role_category is null and jurisdiction = 'IA' group by task_name
+select count(*), task_type  from cft_task_db.tasks where role_category is null and jurisdiction = 'IA' group by task_type;
 
---count|task_name                   |
--------+----------------------------+
---   43|Create Case Summary         |
---    4|Create Hearing Bundle       |
---34293|Follow-up extended direction|
--- 5506|Review Addendum Evidence    |
+--count|task_type                |
+-------+-------------------------+
+--   43|createCaseSummary        |
+--    4|createHearingBundle      |
+--34293|followUpExtendedDirection|
+-- 5692|reviewAddendumEvidence   |
 
-select count(*), task_name  from cft_task_db.tasks where role_category is null and jurisdiction = 'IA' and task_name in ('Follow-up extended direction', 'Create Case Summary','Create Hearing Bundle') group by task_name ;
+select count(*), task_type  from cft_task_db.tasks where role_category is null and jurisdiction = 'IA' and task_type in ('followUpExtendedDirection', 'createCaseSummary','createHearingBundle') group by task_type;
 
---count|task_name                   |
--------+----------------------------+
---   43|Create Case Summary         |
---    4|Create Hearing Bundle       |
---34293|Follow-up extended direction|
+--count|task_type                |
+-------+-------------------------+
+--   43|createCaseSummary        |
+--    4|createHearingBundle      |
+--34293|followUpExtendedDirection|
 
 select count(*), task_type  from cft_task_db.tasks where work_type is null and jurisdiction = 'IA' and task_type in ('createCaseSummary', 'createHearingBundle') group by task_type ;
 
@@ -43,9 +43,9 @@ CREATE TABLE tmp_task_ids_for_ia_work_type AS SELECT task_id FROM cft_task_db.ta
 -- IMPLEMENTATION STEPS
 -----------------------------
 
-update cft_task_db.tasks set role_category = 'LEGAL_OPERATIONS' where role_category is null and jurisdiction = 'IA' and task_name in ('Follow-up extended direction', 'Create Case Summary','Create Hearing Bundle');
+update cft_task_db.tasks set role_category = 'LEGAL_OPERATIONS' where role_category is null and jurisdiction = 'IA' and task_type in ('followUpExtendedDirection', 'createCaseSummary','createHearingBundle');
 
-update cft_task_db.tasks set role_category = 'JUDICIAL' where role_category is null and jurisdiction = 'IA'  and task_name in ('Review Addendum Evidence');
+update cft_task_db.tasks set role_category = 'JUDICIAL' where role_category is null and jurisdiction = 'IA'  and task_type in ('reviewAddendumEvidence');
 update cft_task_db.tasks set work_type = 'routine_work' where work_type is null and jurisdiction = 'IA' and task_type in ('createCaseSummary');
 update cft_task_db.tasks set work_type = 'hearing_work' where work_type is null and jurisdiction = 'IA' and task_type in ('createHearingBundle');
 

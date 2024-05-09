@@ -8,14 +8,12 @@ select count(*) from cft_task_db.tasks where role_category is null and jurisdict
 --  take a backup of all the task_id's into a CSV file OR create a temporary table as below
 CREATE TABLE tmp_task_ids_for_civil_role_category AS SELECT task_id FROM cft_task_db.tasks WHERE role_category is null and jurisdiction = 'CIVIL';
 
-select task_id from cft_task_db.tasks where role_category is null and jurisdiction = 'CIVIL'; //Take a backup to a csv file as tasks_role_category_null
+select count(*), task_type  from cft_task_db.tasks where role_category is null and jurisdiction = 'CIVIL' group by task_type;
 
-select count(*), task_name  from cft_task_db.tasks where role_category is null and jurisdiction = 'CIVIL' group by task_name ;
-
---count|task_name                     |
--------+------------------------------+
---    1|Fast Track Directions         |
---    1|Review Specific Access Request|--note need to be amended below ***
+--count|task_type                          |
+-------+-----------------------------------+
+--    1|FastTrackDirections                |
+--    1|reviewSpecificAccessRequestLegalOps|--note need to be amended below ***
 
 select count(*) from cft_task_db.tasks where work_type is null and jurisdiction = 'CIVIL';
 
@@ -35,8 +33,8 @@ select count(*), task_type  from cft_task_db.tasks where work_type is null and j
 
 -- IMPLEMENTATION STEPS
 -----------------------------
-update cft_task_db.tasks set role_category = 'JUDICIAL' where role_category is null and jurisdiction = 'CIVIL'  and task_name in ('FastTrackDirections');
-update cft_task_db.tasks set role_category = 'LEGAL_OPERATIONS' where role_category is null and jurisdiction = 'CIVIL' and task_name in ('reviewSpecificAccessRequest');
+update cft_task_db.tasks set role_category = 'JUDICIAL' where role_category is null and jurisdiction = 'CIVIL'  and task_type in ('FastTrackDirections');
+update cft_task_db.tasks set role_category = 'LEGAL_OPERATIONS' where role_category is null and jurisdiction = 'CIVIL' and task_type in ('reviewSpecificAccessRequestLegalOps');
 
 update cft_task_db.tasks set work_type = 'decision_making_work' where work_type is null and jurisdiction = 'CIVIL' and task_type in ('FastTrackDirections');
 update cft_task_db.tasks set work_type = 'hearing_work' where work_type is null and jurisdiction = 'CIVIL' and task_type in ('transferCaseOfflineNotSuitableSDO','transferCaseOffline');
