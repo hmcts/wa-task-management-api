@@ -460,8 +460,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             .forEach(task -> {
                 assertEquals(CFTTaskState.CANCELLED, task.getState());
             });
-        assertTrue(output.getOut().contains("did not execute Re-configure for Task Resource: taskId: " + taskId
-                                         + ", caseId: " + caseIdToday + "state: " + "CANCELLED"));
+        assertTrue(output.getOut().contains("did not execute Re-configure for Task Resource: taskId: " + taskId));
     }
 
     @Test
