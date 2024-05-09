@@ -48,6 +48,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -400,7 +401,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     }
 
     @Test
-    void should_execute_reconfigure_on_task_and_update_data_when_state_not_assigned_or_unassigned() throws Exception {
+    void should_not_execute_reconfigure_on_task_and_update_data_when_state_not_assigned_or_unassigned
+                                                            (CapturedOutput output) throws Exception {
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
@@ -458,6 +460,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             .forEach(task -> {
                 assertEquals(CFTTaskState.CANCELLED, task.getState());
             });
+        assertTrue(output.getOut().contains("did not execute Re-configure for Task Resource: taskId: " + taskId
+                                         + ", caseId: " + caseIdToday + "state: " + "CANCELLED"));
     }
 
     @Test
