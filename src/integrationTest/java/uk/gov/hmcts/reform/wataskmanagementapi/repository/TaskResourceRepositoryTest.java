@@ -33,6 +33,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -218,23 +219,35 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_created_when_find_by_id_and_state() {
+    void given_task_is_created_when_find_by_id_and_state_return_tasks_in_the_given_state() {
 
-        TaskResource createdTask = createTask(taskId, "tribunal-caseofficer", "IA",
-                                              "startAppeal", "someAssignee", "1623278362430412", CFTTaskState.ASSIGNED);
-        assertThat(createdTask.getTaskId()).isEqualTo(taskId);
+        String firstTaskId = UUID.randomUUID().toString();
+        String secondTaskId = UUID.randomUUID().toString();
 
-        final TaskResource taskResource =
-            taskResourceRepository.findByIdAndStateIn(taskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED))
-                .orElseThrow(
-                    () -> new ResourceNotFoundException("Couldn't find the Task created using the id: " + taskId)
-                );
+        TaskResource firstTask = createTask(firstTaskId, "tribunal-caseofficer", "IA",
+                                            "startAppeal", "someAssignee", "1623278362430412",
+                                            CFTTaskState.ASSIGNED);
+        TaskResource secondTask = createTask(secondTaskId, "tribunal-caseofficer", "IA",
+                                              "startAppeal", "someAssignee",
+                                             "1623278362430412", CFTTaskState.ASSIGNED);
+        taskResourceRepository.save(firstTask);
+        secondTask.setState(CFTTaskState.CANCELLED);
+        taskResourceRepository.save(secondTask);
+        assertThat(firstTask.getTaskId()).isEqualTo(firstTaskId);
+        assertThat(secondTask.getTaskId()).isEqualTo(secondTaskId);
 
-
+        final Optional<TaskResource> taskResource = taskResourceRepository
+            .findByIdAndStateIn(firstTaskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
         assertAll(
-            () -> assertEquals(taskId, taskResource.getTaskId()),
-            () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.getState())
+            () -> assertTrue(taskResource.isPresent()),
+            () -> assertEquals(firstTaskId, taskResource.get().getTaskId()),
+            () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.get().getState())
         );
+        final Optional<TaskResource> taskResource2 =
+            taskResourceRepository.findByIdAndStateIn(
+                secondTaskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+
+        assertFalse(taskResource2.isPresent());
     }
 
     @Test

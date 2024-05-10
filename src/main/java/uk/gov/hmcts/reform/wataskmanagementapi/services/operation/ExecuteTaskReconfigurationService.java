@@ -138,7 +138,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                         optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
                         if (optionalTaskResource.isPresent()) {
                             TaskResource taskResource = optionalTaskResource.get();
-                            log.info("did not execute Re-configure for Task Resource: taskId: {}, caseId: {}, state: {}",
+                            log.info("did not execute reconfigure for Task Resource: taskId: {}, caseId: {}, state: {}",
                                      taskResource.getTaskId(), taskResource.getCaseId(), taskResource.getState());
                         } else {
                             log.info("Could not find task to reconfigure : taskId: {}", taskId);

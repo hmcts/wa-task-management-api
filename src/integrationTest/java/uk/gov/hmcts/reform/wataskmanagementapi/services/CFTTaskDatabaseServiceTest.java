@@ -95,7 +95,7 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_empty_task_by_id_and_state_not_in_assigned_or_unassigned() {
+    void should_return_empty_task_when_state_not_in_assigned_or_unassigned_find_by_id_and_state() {
         TaskResource taskResource = createAndSaveTask(CANCELLED);
         Optional<TaskResource> updatedTaskResource =
             cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
