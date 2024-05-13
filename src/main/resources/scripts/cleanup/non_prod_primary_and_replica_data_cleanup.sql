@@ -1,6 +1,6 @@
---------------------------------
+--
 -- RWA-2482 cleanup old tasks from primary task database
---------------------------------
+--
 
 CREATE OR REPLACE FUNCTION task_cleanup_primary()
 RETURNS VOID
@@ -37,9 +37,9 @@ BEGIN
 END;
 $function$
 
---------------------------------
+--
 -- RWA-2482 cleanup old tasks from replica task database
---------------------------------
+--
 
 CREATE OR REPLACE FUNCTION task_cleanup_replica()
 RETURNS VOID
