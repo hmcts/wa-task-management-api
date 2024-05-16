@@ -10,6 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -165,7 +167,9 @@ class DueDateTimeCalculatorTest {
         String responseValue = dueDateTimeCalculator.calculateDate(
             evaluationResponses,
             DUE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + time);
     }
@@ -193,7 +197,9 @@ class DueDateTimeCalculatorTest {
         String responseValue = dueDateTimeCalculator.calculateDate(
             evaluationResponses,
             DUE_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(responseValue)).isEqualTo(expectedDueDate + time);
     }

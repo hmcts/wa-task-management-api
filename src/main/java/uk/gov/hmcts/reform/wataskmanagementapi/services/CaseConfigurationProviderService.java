@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -53,20 +56,19 @@ public class CaseConfigurationProviderService {
      * @param taskAttributes taskAttributes
      * @return a map with the process variables configuration
      */
+    @SuppressWarnings("unchecked")
     public TaskConfigurationResults getCaseRelatedConfiguration(
-        String caseId,
-        Map<String, Object> taskAttributes,
-        boolean isReconfigureRequest) {
+            String caseId,
+            Map<String, Object> taskAttributes,
+            boolean isReconfigureRequest) {
         // Obtain case from ccd
         CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
-        String jurisdiction = caseDetails.getJurisdiction();
-        String caseType = caseDetails.getCaseType();
-
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
-        log.debug("Case Configuration : case data {}", caseDataString);
         log.debug("Case Configuration : task Attributes {}", taskAttributesString);
+        String jurisdiction = caseDetails.getJurisdiction();
+        String caseType = caseDetails.getCaseType();
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(
@@ -77,11 +79,21 @@ public class CaseConfigurationProviderService {
             );
         log.debug("Case Configuration : taskConfigurationDmn Results {}", taskConfigurationDmnResults);
 
+        taskConfigurationDmnResults
+            .forEach(r -> {
+                Objects.requireNonNull(r.getName(), "Configuration name cannot be null");
+                Objects.requireNonNull(r.getName().getValue(), "Configuration name value cannot be null");
+                Objects.requireNonNull(r.getValue(), "Configuration value cannot be null");
+            });
+
         boolean initiationDueDateFound = taskAttributes.containsKey(DUE_DATE.value());
 
-        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsAfterUpdate
             = updateTaskConfigurationDmnResultsForAdditionalProperties(
-                taskConfigurationDmnResults, initiationDueDateFound, isReconfigureRequest
+            taskConfigurationDmnResults,
+            initiationDueDateFound,
+            isReconfigureRequest,
+            taskAttributes
         );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
@@ -98,7 +110,7 @@ public class CaseConfigurationProviderService {
             .collect(Collectors.toList());
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
-            taskConfigurationDmnResultsWithAdditionalProperties,
+            taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
         log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
@@ -110,7 +122,7 @@ public class CaseConfigurationProviderService {
 
         return new TaskConfigurationResults(
             allCaseConfigurationValues,
-            taskConfigurationDmnResultsWithAdditionalProperties,
+            taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
     }
@@ -139,24 +151,36 @@ public class CaseConfigurationProviderService {
 
     private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
-        boolean initiationDueDateFound, boolean isReconfigureRequest) {
+        boolean initiationDueDateFound,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes) {
 
-        Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
-            .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
-            .map(this::removeAdditionalFromCamundaName)
-            .collect(toMap(r -> r.getName().getValue(), r -> r.getValue().getValue()));
+        List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults;
+        if (!isReconfigureRequest) {
+            Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
+                    .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
+                    .map(this::removeAdditionalFromCamundaName)
+                    //Using optional to allow null values
+                    .collect(toMap(r -> r.getName().getValue(), r -> Optional.ofNullable(r.getValue().getValue())));
 
-        List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults.stream()
-            .filter(r -> !r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX)).collect(Collectors.toList());
+            configResponses = taskConfigurationDmnResults.stream()
+                    .filter(r -> !r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
+                    .collect(Collectors.toList());
 
-        if (!additionalProperties.isEmpty()) {
-            configResponses.add(new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue(ADDITIONAL_PROPERTIES_KEY),
-                CamundaValue.stringValue(writeValueAsString(additionalProperties))
-            ));
+            if (!additionalProperties.isEmpty()) {
+                configResponses.add(new ConfigurationDmnEvaluationResponse(
+                        CamundaValue.stringValue(ADDITIONAL_PROPERTIES_KEY),
+                        CamundaValue.stringValue(writeValueAsString(additionalProperties))
+                ));
+            }
         }
 
-        return dateTypeConfigurator.configureDates(configResponses, initiationDueDateFound, isReconfigureRequest);
+        return dateTypeConfigurator.configureDates(
+            configResponses,
+            initiationDueDateFound,
+            isReconfigureRequest,
+            taskAttributes
+        );
     }
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
@@ -183,20 +207,27 @@ public class CaseConfigurationProviderService {
 
         List<String> commonCategories = caseAccessCategories.stream()
             .filter(caseFromCategoriesFromCase::contains)
-            .collect(Collectors.toList());
+            .toList();
         return !commonCategories.isEmpty();
     }
 
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
                                                   List<PermissionsDmnEvaluationResponse> permissionsDmnResults) {
 
+        List<ConfigurationDmnEvaluationResponse> configDmnNullValues = taskConfigurationDmnResults.stream()
+            .filter(d -> d.getValue().getValue() == null).toList();
+
+        configDmnNullValues.forEach(d -> log.error(
+            "The field '{}' in the configuration DMN file  has a null value ",
+            d.getName().getValue()
+        ));
         // Combine and Collect all dmns results into a single map
         Map<String, Object> caseConfigurationVariables = new ConcurrentHashMap<>();
 
         Map<String, Object> configDmnValues = taskConfigurationDmnResults.stream()
             .collect(toMap(
                 dmnResult -> dmnResult.getName().getValue(),
-                dmnResult -> dmnResult.getValue().getValue()
+                dmnResult -> Optional.ofNullable(dmnResult.getValue().getValue())
             ));
 
         Map<String, Object> permissionsDmnValues = permissionsDmnResults.stream()
@@ -213,6 +244,7 @@ public class CaseConfigurationProviderService {
 
     private String writeValueAsString(Map<String, Object> data) {
         try {
+            objectMapper.registerModule(new Jdk8Module());
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
             log.error("Case Configuration : Could not extract case data");

@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.PRIORITY_DATE;
@@ -35,11 +36,13 @@ public class PriorityDateOriginRefCalculator extends PriorityDateIntervalCalcula
     }
 
     @Override
-    protected Optional<LocalDateTime> getReferenceDate(List<ConfigurationDmnEvaluationResponse> configResponses,
-                                                       boolean isReconfigureRequest) {
-        return getOriginRefDate(
-            configResponses,
-            getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest)
-        );
+    protected Optional<LocalDateTime> getReferenceDate(
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var configProperty = getProperty(configResponses, PRIORITY_DATE_ORIGIN_REF, isReconfigureRequest);
+        log.info("Input {}: {}", PRIORITY_DATE_ORIGIN_REF, configProperty);
+        return getOriginRefDate(calculatedConfigurations, configProperty, taskAttributes, isReconfigureRequest);
     }
 }

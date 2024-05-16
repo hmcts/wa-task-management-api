@@ -81,7 +81,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
             .body(Problem.builder()
                 .withType(type)
                 .withTitle(title)
-                .withDetail(detail.getDetail())
+                .withDetail(detail.getDetail() + " Message from downstream system: " + ex.getMessage())
                 .withStatus(statusType)
                 .build());
     }

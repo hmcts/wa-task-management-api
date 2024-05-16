@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -30,6 +31,9 @@ import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 
 @Slf4j
 @Service
+@SuppressWarnings({
+    "PMD.TooManyMethods"
+})
 public class CFTTaskDatabaseService {
 
 
@@ -46,12 +50,25 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findById(taskId);
     }
 
+    public Optional<TaskResource> findByIdAndStateInObtainPessimisticWriteLock(String taskId,
+                                                                               List<CFTTaskState> states) {
+        return tasksRepository.findByIdAndStateIn(taskId, states);
+    }
+
+    public Optional<TaskResource> findByIdAndWaitAndObtainPessimisticWriteLock(String taskId) {
+        return tasksRepository.findByIdAndWaitForLock(taskId);
+    }
+
     public Optional<TaskResource> findByIdOnly(String taskId) {
         return tasksRepository.getByTaskId(taskId);
     }
 
     public List<TaskResource> findByCaseIdOnly(String caseId) {
         return tasksRepository.getByCaseId(caseId);
+    }
+
+    public List<TaskResourceCaseQueryBuilder> findByTaskIdsByCaseId(final String caseId) {
+        return tasksRepository.getTaskIdsByCaseId(caseId);
     }
 
     public List<TaskResource> getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
@@ -71,11 +88,20 @@ public class CFTTaskDatabaseService {
             taskIds, states, retryWindow);
     }
 
+    public List<TaskResource> getActiveTasksAndReconfigureRequestTimeIsLessThanRetry(
+        List<CFTTaskState> states, OffsetDateTime retryWindow) {
+        return tasksRepository.findByStateInAndReconfigureRequestTimeIsLessThan(states, retryWindow);
+    }
+
     public TaskResource saveTask(TaskResource task) {
         if (task.getPriorityDate() == null) {
             task.setPriorityDate(task.getDueDateTime());
         }
         return tasksRepository.save(task);
+    }
+
+    public void deleteTasks(final List<String> taskIds) {
+        tasksRepository.deleteAllById(taskIds);
     }
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
@@ -105,7 +131,8 @@ public class CFTTaskDatabaseService {
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
-        log.debug("Task search for filter signatures {} and role signatures {}", filterSignature, roleSignature);
+        log.info("Task search for filter signatures {} \nrole signatures {} \nexcluded case ids {}",
+            filterSignature, roleSignature, excludeCaseIds);
         List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
             excludeCaseIds, searchRequest);
 
@@ -122,8 +149,7 @@ public class CFTTaskDatabaseService {
             .map(taskResource ->
                 cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
-                    roleAssignments,
-                    true
+                    roleAssignments
                 )
             )
             .collect(Collectors.toList());
@@ -131,6 +157,13 @@ public class CFTTaskDatabaseService {
         return new GetTasksResponse<>(tasks, count);
     }
 
+    public List<TaskResource> findTaskToUpdateIndex() {
+        return tasksRepository.findByIndexedFalseAndStateIn(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+    }
+
+    public List<TaskResource> findLastFiveUpdatedTasks() {
+        return tasksRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
+    }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
         return roleAssignments.stream()

@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -35,6 +36,7 @@ import javax.persistence.EntityManager;
 @Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/wa/claim_task_data.sql")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceClaimTaskTest extends RoleAssignmentHelper {
 
     private final List<PermissionTypes> permissionsRequired = List.of(PermissionTypes.OWN, PermissionTypes.EXECUTE);

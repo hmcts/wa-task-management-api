@@ -28,16 +28,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.WorkingDayIndic
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.lenient;
@@ -165,20 +168,16 @@ class CaseConfigurationProviderServiceTest {
         LocalDate date = LocalDate.now().plusDays(2);
         String defaultDate = date.format(formatter) + "T16:00";
 
-        Map<String, Object> expectedMappedData = new HashMap<>();
-        expectedMappedData.put("tribunalCaseworker", "Read,Refer,Own,Manage,Cancel");
-        expectedMappedData.put("seniorTribunalCaseworker", "Read,Refer,Own,Manage,Cancel");
-        expectedMappedData.put("securityClassification", "PUBLIC");
-        expectedMappedData.put("jurisdiction", "IA");
-        expectedMappedData.put("caseTypeId", "Asylum");
-        expectedMappedData.put("dueDate", defaultDate);
-        expectedMappedData.put("priorityDate", defaultDate);
-
         Map<String, Object> taskAttributes = Map.of();
         TaskConfigurationResults mappedData = caseConfigurationProviderService
             .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
-
-        assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
+        assertEquals(Optional.of(defaultDate), mappedData.getProcessVariables().get("dueDate"));
+        assertEquals(Optional.of(defaultDate), mappedData.getProcessVariables().get("priorityDate"));
+        assertEquals("Read,Refer,Own,Manage,Cancel", mappedData.getProcessVariables().get("tribunalCaseworker"));
+        assertEquals("Read,Refer,Own,Manage,Cancel", mappedData.getProcessVariables().get("seniorTribunalCaseworker"));
+        assertEquals("PUBLIC", mappedData.getProcessVariables().get("securityClassification"));
+        assertEquals("IA", mappedData.getProcessVariables().get("jurisdiction"));
+        assertEquals("Asylum", mappedData.getProcessVariables().get("caseTypeId"));
     }
 
     @Test
@@ -199,13 +198,13 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         Map<String, Object> expectedMappedData = Map.of(
-            "name1", "value1",
-            "name2", "value2",
+            "name1", Optional.of("value1"),
+            "name2", Optional.of("value2"),
             "securityClassification", "PUBLIC",
             "jurisdiction", "IA",
             "caseTypeId", "Asylum",
-            "dueDate", defaultDate,
-            "priorityDate", defaultDate
+            "dueDate", Optional.of(defaultDate),
+            "priorityDate", Optional.of(defaultDate)
         );
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
@@ -213,6 +212,30 @@ class CaseConfigurationProviderServiceTest {
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 
+    }
+
+    @Test
+    void should_not_throw_an_exception_and_log_when_dmn_has_null_values() {
+        String someCaseId = "someCaseId";
+        String taskAttributesString = "{\"taskType\":\"taskType\"}";
+        Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate date = LocalDate.now().plusDays(2);
+        String defaultDate = date.format(formatter) + "T16:00";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributesString))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue(null))
+            ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
+
+        assertEquals(Optional.of("value1"), mappedData.getProcessVariables().get("name1"));
+        assertEquals(Optional.empty(), mappedData.getProcessVariables().get("name2"));
     }
 
     @Test
@@ -523,10 +546,12 @@ class CaseConfigurationProviderServiceTest {
     void should_replace_with_sent_additional_properties() {
         String someCaseId = "someCaseId";
         String roleAssignmentId = UUID.randomUUID().toString();
-        Map<String, Object> taskAttributes = Map.of(
-            "taskAdditionalProperties",
-            Map.of("roleAssignmentId", roleAssignmentId)
+        Map<String, Object> taskAttributes = new ConcurrentHashMap<>();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId,
+            "key", "nonExistValue"
         );
+        taskAttributes.put("additionalProperties", additionalProperties);
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         List<PermissionsDmnEvaluationResponse> permissions = List.of(
             new PermissionsDmnEvaluationResponse(
@@ -555,7 +580,7 @@ class CaseConfigurationProviderServiceTest {
             .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
-        Map<String, String> additionalProperties = ImmutableMap.of(
+        Map<String, String> expectedAdditionalProperties = ImmutableMap.of(
             "roleAssignmentId", roleAssignmentId
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
@@ -565,7 +590,7 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
-                    stringValue(writeValueAsString(additionalProperties))
+                    stringValue(writeValueAsString(expectedAdditionalProperties))
                 ));
     }
 
@@ -573,13 +598,13 @@ class CaseConfigurationProviderServiceTest {
     void should_replace_sent_additional_properties_when_configuration_dmn_contains() {
         String someCaseId = "someCaseId";
         String roleAssignmentId = UUID.randomUUID().toString();
-        Map<String, Object> taskAttributes = Map.of(
-            "taskAdditionalProperties",
-            Map.of(
-                "roleAssignmentId", roleAssignmentId,
-                "key", "nonExistValue"
-            )
+        Map<String, Object> taskAttributes = new ConcurrentHashMap<>();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId,
+            "key", "nonExistValue"
         );
+        taskAttributes.put("additionalProperties", additionalProperties);
+
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
 
         List<PermissionsDmnEvaluationResponse> permissions = List.of(
@@ -609,7 +634,7 @@ class CaseConfigurationProviderServiceTest {
             .getCaseRelatedConfiguration(someCaseId, taskAttributes, false);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
-        Map<String, String> additionalProperties = ImmutableMap.of(
+        Map<String, String> expectedAdditionalProperties = ImmutableMap.of(
             "roleAssignmentId", roleAssignmentId
         );
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
@@ -619,14 +644,53 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("additionalProperties"),
-                    stringValue(writeValueAsString(additionalProperties))
+                    stringValue(writeValueAsString(expectedAdditionalProperties))
                 ));
+    }
+
+    @Test
+    void should_return_value_from_configuration_dmn_when_null_values_exist() {
+        String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = Map.of("additionalProperties", Map.of());
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+
+        List<PermissionsDmnEvaluationResponse> permissions = List.of(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("reviewSpecificAccessRequestJudiciary"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("JUDICIAL"),
+                stringValue("categoryB")
+            )
+        );
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+            .thenReturn(permissions);
+
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue(null),
+                    stringValue("value1")
+                ),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_roleAssignmentId"),
+                    stringValue("roleAssignmentId")
+                )
+            ));
+
+        assertThatThrownBy(() -> caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("Configuration name value cannot be null");
     }
 
     @Test
     void should_return_default_value_from_configuration_dmn_when_additional_properties_is_empty() {
         String someCaseId = "someCaseId";
-        Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties", Map.of());
+        Map<String, Object> taskAttributes = Map.of("additionalProperties", Map.of());
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
 
         List<PermissionsDmnEvaluationResponse> permissions = List.of(
@@ -753,7 +817,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -808,7 +873,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(localDateTime + "T18:00")
+                    stringValue(localDateTime + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 
@@ -885,7 +951,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(false)
                 ));
     }
 
@@ -949,7 +1016,8 @@ class CaseConfigurationProviderServiceTest {
             .contains(
                 new ConfigurationDmnEvaluationResponse(
                     stringValue("dueDate"),
-                    stringValue(expectedDate + "T18:00")
+                    stringValue(expectedDate + "T18:00"),
+                    booleanValue(true)
                 ));
     }
 
@@ -1006,8 +1074,148 @@ class CaseConfigurationProviderServiceTest {
             .getCaseRelatedConfiguration(someCaseId, Map.of(), true);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
-        String expectedDate = GIVEN_DATE.plusDays(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isEmpty();
+    }
+
+    @Test
+    void should_include_additional_properties_on_reconfigure_request() {
+        String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = new ConcurrentHashMap<>();
+        taskAttributes.put("taskType", "taskType");
+        Map<String, String> additionalPropertiesMap = Map.of(
+            "name3", "value3",
+            "name4", "value4",
+            "name5", "value5",
+            "name6", "value6"
+        );
+        taskAttributes.put("additionalProperties", additionalPropertiesMap);
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", ""));
+
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("tribunalCaseworker"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("LEGAL_OPERATIONS"),
+                        stringValue("categoryB")
+                ),
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("seniorTribunalCaseworker"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("LEGAL_OPERATIONS"),
+                        stringValue("categoryC")
+                )
+        );
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+                .thenReturn(permissions);
+
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+                .thenReturn(asList(
+                        new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name3"),
+                                stringValue("updatedvalue3")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name4"),
+                                stringValue("updatedvalue4")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name5"),
+                                stringValue("updatedvalue5")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                            stringValue("additionalProperties_name6"),
+                            stringValue("updatedvalue6"))
+                ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+                .getCaseRelatedConfiguration(someCaseId, taskAttributes, true);
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
+                .hasSize(6)
+                .contains(
+                        new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name3"),
+                                stringValue("updatedvalue3")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name4"),
+                                                               stringValue("updatedvalue4")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name5"),
+                                               stringValue("updatedvalue5")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name6"),
+                                                               stringValue("updatedvalue6")));
+    }
+
+    @Test
+    void should_replace_db_additional_properties_to_camunda_additional_properties_on_reconfigure() {
+        String someCaseId = "someCaseId";
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, Object> taskAttributes = new ConcurrentHashMap<>();
+        Map<String, String> additionalProperties = Map.of(
+                "roleAssignmentId", roleAssignmentId,
+                "key1", "val1"
+        );
+        taskAttributes.put("additionalProperties", additionalProperties);
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        List<PermissionsDmnEvaluationResponse> permissions = List.of(
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("reviewSpecificAccessRequestJudiciary"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("JUDICIAL"),
+                        stringValue("categoryB")
+                )
+        );
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+                .thenReturn(permissions);
+
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+                .thenReturn(List.of(
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_roleAssignmentId"),
+                                stringValue(roleAssignmentId),
+                                booleanValue(true)
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_key1"),
+                                stringValue("val2"),
+                                booleanValue(false)
+                        )
+                ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+                .getCaseRelatedConfiguration(someCaseId, taskAttributes, true);
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+                .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
+                .isEmpty();
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+                .contains(
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_roleAssignmentId"),
+                                stringValue(roleAssignmentId),
+                                booleanValue(true)
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_key1"),
+                                stringValue("val2"),
+                                booleanValue(false)));
     }
 
     private String writeValueAsString(Map<String, String> data) {

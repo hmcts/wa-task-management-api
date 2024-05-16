@@ -13,6 +13,7 @@ import lombok.ToString;
 @ToString
 public class TerminateInfo {
 
+    @Schema(name = "terminate_reason")
     private final String terminateReason;
 
     @JsonCreator

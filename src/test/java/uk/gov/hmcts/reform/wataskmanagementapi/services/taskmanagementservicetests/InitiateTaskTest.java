@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
@@ -21,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfig
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -29,7 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -73,11 +73,11 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
+    CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    @Mock
     CftQueryService cftQueryService;
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -96,7 +96,7 @@ class InitiateTaskTest extends CamundaHelpers {
     private EntityManager entityManager;
 
     @Mock
-    private List<TaskOperationService> taskOperationServices;
+    private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
     private UserInfo userInfo;
 
@@ -104,20 +104,18 @@ class InitiateTaskTest extends CamundaHelpers {
     void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
-            cftQueryService
-        );
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskOperationServices,
             entityManager,
-            idamTokenGenerator
-        );
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService);
 
 
         taskId = UUID.randomUUID().toString();

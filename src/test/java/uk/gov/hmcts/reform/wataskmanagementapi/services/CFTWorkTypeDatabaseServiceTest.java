@@ -71,7 +71,9 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkTypeResource("error-management", "Error management"),
             new WorkTypeResource("review-case", "Review Case"),
             new WorkTypeResource("evidence", "Evidence"),
-            new WorkTypeResource("follow-up", "Follow Up")
+            new WorkTypeResource("follow-up", "Follow Up"),
+            new WorkTypeResource("pre-hearing", "Pre-Hearing"),
+            new WorkTypeResource("post-hearing", "Post-Hearing")
         );
 
         when(workTypeResourceRepository.findAll()).thenReturn(workTypeResources);
@@ -100,7 +102,9 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkType("error-management", "Error management"),
             new WorkType("review-case", "Review Case"),
             new WorkType("evidence", "Evidence"),
-            new WorkType("follow-up", "Follow Up")
+            new WorkType("follow-up", "Follow Up"),
+            new WorkType("pre_hearing", "Pre-Hearing"),
+            new WorkType("post_hearing", "Post-Hearing")
         );
     }
 }

@@ -2,7 +2,7 @@
 
 properties([
   // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
-  pipelineTriggers([cron('H 05 * * *')]),
+  pipelineTriggers([cron('H 07 * * 1-5')]),
   parameters([
     string(name: 'URL_TO_TEST', defaultValue: 'http://wa-task-management-api-aat.service.core-compute-aat.internal', description: 'The URL you want to run these tests against'),
     string(name: 'SecurityRules',
@@ -31,8 +31,8 @@ def secrets = [
 
     secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
 
-    secret('cft-task-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
-    secret('cft-task-POSTGRES-USER', 'POSTGRES_USERNAME'),
+    secret('cft-task-POSTGRES-PASS-FLEXIBLE', 'POSTGRES_PASSWORD'),
+    secret('cft-task-POSTGRES-USER-FLEXIBLE', 'POSTGRES_USERNAME'),
 
     secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
 

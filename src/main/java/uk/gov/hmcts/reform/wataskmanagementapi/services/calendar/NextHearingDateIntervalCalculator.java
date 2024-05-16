@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
@@ -39,14 +40,19 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
     @Override
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
-        DateTypeObject dateType, boolean isReconfigureRequest) {
+        DateTypeObject dateType,
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
 
-        Optional<LocalDateTime> referenceDate = getReferenceDate(configResponses, isReconfigureRequest);
+        var referenceDate = getReferenceDate(configResponses, isReconfigureRequest,
+                                             taskAttributes, calculatedConfigurations
+        );
         return referenceDate.map(localDateTime -> calculateDate(
             dateType,
             readDateTypeOriginFields(configResponses, isReconfigureRequest),
-            localDateTime
-        )).orElse(null);
+            localDateTime,
+            isReconfigureRequest)).orElse(null);
     }
 
     @Override
@@ -114,13 +120,17 @@ public class NextHearingDateIntervalCalculator extends DueDateIntervalCalculator
 
     @Override
     protected Optional<LocalDateTime> getReferenceDate(
-        List<ConfigurationDmnEvaluationResponse> configResponses, boolean reconfigure) {
+        List<ConfigurationDmnEvaluationResponse> configResponses,
+        boolean reconfigure,
+        Map<String, Object> taskAttributes, List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return configResponses.stream()
             .filter(r -> r.getName().getValue().equals(NEXT_HEARING_DATE_ORIGIN))
             .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
-            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+            .map(v -> {
+                log.info("Input {}: {}", NEXT_HEARING_DATE_ORIGIN, v);
+                return v.getValue().getValue();
+            })
+            .map(this::parseDateTime);
     }
 }

@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
@@ -33,7 +34,8 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
         ConfigurationDmnEvaluationResponse intermediateOrigin = getProperty(
             configResponses,
             dateTypeName + ORIGIN_SUFFIX,
-            isReconfigureRequest
+            //always intermediate date values will be read hence isReconfigurableRequest value is set to false
+            false
         );
         return INTERMEDIATE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(intermediateOrigin).isPresent()
@@ -44,32 +46,45 @@ public class IntermediateDateIntervalCalculator extends DueDateIntervalCalculato
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest
-    ) {
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         Optional<LocalDateTime> referenceDate = getReferenceDate(
             dateTypeObject.dateTypeName(),
             configResponses,
-            isReconfigureRequest
+            isReconfigureRequest,
+            taskAttributes,
+            calculatedConfigurations
         );
         return referenceDate.map(localDateTime -> calculateDate(
                 dateTypeObject,
                 readDateTypeOriginFields(dateTypeObject.dateTypeName(), configResponses, isReconfigureRequest),
-                localDateTime
-            ))
-            .orElse(null);
+                localDateTime,
+                isReconfigureRequest))
+            .orElse(addEmptyConfiguration(dateTypeObject.dateTypeName()));
     }
 
     protected Optional<LocalDateTime> getReferenceDate(
         String dateTypeName,
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
-        boolean reconfigure) {
+        boolean reconfigure,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
         return dueDateProperties.stream()
             .filter(r -> r.getName().getValue().equals(dateTypeName + ORIGIN_SUFFIX))
-            .filter(r -> !reconfigure || r.getCanReconfigure().getValue())
             .reduce((a, b) -> b)
-            .map(ConfigurationDmnEvaluationResponse::getValue)
-            .map(CamundaValue::getValue)
-            .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER));
+            .map(v -> {
+                log.info("Input {}: {}", dateTypeName + ORIGIN_SUFFIX, v);
+                return v.getValue().getValue();
+            })
+            .map(this::parseDateTime);
+    }
+
+    private  ConfigurationDmnEvaluationResponse addEmptyConfiguration(String type) {
+        return ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue(type))
+            .value(CamundaValue.stringValue(""))
+            .build();
     }
 
     protected DateTypeIntervalData readDateTypeOriginFields(

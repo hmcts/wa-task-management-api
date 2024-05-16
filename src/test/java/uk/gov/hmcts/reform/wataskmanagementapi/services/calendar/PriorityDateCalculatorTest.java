@@ -11,6 +11,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,11 +26,12 @@ class PriorityDateCalculatorTest {
         PRIORITY_DATE,
         PRIORITY_DATE.getType()
     );
-
+    public List<ConfigurationDmnEvaluationResponse> calculatedConfigurations;
     private PriorityDateCalculator priorityDateCalculator;
 
     @BeforeEach
     public void before() {
+        calculatedConfigurations = new ArrayList<>();
         priorityDateCalculator = new PriorityDateCalculator();
     }
 
@@ -119,7 +122,9 @@ class PriorityDateCalculatorTest {
         String dateValue = priorityDateCalculator.calculateDate(
             evaluationResponses,
             PRIORITY_DATE_TYPE,
-            configurable
+            configurable,
+            new HashMap<>(),
+            calculatedConfigurations
         ).getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -147,7 +152,10 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDateTime);
 
-        String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable)
+        String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable,
+                                                                new HashMap<>(),
+                                                                new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -174,7 +182,10 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDateTime);
 
-        String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable)
+        String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable,
+                                                                new HashMap<>(),
+                                                                new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
@@ -202,7 +213,10 @@ class PriorityDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDate2);
 
-        String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable)
+        String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable,
+                                                                new HashMap<>(),
+                                                                new ArrayList<>()
+            )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
     }

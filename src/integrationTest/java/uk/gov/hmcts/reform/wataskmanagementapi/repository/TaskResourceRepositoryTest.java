@@ -9,6 +9,7 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -29,8 +30,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -49,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
@@ -215,11 +219,40 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void given_task_is_created_when_find_by_id_and_state_return_tasks_in_the_given_state() {
+
+        String firstTaskId = UUID.randomUUID().toString();
+        String secondTaskId = UUID.randomUUID().toString();
+
+        TaskResource firstTask = createTask(firstTaskId, "tribunal-caseofficer", "IA",
+                                            "startAppeal", "someAssignee", "1623278362430412",
+                                            CFTTaskState.ASSIGNED);
+        TaskResource secondTask = createTask(secondTaskId, "tribunal-caseofficer", "IA",
+                                              "startAppeal", "someAssignee",
+                                             "1623278362430412", CFTTaskState.ASSIGNED);
+        taskResourceRepository.save(firstTask);
+        secondTask.setState(CFTTaskState.CANCELLED);
+        taskResourceRepository.save(secondTask);
+        assertThat(firstTask.getTaskId()).isEqualTo(firstTaskId);
+        assertThat(secondTask.getTaskId()).isEqualTo(secondTaskId);
+
+        final Optional<TaskResource> taskResource = taskResourceRepository
+            .findByIdAndStateIn(firstTaskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+        assertAll(
+            () -> assertTrue(taskResource.isPresent()),
+            () -> assertEquals(firstTaskId, taskResource.get().getTaskId()),
+            () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.get().getState())
+        );
+        final Optional<TaskResource> taskResource2 =
+            taskResourceRepository.findByIdAndStateIn(
+                secondTaskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+
+        assertFalse(taskResource2.isPresent());
+    }
+
+    @Test
     void given_task_is_created_when_search_request_received_then_task_id_is_returned() {
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            taskResourceRepository.save(task);
-        });
+        reindexTasks(taskId);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -241,12 +274,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -271,12 +301,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -299,12 +326,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -327,12 +351,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -355,12 +376,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -384,12 +402,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:WA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "WA:*:*:case-manager:*:r:U:*");
@@ -412,12 +427,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "WA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:WA:*:*:1:765324", "*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("WA:*:*:case-manager:*:r:U:*");
@@ -440,12 +452,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", null, "1623278362430413", CFTTaskState.UNASSIGNED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -468,12 +477,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.UNASSIGNED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -497,12 +503,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
             "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
 
-        transactionHelper.doInNewTransaction(() -> {
-            task.setIndexed(true);
-            createdTask.setIndexed(true);
-            taskResourceRepository.save(task);
-            taskResourceRepository.save(createdTask);
-        });
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
+
+        reindexTasks(taskId, taskId2);
 
         Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
         Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*", "IA:*:*:case-manager:*:r:U:*");
@@ -584,8 +587,121 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals("caseCategoryB", tasksResult.get(2).getCaseCategory());
     }
 
+    @Test
+    void given_tasks_exist_with_index_flag_false_when_find_by_index_false_then_tasks_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(false);
+            createdTask.setIndexed(false);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        List<TaskResource> taskResult = taskResourceRepository
+            .findByIndexedFalseAndStateIn(List.of(CFTTaskState.ASSIGNED));
+        assertNotNull(taskResult);
+        assertEquals(2, taskResult.size());
+        assertThat(List.of(taskId2, taskId)).contains(taskResult.get(0).getTaskId());
+        assertThat(List.of(taskId2, taskId)).contains(taskResult.get(1).getTaskId());
+    }
+
+    @Test
+    void given_tasks_exist_with_index_flag_true_when_find_by_index_false_then_tasks_not_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.UNASSIGNED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(true);
+            createdTask.setIndexed(true);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        List<TaskResource> taskResult = taskResourceRepository
+            .findByIndexedFalseAndStateIn(List.of(CFTTaskState.UNASSIGNED));
+
+        assertNotNull(taskResult);
+        assertEquals(0, taskResult.size());
+    }
+
+    @Test
+    void given_tasks_exist_with_index_flag_true_when_find_by_index_true_state_completed_then_tasks_not_returned() {
+        String taskId2 = UUID.randomUUID().toString();
+        TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+
+        transactionHelper.doInNewTransaction(() -> {
+            task.setIndexed(false);
+            createdTask.setIndexed(false);
+            taskResourceRepository.save(task);
+            taskResourceRepository.save(createdTask);
+        });
+
+        List<TaskResource> taskResult = taskResourceRepository
+            .findByIndexedFalseAndStateIn(List.of(CFTTaskState.UNASSIGNED));
+
+        assertNotNull(taskResult);
+        assertEquals(0, taskResult.size());
+    }
+
+
+    @Test
+    void given_tasks_exist_when_get_top_5_order_by_lastUpdated_timestamp_asc_then_return_max_5_tasks_ordered() {
+        taskResourceRepository.deleteAll();
+        List<TaskResource> createdTasks = new ArrayList<>(6);
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:46.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:47.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:48.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:49.345875+01:00")));
+        createdTasks.add(createTask(UUID.randomUUID().toString(),
+            OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00")));
+
+        taskResourceRepository.saveAll(createdTasks);
+
+        List<TaskResource> results = taskResourceRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
+        assertEquals(5, results.size());
+        assertTrue(results.get(0).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00")));
+        assertTrue(results.get(1).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:49.345875+01:00")));
+        assertTrue(results.get(2).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:48.345875+01:00")));
+        assertTrue(results.get(3).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:47.345875+01:00")));
+        assertTrue(results.get(4).getLastUpdatedTimestamp()
+            .isEqual(OffsetDateTime.parse("2021-05-09T20:15:46.345875+01:00")));
+
+    }
+
     private void checkTaskWasSaved(String taskId) {
         assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
+    }
+
+    private void reindexTasks(String... taskIds) {
+        transactionHelper.doInNewTransaction(() -> {
+            for (String id : taskIds) {
+                TaskResource taskToIndex = taskResourceRepository.findById(id).orElseThrow();
+                taskToIndex.setIndexed(true);
+                taskResourceRepository.save(taskToIndex);
+            }
+        });
+    }
+
+    private TaskResource createTask(String taskId, OffsetDateTime lastUpdated) {
+        TaskResource createdTask = createTask(taskId, "case-manager", "IA",
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+        createdTask.setLastUpdatedTimestamp(lastUpdated);
+        return createdTask;
     }
 
     private TaskResource createTask(String taskId, String roleName, String jurisdiction, String taskType,
