@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 
-import java.util.List;
+import java.util.Set;
 
 @EqualsAndHashCode
 @ToString
@@ -14,13 +14,13 @@ import java.util.List;
 public class GetTaskTypesResponse {
 
     @JsonProperty("task_types")
-    private List<TaskTypeResponse> taskTypeResponses;
+    private Set<TaskTypeResponse> taskTypeResponses;
 
-    public GetTaskTypesResponse(List<TaskTypeResponse> taskTypeResponses) {
+    public GetTaskTypesResponse(Set<TaskTypeResponse> taskTypeResponses) {
         this.taskTypeResponses = taskTypeResponses;
     }
 
-    public List<TaskTypeResponse> getTaskTypeResponses() {
+    public Set<TaskTypeResponse> getTaskTypeResponses() {
         return taskTypeResponses;
     }
 

@@ -25,6 +25,24 @@ class DecisionTableTest {
             "wa-task-completion-somejurisdiction-somecasetype",
             DecisionTable.WA_TASK_COMPLETION.getTableKey("SOMEJURISDICTION", "SOMECASETYPE")
         );
+        assertEquals(
+            "wa-task-completion-somejurisdiction-somecasetype_withunderscore",
+            DecisionTable.WA_TASK_COMPLETION.getTableKey("SOMEJURISDICTION", "somecasetype_withunderscore")
+        );
+        assertEquals(
+            "wa-task-completion-somejurisdiction-somecasetype#withhashtrick",
+            DecisionTable.WA_TASK_COMPLETION.getTableKey("SOMEJURISDICTION", "somecasetype#withhashtrick")
+        );
+
+        assertEquals(
+            "wa-task-completion-somejurisdiction-somecasetype.withdot",
+            DecisionTable.WA_TASK_COMPLETION.getTableKey("SOMEJURISDICTION", "somecasetype.withdot")
+        );
+
+        assertEquals(
+            "wa-task-completion-somejurisdiction-some&case%type$$",
+            DecisionTable.WA_TASK_COMPLETION.getTableKey("SOMEJURISDICTION", "some&case%type$$")
+        );
     }
 
     @Test

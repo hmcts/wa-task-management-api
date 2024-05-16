@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
@@ -43,6 +46,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -74,7 +79,8 @@ public class TaskSearchController extends BaseController {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
-    @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.")
+    @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = OK, content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = GetTasksResponse.class))}),
@@ -86,7 +92,7 @@ public class TaskSearchController extends BaseController {
     })
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
-        @RequestHeader("Authorization") String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
 
         @RequestParam(required = false, name = "first_result")
         @Min(value = 0, message = "first_result must not be less than zero") Integer firstResult,
@@ -113,20 +119,8 @@ public class TaskSearchController extends BaseController {
         }
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        log.debug("Search request received '{}'", searchTaskRequest);
-        //Release 2
-
-        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-
-        boolean isGranularPermissionEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
+        log.info("Search request received '{}', first_result '{}', max_result '{}'", searchTaskRequest,
+            firstResult, maxResults);
 
         boolean isIndexSearchEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
@@ -135,20 +129,23 @@ public class TaskSearchController extends BaseController {
         );
 
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        log.info("Search request mapped to '{}', first_result '{}', max_result '{}'", searchRequest,
+            Optional.ofNullable(firstResult).orElse(0),
+            Optional.ofNullable(maxResults).orElse(defaultMaxResults));
 
         if (isIndexSearchEnabled) {
+            log.info("Search tasks using search_index");
             response = cftTaskDatabaseService.searchForTasks(
+                Optional.ofNullable(firstResult).orElse(0),
+                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchRequest,
-                accessControlResponse,
-                granularPermissionResponseFeature);
+                accessControlResponse);
         } else {
             response = cftQueryService.searchForTasks(
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchRequest,
-                accessControlResponse,
-                granularPermissionResponseFeature,
-                isGranularPermissionEnabled
+                accessControlResponse
             );
         }
 
@@ -160,7 +157,8 @@ public class TaskSearchController extends BaseController {
 
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search"
-        + " criteria that are eligible for automatic completion")
+        + " criteria that are eligible for automatic completion",
+        security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
                 schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
@@ -171,7 +169,7 @@ public class TaskSearchController extends BaseController {
     })
     @PostMapping(path = "/search-for-completable")
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
-        @RequestHeader("Authorization") String authToken,
+        @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
 
         GetTasksCompletableResponse<Task> response;
@@ -192,18 +190,17 @@ public class TaskSearchController extends BaseController {
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
 
-        boolean granularPermissionResponseFeature = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-
         response = cftQueryService.searchForCompletableTasks(
             searchEventAndCase,
             accessControlResponse.getRoleAssignments(),
-            permissionsRequired,
-            granularPermissionResponseFeature
+            permissionsRequired
         );
+
+        log.info(String.format("POST /search-for-completable - userId: %s, caseId: %s, taskIds: %s",
+                               accessControlResponse.getUserInfo().getUid(),
+                               searchEventAndCase.getCaseId(),
+                               response.getTasks().stream().map(Task::getId).collect(Collectors.toSet())
+        ));
 
         return ResponseEntity
             .ok()

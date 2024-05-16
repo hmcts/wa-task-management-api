@@ -14,6 +14,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -45,6 +47,13 @@ class DueDateIntervalCalculatorTest {
         );
     }
 
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0() {
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
     private static Stream<ConfigurableScenario> getConfigurablesWithoutDueDate() {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"),
@@ -70,6 +79,13 @@ class DueDateIntervalCalculatorTest {
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
             new ConfigurableScenario(false, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() {
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
         );
     }
 
@@ -151,7 +167,9 @@ class DueDateIntervalCalculatorTest {
                                                                    dueDateTime
                                                                ),
                                                                DUE_DATE_TYPE,
-                                                               configurable
+                                                               configurable,
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
@@ -209,7 +227,67 @@ class DueDateIntervalCalculatorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
                 DUE_DATE_TYPE,
-                scenario.configurable
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue();
+
+        assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
+    }
+
+    @ParameterizedTest
+    @MethodSource({"getConfigurablesWhenIntervalIsLessThan0"})
+    void shouldCalculateWhenIntervalIsLessThan0(ConfigurableScenario scenario) {
+        String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("-3"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue(""))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_NEXT))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        String dueDateValue = dueDateIntervalCalculator
+            .calculateDate(
+                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
+                    dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
+                ),
+                DUE_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -265,7 +343,67 @@ class DueDateIntervalCalculatorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
                 DUE_DATE_TYPE,
-                scenario.configurable
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue();
+        LocalDateTime resultDate = LocalDateTime.parse(dueDateValue);
+        assertThat(resultDate).isEqualTo(scenario.expectedDate);
+    }
+
+    @ParameterizedTest
+    @MethodSource({"getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays"})
+    void shouldCalculateWhenIntervalIsLessThan0AndGivenHolidays(ConfigurableScenario scenario) {
+        String localDateTime = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateOrigin"))
+            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateIntervalDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateIntervalDays"))
+            .value(CamundaValue.stringValue("-5"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateNonWorkingDaysOfWeek"))
+            .value(CamundaValue.stringValue("SATURDAY,SUNDAY"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateSkipNonWorkingDays = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateSkipNonWorkingDays"))
+            .value(CamundaValue.stringValue("true"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+        ConfigurationDmnEvaluationResponse dueDateMustBeWorkingDay = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateMustBeWorkingDay"))
+            .value(CamundaValue.stringValue(DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("dueDateTime"))
+            .value(CamundaValue.stringValue("18:00"))
+            .canReconfigure(CamundaValue.booleanValue(scenario.configurable))
+            .build();
+
+        String dueDateValue = dueDateIntervalCalculator
+            .calculateDate(
+                List.of(dueDateIntervalDays, dueDateNonWorkingCalendar, dueDateMustBeWorkingDay,
+                    dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
+                ),
+                DUE_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dueDateValue);
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -324,7 +462,9 @@ class DueDateIntervalCalculatorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
                 DUE_DATE_TYPE,
-                scenario.configurable
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -377,7 +517,9 @@ class DueDateIntervalCalculatorTest {
                 dueDateTime
             ),
             DUE_DATE_TYPE,
-            false
+            false,
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue();
         LocalDateTime resultDate = LocalDateTime.parse(dateValue);
 
@@ -437,7 +579,9 @@ class DueDateIntervalCalculatorTest {
                         dueDateNonWorkingDaysOfWeek, dueDateSkipNonWorkingDays, dueDateOrigin, dueDateTime
                 ),
                 DUE_DATE_TYPE,
-                scenario.configurable
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue();
 
         assertThat(LocalDateTime.parse(dueDateValue)).isEqualTo(scenario.expectedDate);
@@ -493,7 +637,9 @@ class DueDateIntervalCalculatorTest {
                                                                    dueDateOrigin
                                                                ),
                                                                DUE_DATE_TYPE,
-                                                               scenario.configurable
+                                                               scenario.configurable,
+                                                               new HashMap<>(),
+                                                               new ArrayList<>()
                                                            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
@@ -518,7 +664,9 @@ class DueDateIntervalCalculatorTest {
             .parse(dueDateIntervalCalculator.calculateDate(
                 List.of(dueDateOrigin),
                 DUE_DATE_TYPE,
-                configurable
+                configurable,
+                new HashMap<>(),
+                new ArrayList<>()
             ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DATE_TIME_FORMATTER);
@@ -549,7 +697,9 @@ class DueDateIntervalCalculatorTest {
         LocalDateTime resultDate = LocalDateTime.parse(dueDateIntervalCalculator.calculateDate(
             List.of(dueDateOrigin, dueDateTime),
             DUE_DATE_TYPE,
-            false
+            false,
+            new HashMap<>(),
+            new ArrayList<>()
         ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));

@@ -25,6 +25,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -80,8 +81,10 @@ class ExclusiveTaskActionsControllerTest {
 
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
+            TaskResource task = createDummyTaskResource(taskId);
             when(taskManagementService.initiateTask(taskId, req))
-                .thenReturn(createDummyTaskResource(taskId));
+                .thenReturn(task);
+            doNothing().when(taskManagementService).updateTaskIndex(taskId);
             ResponseEntity<TaskResource> response = exclusiveTaskActionsController
                 .initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req);
 

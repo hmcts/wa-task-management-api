@@ -10,6 +10,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -20,10 +21,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.WorkTypesController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -58,8 +57,23 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
     public void allWorkTypes() {
         List<WorkType> workTypes = new ArrayList<>();
         workTypes.add(new WorkType("hearing_work", "Hearing Work"));
+        workTypes.add(new WorkType("upper_tribunal", "Upper Tribunal"));
+        workTypes.add(new WorkType("routine_work", "Routine work"));
+        workTypes.add(new WorkType("decision_making_work", "Decision-making work"));
+        workTypes.add(new WorkType("applications", "Applications"));
+        workTypes.add(new WorkType("priority", "Priority"));
+        workTypes.add(new WorkType("access_requests", "Access requests"));
+        workTypes.add(new WorkType("error_management", "Error management"));
+        workTypes.add(new WorkType("review_case", "Review Case"));
+        workTypes.add(new WorkType("evidence", "Evidence"));
+        workTypes.add(new WorkType("follow_up", "Follow Up"));
+        workTypes.add(new WorkType("pre_hearing", "Pre-Hearing"));
+        workTypes.add(new WorkType("post_hearing", "Post-Hearing"));
 
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(workTypesService.getAllWorkTypes()).thenReturn(workTypes);
     }
@@ -67,21 +81,24 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
     @State({"retrieve work types by userId"})
     public void workTypesByUserId() {
         List<WorkType> workTypes = new ArrayList<>();
-        workTypes.add(new WorkType("hearing_work", "Hearing Work"));
+        final String hearingWork = "hearing_work";
+        workTypes.add(new WorkType(hearingWork, "Hearing Work"));
 
         Map<String, String> attributes = Map.of(
-            WORK_TYPES.value(), "hearing_work"
+            WORK_TYPES.value(), hearingWork
         );
 
         List<RoleAssignment> roleAssignmentList = List.of(
             new RoleAssignment(ActorIdType.IDAM, "actorId", RoleType.CASE, "roleName",
                 Classification.RESTRICTED, GrantType.SPECIFIC, RoleCategory.JUDICIAL, false, attributes)
         );
-        final Optional<WorkType> workType = Optional.of(new WorkType("hearing_work", "Hearing Work"));
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
-        when(workTypesService.getWorkTypes(any())).thenReturn(Collections.singletonList(workType.get()));
+        when(workTypesService.getWorkTypes(any())).thenReturn(workTypes);
     }
 
 }

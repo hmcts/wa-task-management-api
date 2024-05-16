@@ -12,6 +12,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
@@ -65,7 +66,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            launchDarklyFeatureFlagProvider
+            taskDeletionService
         ));
 
         if (context != null) {
@@ -82,18 +83,27 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
 
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(taskManagementService.getTask(any(), any())).thenReturn(createTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
     private void setInitMockWaTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(taskManagementService.getTask(any(), any())).thenReturn(createWaTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
     private void setInitMockTaskWithWarnings() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithWarnings());
     }
@@ -155,8 +165,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
                 PermissionTypes.OWN,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE,
-                PermissionTypes.REFER
+                PermissionTypes.MANAGE
             )
         );
 

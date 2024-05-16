@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -20,8 +21,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -65,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/cancel";
@@ -81,8 +81,6 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @MockBean
     private AccessControlService accessControlService;
     @Mock
@@ -261,12 +259,6 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
-
         mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -320,12 +312,6 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.GRANULAR_PERMISSION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-        )).thenReturn(true);
 
         CamundaTask camundaTask = mockServices.getCamundaTask("processInstanceId", taskId);
         when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(camundaTask);

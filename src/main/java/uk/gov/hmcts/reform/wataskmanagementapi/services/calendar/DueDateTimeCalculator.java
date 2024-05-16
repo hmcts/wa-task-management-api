@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigu
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.DUE_DATE;
@@ -25,6 +26,11 @@ public class DueDateTimeCalculator implements DateCalculator {
         return DUE_DATE == dateTypeObject.dateType()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE.getType(), isReconfigureRequest)).isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_REF, isReconfigureRequest)).isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_EARLIEST, isReconfigureRequest))
+            .isEmpty()
+            && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_ORIGIN_LATEST, isReconfigureRequest))
+            .isEmpty()
             && Optional.ofNullable(getProperty(dueDateProperties, DUE_DATE_TIME, isReconfigureRequest)).isPresent();
     }
 
@@ -32,18 +38,23 @@ public class DueDateTimeCalculator implements DateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
-        return calculatedDate(dateTypeObject, getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest));
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var dueDateTimeResponse = getProperty(configResponses, DUE_DATE_TIME, isReconfigureRequest);
+        log.info("Input {}: {}", DUE_DATE_TIME, dueDateTimeResponse);
+        return calculatedDate(dateTypeObject, dueDateTimeResponse, isReconfigureRequest);
     }
 
     protected ConfigurationDmnEvaluationResponse calculatedDate(
         DateTypeObject dateTypeObject,
-        ConfigurationDmnEvaluationResponse dueDateTimeResponse) {
+        ConfigurationDmnEvaluationResponse dueDateTimeResponse, boolean isReconfigureRequest) {
         LocalDateTime dateTime = addTimeToDate(dueDateTimeResponse, DEFAULT_DATE);
         return ConfigurationDmnEvaluationResponse
             .builder()
             .name(CamundaValue.stringValue(dateTypeObject.dateTypeName()))
             .value(CamundaValue.stringValue(dateTypeObject.dateType().getDateTimeFormatter().format(dateTime)))
+            .canReconfigure(CamundaValue.booleanValue(isReconfigureRequest))
             .build();
     }
 }

@@ -1,13 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -15,16 +16,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -38,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+
 class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
@@ -78,16 +77,10 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @SpyBean
-    private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;
-    @MockBean
-    private ClientAccessControlService clientAccessControlService;
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private String taskId;
@@ -288,82 +281,6 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     }
 
     @Test
-    void should_return_task_with_old_permissions_when_granular_permission_flag_off() throws Exception {
-        String caseId = "searchForCompletableCaseId2";
-        searchEventAndCase = new SearchEventAndCase(
-            caseId,
-            "decideAnApplication",
-            "ia",
-            "asylum"
-        );
-        mockServices.mockUserInfo();
-
-        // Role attribute is IA
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction("IA")
-                    .caseType("Asylum")
-                    .caseId(caseId)
-                    .build()
-            )
-            .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-        // Task created is IA
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, false, false, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name(),
-            taskId, OffsetDateTime.now(), true, true, true, true,
-            true, true, true, true, true, false
-        );
-
-        insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
-        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
-            roleAssignments
-        );
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(accessControlResponse);
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
-            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
-            "completionMode", new CamundaVariable("Auto", "String"),
-            "workType", new CamundaVariable("decision_making_work", "String"),
-            "description", new CamundaVariable("aDescription", "String")
-        ));
-        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
-            .thenReturn(mockedResponse);
-
-        when(camundaServiceApi.getAllVariables(any(), any()))
-            .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", taskId));
-
-        mockMvc.perform(
-            post("/task/search-for-completable")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchEventAndCase))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpectAll(
-            status().isOk(),
-            jsonPath("$.tasks").isNotEmpty(),
-            jsonPath("$.tasks.length()").value(1),
-            jsonPath("$.tasks[0].assignee").value("IDAM_USER_ID"),
-            jsonPath("$.tasks[0].description").value("aDescription"),
-            jsonPath("$.tasks[0].permissions.values[0]").value("Own"),
-            jsonPath("$.tasks[0].permissions.values[1]").value("Execute"),
-            jsonPath("$.tasks[0].permissions.values.length()").value(2)
-        ).andReturn();
-    }
-
-    @Test
     void should_return_task_with_granular_permissions_when_granular_permission_flag_on() throws Exception {
         String caseId = "searchForCompletableCaseId2";
         searchEventAndCase = new SearchEventAndCase(
@@ -420,12 +337,6 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         when(camundaServiceApi.getAllVariables(any(), any()))
             .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", taskId));
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_4_GRANULAR_PERMISSION_RESPONSE,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail()
-        )).thenReturn(true);
 
         mockMvc.perform(
             post("/task/search-for-completable")
@@ -632,7 +543,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, false, false, true, false, false,
+            false, true, true, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -656,7 +567,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(2));
+            .andExpect(jsonPath("tasks.size()").value(3));
     }
 
     @Test
@@ -694,6 +605,9 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     @Test
     void should_return_status_code_502_when_camunda_service_is_down() throws Exception {
 
+        Request request = Request.create(Request.HttpMethod.POST, "url",
+                                         new HashMap<>(), null, new RequestTemplate());
+
         searchEventAndCase = new SearchEventAndCase(
             "some-caseId",
             "some-eventId",
@@ -702,7 +616,13 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         );
         mockServices.mockServiceAPIs();
 
-        doThrow(FeignException.BadGateway.class)
+        FeignException exception = new FeignException.BadGateway(
+            "Camunda is down.",
+            request,
+            null,
+            null);
+
+        doThrow(exception)
             .when(camundaServiceApi)
             .evaluateDMN(any(), any(), any(), any());
 
@@ -731,7 +651,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 jsonPath("$.status").value(502),
                 jsonPath("$.detail").value(
                     "Downstream dependency did not respond as expected "
-                        + "and the request could not be completed.")
+                        + "and the request could not be completed. Message from downstream system: Camunda is down.")
             );
 
         verify(camundaServiceApi, times(1))

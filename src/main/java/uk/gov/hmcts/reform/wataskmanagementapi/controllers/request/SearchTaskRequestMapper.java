@@ -33,7 +33,7 @@ public final class SearchTaskRequestMapper {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
         "applications", "priority", "access_requests", "error_management",
-        "review_case", "evidence", "follow_up"
+        "review_case", "evidence", "follow_up", "pre_hearing", "post_hearing"
     );
 
     private SearchTaskRequestMapper() {
@@ -43,11 +43,14 @@ public final class SearchTaskRequestMapper {
     public static SearchRequest map(SearchTaskRequest clientRequest) {
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(clientRequest);
 
-        boolean availableTasksOnly = isAvailableTasksOnly(clientRequest);
+        RequestContext requestContext = clientRequest.getRequestContext();
+        boolean availableTasksOnly = requestContext != null && requestContext.equals(RequestContext.AVAILABLE_TASKS);
 
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
             cftTaskStates.add(CFTTaskState.UNASSIGNED);
+            //TODO: Remove this once the available_tasks_only parameter is depreciated
+            requestContext = RequestContext.AVAILABLE_TASKS;
         } else {
             SearchParameterList stateParam = keyMap.get(STATE);
             cftTaskStates = getCftTaskStates(stateParam);
@@ -68,8 +71,7 @@ public final class SearchTaskRequestMapper {
         validateRequest(workTypes);
 
         return SearchRequest.builder()
-            .requestContext(clientRequest.getRequestContext())
-            .availableTasksOnly(availableTasksOnly)
+            .requestContext(requestContext)
             .cftTaskStates(cftTaskStates)
             .jurisdictions(getValueOrEmpty(jurisdictionParam))
             .locations(getValueOrEmpty(locationParam))
@@ -99,12 +101,6 @@ public final class SearchTaskRequestMapper {
         }
     }
 
-    private static boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
-
-        RequestContext context = searchTaskRequest.getRequestContext();
-
-        return context != null && context.equals(RequestContext.AVAILABLE_TASKS);
-    }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
         return getValueOrEmpty(stateParam).stream()

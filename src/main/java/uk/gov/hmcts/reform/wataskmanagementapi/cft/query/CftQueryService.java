@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfigu
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -59,14 +58,11 @@ public class CftQueryService {
         int firstResult,
         int maxResults,
         SearchRequest searchRequest,
-        AccessControlResponse accessControlResponse,
-        boolean granularPermissionResponseFeature,
-        boolean isGranularPermissionEnabled
+        AccessControlResponse accessControlResponse
     ) {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
-        PermissionRequirements permissionsRequired = findPermissionRequirement(searchRequest,
-            isGranularPermissionEnabled);
+        PermissionRequirements permissionsRequired = findPermissionRequirement(searchRequest);
         boolean availableTasksOnly = searchRequest.isAvailableTasksOnly();
 
         final List<Object[]> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
@@ -94,8 +90,7 @@ public class CftQueryService {
             .map(taskResource ->
                 cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
-                    roleAssignments,
-                    granularPermissionResponseFeature
+                    roleAssignments
                 )
             )
             .collect(Collectors.toList());
@@ -106,8 +101,7 @@ public class CftQueryService {
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
         SearchEventAndCase searchEventAndCase,
         List<RoleAssignment> roleAssignments,
-        PermissionRequirements permissionsRequired,
-        boolean granularPermissionResponseFeature
+        PermissionRequirements permissionsRequired
     ) {
 
         //Safe-guard against unsupported Jurisdictions.
@@ -137,8 +131,7 @@ public class CftQueryService {
             taskTypes
         );
 
-        final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources,
-                                                              granularPermissionResponseFeature);
+        final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources);
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
@@ -164,7 +157,6 @@ public class CftQueryService {
                                           List<RoleAssignment> roleAssignments,
                                           PermissionRequirements permissionRequirements
     ) {
-
         if (permissionRequirements.isEmpty()
             || taskId == null
             || taskId.isBlank()) {
@@ -174,31 +166,19 @@ public class CftQueryService {
         return taskResourceDao.getTask(taskId, roleAssignments, permissionRequirements);
     }
 
-    private PermissionRequirements findPermissionRequirement(SearchRequest searchRequest,
-                                                             boolean isGranularPermissionEnabled) {
-        if (isGranularPermissionEnabled) {
-            //When granular permission feature flag is enabled, request is expected only in new format
-            RequestContext context = searchRequest.getRequestContext();
-            if (context == null) {
-                return PermissionRequirementBuilder.builder().buildSingleType(READ);
-            } else if (context.equals(RequestContext.AVAILABLE_TASKS)) {
-                return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, CLAIM);
-            } else if (context.equals(RequestContext.ALL_WORK)) {
-                return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
-            }
-            return PermissionRequirementBuilder.builder().buildSingleType(READ);
+    private PermissionRequirements findPermissionRequirement(SearchRequest searchRequest) {
+
+        if (searchRequest.isAvailableTasksOnly()) {
+            return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, CLAIM);
+        } else if (searchRequest.isAllWork()) {
+            return PermissionRequirementBuilder.builder().buildSingleType(MANAGE);
         } else {
-            if (searchRequest.isAvailableTasksOnly()) {
-                return PermissionRequirementBuilder.builder().buildSingleRequirementWithAnd(OWN, READ);
-            } else {
-                return PermissionRequirementBuilder.builder().buildSingleType(READ);
-            }
+            return PermissionRequirementBuilder.builder().buildSingleType(READ);
         }
     }
 
     private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,
-                                                    List<TaskResource> taskResources,
-                                                    boolean granularPermissionResponseFeature) {
+                                                    List<TaskResource> taskResources) {
         if (taskResources.isEmpty()) {
             return emptyList();
         }
@@ -206,8 +186,7 @@ public class CftQueryService {
         return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                      taskResource,
-                     roleAssignments,
-                     granularPermissionResponseFeature
+                     roleAssignments
                  )
             )
             .collect(Collectors.toList());

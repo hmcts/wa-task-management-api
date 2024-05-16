@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator.DateTypeObject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
@@ -19,10 +20,10 @@ public class NextHearingDateCalculator extends DueDateCalculator {
     public boolean supports(
         List<ConfigurationDmnEvaluationResponse> dueDateProperties,
         DateTypeObject dateTypeObject,
-        boolean isReconfigureRequest) {
+        boolean isReconfigure) {
 
         return NEXT_HEARING_DATE == dateTypeObject.dateType()
-            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigureRequest))
+            && Optional.ofNullable(getProperty(dueDateProperties, NEXT_HEARING_DATE.getType(), isReconfigure))
             .isPresent();
     }
 
@@ -30,11 +31,12 @@ public class NextHearingDateCalculator extends DueDateCalculator {
     public ConfigurationDmnEvaluationResponse calculateDate(
         List<ConfigurationDmnEvaluationResponse> configResponses,
         DateTypeObject dateType,
-        boolean isReconfigureRequest) {
-        return calculatedDate(
-            dateType,
-            getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest),
-            getProperty(configResponses, NEXT_HEARING_DATE_TIME, isReconfigureRequest)
-        );
+        boolean isReconfigureRequest,
+        Map<String, Object> taskAttributes,
+        List<ConfigurationDmnEvaluationResponse> calculatedConfigurations) {
+        var nextHearingDate = getProperty(configResponses, NEXT_HEARING_DATE.getType(), isReconfigureRequest);
+        log.info("Input {}: {}", NEXT_HEARING_DATE.getType(), nextHearingDate);
+        var nextHearingDateTime = getProperty(configResponses, NEXT_HEARING_DATE_TIME, isReconfigureRequest);
+        return calculatedDate(dateType, nextHearingDate, nextHearingDateTime, isReconfigureRequest);
     }
 }
