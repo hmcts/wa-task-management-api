@@ -256,7 +256,8 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
 
         List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId6");
         taskResourcesTobeLocked.stream().forEach(task -> {
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(task.getTaskId()))
+            when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(task.getTaskId(),
+                                                                                     List.of(ASSIGNED, UNASSIGNED)))
                 .thenThrow(new OptimisticLockException());
         });
 
@@ -286,9 +287,11 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
         createTaskAndRoleAssignments(UNASSIGNED, "caseId7");
 
         List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId7");
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(0).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(0).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenThrow(new OptimisticLockException());
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(1).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(1).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenReturn(Optional.of(taskResourcesTobeLocked.get(1)));
 
         mockMvc.perform(
@@ -329,13 +332,17 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
 
         //2 tasks failed, 2 tasks succeeded
         List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId8");
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(0).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(0).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenReturn(Optional.of(taskResourcesTobeLocked.get(0)));
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(1).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(1).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenThrow(new OptimisticLockException());
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(2).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(2).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenReturn(Optional.of(taskResourcesTobeLocked.get(2)));
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(3).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(3).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenThrow(new OptimisticLockException());
 
         mockMvc.perform(
@@ -409,7 +416,8 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
 
         List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId9");
         taskResourcesTobeLocked.stream().forEach(task -> {
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(task.getTaskId()))
+            when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+                task.getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
                 .thenThrow(new OptimisticLockException())
                 .thenReturn(Optional.of(taskResourcesTobeLocked.get(0)));
         });
@@ -446,14 +454,18 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
 
         //2 tasks failed, 2 tasks succeeded
         List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId10");
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(0).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(0).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenReturn(Optional.of(taskResourcesTobeLocked.get(0)));
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(1).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(1).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenThrow(new OptimisticLockException())
             .thenReturn(Optional.of(taskResourcesTobeLocked.get(1)));
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(2).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(2).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenReturn(Optional.of(taskResourcesTobeLocked.get(2)));
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(3).getTaskId()))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResourcesTobeLocked.get(3).getTaskId(), List.of(ASSIGNED, UNASSIGNED)))
             .thenThrow(new OptimisticLockException())
             .thenReturn(Optional.of(taskResourcesTobeLocked.get(3)));
 
