@@ -13,7 +13,7 @@ DECLARE
     task_id_var TEXT;
 BEGIN
     -- Loop through the rows of the tasks table
-    FOR task_id_var IN SELECT task_id FROM cft_task_db.tasks WHERE created >= create_from AND created <= create_to order by created limit 10000 LOOP
+    FOR task_id_var IN SELECT task_id FROM cft_task_db.tasks WHERE created >= create_from AND created <= create_to order by created limit 2000 LOOP
 
         -- delete from sensitive_task_event_logs
         DELETE FROM cft_task_db.sensitive_task_event_logs WHERE task_id = task_id_var;
@@ -38,8 +38,6 @@ BEGIN
             RAISE NOTICE 'Issue with the taskId: % in tasks table', task_id_var;
         END IF;
 
-        COMMIT;
-
     END LOOP;
 
     RETURN;
@@ -60,10 +58,11 @@ LANGUAGE plpgsql
 AS $function$
 DECLARE
     task_id_var TEXT;
+    created_date timestamp;
 BEGIN
 
     -- Loop through the rows of the tasks table
-    FOR task_id_var IN SELECT DISTINCT task_id FROM cft_task_db.task_history WHERE created >= create_from AND created <= create_to order by created limit 10000 LOOP
+    FOR task_id_var,created_date IN SELECT DISTINCT task_id,created FROM cft_task_db.task_history WHERE created >= create_from AND created <= create_to order by created limit 10000 LOOP
 
         -- Check if any more rows exist in tasks
         IF EXISTS (SELECT 1 FROM cft_task_db.tasks WHERE task_id = task_id_var) THEN
@@ -88,13 +87,11 @@ BEGIN
         END IF;
 
         -- delete from task_history
-        DELETE FROM cft_task_db.task_history WHERE task_id = id;
+        DELETE FROM cft_task_db.task_history WHERE task_id = task_id_var;
 
         IF EXISTS (SELECT 1 FROM cft_task_db.task_history WHERE task_id = task_id_var) THEN
             RAISE NOTICE 'Issue with the taskId: % in task_history table', task_id_var;
         END IF;
-
-        COMMIT;
 
     END LOOP;
 
