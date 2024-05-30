@@ -5,7 +5,7 @@
 --select cft_task_db.task_cleanup_between_dates_primary('2023-04-04 11:00'::TIMESTAMP,'2023-04-04 11:01'::TIMESTAMP);
 --
 
-CREATE OR REPLACE FUNCTION cft_task_db.task_cleanup_between_dates_primary(create_from TIMESTAMP,create_to TIMESTAMP)
+CREATE OR REPLACE FUNCTION cft_task_db.task_cleanup_between_dates_primary(created_from TIMESTAMP,created_to TIMESTAMP)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
@@ -52,7 +52,7 @@ $function$
 --select cft_task_db.task_cleanup_between_dates_replica('2023-04-04 11:00'::TIMESTAMP,'2023-04-04 11:01'::TIMESTAMP);
 --
 
-CREATE OR REPLACE FUNCTION cft_task_db.task_cleanup_between_dates_replica(create_from TIMESTAMP,create_to TIMESTAMP)
+CREATE OR REPLACE FUNCTION cft_task_db.task_cleanup_between_dates_replica(created_from TIMESTAMP,created_to TIMESTAMP)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
