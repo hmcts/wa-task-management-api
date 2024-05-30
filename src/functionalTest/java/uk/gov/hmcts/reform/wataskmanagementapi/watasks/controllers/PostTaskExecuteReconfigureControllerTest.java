@@ -1040,6 +1040,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .and().body("task.id", equalTo(taskId))
                     .body("task.task_state", is("assigned"))
                     .body("task.reconfigure_request_time", nullValue())
+                    .body("task.security_classification", is("PUBLIC"))
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.task_title",
                           is("name - " + taskName + " - state - ASSIGNED - category - Protection"))
