@@ -3,11 +3,11 @@ appVersion: "1.0"
 description: A Helm chart for wa-task-management-api App
 name: wa-task-management-api
 home: https://github.com/hmcts/wa-task-management-api
-version: 0.0.52
+version: 0.0.53
 maintainers:
   - name: HMCTS wa team
 dependencies:
   - name: java
-    version: 5.2.0
+    version: 5.2.1
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
 
