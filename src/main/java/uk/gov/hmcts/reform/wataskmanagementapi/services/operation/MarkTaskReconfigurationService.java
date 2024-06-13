@@ -104,7 +104,8 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
             try {
                 log.info("Mark task-id {} to reconfigure", taskId);
                 Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                    .findByIdAndObtainPessimisticWriteLock(taskId);
+                    .findByIdAndStateInObtainPessimisticWriteLock(
+                        taskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
                 if (optionalTaskResource.isPresent()) {
                     TaskResource taskResource = optionalTaskResource.get();

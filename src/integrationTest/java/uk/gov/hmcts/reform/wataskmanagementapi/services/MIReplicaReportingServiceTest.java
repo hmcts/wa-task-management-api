@@ -1,28 +1,45 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
+import uk.gov.hmcts.reform.wataskmanagementapi.db.MIReplicaDBDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskAssignmentsResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.replica.ReplicaTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -139,8 +156,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         ? taskHistoryResourceList.get(1) : taskHistoryResourceList.get(0);
                     assertEquals(savedTaskResource.getTaskId(), taskHistoryResource.getTaskId());
                     assertEquals(savedTaskResource.getDescription(), taskHistoryResource.getDescription(),
-                                 "Discription should match");
-                    log.info("Discription should match : {}, {}",
+                                 "Description should match");
+                    log.info("Description should match : {}, {}",
                              savedTaskResource.getDescription(), taskHistoryResource.getDescription());
                     assertEquals(savedTaskResource.getRegionName(), taskHistoryResource.getRegionName(),
                                  "RegionName should match");
@@ -177,8 +194,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(savedTaskResource.getNextHearingDate(),
                                    taskHistoryResource.getNextHearingDate(),
                                  "Next Hearing Data should Match");
-                    assertEquals(savedTaskResource.getPriorityDate(),
-                                   taskHistoryResource.getPriorityDate(),
+                    assertEquals(savedTaskResource.getPriorityDate().atZoneSameInstant(ZoneId.of("Z")),
+                                   taskHistoryResource.getPriorityDate().atZoneSameInstant(ZoneId.of("Z")),
                                  "Get Priority Date should match");
 
                     return true;
@@ -214,8 +231,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(savedTaskResource.getNextHearingId(), reportableTaskList.get(0).getNextHearingId());
                     assertEquals(savedTaskResource.getNextHearingDate(),
                                    reportableTaskList.get(0).getNextHearingDate());
-                    assertEquals(savedTaskResource.getPriorityDate(),
-                                   reportableTaskList.get(0).getPriorityDate());
+                    assertEquals(savedTaskResource.getPriorityDate().atZoneSameInstant(ZoneId.of("Z")),
+                               reportableTaskList.get(0).getPriorityDate().atZoneSameInstant(ZoneId.of("Z")));
 
                     return true;
                 });
@@ -299,6 +316,77 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
                     return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "ASSIGNED,AutoAssign,true,true",
+        "UNASSIGNED,Configure,false,true",
+        "ASSIGNED,Configure,false,false",
+        "COMPLETED,AutoAssign,false,false",
+        "CANCELLED,Configure,false,false"
+    })
+    void should_test_task_assignments_and_reportable_tasks_with_and_without_valid_history(
+                        String taskState, String lastUpdatedAction,
+                        boolean taskAssignmentExists, boolean reportableTaskExists) {
+        String taskId = UUID.randomUUID().toString();
+        TaskResource taskResource = createAndSaveThisTask(taskId, "someTaskName",
+                                        CFTTaskState.valueOf(taskState), lastUpdatedAction, "someAssignee");
+        checkHistory(taskId, 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(20, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    if (taskAssignmentExists) {
+                        assertFalse(taskAssignmentsList.isEmpty());
+                        assertEquals(1, taskAssignmentsList.size());
+                        assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                        assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                        assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                        assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                        assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                         + " : Task with an incomplete history for assignments check"));
+                        return true;
+                    } else {
+                        assertTrue(taskAssignmentsList.isEmpty());
+                        if (! ("UNASSIGNED".equals(taskState) && "Configure".equals(lastUpdatedAction))) {
+                            assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId()
+                                         + " : Task with an incomplete history for assignments check"));
+                        } // This is to cover "UNASSIGNED,Configure,false,true"
+                        // where the taskHistory is valid but taskAssignment is not created yet.
+                        return true;
+                    }
+                });
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(taskId);
+
+                    if (reportableTaskExists) {
+                        assertFalse(reportableTaskList.isEmpty());
+                        assertEquals(1, reportableTaskList.size());
+                        assertEquals(taskId, reportableTaskList.get(0).getTaskId());
+                        assertFalse(containerReplica.getLogs().contains(taskId
+                                                        + " : Task with an incomplete history"));
+                        return true;
+                    } else {
+                        assertTrue(reportableTaskList.isEmpty());
+                        assertTrue(containerReplica.getLogs().contains(taskId
+                                                        + " : Task with an incomplete history"));
+                        return true;
+                    }
                 });
     }
 
@@ -396,7 +484,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @Test
     void should_save_task_and_get_task_from_task_assignments() {
-        TaskResource taskResource = createAndAssignTask();
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory",
+                                                        "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
 
         await().ignoreException(AssertionFailedError.class)
@@ -420,6 +510,59 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
+    @Test
+    void should_save_task_and_get_task_from_task_assignments_with_location_null() {
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+            null, "someRoleCategory", "someTaskName");
+        checkHistory(taskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                    assertNull(taskResource.getLocation());
+                    return true;
+                });
+    }
+
+    @Test
+    void should_save_task_and_get_task_from_task_assignments_with_taskName_null() {
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory", null);
+        checkHistory(taskResource.getTaskId(), 1);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                    assertNull(taskResource.getTaskName());
+                    return true;
+                });
+    }
+
     @ParameterizedTest
     @CsvSource(value = {
         "COMPLETED,Complete,COMPLETED, COMPLETED",
@@ -437,7 +580,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                      String finalState) {
         String taskId = UUID.randomUUID().toString();
         TaskResource taskResource = createAndSaveThisTask(taskId, "someTaskName",
-            UNASSIGNED, "Configure");
+                                                          UNASSIGNED, "Configure");
 
         taskResource.setAssignee("someAssignee");
         taskResource.setLastUpdatedAction("AutoAssign");
@@ -526,7 +669,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         }
                     } else {
                         assertNull(reportableTaskList.get(0).getFinalStateLabel());
-                        assertEquals(null, reportableTaskList.get(0).getIsWithinSla());
+                        assertNull(reportableTaskList.get(0).getIsWithinSla());
                     }
                     assertNotNull(reportableTaskList.get(0).getLastUpdatedDate());
 
@@ -555,7 +698,9 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @Test
     void should_save_task_and_record_multiple_task_assignments() {
-        TaskResource taskResource = createAndAssignTask();
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory",
+                                                        "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
         taskResource.setLastUpdatedAction("Unclaim");
         taskResource.setState(CFTTaskState.UNASSIGNED);
@@ -642,7 +787,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         "UNASSIGNED,Claim",
         "UNASSIGNED,AutoAssign"
     })
-    void should_report_incomplete_task_history(String initialState, String lastAction) throws Exception {
+    void should_report_incomplete_task_history(String initialState, String lastAction) {
         String taskId = UUID.randomUUID().toString();
         createAndSaveThisTask(taskId, "someTaskName",
             CFTTaskState.valueOf(initialState), lastAction);
@@ -714,6 +859,57 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             ? OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0) :  null);
     }
 
+    private TaskResource createAndSaveTask(String caseId,
+                                           String taskId,
+                                           String taskState,
+                                           OffsetDateTime created,
+                                           String caseTypeId,
+                                           String jurisdiction) {
+
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType",
+            UNASSIGNED,
+            caseId,
+            OffsetDateTime.now().plusDays(4).withHour(10).withMinute(0).withSecond(0).withNano(0)
+        );
+        taskResource.setCreated(created);
+        taskResource.setPriorityDate(OffsetDateTime.now().plusDays(3).withHour(10).withMinute(0).withSecond(0)
+                                         .withNano(0));
+        taskResource.setRoleCategory("Supervisor");
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setLocation("1111111");
+        taskResource.setCaseTypeId(caseTypeId);
+        taskResource.setDueDateTime(OffsetDateTime.now().plusDays(2L));
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        taskResource.setLastUpdatedAction("Configure");
+        taskResource = taskResourceRepository.save(taskResource);
+
+        if (!"UNASSIGNED".equals(taskState)) {
+            taskResource.setState(ASSIGNED);
+            taskResource.setAssignee("SomeAssignee");
+            taskResource.setLastUpdatedAction("AutoAssign");
+            taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+            taskResource = taskResourceRepository.save(taskResource);
+
+            if (!"ASSIGNED".equals(taskState)) {
+                taskResource.setState(CFTTaskState.valueOf(taskState));
+                taskResource.setAssignee("SomeAssignee");
+                taskResource.setLastUpdatedAction("AutoAssign");
+                taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+                addMissingParameters(taskResource, true);
+                if ("TERMINATED".equals(taskState)) {
+                    taskResource.setTerminationReason("completed");
+                }
+
+                taskResource = taskResourceRepository.save(taskResource);
+            }
+        }
+
+        return taskResource;
+    }
+
     private TaskResource createAndSaveTask() {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
@@ -766,15 +962,37 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         return taskResourceRepository.save(taskResource);
     }
 
-    private TaskResource createAndAssignTask() {
+    private TaskResource createAndSaveThisTask(String taskId, String taskName,
+                                               CFTTaskState taskState, String lastAction, String assignee) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            taskName,
+            "someTaskType",
+            taskState,
+            "987654",
+            OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00")
+        );
+        taskResource.setCreated(OffsetDateTime.parse("2023-03-23T20:15:45.345875+01:00"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2023-03-26T20:15:45.345875+01:00"));
+        taskResource.setLastUpdatedAction(lastAction);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
+        taskResource.setJurisdiction("someJurisdiction");
+        taskResource.setLocation("someLocation");
+        taskResource.setRoleCategory("someRoleCategory");
+        taskResource.setAssignee(assignee);
+        return taskResourceRepository.save(taskResource);
+    }
+
+    private TaskResource createAndAssignTask(String caseId, String jurisdiction, String location, String roleCategory,
+                                             String taskName) {
 
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
-            "someNewCaseId",
-            "someJurisdiction",
-            "someLocation",
-            "someRoleCategory",
-            "someTaskName");
+            caseId,
+            jurisdiction,
+            location,
+            roleCategory,
+            taskName);
 
         taskResource.setDueDateTime(OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00"));
@@ -836,6 +1054,648 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
     }
 
+    @Test
+    public void should_test_mark_functionality_with_refresh() {
+
+        TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                        "someLocation", "someRoleCategory",
+                                                        "someTaskName");
+
+        List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertEquals(taskResource.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                    assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                    assertEquals(taskResource.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                    assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                    origTaskAssignmentReportRefreshTimes.add(taskAssignmentsList.get(0).getReportRefreshTime());
+
+                    return true;
+                });
+
+        List<OffsetDateTime> origReportableTaskReportRefreshTimes = new ArrayList<>();
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getState().getValue(), reportableTaskList.get(0).getState());
+                    origReportableTaskReportRefreshTimes.add(reportableTaskList.get(0).getReportRefreshTime());
+
+                    return true;
+                });
+
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                           containerReplica.getUsername(),
+                                                           containerReplica.getPassword());
+        // Mark filters to select both the tasks
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
+                                      null, null, OffsetDateTime.now(), taskResource.getCreated().minusDays(2L));
+
+        Optional<ReplicaTaskResource> optionalReplicaTaskResource
+            = replicaTaskResourceRepository.getByTaskId(taskResource.getTaskId());
+        Assertions.assertTrue(optionalReplicaTaskResource.isPresent());
+        OffsetDateTime taskRequestRefreshTime = optionalReplicaTaskResource.get().getReportRefreshRequestTime();
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(taskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(taskResource.getState().getValue(), reportableTaskList.get(0).getState());
+                    assertTrue(origReportableTaskReportRefreshTimes.get(0)
+                                   .isBefore(reportableTaskList.get(0).getReportRefreshTime()));
+                    LocalDateTime reportRefreshTime =
+                            reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime();
+                    assertThat(reportRefreshTime).isCloseTo(taskRequestRefreshTime.toLocalDateTime(),
+                                                           within(100, ChronoUnit.MILLIS));
+
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+                    assertEquals(taskResource.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                    assertTrue(origTaskAssignmentReportRefreshTimes.get(0)
+                                   .isBefore(taskAssignmentsList.get(0).getReportRefreshTime()));
+                    reportRefreshTime =
+                        taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime();
+                    assertThat(reportRefreshTime).isCloseTo(taskRequestRefreshTime.toLocalDateTime(),
+                                                           within(100, ChronoUnit.MILLIS));
+
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @MethodSource("markTasksForRefreshArgsProvider")
+    public void should_test_procedure_call_mark_report_tasks_for_refresh(final String testCategory,
+                                       final String testName,
+                                       final Stream<String> taskParamsStream,
+                                       final OffsetDateTime markBeforeTime,
+                                       final OffsetDateTime markAfterTime,
+                                       final Long expectedMarkedCount,
+                                       final Stream<String> expectedMarkedTasks) {
+        List<TaskResource> tasks = new ArrayList<>();
+        taskParamsStream.forEach(taskParamsString -> {
+            String[] taskParams = taskParamsString.split(",");
+            TaskResource taskResource = createAndSaveTask(
+                taskParams[0],
+                taskParams[1],
+                taskParams[2],
+                OffsetDateTime.parse(taskParams[3]),
+                taskParams[4],
+                taskParams[5]
+            );
+            log.info(taskResource.toString());
+            tasks.add(taskResource);
+        });
+
+
+        List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
+
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+
+                    if ("ASSIGNED".equals(task.getState().getValue())) {
+                        List<TaskAssignmentsResource> taskAssignmentsList
+                            = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
+
+                        assertFalse(taskAssignmentsList.isEmpty());
+                        assertEquals(1, taskAssignmentsList.size());
+                        assertEquals(task.getTaskId(), taskAssignmentsList.get(0).getTaskId());
+                        assertEquals(task.getTaskName(), taskAssignmentsList.get(0).getTaskName());
+                        assertEquals(task.getAssignee(), taskAssignmentsList.get(0).getAssignee());
+                        assertEquals(task.getJurisdiction(), taskAssignmentsList.get(0).getService());
+                        assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
+                        assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
+                        origTaskAssignmentReportRefreshTimes.add(taskAssignmentsList.get(0).getReportRefreshTime());
+                    }
+
+                    return true;
+                }));
+
+        List<OffsetDateTime> origReportableTaskReportRefreshTimes = new ArrayList<>();
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(task.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(task.getState().getValue(), reportableTaskList.get(0).getState());
+                    origReportableTaskReportRefreshTimes.add(reportableTaskList.get(0).getReportRefreshTime());
+
+                    return true;
+                }));
+
+        List<String> taskIds = tasks.stream().map(TaskResource::getTaskId).toList();
+        List<String> caseIds = tasks.stream().map(TaskResource::getCaseId).toList();
+        List<String> taskStates =   tasks.stream().map(x -> x.getState().getValue()).toList();
+
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                           containerReplica.getUsername(),
+                                                           containerReplica.getPassword());
+
+        Sort sort = Sort.by(Sort.Order.asc("caseName"));
+        List<ReplicaTaskResource> replicaTaskResources =
+            replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        List<OffsetDateTime> taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
+        assertTrue(taskRefreshTimestamps.isEmpty());
+
+        switch (testCategory) {
+            case "ProcTestsWithDefaultNulls" ->
+                miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
+                                              null, null, markBeforeTime, markAfterTime);
+            case "ProcTestsWithDefaultEmpty" ->
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "",
+                                              "", Collections.emptyList(), markBeforeTime, markAfterTime);
+            case "MarkBeforeTimeTests" ->
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                                              null, Collections.emptyList(), markBeforeTime, markAfterTime);
+            case "TaskStateTests" -> {
+                if ("matchPartialRecordsByMultipleStatuses".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                                             null, List.of("COMPLETED", "TERMINATED"), markBeforeTime, markAfterTime);
+                } else if ("matchNoRecordsByInvalidStatuses".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                                                  null, List.of("DUMMY", "TEST"), markBeforeTime, markAfterTime);
+                } else {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                                                  null, taskStates, markBeforeTime, markAfterTime);
+                }
+            }
+            case "TaskIdTests" -> {
+                if ("matchPartialRecordsByMultipleTaskIds".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), taskIds.subList(0, 2), null,
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
+                } else if ("matchNoRecordsByInvalidTaskIds".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(),
+                                                  Collections.singletonList("alsdjf-aldsj-dummy"), null,
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
+                } else {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), taskIds, null,
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
+                }
+            }
+            case "CaseIdTests" -> {
+                if ("matchPartialRecordsByMultipleCaseIds".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds.subList(0, 2), Collections.emptyList(), null,
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
+                } else if ("matchNoRecordsByInvalidCaseIds".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(Collections.singletonList("9999999"),
+                                                  Collections.emptyList(), null,
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
+                } else {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, Collections.emptyList(), null,
+                                                  null, Collections.emptyList(), markBeforeTime, markAfterTime);
+                }
+            }
+            case "MarkByJurisdictionTests" ->
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), "WA",
+                                              "", Collections.emptyList(), markBeforeTime, markAfterTime);
+            case "MarkByCaseTypeIdTests" ->
+                miReplicaDBDao.callMarkReportTasksForRefresh(Collections.emptyList(), Collections.emptyList(), null,
+                                              "WAAPPS", Collections.emptyList(), markBeforeTime, markAfterTime);
+            case "MarkByAllParamsTests" -> {
+                if ("matchPartialRecordsByAllParams".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "TEST",
+                                                  "TESTAPPS", taskStates, markBeforeTime, markAfterTime);
+                } else if ("matchNoRecordsByInvalidParams".equals(testName)) {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
+                                  "TESTAPPS", Collections.singletonList("DUMMY"), markBeforeTime, markAfterTime);
+                } else {
+                    miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
+                                                  "WAAPPS", taskStates, markBeforeTime, markAfterTime);
+                }
+            }
+            default -> miReplicaDBDao.callMarkReportTasksForRefresh(caseIds, taskIds, "WA",
+                                                     "WAAPPS", taskStates, markBeforeTime, markAfterTime);
+        }
+        replicaTaskResources = replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
+        Long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(expectedMarkedCount, count, String.format("%s-%s:", testCategory, testName));
+
+        if (count > 0) {
+            OffsetDateTime taskRequestRefreshTime =
+                taskRefreshTimestamps.stream().filter(Objects::nonNull).findFirst()
+                    .orElse(OffsetDateTime.now().minusYears(1L));
+
+            expectedMarkedTasks.forEach(taskId ->
+                await().ignoreException(AssertionFailedError.class)
+                .pollInterval(1, SECONDS)
+                .atMost(30, SECONDS)
+                .until(
+                    () -> {
+                        List<ReportableTaskResource> reportableTaskList
+                            = miReportingServiceForTest.findByReportingTaskId(taskId);
+
+                        assertFalse(reportableTaskList.isEmpty());
+                        assertEquals(1, reportableTaskList.size());
+                        assertEquals(taskId, reportableTaskList.get(0).getTaskId());
+                        assertTrue(origReportableTaskReportRefreshTimes.get(0)
+                                       .isBefore(reportableTaskList.get(0).getReportRefreshTime()));
+                        LocalDateTime reportRefreshTime =
+                            reportableTaskList.get(0).getReportRefreshTime().toLocalDateTime();
+                        assertThat(reportRefreshTime).isCloseTo(
+                            taskRequestRefreshTime.toLocalDateTime(),
+                            within(100, ChronoUnit.MILLIS)
+                        );
+
+                        if ("ASSIGNED".equals(reportableTaskList.get(0).getState())) {
+
+                            List<TaskAssignmentsResource> taskAssignmentsList
+                                = miReportingServiceForTest.findByAssignmentsTaskId(taskId);
+
+                            assertFalse(taskAssignmentsList.isEmpty());
+                            assertEquals(1, taskAssignmentsList.size());
+                            assertEquals(taskId, taskAssignmentsList.get(0).getTaskId());
+                            assertTrue(origTaskAssignmentReportRefreshTimes.get(0)
+                                           .isBefore(taskAssignmentsList.get(0).getReportRefreshTime()));
+                            reportRefreshTime =
+                                taskAssignmentsList.get(0).getReportRefreshTime().toLocalDateTime();
+                            assertThat(reportRefreshTime).isCloseTo(
+                                taskRequestRefreshTime.toLocalDateTime(),
+                                within(100, ChronoUnit.MILLIS)
+                            );
+                        }
+
+                        return true;
+                    }));
+        }
+    }
+
+    public Stream<Arguments> markTasksForRefreshArgsProvider() {
+        String waCaseId = "1690202048809201";
+        String terminatedStatus = "TERMINATED";
+        String waCaseTypeId = "WAAPPS";
+        String waJurisdiction = "WA";
+
+        String testCaseId = "16902020444444";
+        String unassignedStatus = "UNASSIGNED";
+        String testCaseTypeId = "TESTAPPS";
+        String testJurisdiction = "TEST";
+
+        String assignedStatus = "ASSIGNED";
+        String completedStatus = "COMPLETED";
+        String testCaseId1 = "1690202055555";
+
+        List<UUID> taskIds = Stream.generate(UUID::randomUUID).limit(60).toList();
+
+        return Stream.of(
+            Arguments.arguments(
+                "ProcTestsWithDefaultNulls",
+                "matchAllRecords",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(0).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(25), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(1).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(24), waCaseTypeId, waJurisdiction)),
+                OffsetDateTime.now().minusDays(23).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(26).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(0).toString(),taskIds.get(1).toString())),
+
+            Arguments.arguments(
+                "ProcTestsWithDefaultEmpty",
+                "matchAllRecords",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(2).toString(), terminatedStatus,
+                              OffsetDateTime.now().minusDays(27), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(3).toString(), terminatedStatus,
+                              OffsetDateTime.now().minusDays(28), waCaseTypeId, waJurisdiction)),
+                OffsetDateTime.now().minusDays(26).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(29).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(2).toString(),taskIds.get(3).toString())),
+
+            // The 4'th and 5th Arguments markBeforeTime, markAfterTime are used as filtering criteria
+            Arguments.arguments(
+                "MarkBeforeTimeTests",
+                "matchAllRecords",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(4).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(20), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(5).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction)),
+                OffsetDateTime.now().minusDays(17).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(21).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(4).toString(),taskIds.get(5).toString())),
+
+            // The 4'th and 5th Arguments markBeforeTime, markAfterTime are used as filtering criteria
+            Arguments.arguments(
+                "MarkBeforeTimeTests",
+                "matchPartialRecords",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(6).toString(), terminatedStatus,
+                              OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(7).toString(), terminatedStatus,
+                              OffsetDateTime.now().minusDays(13), waCaseTypeId, waJurisdiction)),
+                OffsetDateTime.now().minusDays(14).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                1L, Stream.of(taskIds.get(6).toString())),
+
+            // The 4'th Argument markBeforeTime is used as filtering criteria
+            Arguments.arguments(
+                "MarkBeforeTimeTests",
+                "noneMatchedRecords",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(8).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(12), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(9).toString(), unassignedStatus,
+                                  OffsetDateTime.now().minusDays(11), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(21).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(23).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                0L, Stream.empty()),
+
+            Arguments.arguments(
+                "TaskStateTests",
+                "matchAllRecordsBySingleStatus",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(10).toString(), completedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(11).toString(), completedStatus,
+                                  OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(15).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(10).toString(), taskIds.get(11).toString())),
+
+            Arguments.arguments(
+                "TaskStateTests",
+                "matchAllRecordsByMultipleStatuses",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(12).toString(), completedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(13).toString(), assignedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(12).toString(), taskIds.get(13).toString())),
+
+            Arguments.arguments(
+                "TaskStateTests",
+                "matchPartialRecordsByMultipleStatuses",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(14).toString(), completedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(15).toString(), assignedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(16).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(14).toString(), taskIds.get(16).toString())),
+
+            Arguments.arguments(
+                "TaskStateTests",
+                "matchNoRecordsByInvalidStatuses",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(17).toString(), completedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(18).toString(), assignedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(19).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                0L, Stream.empty()),
+
+            Arguments.arguments(
+                "TaskIdTests",
+                "matchAllRecordsByMultipleTaskIds",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(20).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(21).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(20).toString(), taskIds.get(21).toString())),
+
+            Arguments.arguments(
+                "TaskIdTests",
+                "matchPartialRecordsByMultipleTaskIds",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(22).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(23).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(24).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(22).toString(), taskIds.get(23).toString())),
+
+            Arguments.arguments(
+                "TaskIdTests",
+                "matchNoRecordsByInvalidTaskIds",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(25).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(26).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(27).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                0L, Stream.empty()),
+
+            Arguments.arguments(
+                "CaseIdTests",
+                "matchAllRecordsByMultipleCaseIds",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(28).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(29).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(28).toString(), taskIds.get(29).toString())),
+
+            Arguments.arguments(
+                "CaseIdTests",
+                "matchPartialRecordsByMultipleCaseIds",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(30).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(31).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(32).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(30).toString(), taskIds.get(31).toString())),
+
+            Arguments.arguments(
+                "CaseIdTests",
+                "matchNoRecordsByInvalidCaseIds",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(33).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(34).toString(), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                0L, Stream.empty()),
+
+            Arguments.arguments(
+                "MarkByJurisdictionTests",
+                "matchNoRecordsByInvalidJurisdiction",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(35), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(36), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                0L, Stream.empty()),
+
+            Arguments.arguments(
+                "MarkByJurisdictionTests",
+                "matchOneRecordByJurisdiction",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(37), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(38), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                1L, Stream.of(taskIds.get(37).toString())),
+
+            Arguments.arguments(
+                "MarkByJurisdictionTests",
+                "matchMultipleRecordsByJurisdiction",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(39), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(40), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, waJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(39).toString(), taskIds.get(40).toString())),
+
+            Arguments.arguments(
+                "MarkByCaseTypeIdTests",
+                "matchNoRecordsByInvalidCaseTypeId",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(41), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), testCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(42), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                0L, Stream.empty()),
+
+            Arguments.arguments(
+                "MarkByCaseTypeIdTests",
+                "matchOneRecordByCaseTypeId",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(43), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(44), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                1L, Stream.of(taskIds.get(43).toString())),
+
+            Arguments.arguments(
+                "MarkByCaseTypeIdTests",
+                "matchMultipleRecordsByCaseTypeId",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(45), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(15), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(46), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(14), waCaseTypeId, waJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(16).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(45).toString(), taskIds.get(46).toString())),
+
+            Arguments.arguments(
+                "MarkByAllParamsTests",
+                "matchAllRecordsByAllParams",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(47), completedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(48), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(17), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(49), assignedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(50), unassignedStatus,
+                                  OffsetDateTime.now().minusDays(17), waCaseTypeId, waJurisdiction)),
+                OffsetDateTime.now().minusDays(15).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                4L, Stream.of(taskIds.get(47).toString(), taskIds.get(48).toString(), taskIds.get(49).toString(),
+                              taskIds.get(50).toString())),
+
+            Arguments.arguments(
+                "MarkByAllParamsTests",
+                "matchPartialRecordsByAllParams",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(51), completedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(52), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(53), assignedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(54), unassignedStatus,
+                                  OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                2L, Stream.of(taskIds.get(52).toString(), taskIds.get(54).toString())),
+
+            Arguments.arguments(
+                "MarkByAllParamsTests",
+                "matchNoRecordsByInvalidParams",
+                Stream.of(
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(55), completedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", waCaseId, taskIds.get(56), terminatedStatus,
+                                  OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId, taskIds.get(57), assignedStatus,
+                                  OffsetDateTime.now().minusDays(18), waCaseTypeId, waJurisdiction),
+                    String.format("%s,%s,%s,%s,%s,%s", testCaseId1, taskIds.get(58), unassignedStatus,
+                                  OffsetDateTime.now().minusDays(17), testCaseTypeId, testJurisdiction)),
+                OffsetDateTime.now().minusDays(13).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                OffsetDateTime.now().minusDays(19).withHour(10).withMinute(0).withSecond(0).withNano(0),
+                0L, Stream.empty())
+        );
+    }
+
+
     private void checkHistory(String id, int records) {
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -852,4 +1712,121 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
     }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "2, 10000, 2",
+        "2, -20, 2",
+        "2, 0, 2"
+    })
+    public void should_test_refresh_report_tasks(Integer taskResourcesToCreate,
+                                                 Integer maxRowsToProcess,
+                                                 Integer expectedProcessed) {
+        List<TaskResource> tasks = new ArrayList<>();
+        IntStream.range(0, taskResourcesToCreate).forEach(x -> {
+            TaskResource taskResource = createAndAssignTask("someNewCaseId", "someJurisdiction",
+                                                            "someLocation", "someRoleCategory",
+                                                            "someTaskName");
+            log.info(taskResource.toString());
+            tasks.add(taskResource);
+        });
+
+        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
+            .pollInterval(3, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    ReportableTaskResource reportableTaskResource = reportableTaskList.get(0);
+                    assertEquals(task.getTaskId(), reportableTaskResource.getTaskId());
+                    assertEquals(task.getState().getValue(), reportableTaskResource.getState());
+
+                    List<TaskAssignmentsResource> taskAssignmentsList
+                        = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
+
+                    assertFalse(taskAssignmentsList.isEmpty());
+                    assertEquals(1, taskAssignmentsList.size());
+
+                    return true;
+                }));
+
+        List<String> taskIds = tasks.stream().map(TaskResource::getTaskId).toList();
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                             containerReplica.getUsername(),
+                                                             containerReplica.getPassword());
+
+        Sort sort = Sort.by(Sort.Order.asc("caseName"));
+        List<ReplicaTaskResource> replicaTaskResources =
+            replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        List<OffsetDateTime> taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
+        assertTrue(taskRefreshTimestamps.isEmpty());
+
+        miReplicaDBDao.callMarkReportTasksForRefresh(null, taskIds, null,
+                                      null, null, OffsetDateTime.now(), tasks.get(0).getCreated().minusDays(5));
+
+        replicaTaskResources = replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+        taskRefreshTimestamps = replicaTaskResources.stream()
+            .map(ReplicaTaskResource::getReportRefreshRequestTime)
+            .filter(Objects::nonNull)
+            .toList();
+        long count = taskRefreshTimestamps.stream().map(Objects::nonNull).count();
+        Assertions.assertEquals(taskResourcesToCreate,
+                                (int) count, String.format("Should mark all %s tasks:", taskResourcesToCreate));
+
+        miReplicaDBDao.callRefreshReportTasks(maxRowsToProcess);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(5, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    List<ReplicaTaskResource> replicaTaskResourceList =
+                        replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
+                    List<OffsetDateTime> taskRefreshTimestampList = replicaTaskResourceList.stream()
+                        .map(ReplicaTaskResource::getReportRefreshRequestTime)
+                        .filter(Objects::nonNull)
+                        .toList();
+
+                    long countNotRefreshed = taskRefreshTimestampList.stream().map(Objects::nonNull).count();
+                    Assertions.assertEquals(expectedProcessed, taskResourcesToCreate - (int) countNotRefreshed,
+                                            String.format("Should refresh %s tasks:", expectedProcessed));
+                    return true;
+                });
+
+        AtomicInteger reportableTasksRefreshedCount = new AtomicInteger();
+        AtomicInteger taskAssignmentsRefreshedCount = new AtomicInteger();
+
+        taskIds.forEach(x -> {
+            List<ReportableTaskResource> reportableTaskList
+                = miReportingServiceForTest.findByReportingTaskId(x);
+
+            assertFalse(reportableTaskList.isEmpty());
+            assertEquals(1, reportableTaskList.size());
+            assertEquals(x, reportableTaskList.get(0).getTaskId());
+            if (reportableTaskList.get(0).getReportRefreshTime() != null) {
+                reportableTasksRefreshedCount.getAndIncrement();
+            }
+
+            List<TaskAssignmentsResource> taskAssignmentsList
+                = miReportingServiceForTest.findByAssignmentsTaskId(x);
+
+            assertFalse(taskAssignmentsList.isEmpty());
+            assertEquals(1, taskAssignmentsList.size());
+            assertEquals(x, taskAssignmentsList.get(0).getTaskId());
+            if (taskAssignmentsList.get(0).getReportRefreshTime() != null) {
+                taskAssignmentsRefreshedCount.getAndIncrement();
+            }
+        });
+
+        assertEquals(expectedProcessed, reportableTasksRefreshedCount.get());
+        assertEquals(expectedProcessed, taskAssignmentsRefreshedCount.get());
+    }
+
 }

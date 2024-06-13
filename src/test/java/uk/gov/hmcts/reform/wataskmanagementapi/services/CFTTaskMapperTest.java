@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -1410,6 +1411,25 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_convert_task_resource_to_map_object_with_updated_attribute_names() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        Map<String, Object> attributes = getDefaultAttributesWithWorkType(formattedCreatedDate, formattedDueDate);
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Map<String, Object> dbTaskAttributes =
+            objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
+        Map<String, Object> camundaTaskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
+
+        assertEquals(dbTaskAttributes.size(), camundaTaskAttributes.size());
+        assertEquals(dbTaskAttributes.get("taskName"), camundaTaskAttributes.get("name"));
+        assertEquals(dbTaskAttributes.get("state"), camundaTaskAttributes.get("taskState"));
+        assertEquals(dbTaskAttributes.get("caseCategory"), camundaTaskAttributes.get("caseManagementCategory"));
+        assertEquals(dbTaskAttributes.get("dueDateTime"), camundaTaskAttributes.get("dueDate"));
+    }
+
+    @Test
     void should_extract_permission_union_all_true() {
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -2319,11 +2339,6 @@ class CFTTaskMapperTest {
     void reconfigure_config_attributes_dmn_fields() {
         TaskResource taskResource = createTaskResource();
 
-        cftTaskMapper.reconfigureTaskAttribute(taskResource, "additionalProperties",
-                                               writeValueAsString(Map.of("roleAssignmentId", "1234567890")), true
-        );
-        assertEquals(taskResource.getAdditionalProperties(), Map.of("roleAssignmentId", "1234567890"));
-
         cftTaskMapper.reconfigureTaskAttribute(taskResource, "priorityDate",
                                                "2021-05-09T20:15", true
         );
@@ -2360,6 +2375,12 @@ class CFTTaskMapperTest {
                                                "", true
         );
         assertEquals("nextHearingId", taskResource.getNextHearingId());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "title",
+                                               "updatedTaskTitle", true
+        );
+        assertEquals(
+            "updatedTaskTitle", taskResource.getTitle());
     }
 
     @Test
@@ -2416,6 +2437,50 @@ class CFTTaskMapperTest {
         assertFalse(taskRolePermissions.getAuthorisations().isEmpty());
         assertTrue(taskRolePermissions.getAuthorisations().contains("SPECIFIC"));
         assertTrue(taskRolePermissions.getAuthorisations().contains("STANDARD"));
+    }
+
+    @Test
+    void reconfigure_config_additional_attributes_dmn_fields() {
+        TaskResource taskResource = createTaskResource();
+        List<ConfigurationDmnEvaluationResponse> additionalPropertyDMNResponse = asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_roleAssignmentId"),
+                        stringValue("roleAssignmentId"), booleanValue(true)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key1"), stringValue("value1"),
+                        booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key2"), stringValue(""),
+                                                       booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key3"), stringValue(null),
+                                                       booleanValue(false)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key4"), stringValue("value4"),
+                        null
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key5"), stringValue(""),
+                        booleanValue(true)
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_key6"), stringValue(null),
+                        booleanValue(true)
+                )
+        );
+
+        cftTaskMapper.reconfigureAdditionalTaskAttribute(taskResource, additionalPropertyDMNResponse);
+
+        assertEquals("roleAssignmentId", taskResource.getAdditionalProperties().get("roleAssignmentId"));
+        assertEquals("", taskResource.getAdditionalProperties().get("key5"));
+        assertEquals(null, taskResource.getAdditionalProperties().get("key6"));
+        assertEquals(3, taskResource.getAdditionalProperties().size());
+
+    }
+
+    @Test
+    void do_not_reconfigure_additional_attributes_fields_if_empty_list_returned() {
+        TaskResource taskResource = createTaskResource();
+        List<ConfigurationDmnEvaluationResponse> additionalPropertyDMNResponse = new ArrayList<>();
+        cftTaskMapper.reconfigureAdditionalTaskAttribute(taskResource, additionalPropertyDMNResponse);
+        assertNull(taskResource.getAdditionalProperties());
     }
 
     private TaskResource createTaskResource() {

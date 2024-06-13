@@ -124,8 +124,8 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                 try {
                     log.info("Re-configure task-id {}", taskId);
                     Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                        .findByIdAndObtainPessimisticWriteLock(taskId);
-
+                         .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(CFTTaskState.ASSIGNED,
+                                                                                      CFTTaskState.UNASSIGNED));
                     if (optionalTaskResource.isPresent()) {
                         TaskResource taskResource = optionalTaskResource.get();
                         taskResource = configureTaskService.reconfigureCFTTask(taskResource);
@@ -134,6 +134,15 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                         taskResource.setLastReconfigurationTime(OffsetDateTime.now());
                         resetIndexed(taskResource);
                         successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
+                    } else {
+                        optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+                        if (optionalTaskResource.isPresent()) {
+                            TaskResource taskResource = optionalTaskResource.get();
+                            log.info("did not execute reconfigure for Task Resource: taskId: {}, caseId: {}, state: {}",
+                                     taskResource.getTaskId(), taskResource.getCaseId(), taskResource.getState());
+                        } else {
+                            log.info("Could not find task to reconfigure : taskId: {}", taskId);
+                        }
                     }
                 } catch (Exception e) {
                     log.error("Error configuring task (id={}) ", taskId, e);

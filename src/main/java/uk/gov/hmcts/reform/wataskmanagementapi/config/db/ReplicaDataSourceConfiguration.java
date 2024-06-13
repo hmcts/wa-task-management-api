@@ -38,7 +38,8 @@ public class ReplicaDataSourceConfiguration {
         return
             builder
                 .dataSource(dataSource)
-                .packages("uk.gov.hmcts.reform.wataskmanagementapi.entity")
+                .packages("uk.gov.hmcts.reform.wataskmanagementapi.entity",
+                          "uk.gov.hmcts.reform.wataskmanagementapi.entity.replica")
                 .persistenceUnit("cft_task_db_replica")
                 .build();
     }
