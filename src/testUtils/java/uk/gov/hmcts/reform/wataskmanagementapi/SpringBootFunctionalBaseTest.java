@@ -312,7 +312,8 @@ public abstract class SpringBootFunctionalBaseTest {
         taskAttributes.put(SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
         taskAttributes.put(HAS_WARNINGS.value(), hasWarnings);
         taskAttributes.put(WARNING_LIST.value(), testVariables.getWarnings());
-
+        taskAttributes.put(WARNING_LIST.value(), testVariables.getWarnings());
+        taskAttributes.put("__processCategory__Protection", true);
         Optional.ofNullable(additionalProperties).ifPresent(taskAttributes::putAll);
 
         InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(
