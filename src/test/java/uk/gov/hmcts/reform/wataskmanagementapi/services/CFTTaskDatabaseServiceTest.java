@@ -85,6 +85,21 @@ class CFTTaskDatabaseServiceTest {
     }
 
     @Test
+    void should_find_by_id_and_state_and_obtain_pessimistic_write_lock() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByIdAndStateIn(taskId, List.of(ASSIGNED, UNASSIGNED)))
+            .thenReturn(Optional.of(someTaskResource));
+
+        final Optional<TaskResource> actualTaskResource =
+            cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(ASSIGNED, UNASSIGNED));
+
+        assertNotNull(actualTaskResource);
+        assertTrue(actualTaskResource.isPresent());
+        assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
     void should_find_by_id_and_wait_and_obtain_pessimistic_write_lock() {
         TaskResource someTaskResource = mock(TaskResource.class);
 
@@ -103,6 +118,16 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.findByIdAndWaitForLock(taskId)).thenThrow(new LockTimeoutException());
 
         assertThatThrownBy(() -> cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock(taskId))
+            .isInstanceOf(LockTimeoutException.class);
+    }
+
+    @Test
+    void should_find_by_id_and_state_wait_and_obtain_pessimistic_write_lock_throw_exception() {
+        when(taskResourceRepository.findByIdAndStateIn(taskId, List.of(ASSIGNED, UNASSIGNED)))
+            .thenThrow(new LockTimeoutException());
+
+        assertThatThrownBy(() -> cftTaskDatabaseService
+            .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(ASSIGNED, UNASSIGNED)))
             .isInstanceOf(LockTimeoutException.class);
     }
 
