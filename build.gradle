@@ -285,7 +285,7 @@ def versions = [
   junit         : '5.10.2',
   junitPlatform : '1.10.2',
   reformLogging : '6.1.4',
-  springDoc     : '2.2.0',
+  springDoc     : '1.8.0',
   serenity      : '3.1.20',
   gradlePitest  : '1.9.11',
   pitest        : '1.15.0',
@@ -336,7 +336,7 @@ dependencies {
 
   implementation('org.springframework.retry:spring-retry')
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: versions.springDoc
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
   implementation group: 'org.zalando', name: 'problem-spring-web-starter', version: '0.26.2'
