@@ -16,6 +16,10 @@ public class PostgreExtendedSQLContainerProvider extends JdbcDatabaseContainerPr
 
     public static final String PASSWORD_PARAM = "postgres";
 
+    private final DockerImageName hmctsPostgresDockerImage = DockerImageName
+        .parse("hmctspublic.azurecr.io/imported/postgres:16-alpine")
+        .asCompatibleSubstituteFor("postgres");
+
     private String databaseName;
 
     public PostgreExtendedSQLContainerProvider(String databaseName) {
@@ -34,8 +38,7 @@ public class PostgreExtendedSQLContainerProvider extends JdbcDatabaseContainerPr
 
     @Override
     public JdbcDatabaseContainer newInstance(String tag) {
-        return getJdbcDatabaseContainer(new PostgreSQLContainer(DockerImageName.parse(PostgreSQLContainer.IMAGE)
-                                                                    .withTag(tag)));
+        return getJdbcDatabaseContainer(new PostgreSQLContainer(hmctsPostgresDockerImage.withTag(tag)));
     }
 
     @Override
