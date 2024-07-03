@@ -1,8 +1,8 @@
 spring:
   datasource:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:postgresql:16://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql
-    jdbcUrl: jdbc:tc:postgresql:16://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql
+    url: jdbc:tc:postgresql:15://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql
+    jdbcUrl: jdbc:tc:postgresql:15://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql
     hikari:
       minimum-idle: 1
       connectionTimeout: 10000
