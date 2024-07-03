@@ -5,7 +5,7 @@ spring:
         maxSize: 1
   datasource:
     driverClassName: uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver
-    jdbcUrl: jdbc:tc:postgresql:11.4://localhost/cft_task_db
+    jdbcUrl: jdbc:tc:postgresql:16-alpine://localhost/cft_task_db
     hikari:
       minimum-idle: 1
       connectionTimeout: 10000
@@ -13,7 +13,7 @@ spring:
       maxLifetime: 60000
   datasource-replica:
     driverClassName: uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver
-    jdbcUrl: jdbc:tc:postgresql:11.4://localhost/cft_task_db_replica
+    jdbcUrl: jdbc:tc:postgresql:16-alpine://localhost/cft_task_db_replica
     hikari:
       minimum-idle: 1
       connectionTimeout: 10000
