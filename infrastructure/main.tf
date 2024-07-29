@@ -71,6 +71,7 @@ module "wa_task_management_api_database_flexible" {
   ]
 
   pgsql_version      = 14
+  pgsql_storage_mb   = var.pgsql_storage_mb
   common_tags        = local.common_tags
 
   admin_user_object_id = var.jenkins_AAD_objectId
