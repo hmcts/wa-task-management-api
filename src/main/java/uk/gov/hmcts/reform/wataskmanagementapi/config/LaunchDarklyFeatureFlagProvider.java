@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.launchdarkly.sdk.LDUser;
+import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,11 +22,25 @@ public class LaunchDarklyFeatureFlagProvider {
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId, String email) {
         requireNonNull(featureFlag, "featureFlag must not be null");
         requireNonNull(userId, "userId must not be null");
-        log.debug("Attempting to retrieve feature flag '{}' with email '{}'", featureFlag.getKey(), email);
+        log.debug("Attempting to retrieve feature flag '{}' with email '{}'",
+                  featureFlag.getKey(), email);
         boolean result =  ldClient.boolVariation(
             featureFlag.getKey(),
             createLaunchDarklyUser(userId, email),
             true);
+        log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
+        return result;
+    }
+
+    public LDValue getJsonValue(FeatureFlag featureFlag, String userId, String email, LDValue defaultValue) {
+        requireNonNull(featureFlag, "featureFlag must not be null");
+        requireNonNull(userId, "userId must not be null");
+        log.debug("Attempting to retrieve feature flag '{}' with email '{}'", featureFlag.getKey(), email);
+        LDValue result =  ldClient.jsonValueVariation(
+            featureFlag.getKey(),
+            createLaunchDarklyUser(userId, email),
+            defaultValue
+        );
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
         return result;
     }
