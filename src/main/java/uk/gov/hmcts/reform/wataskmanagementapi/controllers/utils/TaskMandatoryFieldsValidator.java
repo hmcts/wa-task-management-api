@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.validation.ValidationException;
@@ -52,8 +53,8 @@ public class TaskMandatoryFieldsValidator {
                     if (value == null) {
                         errors.add(field + " cannot be null");
                     }
-                } catch (Exception e) {
-                    throw new RuntimeException("Error checking mandatory fields", e);
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    throw new IllegalArgumentException("Cannot find property value for field " + field, e);
                 }
             }
             if (!errors.isEmpty()) {

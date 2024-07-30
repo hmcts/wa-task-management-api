@@ -30,9 +30,11 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
             NON_EXISTENT_KEY, SOME_USER_ID,  SOME_USER_EMAIL);
         assertThat(launchDarklyFeature, is(true));
     }
+
     @Test
     public void should_hit_launch_darkly_and_return_jsonvalue() {
-        LDValue launchDarklyFeature = featureFlagProvider.getJsonValue(TEST_KEY, SOME_USER_ID, SOME_USER_EMAIL, LDValue.of("jurisdictions"));
+        LDValue launchDarklyFeature = featureFlagProvider.getJsonValue(TEST_KEY, SOME_USER_ID, SOME_USER_EMAIL,
+                                                                       LDValue.of("jurisdictions"));
         assertThat(launchDarklyFeature, is(LDValue.of("jurisdictions")));
     }
 }
