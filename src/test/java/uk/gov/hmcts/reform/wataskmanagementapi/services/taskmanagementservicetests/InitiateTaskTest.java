@@ -14,24 +14,16 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.*;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 
+import javax.persistence.EntityManager;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -39,24 +31,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
@@ -84,9 +65,6 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     private IdamTokenGenerator idamTokenGenerator;
 
-
-    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-
     @Spy
     @InjectMocks
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -110,7 +88,6 @@ class InitiateTaskTest extends CamundaHelpers {
             cftTaskDatabaseService,
             cftQueryService,
             cftSensitiveTaskEventLogsDatabaseService);
-        taskMandatoryFieldsValidator = new TaskMandatoryFieldsValidator(true, List.of("taskType", "taskName"));
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -120,8 +97,7 @@ class InitiateTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            cftSensitiveTaskEventLogsDatabaseService);
 
 
         taskId = UUID.randomUUID().toString();
