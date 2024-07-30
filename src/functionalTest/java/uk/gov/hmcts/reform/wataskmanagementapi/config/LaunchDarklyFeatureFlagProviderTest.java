@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import com.launchdarkly.sdk.LDValue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -31,7 +32,7 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     }
     @Test
     public void should_hit_launch_darkly_and_return_jsonvalue() {
-        LDValue launchDarklyFeature = featureFlagProvider.getJSONValue(TEST_KEY, SOME_USER_ID, SOME_USER_EMAIL, LDValue.of("jurisdictions"));
+        LDValue launchDarklyFeature = featureFlagProvider.getJsonValue(TEST_KEY, SOME_USER_ID, SOME_USER_EMAIL, LDValue.of("jurisdictions"));
         assertThat(launchDarklyFeature, is(LDValue.of("jurisdictions")));
     }
 }
