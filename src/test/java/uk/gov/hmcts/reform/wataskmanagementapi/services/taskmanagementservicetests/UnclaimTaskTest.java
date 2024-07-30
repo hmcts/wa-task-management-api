@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
@@ -67,6 +68,9 @@ class UnclaimTaskTest extends CamundaHelpers {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
     @Test
     void unclaimTask_should_succeed() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
@@ -121,7 +125,8 @@ class UnclaimTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator
         );
 
 

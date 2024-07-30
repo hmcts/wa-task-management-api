@@ -118,29 +118,10 @@ public class TaskManagementService {
 
     @PersistenceContext
     private final EntityManager entityManager;
-    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
+    private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @Autowired
-    public TaskManagementService(CamundaService camundaService,
-                                 CFTTaskDatabaseService cftTaskDatabaseService,
-                                 CFTTaskMapper cftTaskMapper,
-                                 ConfigureTaskService configureTaskService,
-                                 TaskAutoAssignmentService taskAutoAssignmentService,
-                                 RoleAssignmentVerificationService roleAssignmentVerification,
-                                 EntityManager entityManager,
-                                 IdamTokenGenerator idamTokenGenerator,
-                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService) {
-        this.camundaService = camundaService;
-        this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.cftTaskMapper = cftTaskMapper;
-        this.configureTaskService = configureTaskService;
-        this.taskAutoAssignmentService = taskAutoAssignmentService;
-        this.roleAssignmentVerification = roleAssignmentVerification;
-        this.entityManager = entityManager;
-        this.idamTokenGenerator = idamTokenGenerator;
-        this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
-    }
-
     public TaskManagementService(CamundaService camundaService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,

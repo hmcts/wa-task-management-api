@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
@@ -60,6 +61,7 @@ class InitiateTaskTest extends CamundaHelpers {
     CftQueryService cftQueryService;
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -81,6 +83,8 @@ class InitiateTaskTest extends CamundaHelpers {
     private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
     private UserInfo userInfo;
+    @Mock
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach
     void setUp() {
@@ -97,7 +101,8 @@ class InitiateTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();

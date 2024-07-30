@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -85,6 +86,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     @Mock
     private List<TaskOperationPerformService> taskOperationPerformServices;
 
+    @Mock
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach
     public void setUp() {
@@ -101,7 +104,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();
