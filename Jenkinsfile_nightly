@@ -51,6 +51,9 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   ]
 }
 
+// Prevent Docker hub rate limit errors by ensuring that testcontainers uses images from hmctspublic ACR
+env.TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "hmctspublic.azurecr.io/imported/"
+
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
   env.Rules = params.SecurityRules
