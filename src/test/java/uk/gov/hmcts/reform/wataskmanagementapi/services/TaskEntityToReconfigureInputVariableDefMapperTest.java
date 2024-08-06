@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -109,18 +108,32 @@ class TaskEntityToReconfigureInputVariableDefMapperTest {
             objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
         Map<String, Object> reconfigInputAttributes =
             objectMapper.convertValue(reconfigureInputVarDef, new TypeReference<HashMap<String, Object>>() {});
-        assertEquals(dbTaskAttributes.size(), reconfigInputAttributes.size());
+        //Removed 15 attributes from reconfigInputAttributes as they are not required for reconfiguration
+        assertEquals(dbTaskAttributes.size() - 15, reconfigInputAttributes.size());
 
         Set<String> dbTaskAttributeKeys = dbTaskAttributes.keySet();
         Set<String> reconfigInputAttributeKeys = reconfigInputAttributes.keySet();
-        Set<String> expectedOnlyInReconfigInputKeys = Set.of("name", "taskState", "dueDate", "caseManagementCategory");
+        Set<String> expectedOnlyInReconfigInputKeys =
+            Set.of("name", "taskState", "dueDate", "caseManagementCategory", "workType");
+        //expectedOnlyInDbTaskAttributes has 19 attributes including the 4 attributes that are renamed
         reconfigInputAttributeKeys.removeAll(dbTaskAttributeKeys);
-
         assertThat(expectedOnlyInReconfigInputKeys).isEqualTo(reconfigInputAttributeKeys);
+        reconfigInputAttributes =
+            objectMapper.convertValue(reconfigureInputVarDef, new TypeReference<HashMap<String, Object>>() {});
+        reconfigInputAttributeKeys = reconfigInputAttributes.keySet();
+        dbTaskAttributeKeys.removeAll(reconfigInputAttributeKeys);
+        Set<String> expectedOnlyInDbTaskAttributes = Set.of("lastUpdatedUser", "taskName", "dueDateTime",
+                  "caseCategory", "securityClassification", "lastReconfigurationTime", "reconfigureRequestTime",
+                  "autoAssigned", "state", "taskSystem", "indexed", "lastUpdatedTimestamp", "lastUpdatedAction",
+                  "taskRoleResources", "executionTypeCode", "businessContext", "terminationReason", "notes",
+                  "assignmentExpiry", "workTypeResource");
+        assertEquals(expectedOnlyInDbTaskAttributes, dbTaskAttributeKeys);
+
         assertEquals("aTaskName", reconfigureInputVarDef.getName());
         assertEquals(COMPLETED, reconfigureInputVarDef.getTaskState());
         assertEquals(OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
                      reconfigureInputVarDef.getDueDate());
         assertEquals("caseCategory", reconfigureInputVarDef.getCaseManagementCategory());
+        assertEquals("routine_work", reconfigureInputVarDef.getWorkType());
     }
 }
