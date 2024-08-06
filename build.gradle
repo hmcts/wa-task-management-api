@@ -4,7 +4,7 @@ plugins {
   id 'checkstyle'
   id 'pmd'
   id 'jacoco'
-  id 'io.spring.dependency-management' version '1.1.4'
+  id 'io.spring.dependency-management' version '1.1.6'
   id 'org.springframework.boot' version '2.7.18'
   id 'org.owasp.dependencycheck' version '9.0.4'
   id 'com.github.ben-manes.versions' version '0.42.0'
@@ -234,7 +234,7 @@ dependencyManagement {
   dependencies {
     dependency group: 'commons-io', name: 'commons-io', version: '2.16.1'
 
-    dependencySet( group: 'org.springframework.security', version: '5.8.9'){
+    dependencySet( group: 'org.springframework.security', version: '5.8.13'){
       entry 'spring-security-core'
       entry 'spring-security-acl'
       entry 'spring-security-aspects'
@@ -325,14 +325,14 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
 
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: '2.7.15'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: '2.7.18'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.9'
 
   implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
 
-  implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.1'
+  implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.5'
 
   implementation('org.springframework.retry:spring-retry')
 
