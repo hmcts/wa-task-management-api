@@ -132,7 +132,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockServices.mockServiceAPIs();
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
-        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any(), any(), any())).thenReturn(LDValue.parse("{\"jurisdictions\":[\"WA\", \"IA\"]}"));
+        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any(), any(), any()))
+            .thenReturn(LDValue.parse("{\"jurisdictions\":[\"WA\", \"IA\"]}"));
     }
 
     @AfterAll

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.launchdarkly.sdk.LDValue;
@@ -18,6 +19,8 @@ import java.util.List;
 
 @Slf4j
 @Service
+@SuppressWarnings({
+    "PMD.CognitiveComplexity"})
 public class TaskMandatoryFieldsValidator {
 
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -55,15 +58,15 @@ public class TaskMandatoryFieldsValidator {
     private JsonNode parseJson(String jsonString) {
         try {
              return new ObjectMapper().readTree(jsonString).get(MANDATORY_FLAG_VARIANT.stringValue());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Mandatory flag jurisdictions mapping issue.", e);
         }
     }
 
     private void validateTaskFields(TaskResource task, JsonNode jurisdictionArray) {
+        List<String> errors = new ArrayList<>();
         for (JsonNode jurisdiction : jurisdictionArray) {
             if (jurisdiction.asText().equals(task.getJurisdiction())) {
-                List<String> errors = new ArrayList<>();
                 for (String field : mandatoryTaskFields) {
                     try {
                         if (PropertyUtils.getProperty(task, field) == null) {
