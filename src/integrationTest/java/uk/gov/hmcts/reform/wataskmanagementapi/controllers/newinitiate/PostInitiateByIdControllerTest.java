@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.newinitiate;
 
+import com.launchdarkly.sdk.LDValue;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
@@ -131,6 +132,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockServices.mockServiceAPIs();
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
+        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any(), any(), any())).thenReturn(LDValue.parse("{\"jurisdictions\":[\"WA\", \"IA\"]}"));
     }
 
     @AfterAll
@@ -433,7 +435,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(ResponseEntity.ok()
                             .header(TOTAL_RECORDS, "0")
                             .body(new RoleAssignmentResource(emptyList())));
-
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -1003,7 +1004,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             CASE_ID.value(), "someCaseId",
             DUE_DATE.value(), formattedDueDate
         );
-
         InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc

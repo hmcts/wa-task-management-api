@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.launchdarkly.sdk.LDValue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -10,57 +12,70 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
-import java.lang.reflect.InvocationTargetException;
+import javax.validation.ValidationException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.ValidationException;
 
 @Slf4j
 @Service
 public class TaskMandatoryFieldsValidator {
 
-    @Autowired
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    private final Boolean  isMandatoryFieldCheckEnabled;
-    private final List<String>  mandatoryTaskFields;
-
-    public static final LDValue DEFAULT_VARIANT_VALUE = LDValue.of("jurisdiction");
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private final Boolean isMandatoryFieldCheckEnabled;
+    private final List<String> mandatoryTaskFields;
+    public static final LDValue MANDATORY_FLAG_VARIANT = LDValue.of("jurisdictions");
 
     @Autowired
-    public TaskMandatoryFieldsValidator(@Value("${config.mandatoryTaskFieldCheckEnabled}")
-                                            Boolean mandatoryTaskFieldCheckEnabled,
+    public TaskMandatoryFieldsValidator(LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                                        @Value("${config.mandatoryTaskFieldCheckEnabled}") Boolean mandatoryTaskFieldCheckEnabled,
                                         @Value("${config.mandatoryTaskFields}") List<String> mandatoryTaskFields) {
-        this.mandatoryTaskFields = mandatoryTaskFields;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.isMandatoryFieldCheckEnabled = mandatoryTaskFieldCheckEnabled;
+        this.mandatoryTaskFields = mandatoryTaskFields;
     }
 
     public void validate(TaskResource task) {
         log.info("Validating mandatory fields for task {}", task.getTaskId());
 
-        LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
-            FeatureFlag.WA_MANDATORY_FIELD_CHECK,
-            "ccd-case-disposer",
-            "ccd-case-disposer@hmcts.net",
-            DEFAULT_VARIANT_VALUE
-        );
-        log.info("mandatoryFieldCheckEnabledServices {}", mandatoryFieldCheckEnabledServices);
-        if (isMandatoryFieldCheckEnabled && mandatoryFieldCheckEnabledServices.toJsonString()
-            .contains(task.getJurisdiction())) {
-            List<String> errors = new ArrayList<>();
+        if (isMandatoryFieldCheckEnabled) {
+            LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
+                FeatureFlag.WA_MANDATORY_FIELD_CHECK,
+                "ccd-case-disposer",
+                "ccd-case-disposer@hmcts.net",
+                LDValue.of("{\"jurisdictions\": []}")
+            );
 
-            for (String field : mandatoryTaskFields) {
-                try {
-                    Object value = PropertyUtils.getProperty(task, field);
-                    if (value == null) {
-                        errors.add(field + " cannot be null");
-                    }
-                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    throw new IllegalArgumentException("Cannot find property value for field " + field, e);
-                }
+            if (mandatoryFieldCheckEnabledServices != null) {
+                JsonNode jurisdictionArray = parseJson(mandatoryFieldCheckEnabledServices.toJsonString());
+                validateTaskFields(task, jurisdictionArray);
             }
-            if (!errors.isEmpty()) {
-                throw new ValidationException(String.join(", ", errors));
+        }
+    }
+
+    private JsonNode parseJson(String jsonString) {
+        try {
+             return new ObjectMapper().readTree(jsonString).get(MANDATORY_FLAG_VARIANT.stringValue());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void validateTaskFields(TaskResource task, JsonNode jurisdictionArray) {
+        for (JsonNode jurisdiction : jurisdictionArray) {
+            if (jurisdiction.asText().equals(task.getJurisdiction())) {
+                List<String> errors = new ArrayList<>();
+                for (String field : mandatoryTaskFields) {
+                    try {
+                        if (PropertyUtils.getProperty(task, field) == null) {
+                            errors.add(field + " cannot be null");
+                        }
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("Cannot find property value for field " + field, e);
+                    }
+                }
+                if (!errors.isEmpty()) {
+                    throw new ValidationException(String.join(", ", errors));
+                }
             }
         }
     }

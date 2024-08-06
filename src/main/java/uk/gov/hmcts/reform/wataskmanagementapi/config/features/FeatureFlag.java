@@ -11,7 +11,8 @@ public enum FeatureFlag {
 
     //The following keys are used for testing purposes only.
     TEST_KEY("tester"),
-    NON_EXISTENT_KEY("non-existent");
+    NON_EXISTENT_KEY("non-existent"),
+    MANDATORY_FIELDS_KEY("jurisdictions");
 
     private final String key;
 

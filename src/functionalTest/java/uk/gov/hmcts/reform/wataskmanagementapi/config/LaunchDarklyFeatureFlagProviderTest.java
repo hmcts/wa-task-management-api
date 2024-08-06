@@ -7,8 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.NON_EXISTENT_KEY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.TEST_KEY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.*;
 
 public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
 
@@ -33,7 +32,9 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
 
     @Test
     public void should_hit_launch_darkly_and_return_jsonvalue() {
-        LDValue launchDarklyFeature = featureFlagProvider.getJsonValue(TEST_KEY, SOME_USER_ID, SOME_USER_EMAIL,
+        LDValue launchDarklyFeature = featureFlagProvider.getJsonValue(MANDATORY_FIELDS_KEY,
+                                                                       SOME_USER_ID,
+                                                                       SOME_USER_EMAIL,
                                                                        LDValue.of("jurisdictions"));
         assertThat(launchDarklyFeature, is(LDValue.of("jurisdictions")));
     }
