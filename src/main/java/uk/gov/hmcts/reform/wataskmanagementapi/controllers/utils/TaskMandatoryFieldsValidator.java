@@ -13,9 +13,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
-import javax.validation.ValidationException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.ValidationException;
 
 @Slf4j
 @Service
@@ -30,7 +30,8 @@ public class TaskMandatoryFieldsValidator {
 
     @Autowired
     public TaskMandatoryFieldsValidator(LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                                        @Value("${config.mandatoryTaskFieldCheckEnabled}") Boolean mandatoryTaskFieldCheckEnabled,
+                                        @Value("${config.mandatoryTaskFieldCheckEnabled}")
+                                        Boolean mandatoryTaskFieldCheckEnabled,
                                         @Value("${config.mandatoryTaskFields}") List<String> mandatoryTaskFields) {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.isMandatoryFieldCheckEnabled = mandatoryTaskFieldCheckEnabled;
@@ -57,7 +58,7 @@ public class TaskMandatoryFieldsValidator {
 
     private JsonNode parseJson(String jsonString) {
         try {
-             return new ObjectMapper().readTree(jsonString).get(MANDATORY_FLAG_VARIANT.stringValue());
+            return new ObjectMapper().readTree(jsonString).get(MANDATORY_FLAG_VARIANT.stringValue());
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Mandatory flag jurisdictions mapping issue.", e);
         }
