@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -74,6 +73,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 public class CamundaService {
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
+
+    private static final String VARIABLE_NAME = "variableName";
+
+    private static final String TASK_ID_IN = "taskIdIn";
 
     private final CamundaServiceApi camundaServiceApi;
     private final TaskMapper taskMapper;
@@ -112,8 +115,8 @@ public class CamundaService {
 
     public boolean isCftTaskStateExistInCamunda(String taskId) {
         Map<String, Object> body = Map.of(
-            "variableName", CFT_TASK_STATE.value(),
-            "taskIdIn", singleton(taskId)
+            VARIABLE_NAME, CFT_TASK_STATE.value(),
+            TASK_ID_IN, singleton(taskId)
         );
 
         AtomicBoolean isCftTaskStateExist = new AtomicBoolean(false);
@@ -145,8 +148,8 @@ public class CamundaService {
 
     public boolean isTaskCompletedInCamunda(String taskId) {
         Map<String, Object> body = Map.of(
-            "variableName", TASK_STATE.value(),
-            "taskIdIn", singleton(taskId)
+            VARIABLE_NAME, TASK_STATE.value(),
+            TASK_ID_IN, singleton(taskId)
         );
 
         AtomicBoolean isTaskStateCompleted = new AtomicBoolean(false);
@@ -299,7 +302,7 @@ public class CamundaService {
                 createEventIdDmnRequest(searchEventAndCase.getEventId())
             );
 
-            return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
+            return dmnResponse.stream().map(CamundaHelper::removeSpaces).toList();
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
@@ -328,8 +331,8 @@ public class CamundaService {
     public void deleteCftTaskState(String taskId) {
 
         Map<String, Object> body = Map.of(
-            "variableName", CFT_TASK_STATE.value(),
-            "taskIdIn", singleton(taskId)
+            VARIABLE_NAME, CFT_TASK_STATE.value(),
+            TASK_ID_IN, singleton(taskId)
         );
 
         try {

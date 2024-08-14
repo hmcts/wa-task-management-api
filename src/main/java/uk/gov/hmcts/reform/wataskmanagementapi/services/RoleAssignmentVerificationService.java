@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
@@ -60,7 +59,7 @@ public class RoleAssignmentVerificationService {
                 .filter(ra -> !ra.getRoleType().equals(RoleType.CASE) || ra.getAttributes() != null
                     && ra.getAttributes().get("caseId") != null
                     && caseId.equals(ra.getAttributes().get("caseId")))
-                .collect(Collectors.toList());
+                .toList();
 
             Optional<TaskResource> optionalTaskResource = cftQueryService.getTask(
                 taskId, filteredRoleAssignments, permissionsRequired

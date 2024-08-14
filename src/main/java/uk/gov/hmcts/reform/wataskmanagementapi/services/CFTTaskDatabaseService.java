@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 
@@ -152,7 +151,7 @@ public class CFTTaskDatabaseService {
                     roleAssignments
                 )
             )
-            .collect(Collectors.toList());
+            .toList();
 
         return new GetTasksResponse<>(tasks, count);
     }
@@ -170,6 +169,6 @@ public class CFTTaskDatabaseService {
             .filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
             .map(ra -> ra.getAttributes().get(RoleAttributeDefinition.CASE_ID.value()))
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
     }
 }

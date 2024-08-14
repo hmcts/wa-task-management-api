@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.WorkTypeResourceReposi
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,7 +45,7 @@ public class CFTWorkTypeDatabaseService {
 
         return workTypeResources.stream().map(workTypeResource ->
             new WorkType(workTypeResource.getId(), workTypeResource.getLabel()))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -58,7 +57,7 @@ public class CFTWorkTypeDatabaseService {
         final Specification<WorkTypeResource> specification = WorkTypeQuerySpecification.findByIds(workTypes);
         return workTypeResourceRepository.findAll(specification)
             .stream().map(workTypeResource -> new WorkType(workTypeResource.getId(), workTypeResource.getLabel()))
-            .collect(Collectors.toList());
+            .toList();
     }
 
 }
