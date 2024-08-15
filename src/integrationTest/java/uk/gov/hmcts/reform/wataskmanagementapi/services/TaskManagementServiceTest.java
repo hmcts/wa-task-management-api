@@ -28,7 +28,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
@@ -122,9 +121,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
-    @Mock
-    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
@@ -148,8 +144,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentVerification,
             entityManager,
             systemUserIdamToken,
-            cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            cftSensitiveTaskEventLogsDatabaseService);
 
         mockServices.mockServiceAPIs();
     }
@@ -483,7 +478,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
             verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
@@ -525,7 +520,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .hasNoCause()
                     .hasMessage(
                         "Task Assign and Complete Error: Task assign and complete partially succeeded. "
-                        + "The Task was assigned to the user making the request but the Task could not be completed.");
+                            + "The Task was assigned to the user making the request but the Task could not be completed.");
 
                 verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
@@ -563,7 +558,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
                     .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                                + "The Task state was updated to completed, but the Task could not be completed.");
+                                    + "The Task state was updated to completed, but the Task could not be completed.");
 
                 verifyTransactionWasRolledBack(taskId, ASSIGNED);
             }

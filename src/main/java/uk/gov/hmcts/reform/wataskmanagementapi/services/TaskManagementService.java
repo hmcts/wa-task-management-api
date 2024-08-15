@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
@@ -119,8 +118,6 @@ public class TaskManagementService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-
     @Autowired
     public TaskManagementService(CamundaService camundaService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
@@ -130,8 +127,7 @@ public class TaskManagementService {
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
-                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
-                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
+                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -141,7 +137,6 @@ public class TaskManagementService {
         this.entityManager = entityManager;
         this.idamTokenGenerator = idamTokenGenerator;
         this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
-        this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
     }
 
     /**
@@ -202,7 +197,7 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
             throw new ConflictException("Task '" + task.getTaskId()
-                                        + "' is already claimed by someone else.", null);
+                                            + "' is already claimed by someone else.", null);
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
@@ -327,7 +322,7 @@ public class TaskManagementService {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
                 TaskAction taskAction = buildTaskActionAttributeForAssign(assigner.getUid(), Optional.empty(),
-                    currentAssignee);
+                                                                          currentAssignee);
                 unclaimTask(taskId, assigner.getUid(), taskHasUnassigned, taskAction);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
@@ -349,7 +344,7 @@ public class TaskManagementService {
                 task.setState(CFTTaskState.ASSIGNED);
                 task.setAssignee(assignee.get().getUid());
                 updateTaskActionAttributesForAssign(task, assigner.getUid(),
-                    Optional.of(assignee.get().getUid()), currentAssignee);
+                                                    Optional.of(assignee.get().getUid()), currentAssignee);
                 //Perform Camunda updates
                 camundaService.assignTask(
                     taskId,
@@ -364,8 +359,8 @@ public class TaskManagementService {
     }
 
     protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
-                                                    Optional<String> newAssignee,
-                                                    Optional<String> oldAssignee) {
+                                                       Optional<String> newAssignee,
+                                                       Optional<String> oldAssignee) {
         TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
         if (taskAction != null) {
             setTaskActionAttributes(taskResource, assigner, taskAction);
@@ -522,7 +517,7 @@ public class TaskManagementService {
             }
 
             log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
-                     + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+                         + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
             throw ex;
         }
     }
@@ -549,8 +544,8 @@ public class TaskManagementService {
         CFTTaskState state = task.getState();
         taskHasCompleted = state != null
             && (state.equals(CFTTaskState.COMPLETED)
-                   || state.equals(CFTTaskState.TERMINATED)
-                           && task.getTerminationReason().equals("completed"));
+            || state.equals(CFTTaskState.TERMINATED)
+            && task.getTerminationReason().equals("completed"));
 
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
@@ -596,7 +591,7 @@ public class TaskManagementService {
 
         //Safe-guard
         checkAssignee(taskResource, userId, taskId,
-            accessControlResponse.getRoleAssignments());
+                      accessControlResponse.getRoleAssignments());
 
     }
 
@@ -610,7 +605,7 @@ public class TaskManagementService {
             } else if (!userId.equals(taskResource.getAssignee())) {
                 throw new TaskStateIncorrectException(
                     String.format("Could not complete task with id: %s as task was assigned to other user %s",
-                        taskId, taskResource.getAssignee()
+                                  taskId, taskResource.getAssignee()
                     )
                 );
             }
@@ -883,9 +878,7 @@ public class TaskManagementService {
             taskResource = configureTask(taskResource, taskAttributes);
             taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
-            taskMandatoryFieldsValidator.validate(taskResource);
             updateCftTaskState(taskResource.getTaskId(), taskResource);
-
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (FeignException e) {
             log.error("Error when initiating task(id={})", taskId, e);

@@ -42,7 +42,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
@@ -111,7 +110,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -214,9 +212,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
-    @Mock
-    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-
     TaskManagementService taskManagementService;
     String taskId;
     String caseId;
@@ -238,8 +233,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator
+            cftSensitiveTaskEventLogsDatabaseService
         );
 
 
@@ -2590,7 +2584,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
                 .thenReturn(taskResource);
             when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
-            doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
         }
 
     }
