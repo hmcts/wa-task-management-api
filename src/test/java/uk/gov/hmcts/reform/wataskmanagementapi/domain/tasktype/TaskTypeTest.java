@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -128,7 +129,7 @@ class TaskTypeTest {
         taskType.equals(taskType2);
         String expectedMessage = "Duplicate task type found for.";
 
-        assertTrue(output.getOut().contains(expectedMessage));
+        Assertions.assertThat(output.getOut().contains(expectedMessage));
     }
 
 }

@@ -105,7 +105,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         if (searchRequest.isAvailableTasksOnly()) {
             extraConstraints.append("AND assignee IS NULL ");
         } else {
-            extraConstraints.append(buildListConstraint(searchRequest.getUsers(), DB_COL_ASSIGNEE, DB_COL_ASSIGNEE, true));
+            extraConstraints.append(buildListConstraint(searchRequest.getUsers(),
+                                                        DB_COL_ASSIGNEE, DB_COL_ASSIGNEE, true));
         }
         if (CollectionUtils.isEmpty(searchRequest.getCftTaskStates())) {
             extraConstraints.append("AND state IN ('ASSIGNED', 'UNASSIGNED') ");
