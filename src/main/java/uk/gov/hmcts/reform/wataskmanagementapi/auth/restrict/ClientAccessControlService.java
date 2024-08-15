@@ -14,7 +14,7 @@ import java.util.Objects;
 @Service
 public class ClientAccessControlService {
 
-    public static final String SRV_AUTH_MUST_NOT_BE_NULL = "ServiceAuthorization must not be null";
+    public static final String MSG_SRV_AUTH_MUST_NOT_BE_NULL = "ServiceAuthorization must not be null";
 
     private final ServiceAuthTokenValidator serviceAuthTokenValidator;
     private final List<String> privilegedAccessClients;
@@ -40,7 +40,7 @@ public class ClientAccessControlService {
      */
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public boolean hasPrivilegedAccess(String serviceAuthToken, AccessControlResponse accessControlResponse) {
-        Objects.requireNonNull(serviceAuthToken, SRV_AUTH_MUST_NOT_BE_NULL);
+        Objects.requireNonNull(serviceAuthToken, MSG_SRV_AUTH_MUST_NOT_BE_NULL);
         Objects.requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId must not be null");
 
         String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
@@ -55,7 +55,7 @@ public class ClientAccessControlService {
      * @return whether a client has been whitelisted in config.hasPrivilegedAccess property.
      */
     public boolean hasPrivilegedAccess(String serviceAuthToken) {
-        Objects.requireNonNull(serviceAuthToken, SRV_AUTH_MUST_NOT_BE_NULL);
+        Objects.requireNonNull(serviceAuthToken, MSG_SRV_AUTH_MUST_NOT_BE_NULL);
 
         String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
 
@@ -70,7 +70,7 @@ public class ClientAccessControlService {
      * @return whether a client has been whitelisted in config.exclusiveAccessClients property.
      */
     public boolean hasExclusiveAccess(String serviceAuthToken) {
-        Objects.requireNonNull(serviceAuthToken, SRV_AUTH_MUST_NOT_BE_NULL);
+        Objects.requireNonNull(serviceAuthToken, MSG_SRV_AUTH_MUST_NOT_BE_NULL);
 
         String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
 
