@@ -74,9 +74,9 @@ public class CamundaService {
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
-    private static final String VARIABLE_NAME = "variableName";
+    private static final String KEY_VARIABLE_NAME = "variableName";
 
-    private static final String TASK_ID_IN = "taskIdIn";
+    private static final String VALUE_TASK_ID_IN = "taskIdIn";
 
     private final CamundaServiceApi camundaServiceApi;
     private final TaskMapper taskMapper;
@@ -115,8 +115,8 @@ public class CamundaService {
 
     public boolean isCftTaskStateExistInCamunda(String taskId) {
         Map<String, Object> body = Map.of(
-            VARIABLE_NAME, CFT_TASK_STATE.value(),
-            TASK_ID_IN, singleton(taskId)
+            KEY_VARIABLE_NAME, CFT_TASK_STATE.value(),
+            VALUE_TASK_ID_IN, singleton(taskId)
         );
 
         AtomicBoolean isCftTaskStateExist = new AtomicBoolean(false);
@@ -148,8 +148,8 @@ public class CamundaService {
 
     public boolean isTaskCompletedInCamunda(String taskId) {
         Map<String, Object> body = Map.of(
-            VARIABLE_NAME, TASK_STATE.value(),
-            TASK_ID_IN, singleton(taskId)
+            KEY_VARIABLE_NAME, TASK_STATE.value(),
+            VALUE_TASK_ID_IN, singleton(taskId)
         );
 
         AtomicBoolean isTaskStateCompleted = new AtomicBoolean(false);
@@ -331,8 +331,8 @@ public class CamundaService {
     public void deleteCftTaskState(String taskId) {
 
         Map<String, Object> body = Map.of(
-            VARIABLE_NAME, CFT_TASK_STATE.value(),
-            TASK_ID_IN, singleton(taskId)
+            KEY_VARIABLE_NAME, CFT_TASK_STATE.value(),
+            VALUE_TASK_ID_IN, singleton(taskId)
         );
 
         try {
