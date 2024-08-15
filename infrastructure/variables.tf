@@ -49,6 +49,6 @@ variable "business_area" {
   default = "cft"
 }
 
-variable jenkins_AAD_objectId {}
+variable "jenkins_AAD_objectId" {}
 
-variable aks_subscription_id {}
+variable "aks_subscription_id" {}
