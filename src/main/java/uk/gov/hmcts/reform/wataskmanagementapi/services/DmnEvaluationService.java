@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_PERMISSIONS;
@@ -101,7 +100,7 @@ public class DmnEvaluationService {
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
-            return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
+            return dmnResponse.stream().map(CamundaHelper::removeSpaces).toList();
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
             throw new IllegalStateException(
@@ -123,7 +122,7 @@ public class DmnEvaluationService {
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
-            return dmnResponse.stream().map(CamundaHelper::removeSpaces).collect(Collectors.toList());
+            return dmnResponse.stream().map(CamundaHelper::removeSpaces).toList();
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table {}", decisionTableKey);
             throw new IllegalStateException(

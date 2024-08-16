@@ -107,7 +107,7 @@ public class CaseConfigurationProviderService {
         List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
             = permissionsDmnResults.stream()
             .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
-            .collect(Collectors.toList());
+            .toList();
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
             taskConfigurationDmnResultsAfterUpdate,
