@@ -21,7 +21,7 @@ public abstract class TaskResourceQueryBuilder<T> {
     public List<Order> orders;
     List<Selection<?>> selections;
 
-    public TaskResourceQueryBuilder(EntityManager entityManager) {
+    protected TaskResourceQueryBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
         this.builder = entityManager.getCriteriaBuilder();
         this.query = createQuery();
