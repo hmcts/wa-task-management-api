@@ -18,12 +18,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
-import javax.validation.ValidationException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import javax.validation.ValidationException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +106,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
 
         Mockito.verify(spyValidator, Mockito.never()).validateTaskMandatoryFields(task);
     }
+
     @Test
     @DisplayName("should return null when JSON string is empty")
     void given_emptyJsonString_when_parseJson_then_returnNull() {
