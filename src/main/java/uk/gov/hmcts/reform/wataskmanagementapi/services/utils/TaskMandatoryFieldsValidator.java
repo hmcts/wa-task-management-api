@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.launchdarkly.sdk.LDValue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -31,6 +29,8 @@ public class TaskMandatoryFieldsValidator {
     private final List<String> taskMandatoryFields;
     public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
 
+    private JsonParserUtils jsonParserUtils;
+
     /**
      * Constructor for TaskMandatoryFieldsValidator.
      *
@@ -42,10 +42,12 @@ public class TaskMandatoryFieldsValidator {
     public TaskMandatoryFieldsValidator(LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                         @Value("${config.taskMandatoryFieldCheckEnabled}")
                                         Boolean taskMandatoryFieldCheckEnabled,
-                                        @Value("${config.taskMandatoryFields}") List<String> taskMandatoryFields) {
+                                        @Value("${config.taskMandatoryFields}") List<String> taskMandatoryFields,
+                                        JsonParserUtils jsonParserUtils) {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.isMandatoryFieldCheckEnabled = taskMandatoryFieldCheckEnabled;
         this.taskMandatoryFields = taskMandatoryFields;
+        this.jsonParserUtils = jsonParserUtils;
     }
 
     /**
@@ -59,8 +61,8 @@ public class TaskMandatoryFieldsValidator {
         if (isMandatoryFieldCheckEnabled) {
             LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
                 FeatureFlag.WA_MANDATORY_FIELD_CHECK,
-                "ccd-case-disposer",
-                "ccd-case-disposer@hmcts.net",
+                "wa-mandatory-task-field-check",
+                "wa-mandatory-task-field-check@hmcts.net",
                 LDValue.of("{\"jurisdictions\": []}")
             );
 
@@ -69,7 +71,7 @@ public class TaskMandatoryFieldsValidator {
                 return;
             }
 
-            JsonNode excludedJurisdictionsArray = parseJson(mandatoryFieldCheckEnabledServices.toJsonString());
+            JsonNode excludedJurisdictionsArray = jsonParserUtils.parseJson(mandatoryFieldCheckEnabledServices.toJsonString(), MANDATORY_FIELD_CHECK_FLAG_VARIANT.stringValue());
             if (excludedJurisdictionsArray == null) {
                 log.warn("Excluded jurisdictions array is null, skipping jurisdiction check.");
                 validateTaskMandatoryFields(task);
@@ -92,25 +94,12 @@ public class TaskMandatoryFieldsValidator {
     private boolean isJurisdictionExcluded(TaskResource task, JsonNode excludedJurisdictionsArray) {
         for (JsonNode jurisdiction : excludedJurisdictionsArray) {
             if (jurisdiction.asText().equals(task.getJurisdiction())) {
+                log.warn("Task {} is excluded from mandatory field check due to jurisdiction being excluded {}",
+                         task.getTaskId(), task.getJurisdiction());
                 return true;
             }
         }
         return false;
-    }
-
-    /**
-     * Parses a JSON string and returns the JsonNode for the mandatory field check flag variant.
-     *
-     * @param jsonString the JSON string to be parsed
-     * @return the JsonNode for the mandatory field check flag variant
-     * @throws IllegalArgumentException if the JSON string cannot be parsed
-     */
-    public JsonNode parseJson(String jsonString) {
-        try {
-            return new ObjectMapper().readTree(jsonString).get(MANDATORY_FIELD_CHECK_FLAG_VARIANT.stringValue());
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Mandatory flag jurisdictions mapping issue.", e);
-        }
     }
 
     /**
@@ -129,7 +118,7 @@ public class TaskMandatoryFieldsValidator {
                     errors.add(field + " cannot be null or empty");
                 }
             } catch (Exception e) {
-                throw new IllegalArgumentException("Cannot find property value for field " + field, e);
+                throw new IllegalArgumentException("Cannot find property value for mandatory field " + field, e);
             }
         }
         if (!errors.isEmpty()) {
