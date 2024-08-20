@@ -84,7 +84,6 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
             new LaunchDarklyFeatureFlagProvider(ldClient), true, List.of("field1", "field2"),
             jsonParserUtils);
-     //   when(jsonParserUtils.parseJson(any(), any())).thenReturn(null);
         assertThrows(IllegalArgumentException.class, () -> validator.validate(task));
     }
 
