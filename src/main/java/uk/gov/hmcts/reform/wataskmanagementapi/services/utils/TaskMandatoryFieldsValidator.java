@@ -28,8 +28,7 @@ public class TaskMandatoryFieldsValidator {
     private final Boolean isMandatoryFieldCheckEnabled;
     private final List<String> taskMandatoryFields;
     public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
-
-    private JsonParserUtils jsonParserUtils;
+    private final JsonParserUtils jsonParserUtils;
 
     /**
      * Constructor for TaskMandatoryFieldsValidator.
@@ -71,7 +70,9 @@ public class TaskMandatoryFieldsValidator {
                 return;
             }
 
-            JsonNode excludedJurisdictionsArray = jsonParserUtils.parseJson(mandatoryFieldCheckEnabledServices.toJsonString(), MANDATORY_FIELD_CHECK_FLAG_VARIANT.stringValue());
+            JsonNode excludedJurisdictionsArray =
+                jsonParserUtils.parseJson(mandatoryFieldCheckEnabledServices.toJsonString(),
+                                          MANDATORY_FIELD_CHECK_FLAG_VARIANT.stringValue());
             if (excludedJurisdictionsArray == null) {
                 log.warn("Excluded jurisdictions array is null, skipping jurisdiction check.");
                 validateTaskMandatoryFields(task);
