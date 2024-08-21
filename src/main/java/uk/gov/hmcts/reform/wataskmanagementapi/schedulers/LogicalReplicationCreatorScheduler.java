@@ -14,11 +14,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 @Profile("replica | preview")
 public class LogicalReplicationCreatorScheduler {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(LogicalReplicationCreatorScheduler.class);
+    private static final int FIXED_DELAY_CONST = 30_000;
 
     @Autowired
     private MIReportingService miReportingService;
 
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = FIXED_DELAY_CONST)
     public void scheduled() {
         LOGGER.debug("Postgresql logical replication scheduler executed");
         miReportingService.logicalReplicationCheck();
