@@ -18,7 +18,7 @@ public class LogicalReplicationCreatorScheduler {
     @Autowired
     private MIReportingService miReportingService;
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 30000)
     public void scheduled() {
         LOGGER.debug("Postgresql logical replication scheduler executed");
         miReportingService.logicalReplicationCheck();
