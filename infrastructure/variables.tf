@@ -49,7 +49,9 @@ variable "business_area" {
   default = "cft"
 }
 
-variable "pgsql_storage_mb" {}
+variable "pgsql_storage_mb" {
+  default = 65536
+}
 
 variable "jenkins_AAD_objectId" {}
 
