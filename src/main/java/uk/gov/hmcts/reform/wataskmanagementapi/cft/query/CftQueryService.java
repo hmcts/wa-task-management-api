@@ -110,6 +110,7 @@ public class CftQueryService {
             || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
             .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
         ) {
+            log.info("Jurisdiction or CaseType not supported for completion");
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -121,6 +122,7 @@ public class CftQueryService {
         List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
 
         if (taskTypes.isEmpty()) {
+            log.info("TaskTypes is empty");
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
