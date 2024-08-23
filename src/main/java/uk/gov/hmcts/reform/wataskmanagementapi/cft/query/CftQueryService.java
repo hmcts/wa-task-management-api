@@ -110,7 +110,7 @@ public class CftQueryService {
             || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
             .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
         ) {
-            log.info("Jurisdiction or CaseType not supported for completion");
+            log.info("Jurisdiction or CaseType not supported");
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
