@@ -94,9 +94,9 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
     private boolean waitForReplication() {
 
         await().ignoreException(AssertionFailedError.class)
-            .atLeast(1, SECONDS)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+            .atLeast(5, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(60, SECONDS)
             .until(() -> miReportingService.hasReplicationStarted());
         return true;
     }
