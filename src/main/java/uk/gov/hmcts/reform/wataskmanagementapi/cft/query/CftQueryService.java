@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 import static java.util.Collections.emptyList;
@@ -93,7 +92,7 @@ public class CftQueryService {
                     roleAssignments
                 )
             )
-            .collect(Collectors.toList());
+            .toList();
 
         return new GetTasksResponse<>(tasks, count);
     }
@@ -191,7 +190,7 @@ public class CftQueryService {
                      roleAssignments
                  )
             )
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private List<String> extractTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {
@@ -199,7 +198,7 @@ public class CftQueryService {
             .filter(result -> result.containsKey(TASK_TYPE.value()))
             .map(result -> camundaService.getVariableValue(result.get(TASK_TYPE.value()), String.class))
             .filter(StringUtils::hasText)
-            .collect(Collectors.toList());
+            .toList();
 
     }
 

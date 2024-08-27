@@ -7,7 +7,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -133,7 +132,7 @@ public final class TaskQuerySpecification {
                                                  Root<TaskResource> root) {
         List<String> roleCategoryTexts = Stream.ofNullable(roleCategories)
             .flatMap(Collection::stream)
-            .map(Objects::toString).collect(Collectors.toList());
+            .map(Objects::toString).toList();
         if (isEmpty(roleCategoryTexts)) {
             return builder.conjunction();
         } else if (hasSingleElement(roleCategoryTexts)) {
