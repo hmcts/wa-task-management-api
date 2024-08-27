@@ -12,8 +12,8 @@ plugins {
   id 'info.solidsoft.pitest' version '1.15.0'
   id 'io.freefair.lombok' version '6.5.1'
   // If Pact version is changed, make sure serenity report works.
-  id 'au.com.dius.pact' version '4.3.12'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '3.2.3'
+  id 'au.com.dius.pact' version '4.6.14'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '3.9.8'
   id 'org.flywaydb.flyway' version '9.3.0'
 }
 
@@ -286,11 +286,11 @@ def versions = [
   junitPlatform : '1.10.2',
   reformLogging : '6.1.6',
   springDoc     : '1.8.0',
-  serenity      : '3.1.20',
+  serenity      : '3.9.8',
   gradlePitest  : '1.15.0',
   pitest        : '1.16.1',
   sonarPitest   : '0.5',
-  pactVersion   : '4.3.4',
+  pactVersion   : '4.6.14',
   logbook       : '2.6.2',
   tomcat        : '9.0.91',
   testcontainers: '1.19.8',
