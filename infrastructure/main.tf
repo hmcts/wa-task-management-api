@@ -47,13 +47,14 @@ module "wa_task_management_api_database_flexible" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product            = var.product
-  component          = var.component
-  name               = "${var.postgres_db_component_name}-postgres-db-flexible"
-  location           = var.location
-  business_area      = var.business_area
-  env                = var.env
+  source        = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product       = var.product
+  component     = var.component
+  name          = "${var.postgres_db_component_name}-postgres-db-flexible"
+  pgsql_sku     = var.pgsql_sku
+  location      = var.location
+  business_area = var.business_area
+  env           = var.env
   pgsql_databases = [
     {
       name : var.postgresql_database_name
@@ -70,8 +71,8 @@ module "wa_task_management_api_database_flexible" {
     }
   ]
 
-  pgsql_version      = 14
-  common_tags        = local.common_tags
+  pgsql_version = 14
+  common_tags   = local.common_tags
 
   admin_user_object_id = var.jenkins_AAD_objectId
 
@@ -83,21 +84,21 @@ module "wa_task_management_api_database_flexible_replica" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source             = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product            = var.product
-  component          = var.component
-  name               = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
-  location           = var.location
-  business_area      = var.business_area
-  env                = var.env
+  source        = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product       = var.product
+  component     = var.component
+  name          = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
+  location      = var.location
+  business_area = var.business_area
+  env           = var.env
   pgsql_databases = [
     {
       name : var.postgresql_database_name
     }
   ]
 
-  pgsql_version      = 14
-  common_tags        = local.common_tags
+  pgsql_version = 14
+  common_tags   = local.common_tags
 
   admin_user_object_id = var.jenkins_AAD_objectId
 

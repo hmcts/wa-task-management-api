@@ -102,7 +102,7 @@ public class TaskResourceDao {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .map(Object::toString)
-            .collect(Collectors.toList());
+            .toList();
         List<Order> orders = getSortOrders(searchRequest, builder, root);
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskQuery(taskIds, builder, root);
 

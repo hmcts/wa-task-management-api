@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @SuppressWarnings({
     "PMD.DataflowAnomalyAnalysis",
@@ -25,14 +24,14 @@ public final class CamundaHelper {
 
         HashMap<String, CamundaVariable> response = new HashMap<>(dmnResponse);
 
-        for (HashMap.Entry<String, CamundaVariable> entry : response.entrySet()) {
+        for (Map.Entry<String, CamundaVariable> entry : response.entrySet()) {
             String value = entry.getValue().getValue().toString();
             if (value.contains(",") && value.contains(" ")) {
                 String[] valueArray = ((String) entry.getValue().getValue()).split(",");
 
                 List<String> trimmedValues = Arrays.stream(valueArray)
                     .map(String::trim)
-                    .collect(Collectors.toList());
+                    .toList();
 
                 response.put(
                     entry.getKey(),
@@ -90,7 +89,7 @@ public final class CamundaHelper {
 
         List<String> trimmedValues = Arrays.stream(value.split(","))
             .map(String::trim)
-            .collect(Collectors.toList());
+            .toList();
 
         return new CamundaValue<>(
             String.join(",", trimmedValues),

@@ -49,6 +49,11 @@ variable "business_area" {
   default = "cft"
 }
 
-variable jenkins_AAD_objectId {}
+variable "pgsql_sku" {
+  description = "The PGSql flexible server instance sku"
+  default     = "GP_Standard_D2s_v3"
+}
 
-variable aks_subscription_id {}
+variable "jenkins_AAD_objectId" {}
+
+variable "aks_subscription_id" {}
