@@ -196,9 +196,10 @@ public class TaskSearchController extends BaseController {
             permissionsRequired
         );
 
-        log.info(String.format("POST /search-for-completable - userId: %s, caseId: %s, taskIds: %s",
+        log.info(String.format("POST /search-for-completable - userId: %s, caseId: %s, eventId: %s, taskIds: %s",
                                accessControlResponse.getUserInfo().getUid(),
                                searchEventAndCase.getCaseId(),
+                               searchEventAndCase.getEventId(),
                                response.getTasks().stream().map(Task::getId).collect(Collectors.toSet())
         ));
 
