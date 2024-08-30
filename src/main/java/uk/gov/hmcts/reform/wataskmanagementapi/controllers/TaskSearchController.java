@@ -172,6 +172,8 @@ public class TaskSearchController extends BaseController {
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
 
+        log.info("POST /search-for-completable - {}", searchEventAndCase.toString());
+
         GetTasksCompletableResponse<Task> response;
         Optional<AccessControlResponse> optionalAccessControlResponse = accessControlService
             .getAccessControlResponse(authToken);
@@ -196,10 +198,8 @@ public class TaskSearchController extends BaseController {
             permissionsRequired
         );
 
-        log.info(String.format("POST /search-for-completable - userId: %s, caseId: %s, eventId: %s, taskIds: %s",
+        log.info(String.format("POST /search-for-completable - userId: %s, taskIds: %s",
                                accessControlResponse.getUserInfo().getUid(),
-                               searchEventAndCase.getCaseId(),
-                               searchEventAndCase.getEventId(),
                                response.getTasks().stream().map(Task::getId).collect(Collectors.toSet())
         ));
 
