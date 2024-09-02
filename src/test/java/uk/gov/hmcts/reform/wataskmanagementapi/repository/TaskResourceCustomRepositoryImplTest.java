@@ -62,7 +62,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
                           + "t.security_classification) && :roleSignature "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -87,7 +87,7 @@ public class TaskResourceCustomRepositoryImplTest {
                           + "t.security_classification) && :roleSignature "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY case_id ASC, case_name ASC, "
-                          + "major_priority ASC, priority_date ASC, minor_priority ASC "
+                          + "major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -129,7 +129,7 @@ public class TaskResourceCustomRepositoryImplTest {
                           + "t.security_classification) && :roleSignature "
                        + "AND assignee IS NULL "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -179,7 +179,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
                        + "AND task_type = :taskType "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -240,7 +240,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -302,7 +302,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND case_id IN (:caseId) "
                        + "AND case_id <> :excludedCaseId "
                        + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -367,7 +367,7 @@ public class TaskResourceCustomRepositoryImplTest {
                        + "AND case_id IN (:caseId) "
                        + "AND case_id NOT IN (:excludedCaseId) "
                        + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
