@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.MARK_FOR_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
@@ -88,7 +89,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
 
     private boolean isReconfigurable(String caseId) {
         List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
-            .evaluateConfigurationDmn(caseId, null);
+            .evaluateConfigurationDmn(caseId, emptyMap());
         return results.stream().filter(result -> result.getCanReconfigure() != null)
             .findAny()
             .map(result -> result.getCanReconfigure().getValue())
