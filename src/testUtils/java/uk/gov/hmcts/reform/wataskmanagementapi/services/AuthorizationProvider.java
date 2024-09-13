@@ -297,7 +297,7 @@ public class AuthorizationProvider {
         AtomicReference<String> email = new AtomicReference<>("");
         await().ignoreException(Exception.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .atMost(120, SECONDS)
             .until(() -> {
                 try {
                     email.set(emailPrefix + UUID.randomUUID() + "@fake.hmcts.net");
