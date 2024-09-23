@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSi
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,6 +34,7 @@ import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 })
 public class CFTTaskDatabaseService {
 
+    private static final int ROLE_ASSIGNMENTS_LOG_THRESHOLD = 100;
 
     private final TaskResourceRepository tasksRepository;
     private final CFTTaskMapper cftTaskMapper;
@@ -125,15 +125,22 @@ public class CFTTaskDatabaseService {
                                                  SearchRequest searchRequest,
                                                  AccessControlResponse accessControlResponse) {
 
-        List<RoleAssignment> roleAssignments = new ArrayList<>(accessControlResponse.getRoleAssignments());
+        List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
+
+        if (ROLE_ASSIGNMENTS_LOG_THRESHOLD <= roleAssignments.size() ) {
+            log.info("Total volume of Role Assignments for current user: {}", roleAssignments.size());
+        }
+
         Set<String> filterSignature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
         log.info("Task search for filter signatures {} \nrole signatures {} \nexcluded case ids {}",
-            filterSignature, roleSignature, excludeCaseIds);
-        List<String> taskIds = tasksRepository.searchTasksIds(firstResult, maxResults, filterSignature, roleSignature,
-            excludeCaseIds, searchRequest);
+                 filterSignature, roleSignature, excludeCaseIds
+        );
+        List<String> taskIds = tasksRepository.searchTasksIds(
+            firstResult, maxResults, filterSignature, roleSignature, excludeCaseIds, searchRequest
+        );
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
@@ -146,12 +153,11 @@ public class CFTTaskDatabaseService {
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    roleAssignments
-                )
-            )
-            .toList();
+                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                         taskResource,
+                         roleAssignments
+                     )
+            ).toList();
 
         return new GetTasksResponse<>(tasks, count);
     }
