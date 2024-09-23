@@ -3,33 +3,21 @@ package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
 
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString
 @Entity(name = "task_roles")
-@TypeDef(
-    name = "string-array",
-    typeClass = StringArrayType.class
-)
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UseVarargs", "PMD.AvoidDuplicateLiterals"})
 public class TaskRoleResource implements Serializable {
 
@@ -90,7 +78,7 @@ public class TaskRoleResource implements Serializable {
 
     //This string array cannot be converted to List<String> without significant compatibility work
     @ToString.Exclude
-    @Type(type = "string-array")
+    @Type(StringArrayType.class)
     @Column(columnDefinition = "text[]")
     private String[] authorizations;
 
