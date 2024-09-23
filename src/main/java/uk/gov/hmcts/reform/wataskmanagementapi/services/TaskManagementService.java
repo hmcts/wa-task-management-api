@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
@@ -118,6 +119,8 @@ public class TaskManagementService {
     @PersistenceContext
     private final EntityManager entityManager;
 
+    private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
     @Autowired
     public TaskManagementService(CamundaService camundaService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
@@ -127,7 +130,8 @@ public class TaskManagementService {
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
-                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService) {
+                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
+                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -137,6 +141,7 @@ public class TaskManagementService {
         this.entityManager = entityManager;
         this.idamTokenGenerator = idamTokenGenerator;
         this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
+        this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
     }
 
     /**
@@ -878,7 +883,9 @@ public class TaskManagementService {
             taskResource = configureTask(taskResource, taskAttributes);
             taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
+            taskMandatoryFieldsValidator.validate(taskResource);
             updateCftTaskState(taskResource.getTaskId(), taskResource);
+
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (FeignException e) {
             log.error("Error when initiating task(id={})", taskId, e);
