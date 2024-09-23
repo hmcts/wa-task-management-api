@@ -157,6 +157,38 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
     }
 
     @Test
+    void should_return_ordered_by_task_id_asc_task_list_for_same_case_name_when_search_find_some_tasks() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        indexRecord();
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED))
+            .jurisdictions(List.of("WA"))
+            .locations(List.of("765324"))
+            .roleCategories(List.of(RoleCategory.JUDICIAL))
+            .workTypes(List.of("hearing_work"))
+            .caseIds(List.of("1623278362400003", "1623278362400004"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.DESCENDANT)))
+            .build();
+
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
+                                                                                accessControlResponse);
+
+        assertEquals(2, response.getTotalRecords());
+        Assertions.assertThat(response.getTasks())
+            .hasSize(2)
+            .flatExtracting(Task::getId, Task::getCaseId)
+            .containsExactly(
+                newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-000000000003", "1623278362400003",
+                    "8d6cc5cf-c973-11eb-aaaa-000000000004", "1623278362400004"
+                ).toArray()
+            );
+    }
+
+    @Test
     void should_return_task_list_and_count_when_filter_task_by_state() {
         List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);

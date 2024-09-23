@@ -28,6 +28,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         + "%s%s%s";
 
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";
+
+    private static final String DB_COL_ASSIGNEE = "assignee";
     private static final String COUNT_CLAUSE = "SELECT count(*) ";
     private static final String PAGINATION_CLAUSE = "OFFSET :firstResult LIMIT :maxResults";
 
@@ -103,7 +105,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         if (searchRequest.isAvailableTasksOnly()) {
             extraConstraints.append("AND assignee IS NULL ");
         } else {
-            extraConstraints.append(buildListConstraint(searchRequest.getUsers(), "assignee", "assignee", true));
+            extraConstraints.append(buildListConstraint(searchRequest.getUsers(),
+                                                        DB_COL_ASSIGNEE, DB_COL_ASSIGNEE, true));
         }
         if (CollectionUtils.isEmpty(searchRequest.getCftTaskStates())) {
             extraConstraints.append("AND state IN ('ASSIGNED', 'UNASSIGNED') ");
@@ -154,7 +157,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         query.setParameter("roleSignature", roleSignature.toArray(new String[0]));
         List<String> users = searchRequest.getUsers();
         if (!searchRequest.isAvailableTasksOnly() && !CollectionUtils.isEmpty(users)) {
-            setParameter(query, "assignee", users);
+            setParameter(query, DB_COL_ASSIGNEE, users);
         }
         List<String> caseIds = searchRequest.getCaseIds();
         if (!CollectionUtils.isEmpty(searchRequest.getCaseIds())) {

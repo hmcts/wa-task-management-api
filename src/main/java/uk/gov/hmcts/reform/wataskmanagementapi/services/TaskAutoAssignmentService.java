@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
@@ -233,7 +232,7 @@ public class TaskAutoAssignmentService {
         rolesList.forEach(role -> {
             List<RoleAssignment> filtered = roleAssignments.stream()
                 .filter(ra -> role.getRoleName().equals(ra.getRoleName()))
-                .collect(Collectors.toList());
+                .toList();
             orderedRoleAssignments.addAll(filtered);
         });
         return orderedRoleAssignments;

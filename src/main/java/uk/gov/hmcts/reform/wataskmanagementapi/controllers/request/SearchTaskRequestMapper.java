@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
@@ -106,14 +105,14 @@ public final class SearchTaskRequestMapper {
         return getValueOrEmpty(stateParam).stream()
             .filter(StringUtils::hasText)
             .map(value -> CFTTaskState.valueOf(value.toUpperCase(Locale.ROOT)))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private static List<RoleCategory> getRoleCategory(SearchParameterList roleCtgParam) {
         return getValueOrEmpty(roleCtgParam).stream()
             .filter(StringUtils::hasText)
             .map(value -> RoleCategory.valueOf(value.toUpperCase(Locale.ROOT)))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private static EnumMap<SearchParameterKey, SearchParameterList> asEnumMapForListOfStrings(
