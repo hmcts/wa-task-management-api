@@ -456,7 +456,7 @@ class CFTTaskDatabaseServiceTest {
 
     @Test
     void should_return_successfully_when_user_has_large_number_of_role_assignments() {
-        final int ROLE_ASSIGNMENTS_LOG_THRESHOLD = 100;
+        final int logThreshold = 100;
         final SearchRequest searchRequest = SearchRequest.builder()
             .jurisdictions(List.of("WA"))
             .locations(List.of("12345"))
@@ -475,7 +475,7 @@ class CFTTaskDatabaseServiceTest {
 
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-        when(roleAssignments.size()).thenReturn(ROLE_ASSIGNMENTS_LOG_THRESHOLD);
+        when(roleAssignments.size()).thenReturn(logThreshold);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(
             1,
