@@ -127,7 +127,7 @@ public class CFTTaskDatabaseService {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
 
-        if (ROLE_ASSIGNMENTS_LOG_THRESHOLD <= roleAssignments.size() ) {
+        if (ROLE_ASSIGNMENTS_LOG_THRESHOLD <= roleAssignments.size()) {
             log.info("Total volume of Role Assignments for current user: {}", roleAssignments.size());
         }
 
