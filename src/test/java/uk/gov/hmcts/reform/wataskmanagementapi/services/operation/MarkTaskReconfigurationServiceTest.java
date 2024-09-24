@@ -193,7 +193,7 @@ class MarkTaskReconfigurationServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void should_fail_is_reconfigurable_when_task_attributes_are_null() {
+    void should_is_reconfigurable_send_empty_task_attributes_map_when_invoked() {
 
         ArgumentCaptor<Map> mapCaptor = ArgumentCaptor.forClass(Map.class);
 
