@@ -9,8 +9,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -71,6 +73,7 @@ public class TaskResource implements Serializable {
 
     @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
+    @JdbcTypeCode(SqlTypes.JSON)
     private List<NoteResource> notes;
 
     @Schema(name = "major_priority")
