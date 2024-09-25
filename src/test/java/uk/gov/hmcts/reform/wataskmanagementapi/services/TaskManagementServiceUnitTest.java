@@ -426,8 +426,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void claimTask_should_succeed() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
@@ -447,8 +446,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void claimTask_should_succeed_for_granular_permission() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
@@ -478,13 +476,12 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void claimTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             RoleAssignment roleAssignment = mock(RoleAssignment.class);
             when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
             List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
             when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
 
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
@@ -505,9 +502,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void claimTask_should_throw_role_assignment_verification_exception_when_granular_permission_access_fail() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder()
@@ -536,8 +531,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void claimTask_assigned_task_should_throw_exception() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
@@ -564,8 +558,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void claimTask_assigned_task_should_succeed_for_same_user() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
@@ -591,8 +584,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     class Release2EndpointsUnclaimTask {
         @Test
         void unclaimTask_should_succeed() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -617,8 +609,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void unclaimTask_should_succeed_gp_flag_on() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -646,8 +637,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void unclaimTask_should_succeed_assignee_null_gp_flag_on() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -675,8 +665,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -700,8 +689,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Test
     void unclaimTask_succeed_when_task_assignee_differs_from_user_and_has_unassign_gp_flag_on() {
 
-        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         RoleAssignment roleAssignment1 = new RoleAssignment(
@@ -782,8 +770,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Test
     void unclaimTask_throw_403_when_task_assignee_differs_from_user_and_no_unassign_gp_flag_on() {
 
-        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
         RoleAssignment roleAssignment = new RoleAssignment(
@@ -858,7 +845,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void assignTask_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -902,7 +889,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         void assignTask_should_throw_role_assignment_verification_exception_when_assignee_has_access_returns_false() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
 
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
 
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
@@ -942,7 +929,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void assignTask_should_throw_role_assignment_verification_exception_when_assigner_has_access_returns_false() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             lenient().when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
@@ -972,7 +959,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void assignTask_should_throw_exception_when_missing_required_arguments() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(null).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(null).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
@@ -1011,7 +998,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void assignTask_should_throw_exception_when_missing_required_arguments_with_granular_permission() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
             RoleAssignment roleAssignment = mock(RoleAssignment.class);
@@ -1044,7 +1031,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void assignTask_should_throw_role_assignment_verification_exception_when_requester_does_not_have_permission() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1079,7 +1066,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_unassigned_and_requester_tries_to_assign_to_someone_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1117,7 +1104,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_unassigned_and_requester_tries_to_assign_to_themselves_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1159,7 +1146,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_assigned_to_someone_and_requester_tries_to_assign_to_themselves_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1209,7 +1196,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_assigned_to_someone_and_requester_tries_to_assign_to_someone_new_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1256,7 +1243,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_assigned_to_requester_tries_to_assign_to_someone_new_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1306,7 +1293,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void unAssignTask_should_succeed_with_granular_permission() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1336,7 +1323,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_assigned_to_requester_tries_to_assign_to_themselves_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1365,7 +1352,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_assigned_to_someone_and_tries_to_assign_to_same_assignee_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1394,7 +1381,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void task_is_unassigned_and_tries_to_unassign_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(userInfo);
 
@@ -1449,8 +1436,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void cancelTask_should_succeed() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1502,8 +1488,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void cancelTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
@@ -1524,8 +1509,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void cancelTask_should_throw_role_assignment_verification_exception_when_granular_permission_access_fail() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             PermissionRequirements requirements = PermissionRequirementBuilder.builder()
@@ -1548,8 +1532,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void cancelTask_should_throw_verification_exception_when_granular_permission_access_fail_for_null_assignee() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1582,7 +1565,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void cancelTask_should_throw_exception_when_missing_required_arguments() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
@@ -1596,9 +1578,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_throw_exception_when_task_not_found() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
@@ -1615,8 +1595,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_update_task_state_terminated_when_cft_task_state_is_null_and_feign_exception_thrown() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1680,8 +1659,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_not_update_task_state_when_cft_feign_exception_thrown_and_task_already_terminated() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
@@ -1738,8 +1716,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void cancelTask_should_succeed_and_granular_feature_flag_is_on_with_cancel() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1772,8 +1749,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void cancelTask_should_succeed_and_granular_feature_flag_is_on_with_cancel_own() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1808,8 +1784,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     class Release2EndpointsCompleteTask {
         @Test
         void completeTask_should_succeed_gp_flag_on() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
 
@@ -1838,8 +1813,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void completeTask_should_throw_role_assignment_verification_exception_when_role_is_incorrect_gp_flag_on() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1868,8 +1842,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void completeTask_should_throw_task_state_incorrect_exception_when_task_has_no_assignee() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1901,7 +1874,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void completeTask_should_throw_exception_when_missing_required_arguments() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
 
             assertThatThrownBy(() -> taskManagementService.completeTask(
@@ -1916,8 +1888,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_throw_task_not_exception_when_task_resource_not_found() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1939,7 +1910,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_throw_exception_when_missing_required_arguments() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
@@ -1957,8 +1927,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_succeed_AssignAndComplete() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -1990,8 +1959,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_throw_role_assignment_verification_exception_when_has_access_is_false_and_completion_options() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
@@ -2019,8 +1987,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_throw_exception_when_task_resource_not_found() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2045,8 +2012,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_succeed_AssignAndCompleteIsFalse_gp_flag_on() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
 
@@ -2084,12 +2050,11 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             @Test
             void should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
                 List<RoleAssignment> roleAssignments = singletonList(roleAssignment);
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2111,8 +2076,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             @Test
             void should_throw_task_state_incorrect_exception_when_task_has_no_assignee() {
 
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2143,8 +2107,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_throw_exception_when_task_resource_not_found() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 TaskResource taskResource = spy(TaskResource.class);
 
@@ -2170,7 +2133,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_throw_exception_when_missing_required_arguments() {
 
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
@@ -2188,8 +2150,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_succeed_AssignAndCompleteIsTrue() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2219,8 +2180,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_throw_role_assignment_verification_exception_when_has_access_is_false_and_completion_options() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2243,8 +2203,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_throw_task_not_found_exception_when_task_resource_not_found() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2271,8 +2230,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_succeed_AssignAndCompleteIsFalse_gp_flag_on() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2306,8 +2264,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_succeed_task_already_complete() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
@@ -2341,8 +2298,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_succeed_task_already_terminated() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
@@ -2379,8 +2335,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             @Test
             void should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
 
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
@@ -2407,8 +2362,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             @Test
             void should_throw_task_state_incorrect_exception_when_task_has_no_assignee() {
 
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
@@ -2437,11 +2391,10 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             @Test
             void should_throw_task_not_found_exception_when_task_resource_not_found() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
                 RoleAssignment roleAssignment = mock(RoleAssignment.class);
                 List<RoleAssignment> roleAssignments = List.of(roleAssignment);
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+                userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
@@ -2950,8 +2903,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_succeed() {
             String taskId = "taskId";
-            final AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = new TaskResource(
@@ -3027,9 +2979,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_return_empty_task_role_permissions() {
             String taskId = "taskId";
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             TaskResource taskResource = spy(TaskResource.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
@@ -3048,8 +2999,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_throw_task_not_found_exception() {
             String taskId = "taskId";
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
 
@@ -3063,8 +3013,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_throw_role_verification_exception() {
             String taskId = "taskId";
-            final AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
             TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -3087,8 +3036,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_return_granular_permission_when_feature_set() {
             String taskId = "taskId";
-            final AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = new TaskResource(
@@ -3156,8 +3104,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void should_not_return_granular_permission_when_feature_set() {
             String taskId = "taskId";
-            final AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             TaskResource taskResource = new TaskResource(
