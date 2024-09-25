@@ -2902,7 +2902,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void should_succeed() {
-            String taskId = "taskId";
+            taskId = "taskId";
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
@@ -2978,7 +2978,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void should_return_empty_task_role_permissions() {
-            String taskId = "taskId";
+            taskId = "taskId";
             TaskResource taskResource = spy(TaskResource.class);
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
@@ -2998,7 +2998,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void should_throw_task_not_found_exception() {
-            String taskId = "taskId";
+            taskId = "taskId";
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
@@ -3012,7 +3012,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void should_throw_role_verification_exception() {
-            String taskId = "taskId";
+            taskId = "taskId";
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
@@ -3035,7 +3035,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void should_return_granular_permission_when_feature_set() {
-            String taskId = "taskId";
+            taskId = "taskId";
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
@@ -3103,7 +3103,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void should_not_return_granular_permission_when_feature_set() {
-            String taskId = "taskId";
+            taskId = "taskId";
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
