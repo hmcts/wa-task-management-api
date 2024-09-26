@@ -18,7 +18,7 @@ public class TaskSearchSortProviderTest {
     @Test
     void shouldProvideDefaultSortOrderQuery() {
         String query = TaskSearchSortProvider.getSortOrderQuery(SearchRequest.builder().build());
-        assertEquals("ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC ", query);
+        assertEquals("ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC ", query);
     }
 
     @Test
@@ -34,7 +34,7 @@ public class TaskSearchSortProviderTest {
             .build());
         assertEquals("ORDER BY due_date_time ASC, title ASC, location_name ASC, case_category ASC, "
                      + "case_id ASC, case_name ASC, next_hearing_date ASC, major_priority ASC, priority_date ASC, "
-                     + "minor_priority ASC ", query);
+                     + "minor_priority ASC, task_id ASC ", query);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class TaskSearchSortProviderTest {
             .build());
         assertEquals("ORDER BY due_date_time DESC, title DESC, location_name DESC, case_category DESC, "
                      + "case_id DESC, case_name DESC, next_hearing_date DESC, major_priority ASC, priority_date ASC, "
-                     + "minor_priority ASC ", query);
+                     + "minor_priority ASC, task_id ASC ", query);
     }
 
     @Test

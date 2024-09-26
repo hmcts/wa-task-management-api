@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,15 +22,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProvide
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -184,6 +189,34 @@ class MarkTaskReconfigurationServiceTest {
             .get("successfulTaskResources");
 
         assertEquals(0, taskResourcesMarked);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void should_pass_and_process_empty_task_attributes_map_when_is_reconfigurable_is_invoked() {
+
+        ArgumentCaptor<Map> mapCaptor = ArgumentCaptor.forClass(Map.class);
+
+        when(caseConfigurationProviderService.evaluateConfigurationDmn(
+            anyString(),
+            anyMap()
+        )).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
+            CamundaValue.stringValue("caseName"),
+            CamundaValue.stringValue("Value"),
+            CamundaValue.booleanValue(true)
+        )));
+
+        boolean isReconfigurable = markTaskReconfigurationService.isReconfigurable("someCaseId");
+
+        verify(caseConfigurationProviderService).evaluateConfigurationDmn(
+            anyString(),
+            mapCaptor.capture()
+        );
+
+        Map<String,Object> taskAttributes = mapCaptor.getValue();
+
+        assertTrue(isReconfigurable);
+        assertThat(taskAttributes).isNotNull();
     }
 
     private List<TaskFilter<?>> createTaskFilters() {

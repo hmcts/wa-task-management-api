@@ -16,6 +16,9 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -170,6 +173,7 @@ public class RestApiActions {
                                      String contentType,
                                      String accept,
                                      Headers headers) {
+        final Map<String, Integer> body = emptyMap();
         if (resourceId != null) {
             log.info("Calling POST {} with resource id: {}", path, resourceId);
 
@@ -177,6 +181,7 @@ public class RestApiActions {
                 .contentType(contentType)
                 .accept(accept)
                 .headers(headers)
+                .body(body)
                 .when()
                 .post(path, resourceId);
         } else {
@@ -185,6 +190,7 @@ public class RestApiActions {
                 .contentType(contentType)
                 .accept(accept)
                 .headers(headers)
+                .body(body)
                 .when()
                 .post(path);
         }

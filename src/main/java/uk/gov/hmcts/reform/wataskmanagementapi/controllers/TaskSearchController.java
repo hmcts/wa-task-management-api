@@ -172,6 +172,8 @@ public class TaskSearchController extends BaseController {
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
 
+        log.info("POST /search-for-completable - {}", searchEventAndCase.toString());
+
         GetTasksCompletableResponse<Task> response;
         Optional<AccessControlResponse> optionalAccessControlResponse = accessControlService
             .getAccessControlResponse(authToken);

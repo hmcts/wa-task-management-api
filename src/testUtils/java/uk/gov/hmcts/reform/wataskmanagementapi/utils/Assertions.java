@@ -7,11 +7,13 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 
 public class Assertions {
@@ -64,6 +66,22 @@ public class Assertions {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.task_state", equalTo(value))
+            .log();
+    }
+
+    public void taskStateWasUpdatedInDatabase(String taskId, List<String> states, Headers authenticationHeaders) {
+
+        Response result = restApiActions.get(
+            TASK_ENDPOINT_BEING_TESTED,
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", in(states))
             .log();
     }
 

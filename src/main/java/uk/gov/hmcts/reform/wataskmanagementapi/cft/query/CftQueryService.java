@@ -109,6 +109,8 @@ public class CftQueryService {
             || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
             .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
         ) {
+            log.info("Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
+                searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -120,6 +122,8 @@ public class CftQueryService {
         List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
 
         if (taskTypes.isEmpty()) {
+            log.info("No taskTypes were found from Completion DMN using eventId: \"{}\" and caseId: \"{}\"",
+                searchEventAndCase.getEventId(), searchEventAndCase.getCaseId());
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 

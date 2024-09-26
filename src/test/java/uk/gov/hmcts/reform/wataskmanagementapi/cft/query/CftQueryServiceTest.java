@@ -933,6 +933,45 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 "WA, WaCaseType"
             }
         )
+        void should_return_empty_tasks_list_when_taskTypes_empty(String jurisdiction, String caseType) {
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "someCaseId",
+                "someEventId",
+                jurisdiction,
+                caseType
+            );
+
+            List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
+                .thenReturn(mockTaskCompletionDMNResponses());
+
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+                .thenReturn(Arrays.asList(jurisdiction.toLowerCase()));
+
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+                .thenReturn(Arrays.asList(caseType.toLowerCase()));
+
+            GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
+                searchEventAndCase,
+                roleAssignments,
+                permissionsRequired
+            );
+            assertNotNull(response);
+            assertTrue(response.getTasks().isEmpty());
+            assertFalse(response.isTaskRequiredForEvent());
+
+            verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
+        }
+
+
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
         void should_succeed_and_returns_empty_results_when_dmn_returns_empty_variables(String jurisdiction,
                                                                                        String caseType) {
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(

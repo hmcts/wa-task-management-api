@@ -30,7 +30,8 @@ public enum SortField {
 
     MAJOR_PRIORITY("majorPriority", "major_priority", "majorPriority"),
     PRIORITY_DATE("priorityDate", "priority_date", "priorityDate"),
-    MINOR_PRIORITY("minorPriority", "minor_priority", "minorPriority");
+    MINOR_PRIORITY("minorPriority", "minor_priority", "minorPriority"),
+    TASK_ID("taskId", "task_id", "taskId");
 
     @JsonValue
     private final String id;

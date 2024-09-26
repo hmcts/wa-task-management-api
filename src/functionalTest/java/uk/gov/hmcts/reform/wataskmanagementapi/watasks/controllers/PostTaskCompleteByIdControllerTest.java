@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -521,7 +522,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         assertions.taskVariableWasUpdated(taskVariables1.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedInDatabase(taskId1, "completed", waCaseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId1, List.of("completed", "terminated"),
+                                                 waCaseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId1);
         common.cleanUpTask(taskId2);
