@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField.MAJOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField.MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder.ASCENDANT;
 
 public final class TaskSearchSortProvider {
@@ -33,7 +34,7 @@ public final class TaskSearchSortProvider {
                 }
             }).collect(Collectors.toList());
 
-        Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+        Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(x -> Sort.Order.asc(x.getCftVariableName()))
             .collect(Collectors.toCollection(() -> orders));
 
@@ -63,7 +64,12 @@ public final class TaskSearchSortProvider {
             .append(MINOR_PRIORITY.getDbColumnName())
             .append(' ')
             .append(ASCENDANT.toString().toUpperCase(Locale.ROOT))
+            .append(", ")
+            .append(TASK_ID.getDbColumnName())
+            .append(' ')
+            .append(ASCENDANT.toString().toUpperCase(Locale.ROOT))
             .append(' ');
+
         return orderColumns.toString();
     }
 }

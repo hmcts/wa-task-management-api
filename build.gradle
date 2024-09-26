@@ -292,8 +292,8 @@ def versions = [
   sonarPitest   : '0.5',
   pactVersion   : '4.3.4',
   logbook       : '2.6.2',
-  tomcat        : '9.0.91',
-  testcontainers: '1.20.1',
+  tomcat        : '9.0.95',
+  testcontainers: '1.19.8',
   mapStruct     : '1.3.0.Final',
 ]
 
@@ -352,8 +352,8 @@ dependencies {
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.6.15.Final'
   implementation group: 'org.hibernate', name: 'hibernate-validator', version: '7.0.5.Final'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.23.1'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.23.1'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.24.0'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.24.0'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
