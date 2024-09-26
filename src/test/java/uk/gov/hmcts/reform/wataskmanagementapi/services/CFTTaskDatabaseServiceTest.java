@@ -51,6 +51,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.PRIORITY_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_ID;
 
 @ExtendWith(MockitoExtension.class)
 class CFTTaskDatabaseServiceTest {
@@ -281,7 +282,7 @@ class CFTTaskDatabaseServiceTest {
     @Test
     void should_return_task_list_and_count_when_search_find_some_task_and_sort_default_order() {
         List<String> taskIds = List.of("1");
-        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
             .collect(Collectors.toList());
         TaskResource taskResource = mock(TaskResource.class);
@@ -324,7 +325,7 @@ class CFTTaskDatabaseServiceTest {
     @Test
     void should_return_task_list_and_count_when_search_find_some_task_and_sort_request_order() {
         List<String> taskIds = List.of("1");
-        List<Sort.Order> orders = Stream.of(CASE_NAME, MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+        List<Sort.Order> orders = Stream.of(CASE_NAME, MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
             .collect(Collectors.toList());
         TaskResource taskResource = mock(TaskResource.class);
@@ -369,7 +370,7 @@ class CFTTaskDatabaseServiceTest {
     void should_return_task_list_and_count_when_search_find_some_task_other_than_from_excluded_case() {
         List<String> taskIds = List.of("1");
         List<String> caseIds = List.of("1623278362431003");
-        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY)
+        List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
             .collect(Collectors.toList());
         TaskResource taskResource = mock(TaskResource.class);
