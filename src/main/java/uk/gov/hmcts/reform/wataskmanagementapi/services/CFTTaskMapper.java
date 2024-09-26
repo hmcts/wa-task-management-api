@@ -572,7 +572,7 @@ public class CFTTaskMapper {
             return null;
         }
         log.info("due date after calculation {}", value);
-        LocalDateTime dateTime = LocalDateTime.parse((String) value, DATE_TIME_FORMATTER);
+        LocalDateTime dateTime = LocalDateTime.parse(value.toString(), DATE_TIME_FORMATTER);
         ZoneId systemDefault = ZoneId.systemDefault();
         log.info("system default {}", systemDefault);
         OffsetDateTime dueDateTime = dateTime.atZone(systemDefault).toOffsetDateTime();
@@ -601,7 +601,7 @@ public class CFTTaskMapper {
                                           Object value,
                                           boolean canReconfigure) {
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
-        if (enumKey.isPresent() & canReconfigure) {
+        if (enumKey.isPresent() && canReconfigure) {
             switch (enumKey.get()) {
                 case CASE_NAME:
                     taskResource.setCaseName((String) value);

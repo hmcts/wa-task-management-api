@@ -47,13 +47,15 @@ module "wa_task_management_api_database_flexible" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source        = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product       = var.product
-  component     = var.component
-  name          = "${var.postgres_db_component_name}-postgres-db-flexible"
-  location      = var.location
-  business_area = var.business_area
-  env           = var.env
+  source           = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product          = var.product
+  component        = var.component
+  name             = "${var.postgres_db_component_name}-postgres-db-flexible"
+  pgsql_sku        = var.pgsql_sku
+  pgsql_storage_mb = var.pgsql_storage_mb
+  location         = var.location
+  business_area    = var.business_area
+  env              = var.env
   pgsql_databases = [
     {
       name : var.postgresql_database_name
