@@ -2,7 +2,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
 import java.util.List;

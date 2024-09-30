@@ -1,6 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
-import jakarta.persistence.*;
+import jakarta.persistence.ColumnResult;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.SqlResultSetMapping;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -40,7 +46,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     )
     @Entity
     class TaskSearchResult {
-        @Id int id;
+        @Id
+        int id;
     }
 
     @Override

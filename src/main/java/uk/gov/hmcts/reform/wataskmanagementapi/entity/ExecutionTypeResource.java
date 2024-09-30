@@ -2,7 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
