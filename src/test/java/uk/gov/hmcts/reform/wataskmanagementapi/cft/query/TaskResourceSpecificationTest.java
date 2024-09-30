@@ -1,8 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.criteria.*;
 import lombok.Builder;
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,21 +28,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
@@ -69,7 +60,7 @@ public class TaskResourceSpecificationTest {
     @Mock(extraInterfaces = Serializable.class)
     CriteriaQuery<?> query;
     @Mock(extraInterfaces = Serializable.class)
-    CriteriaBuilderImpl criteriaBuilder;
+    CriteriaBuilder criteriaBuilder;
     @Mock
     Join<Object, Object> taskRoleResources;
     @Mock
@@ -98,12 +89,9 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any(), any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
-            criteriaBuilder,
-            null,
-            Boolean.TRUE
-        );
-        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+        Predicate predicate = mock(Predicate.class);
+
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(predicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.equal(any(), anyString())).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);

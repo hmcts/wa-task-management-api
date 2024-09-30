@@ -4,9 +4,11 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -80,15 +82,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.LockTimeoutException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -186,7 +179,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     private EntityManager entityManager;
 
     @Mock(extraInterfaces = Serializable.class)
-    private CriteriaBuilderImpl builder;
+    private CriteriaBuilder builder;
     @Mock
     private CriteriaQuery<TaskResource> criteriaQuery;
     @Mock
@@ -252,12 +245,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         lenient().when(builder.or(any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
-            builder,
-            null,
-            Boolean.TRUE
-        );
-        lenient().when(builder.conjunction()).thenReturn(booleanAssertionPredicate);
+
+        lenient().when(builder.conjunction()).thenReturn(predicate);
         lenient().when(builder.equal(any(), any())).thenReturn(predicate);
         lenient().when(inObject.value(any())).thenReturn(values);
 

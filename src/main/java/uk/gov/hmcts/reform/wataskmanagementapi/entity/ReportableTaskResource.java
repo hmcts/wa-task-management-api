@@ -1,14 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.time.OffsetDateTime;
 import java.util.Date;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 
 @ToString
 @Getter

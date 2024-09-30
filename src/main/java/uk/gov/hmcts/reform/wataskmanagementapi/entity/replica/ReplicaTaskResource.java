@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.springframework.context.annotation.Profile;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -27,17 +27,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 @ToString
 @Getter
@@ -47,8 +36,6 @@ import javax.persistence.Table;
 @Profile("replica | preview")
 @Entity(name = "replica_tasks")
 @Table(name = "tasks")
-@TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-@TypeDef(name = ReplicaTaskResource.JSONB, typeClass = JsonType.class)
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
     "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class ReplicaTaskResource implements Serializable {
@@ -72,7 +59,7 @@ public class ReplicaTaskResource implements Serializable {
     private String taskName;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @Type(PostgreSQLEnumType.class)
     @Column(columnDefinition = "task_system_enum")
     @Schema(name = "task_system")
     private TaskSystem taskSystem;
@@ -82,13 +69,13 @@ public class ReplicaTaskResource implements Serializable {
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @Type(PostgreSQLEnumType.class)
     @Column(columnDefinition = "security_classification_enum")
     @Schema(name = "security_classification")
     private SecurityClassification securityClassification;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @Type(PostgreSQLEnumType.class)
     @Column(columnDefinition = "task_state_enum")
     private CFTTaskState state;
 
@@ -114,7 +101,7 @@ public class ReplicaTaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime created;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     private List<NoteResource> notes;
 
@@ -156,7 +143,7 @@ public class ReplicaTaskResource implements Serializable {
     private Boolean indexed = false;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @Type(PostgreSQLEnumType.class)
     @Column(columnDefinition = "business_context_enum")
     @Schema(name = "business_context")
     private BusinessContext businessContext;
@@ -183,7 +170,7 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "last_reconfiguration_time")
     private OffsetDateTime lastReconfigurationTime;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     @Schema(name = "additional_properties")
     private Map<String, String> additionalProperties;

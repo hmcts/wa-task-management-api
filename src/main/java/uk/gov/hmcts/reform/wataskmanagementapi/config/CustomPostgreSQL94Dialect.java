@@ -31,12 +31,12 @@ import java.sql.Types;
 @Component
 public class CustomPostgreSQL94Dialect extends SQLServerDialect {
 
-    public CustomPostgreSQL94Dialect() {
+    /*public CustomPostgreSQL94Dialect() {
         super();
         this.registerHibernateType(Types.JAVA_OBJECT, NoteResource.class.getName());
         this.registerHibernateType(Types.OTHER, String.class.getName());
         registerFunction("contains_text", new SQLFunctionTemplate(StandardBasicTypes.BOOLEAN, "?1 && ?2::text[]"));
-    }
+    }*/
 
     @Override
     public void initializeFunctionRegistry(FunctionContributions functionContributions) {
@@ -50,7 +50,7 @@ public class CustomPostgreSQL94Dialect extends SQLServerDialect {
             .register();
     }
 
-    @Override
+    /*@Override
     public JdbcType resolveSqlTypeDescriptor(
         String columnTypeName,
         int jdbcTypeCode,
@@ -66,7 +66,7 @@ public class CustomPostgreSQL94Dialect extends SQLServerDialect {
                 jdbcTypeCode = String.;
         }
         return super.resolveSqlTypeDescriptor( columnTypeName, jdbcTypeCode, precision, scale, jdbcTypeRegistry );
-    }
+    }*/
 
 
 
