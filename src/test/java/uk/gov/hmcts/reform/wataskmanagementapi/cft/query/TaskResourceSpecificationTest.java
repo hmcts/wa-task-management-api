@@ -95,6 +95,7 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or()).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any(), any(), any())).thenReturn(inObject);
         Predicate predicate = mock(Predicate.class);

@@ -129,7 +129,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(5)).get(anyString());
         verify(pathObject, times(2)).isNull();
         verify(builder, times(5)).equal(any(), anyString());
-        verify(builder, times(3)).or(any());
+        verify(builder, times(3)).or(any(Predicate[].class));
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(2)).and(
@@ -258,7 +258,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(7)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(3)).or(any());
+        verify(builder, times(3)).or(any(Predicate[].class));
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
@@ -297,7 +297,8 @@ public class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(root, times(6)).get(anyString());
-        verify(builder, times(3)).or(any());
+        verify(builder, times(2)).or(any());
+        verify(builder, times(1)).or();
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
@@ -394,7 +395,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).get(anyString());
         verify(pathObject, times(1)).isNull();
         verify(builder, times(1)).in(any());
-        verify(builder, times(3)).or(any());
+        verify(builder, times(3)).or(any(Predicate[].class));
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(3)).and(any(), any());
         verify(builder, times(1)).and(
@@ -427,7 +428,7 @@ public class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(builder, times(0)).equal(any(), any());
-        verify(builder, times(1)).or(any());
+        verify(builder, times(1)).or(any(Predicate[].class));
         verify(builder, times(2)).and(any(), any());
     }
 
@@ -437,7 +438,7 @@ public class RoleAssignmentFilterTest {
             Collections.emptyList(), builder, root);
 
         verify(root, times(1)).join("taskRoleResources");
-        verify(builder, times(1)).or(any());
+        verify(builder, times(1)).or(any(Predicate[].class));
         verify(builder, never()).equal(any(), any());
         verify(builder, never()).and(any(), any());
     }
