@@ -145,11 +145,6 @@ class WorkTypesControllerTest {
 
     @Test
     void should_return_empty_list_when_user_work_types_is_null() {
-        UserInfo userInfo = new UserInfo("", "",
-            new ArrayList<>(Arrays.asList("Role1", "Role2")),
-            "",
-            "",
-            "");
 
         Map<String, String> workTypesMap = new HashMap<>();
         workTypesMap.put("workTypes", null);
