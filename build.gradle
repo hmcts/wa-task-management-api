@@ -282,8 +282,8 @@ repositories {
 }
 
 def versions = [
-  junit         : '5.10.2',
-  junitPlatform : '1.10.2',
+  junit         : '5.11.0',
+  junitPlatform : '1.11.0',
   reformLogging : '6.1.6',
   springDoc     : '1.8.0',
   serenity      : '3.1.20',
@@ -381,7 +381,7 @@ dependencies {
 
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: versions.testcontainers
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: versions.testcontainers
-  testImplementation group: 'com.h2database', name: 'h2', version: '2.1.214'
+  testImplementation group: 'com.h2database', name: 'h2', version: '2.3.232'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
