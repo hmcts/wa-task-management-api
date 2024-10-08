@@ -9,7 +9,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public final class ResponseEntityBuilder {
 
-    private static final Logger LOG = getLogger(TaskActionsController.class);
+    private static final Logger LOG = getLogger(ResponseEntityBuilder.class);
 
     private ResponseEntityBuilder() {
     }
