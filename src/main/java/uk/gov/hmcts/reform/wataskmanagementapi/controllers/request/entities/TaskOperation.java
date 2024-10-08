@@ -16,7 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOpe
 @Builder
 public class TaskOperation {
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty("name")
     private TaskOperationType type;
 

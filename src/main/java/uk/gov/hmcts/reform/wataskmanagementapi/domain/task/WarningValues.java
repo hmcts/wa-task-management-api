@@ -26,7 +26,7 @@ import static java.util.Objects.requireNonNull;
 @ToString
 @NoArgsConstructor
 public class WarningValues {
-    @Schema(required = true,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A list of warnings")
     private List<Warning> values =  new ArrayList<>();
 

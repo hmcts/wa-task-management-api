@@ -15,13 +15,13 @@ import lombok.ToString;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchEventAndCase {
 
-    @Schema(required = true, name = "case_id")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "case_id")
     private final String caseId;
-    @Schema(required = true, name = "event_id")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "event_id")
     private final String eventId;
-    @Schema(required = true, name = "case_jurisdiction")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "case_jurisdiction")
     private final String caseJurisdiction;
-    @Schema(required = true, name = "case_type")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "case_type")
     private final String caseType;
 
     public SearchEventAndCase(String caseId, String eventId,

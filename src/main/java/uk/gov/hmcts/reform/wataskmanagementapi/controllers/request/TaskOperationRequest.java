@@ -21,7 +21,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 public class TaskOperationRequest {
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private TaskOperation operation;
 
     @Schema(

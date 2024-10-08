@@ -16,13 +16,13 @@ import java.time.OffsetDateTime;
 @ToString
 public class ExecuteReconfigureTaskFilter implements TaskFilter<OffsetDateTime> {
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final String key;
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final OffsetDateTime values;
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final TaskFilterOperator operator;
 
     @JsonCreator

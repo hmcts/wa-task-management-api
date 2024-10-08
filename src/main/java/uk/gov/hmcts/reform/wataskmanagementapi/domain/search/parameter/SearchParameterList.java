@@ -31,7 +31,7 @@ public class SearchParameterList implements SearchParameter<List<String>> {
     @Schema(allowableValues = "IN", example = "IN")
     private final SearchOperator operator;
 
-    @Schema(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", nullable = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", nullable = true)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )

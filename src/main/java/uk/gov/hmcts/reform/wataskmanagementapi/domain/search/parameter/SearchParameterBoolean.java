@@ -18,7 +18,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
@@ -30,7 +30,7 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     )
     private final SearchOperator operator;
 
-    @Schema(required = true, example = "true")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "true")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
