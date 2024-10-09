@@ -20,7 +20,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 
-public class PermissionRequirementBuilderTest {
+class PermissionRequirementBuilderTest {
 
     @Test
     public void permission_requirement_should_initiated_first() {
@@ -42,7 +42,7 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void permission_requirement_should_initiated_only_once() {
+    void permission_requirement_should_initiated_only_once() {
         PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
         builder.initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND);
 
@@ -53,7 +53,7 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void permission_requirement_should_join_before_adding_next() {
+    void permission_requirement_should_join_before_adding_next() {
         PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
         builder.initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND);
 
