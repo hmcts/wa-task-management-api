@@ -26,13 +26,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.CyclomaticComplexity"})
 public class DateTypeConfigurator {
 
-    public static final List<DateTypeObject> DEFAULT_DATE_TYPES = Arrays.stream(DateType.values())
+    protected static final List<DateTypeObject> DEFAULT_DATE_TYPES = Arrays.stream(DateType.values())
         .filter(d -> d != CALCULATED_DATES)
         .sorted(Comparator.comparing(DateType::getOrder))
         .map(d -> new DateTypeObject(d, d.getType()))
         .toList();
 
-    public static final List<DateTypeObject> MANDATORY_DATE_TYPES = Arrays.stream(DateType.values())
+    protected static final List<DateTypeObject> MANDATORY_DATE_TYPES = Arrays.stream(DateType.values())
         .filter(d -> d != CALCULATED_DATES)
         .filter(d -> d != INTERMEDIATE_DATE)
         .sorted(Comparator.comparing(DateType::getOrder))
