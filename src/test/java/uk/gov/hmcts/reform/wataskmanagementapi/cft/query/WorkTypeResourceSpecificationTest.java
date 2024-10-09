@@ -52,7 +52,6 @@ class WorkTypeResourceSpecificationTest {
         lenient().when(inObject.value(any())).thenReturn(values);
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
 
-        CriteriaBuilder criteriaBuilder = mock(CriteriaBuilder.class);
         Predicate predicate = mock(Predicate.class);
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(predicate);

@@ -1,16 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.hibernate.boot.model.FunctionContributions;
+import org.hibernate.boot.model.FunctionContributor;
+import org.hibernate.dialect.PostgreSQLDialect;
 import org.hibernate.dialect.SQLServerDialect;
 import org.hibernate.query.sqm.function.FunctionKind;
 import org.hibernate.query.sqm.function.SqmFunctionRegistry;
 import org.hibernate.query.sqm.produce.function.PatternFunctionDescriptorBuilder;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.descriptor.jdbc.JdbcType;
+import org.hibernate.type.descriptor.jdbc.spi.JdbcTypeRegistry;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
+
+import java.sql.Types;
 
 @SuppressWarnings("squid:MaximumInheritanceDepth")
 @Component
-public class CustomPostgreSQL94Dialect extends SQLServerDialect {
+public class CustomPostgreSQL94Dialect extends PostgreSQLDialect {
 
     /*public CustomPostgreSQL94Dialect() {
         super();
@@ -30,25 +38,4 @@ public class CustomPostgreSQL94Dialect extends SQLServerDialect {
             .setInvariantType(types.getBasicTypeForJavaType(boolean.class))
             .register();
     }
-
-    /*@Override
-    public JdbcType resolveSqlTypeDescriptor(
-        String columnTypeName,
-        int jdbcTypeCode,
-        int precision,
-        int scale,
-        JdbcTypeRegistry jdbcTypeRegistry) {
-
-        switch ( jdbcTypeCode ) {
-            case Types.JAVA_OBJECT:
-                jdbcTypeCode = NoteResource.class.;
-                break;
-            case Types.OTHER:
-                jdbcTypeCode = String.;
-        }
-        return super.resolveSqlTypeDescriptor( columnTypeName, jdbcTypeCode, precision, scale, jdbcTypeRegistry );
-    }*/
-
-
-
 }
