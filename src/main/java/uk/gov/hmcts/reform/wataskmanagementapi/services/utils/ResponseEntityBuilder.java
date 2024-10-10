@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.utils;
 import org.slf4j.Logger;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 
 import static org.slf4j.LoggerFactory.getLogger;
 

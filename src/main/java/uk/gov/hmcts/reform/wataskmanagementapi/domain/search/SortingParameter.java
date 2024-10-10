@@ -19,7 +19,11 @@ public class SortingParameter {
         description = "Support snake_case and camelCase values",
         example = "due_date")
     private final SortField sortBy;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "sort_order", allowableValues = "asc, desc", example = "asc")
+    @Schema(
+        requiredMode = Schema.RequiredMode.REQUIRED,
+        name = "sort_order",
+        allowableValues = "asc, desc",
+        example = "asc")
     private final SortOrder sortOrder;
 
     public SortingParameter(SortField sortBy, SortOrder sortOrder) {
