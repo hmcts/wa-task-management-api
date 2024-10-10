@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -15,13 +17,13 @@ import lombok.ToString;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchEventAndCase {
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "case_id")
+    @Schema(requiredMode = REQUIRED, name = "case_id")
     private final String caseId;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "event_id")
+    @Schema(requiredMode = REQUIRED, name = "event_id")
     private final String eventId;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "case_jurisdiction")
+    @Schema(requiredMode = REQUIRED, name = "case_jurisdiction")
     private final String caseJurisdiction;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, name = "case_type")
+    @Schema(requiredMode = REQUIRED, name = "case_type")
     private final String caseType;
 
     public SearchEventAndCase(String caseId, String eventId,

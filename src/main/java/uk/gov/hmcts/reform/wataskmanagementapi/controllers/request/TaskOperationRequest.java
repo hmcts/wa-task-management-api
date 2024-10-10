@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -21,7 +22,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 public class TaskOperationRequest {
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = REQUIRED)
     private TaskOperation operation;
 
     @Schema(

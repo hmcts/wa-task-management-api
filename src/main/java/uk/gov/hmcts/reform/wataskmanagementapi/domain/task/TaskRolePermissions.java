@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.task;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -16,26 +18,26 @@ public class TaskRolePermissions {
 
     @Schema(
         name = "role_category",
-        requiredMode = Schema.RequiredMode.REQUIRED,
+        requiredMode = REQUIRED,
         description = "A value describing the role category"
     )
     private final String roleCategory;
 
     @Schema(
         name = "role_name",
-        requiredMode = Schema.RequiredMode.REQUIRED,
+        requiredMode = REQUIRED,
         description = "Name of the role"
     )
     private final String roleName;
 
     @Schema(
-        requiredMode = Schema.RequiredMode.REQUIRED,
+        requiredMode = REQUIRED,
         description = "Task role permission types"
     )
     private final List<PermissionTypes> permissions;
 
     @Schema(
-        requiredMode = Schema.RequiredMode.REQUIRED,
+        requiredMode = REQUIRED,
         description = "Authorisations"
     )
     private final List<String> authorisations;

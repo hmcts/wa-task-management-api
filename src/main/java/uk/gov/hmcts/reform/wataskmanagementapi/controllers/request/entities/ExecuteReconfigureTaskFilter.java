@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.v3.oas.annotations.media.Schema;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
@@ -16,13 +17,13 @@ import java.time.OffsetDateTime;
 @ToString
 public class ExecuteReconfigureTaskFilter implements TaskFilter<OffsetDateTime> {
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = REQUIRED)
     private final String key;
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = REQUIRED)
     private final OffsetDateTime values;
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(requiredMode = REQUIRED)
     private final TaskFilterOperator operator;
 
     @JsonCreator

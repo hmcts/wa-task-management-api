@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.search;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -12,7 +14,7 @@ import lombok.ToString;
 @ToString
 public class SortingParameter {
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
+    @Schema(requiredMode = REQUIRED,
         name = "sort_by",
         allowableValues = "dueDate, due_date, taskTitle, task_title, locationName, location_name, caseCategory, "
                           + "case_category, caseId, case_id, caseName, case_name, nextHearingDate, next_hearing_date",
@@ -20,7 +22,7 @@ public class SortingParameter {
         example = "due_date")
     private final SortField sortBy;
     @Schema(
-        requiredMode = Schema.RequiredMode.REQUIRED,
+        requiredMode = REQUIRED,
         name = "sort_order",
         allowableValues = "asc, desc",
         example = "asc")

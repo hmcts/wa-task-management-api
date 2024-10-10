@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -26,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 @ToString
 @NoArgsConstructor
 public class WarningValues {
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
+    @Schema(requiredMode = REQUIRED,
         description = "A list of warnings")
     private List<Warning> values =  new ArrayList<>();
 
