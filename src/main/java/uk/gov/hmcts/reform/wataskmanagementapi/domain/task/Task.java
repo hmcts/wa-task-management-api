@@ -3,14 +3,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.task;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -148,7 +147,7 @@ public class Task {
     @Schema(
         name = "case_management_category",
         description = "A value describing the category of the case, for IA, "
-                          + "it has the same value as the AppealType field")
+                      + "it has the same value as the AppealType field")
     private final String caseManagementCategory;
 
     @Schema(

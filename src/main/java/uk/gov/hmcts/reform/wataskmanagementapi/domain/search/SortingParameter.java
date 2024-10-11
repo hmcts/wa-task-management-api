@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.search;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @Schema(
     name = "SortingParameter",
