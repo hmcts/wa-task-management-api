@@ -3,10 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 import javax.validation.constraints.NotNull;
 

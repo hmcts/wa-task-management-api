@@ -2,11 +2,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @Schema(
     name = "TaskOperation",
