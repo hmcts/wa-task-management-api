@@ -444,6 +444,7 @@ task runAndPublishConsumerPactTests(type: Test) {
   logger.lifecycle("Runs pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  jvmArgs = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
 }
 
 runAndPublishConsumerPactTests.finalizedBy pactPublish
@@ -465,6 +466,7 @@ task contract(type: Test) {
   useJUnitPlatform()
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  jvmArgs = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
 }
 
 task runProviderPactVerification(type: Test) {
