@@ -471,6 +471,7 @@ task runProviderPactVerification(type: Test) {
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  jvmArgs = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
   if (project.hasProperty('pact.verifier.publishResults')) {
     systemProperty 'pact.verifier.publishResults', project.property('pact.verifier.publishResults')
   }
