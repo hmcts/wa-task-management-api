@@ -612,22 +612,25 @@ public class TaskManagementService {
         }
     }
 
-    private boolean checkUserHasCompletePermission(List<RoleAssignment> roleAssignments,
-                                                   Set<TaskRoleResource> taskRoleResources) {
-        if (roleAssignments != null) {
-            for (RoleAssignment roleAssignment : roleAssignments) {
-                String roleName = roleAssignment.getRoleName();
-                if (taskRoleResources != null) {
-                    for (TaskRoleResource taskRoleResource : taskRoleResources) {
-                        if (roleName.equals(taskRoleResource.getRoleName())
-                            && Boolean.TRUE.equals(taskRoleResource.getComplete())) {
-                            return true;
-                        }
-                    }
-                }
+    private boolean checkUserHasCompletePermission(List<RoleAssignment> roleAssignments, Set<TaskRoleResource> taskRoleResources) {
+        if (roleAssignments == null || taskRoleResources == null) {
+            return false;
+        }
+
+        for (RoleAssignment roleAssignment : roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            if (hasCompletePermissionForRole(taskRoleResources, roleName)) {
+                return true;
             }
         }
+
         return false;
+    }
+
+    private boolean hasCompletePermissionForRole(Set<TaskRoleResource> taskRoleResources, String roleName) {
+        return taskRoleResources.stream()
+            .anyMatch(taskRoleResource -> roleName.equals(taskRoleResource.getRoleName())
+                                          && Boolean.TRUE.equals(taskRoleResource.getComplete()));
     }
 
     /**
