@@ -22,14 +22,23 @@ public final class SearchFilterSignatureBuilder {
     public static Set<String> buildFilterSignatures(SearchRequest searchTaskRequest) {
         return defaultToWildcard(CFTTaskState.getAbbreviations(searchTaskRequest.getCftTaskStates())).stream()
             .flatMap(state -> defaultToWildcard(searchTaskRequest.getJurisdictions()).stream()
-                .flatMap(jurisdiction -> defaultToWildcard(RoleCategory.getAbbreviations(searchTaskRequest.getRoleCategories())).stream()
-                    .flatMap(roleCategory -> defaultToWildcard(searchTaskRequest.getWorkTypes()).stream()
-                        .flatMap(workType -> defaultToWildcard(searchTaskRequest.getRegions()).stream()
-                            .flatMap(region -> defaultToWildcard(searchTaskRequest.getLocations()).stream()
-                                .map(location -> String.join(":", state, jurisdiction, roleCategory, workType, region, location))
+                .flatMap(jurisdiction ->
+                    defaultToWildcard(RoleCategory.getAbbreviations(searchTaskRequest.getRoleCategories())).stream()
+                        .flatMap(roleCategory -> defaultToWildcard(searchTaskRequest.getWorkTypes()).stream()
+                            .flatMap(workType -> defaultToWildcard(searchTaskRequest.getRegions()).stream()
+                                .flatMap(region -> defaultToWildcard(searchTaskRequest.getLocations()).stream()
+                                    .map(location ->
+                                        String.join(
+                                            ":",
+                                            state,
+                                            jurisdiction,
+                                            roleCategory,
+                                            workType,
+                                            region,
+                                            location))
+                                )
                             )
                         )
-                    )
                 )
             )
             .collect(Collectors.toCollection(HashSet::new));  // Collecting into a HashSet
