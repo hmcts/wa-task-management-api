@@ -7,9 +7,11 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,8 @@ public class TaskMandatoryFieldsValidator {
     private final List<String> taskMandatoryFields;
     public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
     private final JsonParserUtils jsonParserUtils;
+
+    private List<String> tmSpecificMandatoryFields = List.of("state","executionTypeCode","created");
 
     /**
      * Constructor for TaskMandatoryFieldsValidator.
@@ -111,19 +115,29 @@ public class TaskMandatoryFieldsValidator {
      * @throws IllegalArgumentException if a property value cannot be found
      */
     public void validateTaskMandatoryFields(TaskResource task) {
-        List<String> errors = new ArrayList<>();
+        List<Violation> serviceSpecificErrors = new ArrayList<>();
+        List<Violation> tmSpecificErrors = new ArrayList<>();
+
         for (String field : taskMandatoryFields) {
             try {
                 if (PropertyUtils.getProperty(task, field) == null
                     || PropertyUtils.getProperty(task, field).toString().isBlank()) {
-                    errors.add(field + " cannot be null or empty");
+                    if (!tmSpecificMandatoryFields.contains(field)) {
+                        serviceSpecificErrors.add(new Violation(field, " cannot be null or empty"));
+                    }
+                    else {
+                        tmSpecificErrors.add(new Violation(field,  " cannot be null or empty"));
+                    }
                 }
             } catch (Exception e) {
                 throw new IllegalArgumentException("Cannot find property value for mandatory field " + field, e);
             }
         }
-        if (!errors.isEmpty()) {
-            throw new ValidationException(String.join(", ", errors));
+        if (!serviceSpecificErrors.isEmpty()) {
+            throw new ServiceMandatoryFieldValidationException(String.join(", ", serviceSpecificErrors));
+        }
+        if (!tmSpecificErrors.isEmpty()) {
+            throw new ValidationException(String.join(", ", serviceSpecificErrors));
         }
     }
 }
