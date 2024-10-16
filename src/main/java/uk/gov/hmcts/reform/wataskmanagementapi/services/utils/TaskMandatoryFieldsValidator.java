@@ -124,8 +124,7 @@ public class TaskMandatoryFieldsValidator {
                     || PropertyUtils.getProperty(task, field).toString().isBlank()) {
                     if (!tmSpecificMandatoryFields.contains(field)) {
                         serviceSpecificErrors.add(new Violation(field, " cannot be null or empty"));
-                    }
-                    else {
+                    } else {
                         tmSpecificErrors.add(new Violation(field,  " cannot be null or empty"));
                     }
                 }
