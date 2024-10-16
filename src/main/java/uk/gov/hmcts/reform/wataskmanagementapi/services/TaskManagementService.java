@@ -257,6 +257,18 @@ public class TaskManagementService {
         unclaimTask(taskId, userId, taskHasUnassigned, TaskAction.UNCLAIM);
     }
 
+    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned, TaskAction taskAction) {
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        task.setState(CFTTaskState.UNASSIGNED);
+        task.setAssignee(null);
+        setTaskActionAttributes(task, userId, taskAction);
+        //Perform Camunda updates
+        camundaService.unclaimTask(taskId, taskHasUnassigned);
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
+    }
+
     /**
      * Assigns the task to another user in Camunda.
      * Also performs role assignment verifications for both assignee and assigner.
@@ -657,18 +669,6 @@ public class TaskManagementService {
         task.setLastUpdatedTimestamp(OffsetDateTime.now());
         task.setLastUpdatedUser(userId);
         task.setLastUpdatedAction(action.getValue());
-    }
-
-    private void unclaimTask(String taskId, String userId, boolean taskHasUnassigned, TaskAction taskAction) {
-        //Lock & update Task
-        TaskResource task = findByIdAndObtainLock(taskId);
-        task.setState(CFTTaskState.UNASSIGNED);
-        task.setAssignee(null);
-        setTaskActionAttributes(task, userId, taskAction);
-        //Perform Camunda updates
-        camundaService.unclaimTask(taskId, taskHasUnassigned);
-        //Commit transaction
-        cftTaskDatabaseService.saveTask(task);
     }
 
     private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
