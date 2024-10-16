@@ -134,10 +134,10 @@ public class TaskMandatoryFieldsValidator {
             }
         }
         if (!serviceSpecificErrors.isEmpty()) {
-            throw new ServiceMandatoryFieldValidationException(String.join(", ", serviceSpecificErrors));
+            throw new ServiceMandatoryFieldValidationException(serviceSpecificErrors);
         }
         if (!tmSpecificErrors.isEmpty()) {
-            throw new ValidationException(String.join(", ", serviceSpecificErrors));
+            throw new ValidationException(String.join(", ", tmSpecificErrors.toString()));
         }
     }
 }
