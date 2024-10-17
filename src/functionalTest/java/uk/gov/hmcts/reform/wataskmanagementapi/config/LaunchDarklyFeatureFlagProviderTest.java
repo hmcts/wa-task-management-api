@@ -36,8 +36,6 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     @Test
     public void should_hit_launch_darkly_and_return_jsonvalue() {
         LDValue launchDarklyFeature = featureFlagProvider.getJsonValue(MANDATORY_FIELDS_KEY,
-                                                                       SOME_USER_ID,
-                                                                       SOME_USER_EMAIL,
                                                                        LDValue.of("jurisdictions"));
         assertThat(launchDarklyFeature, is(LDValue.of("jurisdictions")));
     }

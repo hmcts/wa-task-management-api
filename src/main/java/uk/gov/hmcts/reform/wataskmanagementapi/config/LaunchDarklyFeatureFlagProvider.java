@@ -14,6 +14,9 @@ import static java.util.Objects.requireNonNull;
 public class LaunchDarklyFeatureFlagProvider {
 
     private final LDClientInterface ldClient;
+    public static final LDUser TM_USER = new LDUser.Builder("wa-task-management-api")
+        .anonymous(true)
+        .build();
 
     public LaunchDarklyFeatureFlagProvider(LDClientInterface ldClient) {
         this.ldClient = ldClient;
@@ -32,13 +35,12 @@ public class LaunchDarklyFeatureFlagProvider {
         return result;
     }
 
-    public LDValue getJsonValue(FeatureFlag featureFlag, String userId, String email, LDValue defaultValue) {
+    public LDValue getJsonValue(FeatureFlag featureFlag, LDValue defaultValue) {
         requireNonNull(featureFlag, "featureFlag must not be null");
-        requireNonNull(userId, "userId must not be null");
-        log.debug("Attempting to retrieve feature flag '{}' with email '{}'", featureFlag.getKey(), email);
+        log.debug("Attempting to retrieve feature flag '{}'", featureFlag.getKey());
         LDValue result =  ldClient.jsonValueVariation(
             featureFlag.getKey(),
-            createLaunchDarklyUser(userId, email),
+            TM_USER,
             defaultValue
         );
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
@@ -53,4 +55,5 @@ public class LaunchDarklyFeatureFlagProvider {
             .lastName("Task Management")
             .build();
     }
+
 }

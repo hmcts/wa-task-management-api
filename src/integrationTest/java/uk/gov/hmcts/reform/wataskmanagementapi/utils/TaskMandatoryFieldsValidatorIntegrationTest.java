@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.JsonParserUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
@@ -46,7 +47,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
-        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any(), any(), any()))
+        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
             .thenReturn(LDValue.parse("{\"jurisdictions\":[\"WA\"]}"));
     }
 
@@ -59,22 +60,24 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
 
     @Test
     @DisplayName("should throw ValidationException when a mandatory field is missing")
-    void given_empty_mandatory_field_when_validate_then_throw_validation_exception() {
+    void given_empty_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId("");
-        ValidationException exception = assertThrows(ValidationException.class, ()
+        ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, ()
             -> taskMandatoryFieldsValidator.validate(task));
-        assertEquals("caseId cannot be null or empty", exception.getMessage());
+        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getField()
+            + exception.getViolations().get(0).getMessage());
     }
 
     @Test
     @DisplayName("should throw ValidationException when a mandatory field is missing")
-    void given_null_mandatory_field_when_validate_then_throw_validation_exception() {
+    void given_null_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseName(null);
-        ValidationException exception = assertThrows(ValidationException.class, ()
+        ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, ()
             -> taskMandatoryFieldsValidator.validate(task));
-        assertEquals("caseName cannot be null or empty", exception.getMessage());
+        assertEquals("caseName cannot be null or empty", exception.getViolations().get(0).getField()
+            + exception.getViolations().get(0).getMessage());
     }
 
     @Test
@@ -115,9 +118,10 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     void given_task_with_missing_mandatory_field_when_validate_task_fields_then_throw_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId(null);
-        ValidationException exception = assertThrows(ValidationException.class, ()
+        ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, ()
             -> taskMandatoryFieldsValidator.validateTaskMandatoryFields(task));
-        assertEquals("caseId cannot be null or empty", exception.getMessage());
+        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getField()
+        + exception.getViolations().get(0).getMessage());
     }
 
     @Test

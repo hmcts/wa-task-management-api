@@ -32,7 +32,7 @@ public class TaskMandatoryFieldsValidator {
     public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
     private final JsonParserUtils jsonParserUtils;
 
-    private List<String> tmSpecificMandatoryFields = List.of("state","executionTypeCode","created");
+    private final List<String> tmSpecificMandatoryFields = List.of("state","executionTypeCode","created");
 
     /**
      * Constructor for TaskMandatoryFieldsValidator.
@@ -64,8 +64,6 @@ public class TaskMandatoryFieldsValidator {
         if (isMandatoryFieldCheckEnabled) {
             LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
                 FeatureFlag.WA_MANDATORY_FIELD_CHECK,
-                "wa-mandatory-task-field-check",
-                "wa-mandatory-task-field-check@hmcts.net",
                 LDValue.of("{\"jurisdictions\": []}")
             );
 
@@ -120,23 +118,33 @@ public class TaskMandatoryFieldsValidator {
 
         for (String field : taskMandatoryFields) {
             try {
-                if (PropertyUtils.getProperty(task, field) == null
-                    || PropertyUtils.getProperty(task, field).toString().isBlank()) {
-                    if (!tmSpecificMandatoryFields.contains(field)) {
-                        serviceSpecificErrors.add(new Violation(field, " cannot be null or empty"));
-                    } else {
-                        tmSpecificErrors.add(new Violation(field,  " cannot be null or empty"));
-                    }
+                Object fieldValue = PropertyUtils.getProperty(task, field);
+                if (isFieldNullOrEmpty(fieldValue)) {
+                    addViolation(field, serviceSpecificErrors, tmSpecificErrors);
                 }
             } catch (Exception e) {
                 throw new IllegalArgumentException("Cannot find property value for mandatory field " + field, e);
             }
         }
+
         if (!serviceSpecificErrors.isEmpty()) {
             throw new ServiceMandatoryFieldValidationException(serviceSpecificErrors);
         }
         if (!tmSpecificErrors.isEmpty()) {
             throw new ValidationException(String.join(", ", tmSpecificErrors.toString()));
+        }
+    }
+
+    private boolean isFieldNullOrEmpty(Object fieldValue) {
+        return fieldValue == null || fieldValue.toString().isBlank();
+    }
+
+    private void addViolation(String field, List<Violation> serviceSpecificErrors, List<Violation> tmSpecificErrors) {
+        Violation violation = new Violation(field, field + " cannot be null or empty");
+        if (tmSpecificMandatoryFields.contains(field)) {
+            tmSpecificErrors.add(violation);
+        } else {
+            serviceSpecificErrors.add(violation);
         }
     }
 }
