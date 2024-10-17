@@ -6,9 +6,13 @@ public enum FeatureFlag {
 
     WA_DELETE_TASK_BY_CASE_ID("wa-delete-task-by-case-id"),
 
+    WA_MANDATORY_FIELD_CHECK("wa-mandatory-field-check"),
+
+
     //The following keys are used for testing purposes only.
     TEST_KEY("tester"),
-    NON_EXISTENT_KEY("non-existent");
+    NON_EXISTENT_KEY("non-existent"),
+    MANDATORY_FIELDS_KEY("jurisdictions");
 
     private final String key;
 
