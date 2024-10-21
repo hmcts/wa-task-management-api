@@ -9,6 +9,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 
 import javax.validation.constraints.NotNull;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @Schema(
     name = "SearchParameterBoolean",
     description = "Search parameter containing the key, operator and boolean values"
@@ -18,7 +20,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
@@ -30,7 +32,7 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     )
     private final SearchOperator operator;
 
-    @Schema(required = true, example = "true")
+    @Schema(requiredMode = REQUIRED, example = "true")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
