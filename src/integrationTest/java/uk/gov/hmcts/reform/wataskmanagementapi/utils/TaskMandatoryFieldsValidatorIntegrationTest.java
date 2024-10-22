@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryField
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import javax.validation.ValidationException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,8 +62,9 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     void given_empty_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId("");
-        ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, ()
-            -> taskMandatoryFieldsValidator.validate(task));
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class, ()
+                -> taskMandatoryFieldsValidator.validate(task));
         assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getField()
             + exception.getViolations().get(0).getMessage());
     }
@@ -74,8 +74,9 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     void given_null_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseName(null);
-        ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, ()
-            -> taskMandatoryFieldsValidator.validate(task));
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class, ()
+                -> taskMandatoryFieldsValidator.validate(task));
         assertEquals("caseName cannot be null or empty", exception.getViolations().get(0).getField()
             + exception.getViolations().get(0).getMessage());
     }
@@ -118,10 +119,11 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     void given_task_with_missing_mandatory_field_when_validate_task_fields_then_throw_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId(null);
-        ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, ()
-            -> taskMandatoryFieldsValidator.validateTaskMandatoryFields(task));
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class, ()
+                -> taskMandatoryFieldsValidator.validateTaskMandatoryFields(task));
         assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getField()
-        + exception.getViolations().get(0).getMessage());
+            + exception.getViolations().get(0).getMessage());
     }
 
     @Test
