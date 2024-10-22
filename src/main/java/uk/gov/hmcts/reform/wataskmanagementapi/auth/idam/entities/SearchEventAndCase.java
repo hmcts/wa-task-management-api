@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @Schema(
     name = "SearchEventAndCase",
     description = "Search task request with event and case id"
@@ -15,13 +17,13 @@ import lombok.ToString;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchEventAndCase {
 
-    @Schema(required = true, name = "case_id")
+    @Schema(requiredMode = REQUIRED, name = "case_id")
     private final String caseId;
-    @Schema(required = true, name = "event_id")
+    @Schema(requiredMode = REQUIRED, name = "event_id")
     private final String eventId;
-    @Schema(required = true, name = "case_jurisdiction")
+    @Schema(requiredMode = REQUIRED, name = "case_jurisdiction")
     private final String caseJurisdiction;
-    @Schema(required = true, name = "case_type")
+    @Schema(requiredMode = REQUIRED, name = "case_type")
     private final String caseType;
 
     public SearchEventAndCase(String caseId, String eventId,
