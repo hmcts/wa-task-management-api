@@ -8,6 +8,7 @@ import java.util.List;
 
 import static org.zalando.problem.Status.BAD_REQUEST;
 
+@SuppressWarnings("java:S110")
 public class ServiceMandatoryFieldValidationException extends ConstraintViolationProblem {
 
     private static final long serialVersionUID = -5095055075702852145L;

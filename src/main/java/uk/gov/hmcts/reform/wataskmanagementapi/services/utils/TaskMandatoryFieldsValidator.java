@@ -27,7 +27,7 @@ import javax.validation.ValidationException;
 public class TaskMandatoryFieldsValidator {
 
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    private final Boolean isMandatoryFieldCheckEnabled;
+    private final boolean isMandatoryFieldCheckEnabled;
     private final List<String> taskMandatoryFields;
     public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
     private final JsonParserUtils jsonParserUtils;
