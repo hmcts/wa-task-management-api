@@ -65,8 +65,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validate(task));
-        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getField()
-            + exception.getViolations().get(0).getMessage());
+        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getMessage());
     }
 
     @Test
@@ -77,8 +76,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validate(task));
-        assertEquals("caseName cannot be null or empty", exception.getViolations().get(0).getField()
-            + exception.getViolations().get(0).getMessage());
+        assertEquals("caseName cannot be null or empty", exception.getViolations().get(0).getMessage());
     }
 
     @Test
@@ -122,8 +120,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validateTaskMandatoryFields(task));
-        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getField()
-            + exception.getViolations().get(0).getMessage());
+        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getMessage());
     }
 
     @Test
