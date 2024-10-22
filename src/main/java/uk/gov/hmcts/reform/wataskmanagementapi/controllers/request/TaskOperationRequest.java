@@ -13,6 +13,8 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @Schema(
     name = "TaskOperationRequest",
     description = "Allows specifying certain operations on a task"
@@ -21,7 +23,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 public class TaskOperationRequest {
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     private TaskOperation operation;
 
     @Schema(

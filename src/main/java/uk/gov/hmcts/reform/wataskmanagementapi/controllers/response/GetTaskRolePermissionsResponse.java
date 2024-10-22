@@ -8,6 +8,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 
 import java.util.List;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @EqualsAndHashCode
 @ToString
 public class GetTaskRolePermissionsResponse {
@@ -15,7 +17,7 @@ public class GetTaskRolePermissionsResponse {
     @JsonProperty("roles")
     @Schema(
         name = "permissions_list",
-        requiredMode = Schema.RequiredMode.REQUIRED,
+        requiredMode = REQUIRED,
         description = "Task role permission list"
     )
     private final List<TaskRolePermissions> permissionsList;
