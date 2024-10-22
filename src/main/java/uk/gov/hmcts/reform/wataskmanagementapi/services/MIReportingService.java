@@ -32,6 +32,7 @@ public class MIReportingService {
 
     private final SubscriptionCreator subscriptionCreator;
 
+    @Autowired
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository,
                               ReportableTaskRepository reportableTaskRepository,
