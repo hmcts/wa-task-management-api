@@ -31,7 +31,7 @@ public class Users implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    @Schema(required = true,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A list of users")
     private List<RoleAssignment> values =  new ArrayList<>();
 
