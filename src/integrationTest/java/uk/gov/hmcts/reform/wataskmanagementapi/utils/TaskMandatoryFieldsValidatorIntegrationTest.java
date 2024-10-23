@@ -7,9 +7,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -30,8 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@SpringBootTest
+@ActiveProfiles("integration")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootIntegrationBaseTest {
+public class TaskMandatoryFieldsValidatorIntegrationTest {
 
     @Autowired
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
