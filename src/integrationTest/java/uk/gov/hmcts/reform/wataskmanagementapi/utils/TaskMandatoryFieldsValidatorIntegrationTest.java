@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -61,25 +61,42 @@ public class TaskMandatoryFieldsValidatorIntegrationTest {
     }
 
     @Test
-    @DisplayName("should throw ValidationException when a mandatory field is missing")
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
     void given_empty_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId("");
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validate(task));
-        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getMessage());
+        String message = exception.getMessage();
+        assertTrue(message.contains("caseId cannot be null or empty"));
     }
 
     @Test
-    @DisplayName("should throw ValidationException when a mandatory field is missing")
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
     void given_null_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseName(null);
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validate(task));
-        assertEquals("caseName cannot be null or empty", exception.getViolations().get(0).getMessage());
+        String message = exception.getMessage();
+        assertTrue(message.contains("caseName cannot be null or empty"));
+    }
+
+    @Test
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when multiple mandatory fields are missing")
+    void given_null_multiple_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
+        TaskResource task = getTaskResource(taskId);
+        task.setCaseName(null);
+        task.setCaseId("");
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class, ()
+                -> taskMandatoryFieldsValidator.validate(task));
+
+        String message = exception.getMessage();
+        assertTrue(message.contains("caseId cannot be null or empty"));
+        assertTrue(message.contains("caseName cannot be null or empty"));
     }
 
     @Test
@@ -123,7 +140,8 @@ public class TaskMandatoryFieldsValidatorIntegrationTest {
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validateTaskMandatoryFields(task));
-        assertEquals("caseId cannot be null or empty", exception.getViolations().get(0).getMessage());
+        String message = exception.getMessage();
+        assertTrue(message.contains("caseId cannot be null or empty"));
     }
 
     @Test

@@ -32,7 +32,7 @@ public class TaskMandatoryFieldsValidator {
     public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
     private final JsonParserUtils jsonParserUtils;
 
-    private final List<String> tmSpecificMandatoryFields = List.of("state","executionTypeCode","created");
+    private final List<String> tmSpecificMandatoryFields = List.of("taskId", "state","executionTypeCode","created");
 
     /**
      * Constructor for TaskMandatoryFieldsValidator.
@@ -113,14 +113,14 @@ public class TaskMandatoryFieldsValidator {
      * @throws IllegalArgumentException if a property value cannot be found
      */
     public void validateTaskMandatoryFields(TaskResource task) {
-        List<Violation> serviceSpecificErrors = new ArrayList<>();
-        List<Violation> tmSpecificErrors = new ArrayList<>();
+        List<String> serviceSpecificErrors = new ArrayList<>();
+        List<String> tmSpecificErrors = new ArrayList<>();
 
         for (String field : taskMandatoryFields) {
             try {
                 Object fieldValue = PropertyUtils.getProperty(task, field);
                 if (isFieldNullOrEmpty(fieldValue)) {
-                    addViolation(field, serviceSpecificErrors, tmSpecificErrors);
+                    addError(field, serviceSpecificErrors, tmSpecificErrors);
                 }
             } catch (Exception e) {
                 throw new IllegalArgumentException("Cannot find property value for mandatory field " + field, e);
@@ -128,7 +128,8 @@ public class TaskMandatoryFieldsValidator {
         }
 
         if (!serviceSpecificErrors.isEmpty()) {
-            throw new ServiceMandatoryFieldValidationException(serviceSpecificErrors);
+            throw new ServiceMandatoryFieldValidationException(
+                String.join(", ", serviceSpecificErrors.toString()));
         }
         if (!tmSpecificErrors.isEmpty()) {
             throw new ValidationException(String.join(", ", tmSpecificErrors.toString()));
@@ -139,12 +140,12 @@ public class TaskMandatoryFieldsValidator {
         return fieldValue == null || fieldValue.toString().isBlank();
     }
 
-    private void addViolation(String field, List<Violation> serviceSpecificErrors, List<Violation> tmSpecificErrors) {
-        Violation violation = new Violation(field, field + " cannot be null or empty");
+    private void addError(String field, List<String> serviceSpecificErrors, List<String> tmSpecificErrors) {
+        String errorMessage = field + " cannot be null or empty";
         if (tmSpecificMandatoryFields.contains(field)) {
-            tmSpecificErrors.add(violation);
+            tmSpecificErrors.add(errorMessage);
         } else {
-            serviceSpecificErrors.add(violation);
+            serviceSpecificErrors.add(errorMessage);
         }
     }
 }

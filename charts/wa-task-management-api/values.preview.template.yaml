@@ -1,6 +1,10 @@
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  devmemoryRequests: '512Mi'
+  devmemoryLimits: '1024Mi'
+  memoryRequests: '512Mi'
+  memoryLimits: '1024Mi'
   keyVaults:
     wa:
       secrets:
