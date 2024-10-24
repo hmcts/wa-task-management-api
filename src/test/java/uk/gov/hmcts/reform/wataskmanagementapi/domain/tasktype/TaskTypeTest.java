@@ -35,7 +35,7 @@ class TaskTypeTest {
         TaskType taskType = new TaskType(taskTypeId, taskTypeName);
         TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
 
-        assertEquals(taskType,taskType2);
+        assertEquals(taskType, taskType2);
     }
 
     @Test
@@ -48,7 +48,7 @@ class TaskTypeTest {
         TaskType taskType = new TaskType(taskTypeId, taskTypeName);
         TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
 
-        assertEquals(taskType,taskType2);
+        assertEquals(taskType, taskType2);
     }
 
     @Test
@@ -61,7 +61,7 @@ class TaskTypeTest {
         TaskType taskType = new TaskType(taskTypeId, taskTypeName);
         TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
 
-        assertNotEquals(taskType,taskType2);
+        assertNotEquals(taskType, taskType2);
     }
 
     @Test
