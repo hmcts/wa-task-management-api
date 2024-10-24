@@ -49,7 +49,7 @@ class TaskMandatoryFieldsValidatorTest {
         ArrayNode arrayNode = mapper.createArrayNode();
         arrayNode.add("IA");
         JsonNode jsonNode = arrayNode;
-        lenient().when(jsonParserUtils.parseJson(jsonString,  "jurisdictions"  )).thenReturn(jsonNode);
+        lenient().when(jsonParserUtils.parseJson(jsonString,  "jurisdictions")).thenReturn(jsonNode);
         taskMandatoryFieldsValidator = new TaskMandatoryFieldsValidator(
             launchDarklyFeatureFlagProvider, true, List.of("caseId", "caseName"), jsonParserUtils);
     }
