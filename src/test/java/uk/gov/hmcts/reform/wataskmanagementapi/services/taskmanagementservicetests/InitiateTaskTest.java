@@ -322,7 +322,7 @@ class InitiateTaskTest extends CamundaHelpers {
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
             .hasMessage("Database Conflict Error: "
-                        + "The action could not be completed because there was a conflict in the database.");
+                            + "The action could not be completed because there was a conflict in the database.");
     }
 
     @Test
