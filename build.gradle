@@ -111,6 +111,7 @@ task functional(type: Test) {
 }
 
 task integration(type: Test) {
+  jvmArgs = ['-Xms512m', '-Xmx2048m']
   description = "Runs integration tests"
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
