@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
@@ -121,6 +122,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
+    @Mock
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
@@ -144,7 +148,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentVerification,
             entityManager,
             systemUserIdamToken,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
         mockServices.mockServiceAPIs();
     }
