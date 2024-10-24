@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceM
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import javax.validation.ValidationException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,7 +53,7 @@ class TaskMandatoryFieldsValidatorTest {
         JsonNode jsonNode = arrayNode;
         lenient().when(jsonParserUtils.parseJson(jsonString,  "jurisdictions")).thenReturn(jsonNode);
         taskMandatoryFieldsValidator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, true, List.of("caseId", "caseName"), jsonParserUtils);
+            launchDarklyFeatureFlagProvider, true, List.of("caseId", "caseName", "taskId"), jsonParserUtils);
     }
 
     @Test
@@ -72,6 +74,19 @@ class TaskMandatoryFieldsValidatorTest {
         String message = exception.getMessage();
         assertTrue(message.contains("caseId cannot be null or empty"));
     }
+
+    @Test
+    @DisplayName("should throw ValidationException when a tm specific mandatory field is missing")
+    void given_empty_tm_specific_mandatory_field_when_validate_then_throw_validation_exception() {
+        TaskResource task = getTaskResource(taskId);
+        task.setTaskId(null);
+        ValidationException exception =
+            assertThrows(ValidationException.class,
+                         () -> taskMandatoryFieldsValidator.validate(task));
+        String message = exception.getMessage();
+        assertTrue(message.contains("taskId cannot be null or empty"));
+    }
+
 
     @Test
     @DisplayName("should throw ServiceMandatoryFieldValidationException when multiple mandatory fields are missing")
@@ -108,6 +123,19 @@ class TaskMandatoryFieldsValidatorTest {
     }
 
     @Test
+    @DisplayName("should not validate when mandatory field check enabled services json returns null")
+    void given_mandatory_field_check_enabled_services_returns_null_when_validate_then_no_validation() {
+        TaskResource task = getTaskResource(taskId);
+        task.setCaseId("");
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(null);
+        TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
+            launchDarklyFeatureFlagProvider, true,
+            List.of("caseId", "caseName", "taskId"), jsonParserUtils);
+        assertDoesNotThrow(() -> validator.validate(task));
+    }
+
+    @Test
     @DisplayName("should not validate when jurisdiction is excluded")
     void given_jurisdiction_is_excluded_then_no_validation() {
         TaskResource task = getTaskResource(taskId);
@@ -117,6 +145,23 @@ class TaskMandatoryFieldsValidatorTest {
             launchDarklyFeatureFlagProvider, false,
             List.of("caseId", "caseName"), jsonParserUtils);
         assertDoesNotThrow(() -> validator.validate(task));
+    }
+
+    @Test
+    @DisplayName("should validate when excluded jurisdiction array is null")
+    void given_excluded_jurisdiction_array_is_null_then_validate_mandatory_fields() {
+        TaskResource task = getTaskResource(taskId);
+        task.setCaseId("");
+        lenient().when(jsonParserUtils.parseJson(Mockito.anyString(),  Mockito.anyString())).thenReturn(null);
+
+        TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
+            launchDarklyFeatureFlagProvider, true,
+            List.of("caseId", "caseName"), jsonParserUtils);
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class,
+                         () -> validator.validate(task));
+        String message = exception.getMessage();
+        assertTrue(message.contains("caseId cannot be null or empty"));
     }
 
     private static TaskResource getTaskResource(String taskId) {
