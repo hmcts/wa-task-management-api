@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class TaskMandatoryFieldsValidatorTest {
@@ -67,7 +67,8 @@ class TaskMandatoryFieldsValidatorTest {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId("");
         ServiceMandatoryFieldValidationException exception =
-            assertThrows(ServiceMandatoryFieldValidationException.class, () -> taskMandatoryFieldsValidator.validate(task));
+            assertThrows(ServiceMandatoryFieldValidationException.class,
+                         () -> taskMandatoryFieldsValidator.validate(task));
         String message = exception.getMessage();
         assertTrue(message.contains("caseId cannot be null or empty"));
     }
@@ -79,7 +80,8 @@ class TaskMandatoryFieldsValidatorTest {
         task.setCaseName(null);
         task.setCaseId("");
         ServiceMandatoryFieldValidationException exception =
-            assertThrows(ServiceMandatoryFieldValidationException.class, () -> taskMandatoryFieldsValidator.validate(task));
+            assertThrows(ServiceMandatoryFieldValidationException.class,
+                         () -> taskMandatoryFieldsValidator.validate(task));
         String message = exception.getMessage();
         assertTrue(message.contains("caseId cannot be null or empty"));
         assertTrue(message.contains("caseName cannot be null or empty"));
@@ -90,7 +92,8 @@ class TaskMandatoryFieldsValidatorTest {
     void given_invalid_property_when_validate_then_throw_illegal_argument_exception() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, true, List.of("invalidField"), jsonParserUtils);
+            launchDarklyFeatureFlagProvider, true,
+            List.of("invalidField"), jsonParserUtils);
         assertThrows(IllegalArgumentException.class, () -> validator.validate(task));
     }
 
@@ -99,7 +102,8 @@ class TaskMandatoryFieldsValidatorTest {
     void given_mandatory_field_check_disabled_when_validate_then_no_validation() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, false, List.of("caseId", "caseName"), jsonParserUtils);
+            launchDarklyFeatureFlagProvider, false,
+            List.of("caseId", "caseName"), jsonParserUtils);
         assertDoesNotThrow(() -> validator.validate(task));
     }
 
@@ -110,7 +114,8 @@ class TaskMandatoryFieldsValidatorTest {
         task.setJurisdiction("IA");
         task.setCaseId("");
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, false, List.of("caseId", "caseName"), jsonParserUtils);
+            launchDarklyFeatureFlagProvider, false,
+            List.of("caseId", "caseName"), jsonParserUtils);
         assertDoesNotThrow(() -> validator.validate(task));
     }
 
