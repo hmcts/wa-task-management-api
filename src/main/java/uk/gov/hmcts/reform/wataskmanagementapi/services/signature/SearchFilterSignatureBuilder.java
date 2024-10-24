@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SuppressWarnings({
     "PMD.CognitiveComplexity"})
@@ -19,24 +20,30 @@ public final class SearchFilterSignatureBuilder {
     }
 
     public static Set<String> buildFilterSignatures(SearchRequest searchTaskRequest) {
-        Set<String> filterSignatures = new HashSet<>();
-        for (String state : defaultToWildcard(CFTTaskState.getAbbreviations(searchTaskRequest.getCftTaskStates()))) {
-            for (String jurisdiction : defaultToWildcard(searchTaskRequest.getJurisdictions())) {
-                for (String roleCategory :
-                    defaultToWildcard(RoleCategory.getAbbreviations(searchTaskRequest.getRoleCategories()))) {
-                    for (String workType : defaultToWildcard(searchTaskRequest.getWorkTypes())) {
-                        for (String region : defaultToWildcard(searchTaskRequest.getRegions())) {
-                            for (String location : defaultToWildcard(searchTaskRequest.getLocations())) {
-                                filterSignatures.add(String.join(":",
-                                    state, jurisdiction, roleCategory, workType, region, location));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return filterSignatures;
+        return defaultToWildcard(CFTTaskState.getAbbreviations(searchTaskRequest.getCftTaskStates())).stream()
+            .flatMap(state -> defaultToWildcard(searchTaskRequest.getJurisdictions()).stream()
+                .flatMap(jurisdiction ->
+                    defaultToWildcard(RoleCategory.getAbbreviations(searchTaskRequest.getRoleCategories())).stream()
+                        .flatMap(roleCategory -> defaultToWildcard(searchTaskRequest.getWorkTypes()).stream()
+                            .flatMap(workType -> defaultToWildcard(searchTaskRequest.getRegions()).stream()
+                                .flatMap(region -> defaultToWildcard(searchTaskRequest.getLocations()).stream()
+                                    .map(location ->
+                                        String.join(
+                                            ":",
+                                            state,
+                                            jurisdiction,
+                                            roleCategory,
+                                            workType,
+                                            region,
+                                            location))
+                                )
+                            )
+                        )
+                )
+            )
+            .collect(Collectors.toCollection(HashSet::new));  // Collecting into a HashSet
     }
+
 
     private static Collection<String> defaultToWildcard(Collection<String> strings) {
         return strings == null || strings.isEmpty() ? WILDCARD : strings;
