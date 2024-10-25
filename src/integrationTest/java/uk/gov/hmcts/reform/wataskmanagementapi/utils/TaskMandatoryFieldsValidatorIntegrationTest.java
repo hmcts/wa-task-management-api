@@ -64,8 +64,8 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     @NullSource
     @EmptySource
     @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is empty")
-    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_empty
-        (String attributeValue) {
+    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_empty(
+        String attributeValue) {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId(attributeValue);
         ServiceMandatoryFieldValidationException exception =
