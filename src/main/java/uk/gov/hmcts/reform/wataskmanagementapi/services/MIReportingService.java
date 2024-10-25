@@ -30,9 +30,9 @@ public class MIReportingService {
     private final ReportableTaskRepository reportableTaskRepository;
     private final TaskAssignmentsRepository taskAssignmentsRepository;
 
-    @Autowired
     private final SubscriptionCreator subscriptionCreator;
 
+    @Autowired
     public MIReportingService(TaskHistoryResourceRepository tasksHistoryRepository,
                               TaskResourceRepository taskResourceRepository,
                               ReportableTaskRepository reportableTaskRepository,
