@@ -58,14 +58,14 @@ class TaskMandatoryFieldsValidatorTest {
 
     @Test
     @DisplayName("should validate successfully when all mandatory fields are present")
-    void given_all_mandatory_fields_present_when_validate_then_success() {
+    void should_validate_successfully_when_all_mandatory_fields_are_present() {
         TaskResource task = getTaskResource(taskId);
         assertDoesNotThrow(() -> taskMandatoryFieldsValidator.validate(task));
     }
 
     @Test
     @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
-    void given_empty_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
+    void should_throw_service_mandatory_field_validation_exception_when_service_specific_mandatory_field_is_missing() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId("");
         ServiceMandatoryFieldValidationException exception =
@@ -77,7 +77,7 @@ class TaskMandatoryFieldsValidatorTest {
 
     @Test
     @DisplayName("should throw ValidationException when a tm specific mandatory field is missing")
-    void given_empty_tm_specific_mandatory_field_when_validate_then_throw_validation_exception() {
+    void should_throw_validation_exception_when_a_tm_specific_mandatory_field_is_missing() {
         TaskResource task = getTaskResource(taskId);
         task.setTaskId(null);
         ValidationException exception =
@@ -87,10 +87,9 @@ class TaskMandatoryFieldsValidatorTest {
         assertTrue(message.contains("taskId cannot be null or empty"));
     }
 
-
     @Test
     @DisplayName("should throw ServiceMandatoryFieldValidationException when multiple mandatory fields are missing")
-    void given_null_multiple_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
+    void should_throw_service_mandatory_field_validation_exception_when_multiple_mandatory_fields_are_missing() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseName(null);
         task.setCaseId("");
@@ -104,7 +103,7 @@ class TaskMandatoryFieldsValidatorTest {
 
     @Test
     @DisplayName("should throw IllegalArgumentException when property value cannot be found")
-    void given_invalid_property_when_validate_then_throw_illegal_argument_exception() {
+    void should_throw_illegal_argument_exception_when_property_value_cannot_be_found() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
             launchDarklyFeatureFlagProvider, true,
@@ -114,8 +113,9 @@ class TaskMandatoryFieldsValidatorTest {
 
     @Test
     @DisplayName("should not validate when mandatory field check is disabled")
-    void given_mandatory_field_check_disabled_when_validate_then_no_validation() {
+    void should_not_validate_when_mandatory_field_check_is_disabled() {
         TaskResource task = getTaskResource(taskId);
+        task.setCaseId(null);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
             launchDarklyFeatureFlagProvider, false,
             List.of("caseId", "caseName"), jsonParserUtils);
@@ -124,7 +124,7 @@ class TaskMandatoryFieldsValidatorTest {
 
     @Test
     @DisplayName("should not validate when mandatory field check enabled services json returns null")
-    void given_mandatory_field_check_enabled_services_returns_null_when_validate_then_no_validation() {
+    void should_not_validate_when_mandatory_field_check_enabled_services_json_returns_null() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId("");
         lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
@@ -137,19 +137,19 @@ class TaskMandatoryFieldsValidatorTest {
 
     @Test
     @DisplayName("should not validate when jurisdiction is excluded")
-    void given_jurisdiction_is_excluded_then_no_validation() {
+    void should_not_validate_when_jurisdiction_is_excluded() {
         TaskResource task = getTaskResource(taskId);
         task.setJurisdiction("IA");
         task.setCaseId("");
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, false,
+            launchDarklyFeatureFlagProvider, true,
             List.of("caseId", "caseName"), jsonParserUtils);
         assertDoesNotThrow(() -> validator.validate(task));
     }
 
     @Test
     @DisplayName("should validate when excluded jurisdiction array is null")
-    void given_excluded_jurisdiction_array_is_null_then_validate_mandatory_fields() {
+    void should_validate_when_excluded_jurisdiction_array_is_null() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId("");
         lenient().when(jsonParserUtils.parseJson(Mockito.anyString(),  Mockito.anyString())).thenReturn(null);

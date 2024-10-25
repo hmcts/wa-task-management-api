@@ -5,6 +5,9 @@ import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -52,16 +55,19 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
 
     @Test
     @DisplayName("should validate successfully when all mandatory fields are present")
-    void given_all_mandatory_fields_present_when_validate_then_success() {
+    void should_validate_successfully_when_all_mandatory_fields_are_present() {
         TaskResource task = getTaskResource(taskId);
         assertDoesNotThrow(() -> taskMandatoryFieldsValidator.validate(task));
     }
 
-    @Test
-    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
-    void given_empty_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
+    @ParameterizedTest
+    @NullSource
+    @EmptySource
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is empty")
+    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_empty
+        (String attributeValue) {
         TaskResource task = getTaskResource(taskId);
-        task.setCaseId("");
+        task.setCaseId(attributeValue);
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validate(task));
@@ -70,20 +76,8 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     }
 
     @Test
-    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
-    void given_null_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
-        TaskResource task = getTaskResource(taskId);
-        task.setCaseName(null);
-        ServiceMandatoryFieldValidationException exception =
-            assertThrows(ServiceMandatoryFieldValidationException.class, ()
-                -> taskMandatoryFieldsValidator.validate(task));
-        String message = exception.getMessage();
-        assertTrue(message.contains("caseName cannot be null or empty"));
-    }
-
-    @Test
     @DisplayName("should throw ServiceMandatoryFieldValidationException when multiple mandatory fields are missing")
-    void given_null_multiple_mandatory_field_when_validate_then_throw_service_mandatory_field_validation_exception() {
+    void should_throw_service_mandatory_field_validation_exception_when_multiple_mandatory_field_are_missing() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseName(null);
         task.setCaseId("");
@@ -98,7 +92,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
 
     @Test
     @DisplayName("should throw IllegalArgumentException when property value cannot be found")
-    void given_invalid_property_when_validate_then_throw_illegal_argument_exception() {
+    void should_throw_illegal_argument_exception_when_property_value_cannot_be_found() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
             new LaunchDarklyFeatureFlagProvider(ldClient), true, List.of("field1", "field2"),
@@ -107,8 +101,8 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     }
 
     @Test
-    @DisplayName("should not validate when mandatory field check is disabled")
-    void given_mandatory_field_check_disabled_when_validate_then_no_validation() {
+    @DisplayName("should skip validation when mandatory field check is disabled")
+    void should_skip_validation_when_mandatory_field_check_disabled() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator =
             new TaskMandatoryFieldsValidator(null, false,
@@ -117,8 +111,8 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     }
 
     @Test
-    @DisplayName("should not validate when jurisdiction is excluded")
-    void given_jurisdiction_excluded_then_no_validation() {
+    @DisplayName("should skip validation when jurisdiction is excluded")
+    void should_skip_validation_when_jurisdiction_excluded() {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId(null);
         task.setJurisdiction("WA");
@@ -130,24 +124,11 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     }
 
     @Test
-    @DisplayName("should throw ValidationException when mandatory field is missing")
-    void given_task_with_missing_mandatory_field_when_validate_task_fields_then_throw_validation_exception() {
-        TaskResource task = getTaskResource(taskId);
-        task.setCaseId(null);
-        ServiceMandatoryFieldValidationException exception =
-            assertThrows(ServiceMandatoryFieldValidationException.class, ()
-                -> taskMandatoryFieldsValidator.validateTaskMandatoryFields(task));
-        String message = exception.getMessage();
-        assertTrue(message.contains("caseId cannot be null or empty"));
-    }
-
-    @Test
     @DisplayName("should throw IllegalArgumentException when property value cannot be found")
-    void given_task_with_invalid_property_when_validate_task_fields_then_throw_illegal_argument_exception() {
+    void should_throw_IllegalArgumentException_when_property_value_cannot_be_found() {
         TaskResource task = getTaskResource(taskId);
-        List<String> invalidFields = List.of("invalidField");
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, true, invalidFields, jsonParserUtils);
+            launchDarklyFeatureFlagProvider, true, List.of("invalidField"), jsonParserUtils);
         assertThrows(IllegalArgumentException.class, () -> validator.validateTaskMandatoryFields(task));
     }
 
