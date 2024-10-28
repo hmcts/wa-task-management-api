@@ -8,6 +8,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 
 import java.time.OffsetDateTime;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @Schema(
     name = "TaskFilter",
     description = "Name of filter and value"
@@ -16,13 +18,13 @@ import java.time.OffsetDateTime;
 @ToString
 public class ExecuteReconfigureTaskFilter implements TaskFilter<OffsetDateTime> {
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     private final String key;
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     private final OffsetDateTime values;
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     private final TaskFilterOperator operator;
 
     @JsonCreator
