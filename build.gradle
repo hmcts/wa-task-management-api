@@ -233,7 +233,7 @@ dependencyCheck {
 
 dependencyManagement {
   dependencies {
-    dependency group: 'commons-io', name: 'commons-io', version: '2.16.1'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.17.0'
 
     dependencySet( group: 'org.springframework.security', version: '5.8.9'){
       entry 'spring-security-core'
@@ -344,7 +344,7 @@ dependencies {
 
   implementation group: 'net.minidev', name: 'json-smart', version: '2.4.10'
 
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.2.1'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
   implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
 
