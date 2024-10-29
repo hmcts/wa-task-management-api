@@ -1,7 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.domain.Sort;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -10,46 +14,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OffsetPageableRequestTest {
 
-    @Test
-    public void should_create_pageable_request_with_defaults() {
+    @ParameterizedTest
+    @MethodSource("providePageableRequests")
+    public void should_create_pageable_request_with_defaults(int offset, int limit, int expectedPageNumber) {
+        OffsetPageableRequest request = OffsetPageableRequest.of(offset, limit);
 
-        OffsetPageableRequest request = OffsetPageableRequest.of(0, 25);
         assertNotNull(request);
-        assertEquals(0, request.getOffset());
-        assertEquals(25, request.getLimit());
-        assertEquals(0, request.getPageNumber()); // Page 1 (starts from 0)
+        assertEquals(offset, request.getOffset());
+        assertEquals(limit, request.getLimit());
+        assertEquals(expectedPageNumber, request.getPageNumber());
         assertEquals(Sort.unsorted(), request.getSort());
     }
 
-    @Test
-    public void should_create_pageable_request_with_defaults_page_two() {
+    @ParameterizedTest
+    @MethodSource("providePageableRequestsWithSort")
+    public void should_create_pageable_request_with_sort(int offset, int limit, int expectedPageNumber, Sort sort) {
+        OffsetPageableRequest request = OffsetPageableRequest.of(offset, limit, sort);
 
-        OffsetPageableRequest request = OffsetPageableRequest.of(25, 25);
         assertNotNull(request);
-        assertEquals(25, request.getOffset());
-        assertEquals(25, request.getLimit());
-        assertEquals(1, request.getPageNumber()); // Page 2 (starts from 0)
-        assertEquals(Sort.unsorted(), request.getSort());
-    }
-
-    @Test
-    public void should_create_pageable_request_with_defaults_page_three() {
-        OffsetPageableRequest request = OffsetPageableRequest.of(50, 25);
-        assertNotNull(request);
-        assertEquals(50, request.getOffset());
-        assertEquals(25, request.getLimit());
-        assertEquals(2, request.getPageNumber()); // Page 3 (starts from 0)
-        assertEquals(Sort.unsorted(), request.getSort());
-    }
-
-    @Test
-    public void should_create_pageable_request_with_defaults_edge_case() {
-        OffsetPageableRequest request = OffsetPageableRequest.of(23, 25);
-        assertNotNull(request);
-        assertEquals(23, request.getOffset());
-        assertEquals(25, request.getLimit());
-        assertEquals(0, request.getPageNumber());
-        assertEquals(Sort.unsorted(), request.getSort());
+        assertEquals(offset, request.getOffset());
+        assertEquals(limit, request.getLimit());
+        assertEquals(expectedPageNumber, request.getPageNumber());
+        assertEquals(sort, request.getSort());
     }
 
     @Test
@@ -64,49 +50,6 @@ public class OffsetPageableRequestTest {
         assertEquals(0, request.getOffset());
         assertEquals(25, request.getLimit());
         assertEquals(0, request.getPageNumber()); // Page 1 (starts from 0)
-        assertEquals(Sort.by("locationName").descending(), request.getSort());
-    }
-
-    @Test
-    public void should_create_pageable_request_with_sort_page_two() {
-
-        OffsetPageableRequest request = OffsetPageableRequest.of(
-            25,
-            25,
-            Sort.by("locationName").descending()
-        );
-        assertNotNull(request);
-        assertEquals(25, request.getOffset());
-        assertEquals(25, request.getLimit());
-        assertEquals(1, request.getPageNumber()); // Page 2 (starts from 0)
-        assertEquals(Sort.by("locationName").descending(), request.getSort());
-    }
-
-    @Test
-    public void should_create_pageable_request_with_sort_page_three() {
-        OffsetPageableRequest request = OffsetPageableRequest.of(
-            50,
-            25,
-            Sort.by("locationName").descending()
-        );
-        assertNotNull(request);
-        assertEquals(50, request.getOffset());
-        assertEquals(25, request.getLimit());
-        assertEquals(2, request.getPageNumber()); // Page 3 (starts from 0)
-        assertEquals(Sort.by("locationName").descending(), request.getSort());
-    }
-
-    @Test
-    public void should_create_pageable_request_with_sort_edge_case() {
-        OffsetPageableRequest request = OffsetPageableRequest.of(
-            23,
-            25,
-            Sort.by("locationName").descending()
-        );
-        assertNotNull(request);
-        assertEquals(23, request.getOffset());
-        assertEquals(25, request.getLimit());
-        assertEquals(0, request.getPageNumber());
         assertEquals(Sort.by("locationName").descending(), request.getSort());
     }
 
@@ -158,5 +101,23 @@ public class OffsetPageableRequestTest {
         );
         assertNotNull(request);
         assertEquals(OffsetPageableRequest.of(2, 25), request.withPage(2));
+    }
+
+    private static Stream<Object[]> providePageableRequests() {
+        return Stream.of(
+            new Object[]{0, 25, 0},   // Page 1 (starts from 0)
+            new Object[]{25, 25, 1},  // Page 2 (starts from 0)
+            new Object[]{50, 25, 2},  // Page 3 (starts from 0)
+            new Object[]{23, 25, 0}   // Edge case, offset 23, should still be Page 1
+        );
+    }
+
+    private static Stream<Object[]> providePageableRequestsWithSort() {
+        return Stream.of(
+            new Object[]{0, 25, 0, Sort.by("locationName").descending()},    // Page 1 with sort
+            new Object[]{25, 25, 1, Sort.by("locationName").descending()},   // Page 2 with sort
+            new Object[]{50, 25, 2, Sort.by("locationName").descending()},   // Page 3 with sort
+            new Object[]{23, 25, 0, Sort.by("locationName").descending()}    // Edge case with sort
+        );
     }
 }

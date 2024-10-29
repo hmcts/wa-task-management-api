@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
@@ -288,67 +291,32 @@ class MIReportingServiceTest {
 
     }
 
-    @Test
-    void should_return_false_if_no_slot() {
+    @ParameterizedTest
+    @CsvSource({
+        "0, 1, 1, false",  // No slot
+        "1, 0, 1, false",  // No publication
+        "1, 1, 0, false",  // No subscription
+        "1, 1, 1, true"    // All conditions met
+    })
+    void should_return_expected_replication_status(int replicationSlots, int publications, int subscriptions, boolean expectedResult) {
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
         TaskAssignmentsRepository taskAssignmentsRepositoryMock = mock(TaskAssignmentsRepository.class);
         TaskHistoryResourceRepository taskHistoryResourceRepositoryMock = mock(TaskHistoryResourceRepository.class);
 
-        miReportingService = new MIReportingService(taskHistoryResourceRepositoryMock,
+        miReportingService = new MIReportingService(
+            taskHistoryResourceRepositoryMock,
             taskResourceRepositoryMock,
             reportableTaskMock,
             taskAssignmentsRepositoryMock,
-            mock(SubscriptionCreator.class));
+            mock(SubscriptionCreator.class)
+        );
 
-        when(taskResourceRepositoryMock.countReplicationSlots()).thenReturn(0);
-        when(taskResourceRepositoryMock.countPublications()).thenReturn(1);
-        when(taskHistoryResourceRepositoryMock.countSubscriptions()).thenReturn(1);
+        when(taskResourceRepositoryMock.countReplicationSlots()).thenReturn(replicationSlots);
+        when(taskResourceRepositoryMock.countPublications()).thenReturn(publications);
+        when(taskHistoryResourceRepositoryMock.countSubscriptions()).thenReturn(subscriptions);
 
-        assertFalse(miReportingService.hasReplicationStarted());
-
-    }
-
-    @Test
-    void should_return_false_if_no_publication() {
-        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
-        TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
-        TaskAssignmentsRepository taskAssignmentsRepositoryMock = mock(TaskAssignmentsRepository.class);
-        TaskHistoryResourceRepository taskHistoryResourceRepositoryMock = mock(TaskHistoryResourceRepository.class);
-
-        miReportingService = new MIReportingService(taskHistoryResourceRepositoryMock,
-            taskResourceRepositoryMock,
-            reportableTaskMock,
-            taskAssignmentsRepositoryMock,
-            mock(SubscriptionCreator.class));
-
-        when(taskResourceRepositoryMock.countReplicationSlots()).thenReturn(1);
-        when(taskResourceRepositoryMock.countPublications()).thenReturn(0);
-        when(taskHistoryResourceRepositoryMock.countSubscriptions()).thenReturn(1);
-
-        assertFalse(miReportingService.hasReplicationStarted());
-
-    }
-
-    @Test
-    void should_return_false_if_no_subscription() {
-        ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
-        TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
-        TaskAssignmentsRepository taskAssignmentsRepositoryMock = mock(TaskAssignmentsRepository.class);
-        TaskHistoryResourceRepository taskHistoryResourceRepositoryMock = mock(TaskHistoryResourceRepository.class);
-
-        miReportingService = new MIReportingService(taskHistoryResourceRepositoryMock,
-            taskResourceRepositoryMock,
-            reportableTaskMock,
-            taskAssignmentsRepositoryMock,
-            mock(SubscriptionCreator.class));
-
-        when(taskResourceRepositoryMock.countReplicationSlots()).thenReturn(1);
-        when(taskResourceRepositoryMock.countPublications()).thenReturn(1);
-        when(taskHistoryResourceRepositoryMock.countSubscriptions()).thenReturn(0);
-
-        assertFalse(miReportingService.hasReplicationStarted());
-
+        Assertions.assertEquals(expectedResult, miReportingService.hasReplicationStarted());
     }
 
 }
