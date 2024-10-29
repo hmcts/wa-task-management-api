@@ -224,9 +224,9 @@ public class ReplicationCheckerTest {
                 "claim",  // History action
                 "someuser",  // User
                 "someuser",  // History user
-                "TASK_REPLICATION_ERROR: Task replication not found for " +
-                "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, " +
-                "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
+                "TASK_REPLICATION_ERROR: Task replication not found for "
+                + "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
             ),
             new MismatchScenario(
                 OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
@@ -235,9 +235,9 @@ public class ReplicationCheckerTest {
                 "assign",
                 "someuser",
                 "someuser",
-                "TASK_REPLICATION_ERROR: Task replication not found for " +
-                "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, " +
-                "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
+                "TASK_REPLICATION_ERROR: Task replication not found for "
+                + "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
             ),
             new MismatchScenario(
                 OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
@@ -246,9 +246,9 @@ public class ReplicationCheckerTest {
                 "claim",
                 "someuser",
                 "seconduser",
-                "TASK_REPLICATION_ERROR: Task replication not found for " +
-                "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, " +
-                "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
+                "TASK_REPLICATION_ERROR: Task replication not found for "
+                + "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
             )
         );
     }

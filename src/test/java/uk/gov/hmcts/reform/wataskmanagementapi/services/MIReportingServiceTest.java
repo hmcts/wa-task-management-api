@@ -298,7 +298,8 @@ class MIReportingServiceTest {
         "1, 1, 0, false",  // No subscription
         "1, 1, 1, true"    // All conditions met
     })
-    void should_return_expected_replication_status(int replicationSlots, int publications, int subscriptions, boolean expectedResult) {
+    void should_return_expected_replication_status(int replicationSlots, int publications,
+                                                   int subscriptions, boolean expectedResult) {
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
         TaskAssignmentsRepository taskAssignmentsRepositoryMock = mock(TaskAssignmentsRepository.class);
