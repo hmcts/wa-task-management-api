@@ -105,10 +105,10 @@ public class OffsetPageableRequestTest {
 
     private static Stream<Object[]> providePageableRequests() {
         return Stream.of(
-            new Object[]{0, 25, 0},   // Page 1 (starts from 0)
-            new Object[]{25, 25, 1},  // Page 2 (starts from 0)
-            new Object[]{50, 25, 2},  // Page 3 (starts from 0)
-            new Object[]{23, 25, 0}   // Edge case, offset 23, should still be Page 1
+            new Object[]{0, 25, 0},   // Page 1
+            new Object[]{25, 25, 1},  // Page 2
+            new Object[]{50, 25, 2},  // Page 3
+            new Object[]{23, 25, 0}   // Edge case
         );
     }
 
