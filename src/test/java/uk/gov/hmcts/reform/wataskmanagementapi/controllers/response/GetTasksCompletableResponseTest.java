@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 @ExtendWith(MockitoExtension.class)
-public class GetTasksCompletableResponseTest {
+class GetTasksCompletableResponseTest {
 
     @Mock
     private Task camundaTask;

@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RoleSignatureBuilderTest {
+class RoleSignatureBuilderTest {
 
     @Test
     void returnEmptySignatureForEmptyFields() {

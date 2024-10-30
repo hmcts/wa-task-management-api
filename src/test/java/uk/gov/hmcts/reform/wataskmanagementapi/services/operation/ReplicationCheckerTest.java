@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(OutputCaptureExtension.class)
-public class ReplicationCheckerTest {
+class ReplicationCheckerTest {
 
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
