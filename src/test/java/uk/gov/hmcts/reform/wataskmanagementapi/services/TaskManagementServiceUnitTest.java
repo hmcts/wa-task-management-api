@@ -414,7 +414,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             List<String> logsList = List.copyOf(listAppender.list)
                 .stream()
                 .map(ILoggingEvent::getFormattedMessage)
-                .collect(Collectors.toList());
+                .toList();
             assertTrue(logsList.contains("PersistenceException occurred in updating indexed field of taskId:"
                                              + taskId));
         }

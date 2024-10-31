@@ -78,9 +78,9 @@ class TaskTypesServiceTest {
         assertNotNull(response.getTaskTypeResponses());
         assertEquals(1, response.getTaskTypeResponses().size());
         assertEquals("processApplication", response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId());
+                .stream().toList().get(0).getTaskType().getTaskTypeId());
         assertEquals("Process Application", response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName());
+                .stream().toList().get(0).getTaskType().getTaskTypeName());
 
     }
 
@@ -164,22 +164,22 @@ class TaskTypesServiceTest {
         assertEquals(
                 "processApplication",
                 response.getTaskTypeResponses()
-                    .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId()
+                    .stream().toList().get(0).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Process Application",
             response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName()
+                .stream().toList().get(0).getTaskType().getTaskTypeName()
         );
         assertEquals(
                 "reviewAppealSkeletonArgument",
             response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeId()
+                .stream().toList().get(1).getTaskType().getTaskTypeId()
         );
         assertEquals(
                 "Review Appeal Skeleton Argument",
             response.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(1).getTaskType().getTaskTypeName()
+                .stream().toList().get(1).getTaskType().getTaskTypeName()
         );
     }
 

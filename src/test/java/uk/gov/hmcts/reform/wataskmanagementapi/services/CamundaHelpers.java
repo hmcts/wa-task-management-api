@@ -209,7 +209,7 @@ public class CamundaHelpers {
                         processInstanceId,
                         taskId
                     ))
-            .collect(Collectors.toList());
+            .toList();
 
     }
 
@@ -227,7 +227,7 @@ public class CamundaHelpers {
                         processInstanceId,
                         taskId
                     ))
-            .collect(Collectors.toList());
+            .toList();
 
     }
 
@@ -239,7 +239,7 @@ public class CamundaHelpers {
 
         return Stream.of(variablesForProcessInstance1, variablesForProcessInstance2)
             .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+            .toList();
     }
 
 }

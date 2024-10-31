@@ -14,6 +14,6 @@ public final class DeleteTasksServiceHelper {
     public static List<String> getTaskIds(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders) {
         return taskResourceCaseQueryBuilders.stream()
                 .map(TaskResourceCaseQueryBuilder::getTaskId)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

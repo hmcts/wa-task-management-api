@@ -158,7 +158,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskResource taskResource = createTestTaskWithRoleResources(
@@ -221,7 +221,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", false);
@@ -287,7 +287,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
@@ -353,7 +353,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
@@ -417,7 +417,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);

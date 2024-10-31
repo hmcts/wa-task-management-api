@@ -32,7 +32,7 @@ public final class TaskSearchSortProvider {
                 } else {
                     return Sort.Order.desc(sortingParameter.getSortBy().getCftVariableName());
                 }
-            }).collect(Collectors.toList());
+            }).toList();
 
         Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(x -> Sort.Order.asc(x.getCftVariableName()))

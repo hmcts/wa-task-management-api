@@ -64,7 +64,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
 
         List<String> taskIds = taskResources.stream()
             .map(TaskResource::getTaskId)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
             successfulTaskResources,

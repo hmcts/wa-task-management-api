@@ -44,13 +44,13 @@ public class SearchTaskRequestMapperTest {
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324", "765325")),
                 new SearchParameterList(STATE, SearchOperator.IN,
-                    Arrays.stream(CFTTaskState.values()).map(CFTTaskState::getValue).collect(Collectors.toList())),
+                    Arrays.stream(CFTTaskState.values()).map(CFTTaskState::getValue).toList()),
                 new SearchParameterList(USER, SearchOperator.IN, asList("User1", "User2")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003", "1623278362432003")),
                 new SearchParameterList(WORK_TYPE, SearchOperator.IN, SearchTaskRequestMapper.ALLOWED_WORK_TYPES),
                 new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication", "reviewAppeal")),
                 new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                    Arrays.stream(RoleCategory.values()).map(RoleCategory::toString).collect(Collectors.toList()))
+                    Arrays.stream(RoleCategory.values()).map(RoleCategory::toString).toList())
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT),
                 new SortingParameter(SortField.CASE_CATEGORY_CAMEL_CASE, SortOrder.DESCENDANT))
@@ -111,7 +111,7 @@ public class SearchTaskRequestMapperTest {
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA", "WA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324", "765325")),
                 new SearchParameterList(STATE, SearchOperator.IN,
-                    Arrays.stream(CFTTaskState.values()).map(CFTTaskState::getValue).collect(Collectors.toList())),
+                    Arrays.stream(CFTTaskState.values()).map(CFTTaskState::getValue).toList()),
                 new SearchParameterList(USER, SearchOperator.IN, asList("User1", "User2")),
                 new SearchParameterList(CASE_ID_CAMEL_CASE, SearchOperator.IN, asList("1623278362431003",
                     "1623278362432003"))
