@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.utils;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBuilder;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public final class DeleteTasksServiceHelper {
