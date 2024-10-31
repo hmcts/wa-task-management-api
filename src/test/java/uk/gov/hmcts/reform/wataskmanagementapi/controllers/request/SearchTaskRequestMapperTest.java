@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;

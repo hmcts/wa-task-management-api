@@ -79,7 +79,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.TypedQuery;

@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
