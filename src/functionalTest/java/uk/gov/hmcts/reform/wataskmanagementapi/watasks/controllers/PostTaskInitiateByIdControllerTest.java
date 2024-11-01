@@ -24,7 +24,6 @@ import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
