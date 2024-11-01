@@ -43,6 +43,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -85,6 +87,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNI
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE_EXCEPTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.buildTaskActionAttributeForAssign;
@@ -114,7 +117,7 @@ public class TaskManagementService {
     private final RoleAssignmentVerificationService roleAssignmentVerification;
     private final IdamTokenGenerator idamTokenGenerator;
     private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-
+    private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -127,7 +130,8 @@ public class TaskManagementService {
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
-                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService) {
+                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
+                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -137,6 +141,7 @@ public class TaskManagementService {
         this.entityManager = entityManager;
         this.idamTokenGenerator = idamTokenGenerator;
         this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
+        this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
     }
 
     /**
@@ -879,10 +884,15 @@ public class TaskManagementService {
             taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
 
             updateCftTaskState(taskResource.getTaskId(), taskResource);
+            taskMandatoryFieldsValidator.validate(taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (FeignException e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw e;
+        } catch (ServiceMandatoryFieldValidationException e) {
+            log.error("Error when initiating task(id={})", taskId, e);
+            throw new ServiceMandatoryFieldValidationException(MANDATORY_FIELD_MISSING_ERROR.getDetail()
+                                                                   + taskId + e.getMessage(), e);
         } catch (Exception e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);

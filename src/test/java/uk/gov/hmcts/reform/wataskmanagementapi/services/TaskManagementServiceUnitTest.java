@@ -65,6 +65,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerif
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -189,6 +191,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     private CriteriaBuilderImpl builder;
     @Mock
     private CriteriaQuery<TaskResource> criteriaQuery;
+
+    @Mock
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @Mock
     private Predicate predicate;
     @Mock
@@ -233,7 +238,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator
         );
 
 
@@ -2442,6 +2448,19 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        void given_mandatory_field_missing_when_validation_task_then_throw_502_error()
+            throws ServiceMandatoryFieldValidationException {
+            lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
+                .thenReturn(taskResource);
+            when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
+                .thenReturn(taskResource);
+            lenient().doThrow(new ServiceMandatoryFieldValidationException("some unexpected error"))
+                .when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(ServiceMandatoryFieldValidationException.class);
         }
 
         @Test

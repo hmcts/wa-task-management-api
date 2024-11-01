@@ -47,6 +47,7 @@ class ExecuteTaskReconfigurationServiceTest {
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
+
     @InjectMocks
     private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
 

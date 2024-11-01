@@ -47,6 +47,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -71,6 +72,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -108,6 +110,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     @MockBean
     private RoleAssignmentService roleAssignmentService;
     @MockBean
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    @MockBean
     private IdamWebApi idamWebApi;
 
     @Autowired
@@ -126,6 +130,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
             anyString(),
             anyString(),

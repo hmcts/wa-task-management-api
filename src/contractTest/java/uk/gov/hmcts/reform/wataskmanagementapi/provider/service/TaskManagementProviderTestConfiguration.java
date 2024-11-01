@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -77,6 +78,8 @@ public class TaskManagementProviderTestConfiguration {
     private IdamTokenGenerator idamTokenGenerator;
     @MockBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    @MockBean
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
     @Bean
@@ -107,7 +110,8 @@ public class TaskManagementProviderTestConfiguration {
             roleAssignmentVerificationService,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
     }
 
     @Bean
