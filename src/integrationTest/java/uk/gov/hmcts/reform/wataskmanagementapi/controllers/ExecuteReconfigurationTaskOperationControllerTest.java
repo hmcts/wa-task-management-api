@@ -47,7 +47,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
