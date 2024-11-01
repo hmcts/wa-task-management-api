@@ -878,7 +878,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
-        when(taskMandatoryFieldsValidator.isMandatoryFieldCheckEnabled()).thenReturn(true);
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringInitiation",
             "validateMandatoryTaskAttributesDuringInitiation"
