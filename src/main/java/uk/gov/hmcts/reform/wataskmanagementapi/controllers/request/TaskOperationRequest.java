@@ -27,7 +27,7 @@ public class TaskOperationRequest {
     private TaskOperation operation;
 
     @Schema(
-        required = true,
+        requiredMode = REQUIRED,
         name = "task_filter",
         description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one task_filter element is required.")
