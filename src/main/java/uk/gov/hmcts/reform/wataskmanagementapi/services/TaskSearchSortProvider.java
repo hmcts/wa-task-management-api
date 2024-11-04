@@ -32,7 +32,7 @@ public final class TaskSearchSortProvider {
                 } else {
                     return Sort.Order.desc(sortingParameter.getSortBy().getCftVariableName());
                 }
-            }).toList();
+            }).collect(Collectors.toList()); //NOSONAR List needs to be mutable to allow sorting.
 
         Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(x -> Sort.Order.asc(x.getCftVariableName()))
