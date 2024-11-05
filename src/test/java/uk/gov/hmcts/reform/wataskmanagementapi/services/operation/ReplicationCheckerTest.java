@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -33,20 +36,17 @@ import static org.mockito.Mockito.when;
 @ExtendWith(OutputCaptureExtension.class)
 class ReplicationCheckerTest {
 
-    @Mock
-    private CFTTaskDatabaseService cftTaskDatabaseService;
-
-    @Mock
-    private MIReportingService miReportingService;
-
-    @InjectMocks
-    private ReplicationChecker replicationChecker;
-
     private final TaskOperationRequest request = new TaskOperationRequest(
         TaskOperation.builder()
             .type(TaskOperationType.PERFORM_REPLICATION_CHECK).build(),
         List.of()
     );
+    @Mock
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    private MIReportingService miReportingService;
+    @InjectMocks
+    private ReplicationChecker replicationChecker;
 
     @Test
     void should_process_replication_checker_operation() {
@@ -107,13 +107,17 @@ class ReplicationCheckerTest {
 
     }
 
-    @Test
-    void should_process_replication_checker_operation_for_not_found_history_timestamp_mismatch(
-        CapturedOutput capturedOutput) {
-        TaskResource resource = new TaskResource("1",
-            OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "someuser");
-        TaskHistoryResource history = new TaskHistoryResource("1",
-            OffsetDateTime.parse("2021-05-09T20:15:30.345875+01:00"), "claim", "someuser");
+    @ParameterizedTest
+    @MethodSource("provideMismatchScenarios")
+    void should_process_replication_checker_operation_for_mismatches(
+        MismatchScenario scenario,
+        CapturedOutput capturedOutput
+    ) {
+        TaskResource resource = new TaskResource("1", scenario.resourceTimestamp,
+            scenario.resourceAction, scenario.resourceUser);
+        TaskHistoryResource history = new TaskHistoryResource("1", scenario.historyTimestamp,
+            scenario.historyAction, scenario.historyUser);
+
         when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource));
         when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
 
@@ -133,74 +137,7 @@ class ReplicationCheckerTest {
                 return true;
             });
 
-        assertTrue(capturedOutput.getOut().contains("TASK_REPLICATION_ERROR: Task replication not found for "
-                                                    + "[taskId: 1, "
-                                                    + "lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
-                                                    + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"));
-    }
-
-    @Test
-    void should_process_replication_checker_operation_for_not_found_history_action_mismatch(
-        CapturedOutput capturedOutput) {
-        TaskResource resource = new TaskResource("1",
-            OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "someuser");
-        TaskHistoryResource history = new TaskHistoryResource("1",
-            OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "assign", "someuser");
-        when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource));
-        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
-
-        Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
-        List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
-        assertEquals(1, tasks.size());
-        List<?> notReplicated = (List<?>) resourceMap.get("notReplicatedTaskIds");
-        assertEquals(1, notReplicated.size());
-
-        verify(cftTaskDatabaseService, times(1)).findLastFiveUpdatedTasks();
-
-        await()
-            .pollInterval(1, SECONDS)
-            .atMost(20, SECONDS)
-            .until(() -> {
-                verify(miReportingService, atLeast(2)).findByTaskIdOrderByLatestUpdate("1");
-                return true;
-            });
-
-        assertTrue(capturedOutput.getOut().contains("TASK_REPLICATION_ERROR: Task replication not found for "
-                                                    + "[taskId: 1, "
-                                                    + "lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
-                                                    + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"));
-    }
-
-    @Test
-    void should_process_replication_checker_operation_for_not_found_history_user_mismatch(
-        CapturedOutput capturedOutput) {
-        TaskResource resource = new TaskResource("1",
-            OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "someuser");
-        TaskHistoryResource history = new TaskHistoryResource("1",
-            OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), "claim", "seconduser");
-        when(cftTaskDatabaseService.findLastFiveUpdatedTasks()).thenReturn(List.of(resource));
-        when(miReportingService.findByTaskIdOrderByLatestUpdate("1")).thenReturn(List.of(history));
-
-        Map<String, Object> resourceMap = replicationChecker.performOperation(request).getResponseMap();
-        List<?> tasks = (List<?>) resourceMap.get("replicationCheckedTaskIds");
-        assertEquals(1, tasks.size());
-        List<?> notReplicated = (List<?>) resourceMap.get("notReplicatedTaskIds");
-        assertEquals(1, notReplicated.size());
-
-        verify(cftTaskDatabaseService, times(1)).findLastFiveUpdatedTasks();
-
-        await()
-            .pollInterval(1, SECONDS)
-            .atMost(20, SECONDS)
-            .until(() -> {
-                verify(miReportingService, atLeast(2)).findByTaskIdOrderByLatestUpdate("1");
-                return true;
-            });
-
-        assertTrue(capturedOutput.getOut().contains("TASK_REPLICATION_ERROR: Task replication not found for "
-                                                    + "[taskId: 1, "
-                                                    + "lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
-                                                    + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"));
+        assertTrue(capturedOutput.getOut().contains(scenario.expectedOutput));
     }
 
     @Test
@@ -276,6 +213,72 @@ class ReplicationCheckerTest {
                                                     + "[taskId: 3, "
                                                     + "lastUpdatedTimestamp: 2021-05-09T20:15:20.345875+01:00, "
                                                     + "lastUpdatedAction: assign, lastUpdatedUser: seconduser]"));
+    }
+
+    private static Stream<MismatchScenario> provideMismatchScenarios() {
+        return Stream.of(
+            new MismatchScenario(
+                OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"), // Resource timestamp
+                OffsetDateTime.parse("2021-05-09T20:15:30.345875+01:00"), // History timestamp
+                "claim",  // Action
+                "claim",  // History action
+                "someuser",  // User
+                "someuser",  // History user
+                "TASK_REPLICATION_ERROR: Task replication not found for "
+                + "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
+            ),
+            new MismatchScenario(
+                OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
+                OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
+                "claim",
+                "assign",
+                "someuser",
+                "someuser",
+                "TASK_REPLICATION_ERROR: Task replication not found for "
+                + "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
+            ),
+            new MismatchScenario(
+                OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
+                OffsetDateTime.parse("2021-05-09T20:15:50.345875+01:00"),
+                "claim",
+                "claim",
+                "someuser",
+                "seconduser",
+                "TASK_REPLICATION_ERROR: Task replication not found for "
+                + "[taskId: 1, lastUpdatedTimestamp: 2021-05-09T20:15:50.345875+01:00, "
+                + "lastUpdatedAction: claim, lastUpdatedUser: someuser]"
+            )
+        );
+    }
+
+    private static class MismatchScenario {
+        OffsetDateTime resourceTimestamp;
+        OffsetDateTime historyTimestamp;
+        String resourceAction;
+        String historyAction;
+        String resourceUser;
+        String historyUser;
+        String expectedOutput;
+
+        public MismatchScenario(
+            OffsetDateTime resourceTimestamp,
+            OffsetDateTime historyTimestamp,
+            String resourceAction,
+            String historyAction,
+            String resourceUser,
+            String historyUser,
+            String expectedOutput
+        ) {
+            this.resourceTimestamp = resourceTimestamp;
+            this.historyTimestamp = historyTimestamp;
+            this.resourceAction = resourceAction;
+            this.historyAction = historyAction;
+            this.resourceUser = resourceUser;
+            this.historyUser = historyUser;
+            this.expectedOutput = expectedOutput;
+        }
     }
 
 }
