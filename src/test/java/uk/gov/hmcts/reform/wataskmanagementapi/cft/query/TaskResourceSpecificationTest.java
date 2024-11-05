@@ -62,7 +62,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.WORK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
-public class TaskResourceSpecificationTest {
+class TaskResourceSpecificationTest {
 
     @Mock(extraInterfaces = Serializable.class)
     Root<TaskResource> root;
@@ -90,7 +90,7 @@ public class TaskResourceSpecificationTest {
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    public void setUp() {
+    void setUp() {
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
         lenient().when(inObject.value(any())).thenReturn(values);
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
