@@ -160,9 +160,6 @@ public class DateTypeConfiguratorOrderTest {
         inOrder.verify(nextHearingDateCalculator).calculateDate(any(), eq(NEXT_HEARING_DATE_TYPE), eq(false),
                                                                 eq(taskAttributes), any()
         );
-        //inOrder.verify(intermediateDateCalculator).calculateDate(any(), eq(INTERMEDIATE_DATE_TYPE), eq(false),
-        //                                                         eq(taskAttributes), any()
-        //);
         inOrder.verify(dueDateCalculator)
             .calculateDate(any(), eq(DUE_DATE_TYPE), eq(false), eq(taskAttributes), any());
         inOrder.verify(priorityDateCalculator)
