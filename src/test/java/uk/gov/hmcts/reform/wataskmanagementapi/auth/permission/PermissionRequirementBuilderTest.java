@@ -51,7 +51,7 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void permission_requirement_should_initiated_first() {
+    void permission_requirement_should_initiated_first() {
         PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
 
         IllegalStateException exception = assertThrowsExactly(IllegalStateException.class, () -> {
@@ -65,7 +65,7 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_initiate_with_valid_permission_requirement() {
+    void should_initiate_with_valid_permission_requirement() {
         PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
 
         Exception exception = assertThrows(NullPointerException.class, () -> {
@@ -88,8 +88,8 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_initiate_with_valid_single_permission_requirement() {
-        PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
+    void should_initiate_with_valid_single_permission_requirement() {
+        PermissionRequirementBuilder builder =  new PermissionRequirementBuilder();
 
         Exception exception = assertThrows(NullPointerException.class, () -> {
             builder.initPermissionRequirement(null);
@@ -105,8 +105,8 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_add_valid_next_permission_requirement() {
-        PermissionRequirementBuilder builder = new PermissionRequirementBuilder()
+    void should_add_valid_next_permission_requirement() {
+        PermissionRequirementBuilder builder =  new PermissionRequirementBuilder()
             .initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND)
             .joinPermissionRequirement(PermissionJoin.AND);
 
@@ -130,8 +130,8 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_add_valid_next_single_permission_requirement() {
-        PermissionRequirementBuilder builder = new PermissionRequirementBuilder()
+    void should_add_valid_next_single_permission_requirement() {
+        PermissionRequirementBuilder builder =  new PermissionRequirementBuilder()
             .initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND)
             .joinPermissionRequirement(PermissionJoin.AND);
 
@@ -149,7 +149,7 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_permission_requirement_collection() {
+    void should_build_permission_requirement_collection() {
         PermissionRequirements requirements = new PermissionRequirementBuilder()
             .initPermissionRequirement(List.of(CLAIM, OWN), PermissionJoin.AND)
             .joinPermissionRequirement(PermissionJoin.OR)
@@ -182,7 +182,7 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_permission_requirement_for_single_type() {
+    void should_build_permission_requirement_for_single_type() {
         PermissionRequirements requirements = new PermissionRequirementBuilder().buildSingleType(CLAIM);
         assertEquals(List.of(CLAIM), requirements.getPermissionRequirement().getPermissionTypes());
         assertEquals(PermissionJoin.NONE, requirements.getPermissionRequirement().getPermissionJoin());
@@ -191,7 +191,7 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_single_permission_requirement_with_and() {
+    void should_build_single_permission_requirement_with_and() {
         PermissionRequirements requirements = new PermissionRequirementBuilder()
             .buildSingleRequirementWithAnd(CLAIM, EXECUTE);
         assertEquals(List.of(CLAIM, EXECUTE), requirements.getPermissionRequirement().getPermissionTypes());
@@ -201,7 +201,7 @@ class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_single_permission_requirement_with_or() {
+    void should_build_single_permission_requirement_with_or() {
         PermissionRequirements requirements = new PermissionRequirementBuilder()
             .buildSingleRequirementWithOr(CLAIM, EXECUTE);
         assertEquals(List.of(CLAIM, EXECUTE), requirements.getPermissionRequirement().getPermissionTypes());

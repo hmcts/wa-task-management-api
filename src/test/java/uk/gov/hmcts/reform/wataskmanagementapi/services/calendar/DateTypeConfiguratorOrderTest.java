@@ -28,7 +28,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.NextHear
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PriorityDateCalculatorTest.PRIORITY_DATE_TYPE;
 
 @ExtendWith(MockitoExtension.class)
-public class DateTypeConfiguratorOrderTest {
+class DateTypeConfiguratorOrderTest {
     private final Map<String, Object> taskAttributes = new HashMap<>();
     ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
         .name(CamundaValue.stringValue("dueDate"))
@@ -53,7 +53,7 @@ public class DateTypeConfiguratorOrderTest {
     private DateTypeConfigurator dateTypeConfigurator;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         lenient().when(dueDateCalculator.supports(anyList(), eq(DUE_DATE_TYPE), eq(false))).thenReturn(true);
         lenient().when(dueDateCalculator.supports(anyList(), eq(NEXT_HEARING_DATE_TYPE), eq(false)))
             .thenReturn(false);
@@ -82,7 +82,7 @@ public class DateTypeConfiguratorOrderTest {
     }
 
     @Test
-    public void should_use_default_date_calculation_order_when_calculated_date_not_exist() {
+    void should_use_default_date_calculation_order_when_calculated_date_not_exist() {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
             dueDate,
             priorityDate,
@@ -107,7 +107,7 @@ public class DateTypeConfiguratorOrderTest {
     }
 
     @Test
-    public void should_use_date_calculation_order_when_calculated_date_exist() {
+    void should_use_date_calculation_order_when_calculated_date_exist() {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
@@ -133,7 +133,7 @@ public class DateTypeConfiguratorOrderTest {
     }
 
     @Test
-    public void should_use_last_date_calculation_order_when_multiple_calculated_date_exist() {
+    void should_use_last_date_calculation_order_when_multiple_calculated_date_exist() {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
@@ -167,7 +167,7 @@ public class DateTypeConfiguratorOrderTest {
     }
 
     @Test
-    public void should_error_when_calculated_dates_are_in_mandatory_dates_order() {
+    void should_error_when_calculated_dates_are_in_mandatory_dates_order() {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("nextHearingDate,priorityDate,dueDate"))
@@ -185,7 +185,7 @@ public class DateTypeConfiguratorOrderTest {
     }
 
     @Test
-    public void should_error_when_calculated_dates_are_misses_some_mandatory_date() {
+    void should_error_when_calculated_dates_are_misses_some_mandatory_date() {
         ConfigurationDmnEvaluationResponse calculatedDates = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("nextHearingDate,dueDate"))
