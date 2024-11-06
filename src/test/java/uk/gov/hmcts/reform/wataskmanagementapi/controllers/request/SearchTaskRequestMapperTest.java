@@ -34,7 +34,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.WORK_TYPE;
 
-public class SearchTaskRequestMapperTest {
+class SearchTaskRequestMapperTest {
 
     @Test
     void shouldMapAllListValues() {
