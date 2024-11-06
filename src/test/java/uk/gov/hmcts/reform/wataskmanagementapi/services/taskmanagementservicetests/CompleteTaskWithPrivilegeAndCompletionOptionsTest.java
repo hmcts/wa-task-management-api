@@ -44,6 +44,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
@@ -175,15 +176,18 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 TaskResource taskResource = spy(TaskResource.class);
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(true)
-                ))
-                    .isInstanceOf(RoleAssignmentVerificationException.class)
-                    .hasNoCause()
-                    .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(true)
+                    ));
+                assertEquals(
+                    "Role Assignment Verification: "
+                    + "The request failed the Role Assignment checks performed.",
+                    exception.getMessage()
+                );
+
             }
 
             @Test
@@ -198,14 +202,17 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(true)
-                ))
-                    .isInstanceOf(TaskNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Not Found Error: The task could not be found.");
+                Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(true)
+                    ));
+                assertEquals(
+                    "Task Not Found Error: The task could not be found.",
+                    exception.getMessage()
+                );
+
                 verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
@@ -232,12 +239,12 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                     .build();
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
-                when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), requirements))
+                when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
@@ -267,15 +274,17 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 TaskResource taskResource = spy(TaskResource.class);
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(RoleAssignmentVerificationException.class)
-                    .hasNoCause()
-                    .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals(
+                    "Role Assignment Verification: "
+                    + "The request failed the Role Assignment checks performed.",
+                    exception.getMessage()
+                );
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -292,24 +301,24 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                     .build();
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskStateIncorrectException.class)
-                    .hasNoCause()
-                    .hasMessage(
-                        String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
-                    );
+                Exception exception = assertThrowsExactly(TaskStateIncorrectException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals(
+                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
+                    exception.getMessage()
+                );
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -324,14 +333,16 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
                 TaskResource taskResource = spy(TaskResource.class);
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Not Found Error: The task could not be found.");
+                Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals(
+                    "Task Not Found Error: The task could not be found.",
+                    exception.getMessage()
+                );
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
