@@ -195,8 +195,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-                TaskResource taskResource = spy(TaskResource.class);
-
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
                 Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
@@ -210,6 +208,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     exception.getMessage()
                 );
 
+                TaskResource taskResource = spy(TaskResource.class);
                 verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
