@@ -2451,7 +2451,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         }
 
         @Test
-        void given_mandatory_field_missing_when_validation_task_then_throw_502_error()
+        void should_throw_exception_for_missing_mandatory_fields_on_task_initiation()
             throws ServiceMandatoryFieldValidationException {
             lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);

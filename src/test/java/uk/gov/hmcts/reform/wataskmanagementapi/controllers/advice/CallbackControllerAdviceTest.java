@@ -83,7 +83,7 @@ class CallbackControllerAdviceTest {
     }
 
     @Test
-    void should_handle_service_mandatory_field_validation_exception() {
+    void should_handle_service_mandatory_field_validation_exception_with_502_response() {
 
         final String exceptionMessage = "Some exception message";
         final ServiceMandatoryFieldValidationException exception =

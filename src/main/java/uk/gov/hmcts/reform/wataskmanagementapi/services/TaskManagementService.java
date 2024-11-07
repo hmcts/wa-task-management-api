@@ -881,10 +881,9 @@ public class TaskManagementService {
             taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
 
             taskResource = configureTask(taskResource, taskAttributes);
-            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
-
-            updateCftTaskState(taskResource.getTaskId(), taskResource);
             taskMandatoryFieldsValidator.validate(taskResource);
+            taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
+            updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (FeignException e) {
             log.error("Error when initiating task(id={})", taskId, e);
