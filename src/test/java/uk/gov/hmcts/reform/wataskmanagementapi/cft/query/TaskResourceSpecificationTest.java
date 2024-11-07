@@ -64,6 +64,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @ExtendWith(MockitoExtension.class)
 class TaskResourceSpecificationTest {
 
+    private static final PermissionRequirements readPermissionsRequired = PermissionRequirementBuilder.builder()
+        .buildSingleType(READ);
+    private static final PermissionRequirements readOwnPermissionsRequired = PermissionRequirementBuilder.builder()
+        .buildSingleRequirementWithAnd(READ, OWN);
     @Mock(extraInterfaces = Serializable.class)
     Root<TaskResource> root;
     @Mock(extraInterfaces = Serializable.class)
@@ -82,11 +86,6 @@ class TaskResourceSpecificationTest {
     Path<Object> path;
     @Mock
     Predicate mockPredicate;
-
-    private static final PermissionRequirements readPermissionsRequired = PermissionRequirementBuilder.builder()
-        .buildSingleType(READ);
-    private static final PermissionRequirements readOwnPermissionsRequired = PermissionRequirementBuilder.builder()
-        .buildSingleRequirementWithAnd(READ, OWN);
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -234,7 +233,7 @@ class TaskResourceSpecificationTest {
         ));
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
             criteriaBuilder, root
         );
@@ -259,7 +258,7 @@ class TaskResourceSpecificationTest {
             ));
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
             criteriaBuilder, root
         );
@@ -287,7 +286,7 @@ class TaskResourceSpecificationTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(READ);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readOwnPermissionsRequired, true,
             criteriaBuilder, root
         );
@@ -363,7 +362,7 @@ class TaskResourceSpecificationTest {
         verify(criteriaBuilder, times(2)).equal(any(), anyString());
     }
 
-    private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
+    private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() { //NOSONAR paramTests
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -467,7 +466,7 @@ class TaskResourceSpecificationTest {
 
     }
 
-    private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
+    private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() { //NOSONAR paramTests
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "IA", "caseType");
         SearchTaskRequestScenario withCaseId =
@@ -478,6 +477,7 @@ class TaskResourceSpecificationTest {
 
     @Builder
     private static class SearchTaskRequestScenario {
+        public Boolean availableTaskOnly;
         String name;
         SearchTaskRequest searchTaskRequest;
         SearchEventAndCase searchEventAndCase;
@@ -486,7 +486,6 @@ class TaskResourceSpecificationTest {
         int expectedInPredicate;
         int expectedEqualPredicate;
         int expectedConjunctions;
-        public Boolean availableTaskOnly;
 
         @Override
         public String toString() {
