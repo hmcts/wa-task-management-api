@@ -787,8 +787,8 @@ class DueDateIntervalCalculatorTest {
         );
     }
 
-    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() //NOSONAR
-    {
+    private static Stream<ConfigurableScenario>
+    getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() { //NOSONAR
         return Stream.of(
             new ConfigurableScenario(true, GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00"),
             new ConfigurableScenario(false, GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00")

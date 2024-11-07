@@ -850,8 +850,8 @@ class IntermediateDateIntervalCalculatorTest {
         );
     }
 
-    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() //NOSONAR
-    {
+    private static Stream<ConfigurableScenario>
+    getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() { //NOSONAR
         return Stream.of(
             new ConfigurableScenario(
                 true,
