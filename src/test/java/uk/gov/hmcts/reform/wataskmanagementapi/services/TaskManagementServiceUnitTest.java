@@ -2455,8 +2455,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             throws ServiceMandatoryFieldValidationException {
             lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);
-            when(taskAutoAssignmentService.performAutoAssignment(any(), any(TaskResource.class)))
-                .thenReturn(taskResource);
             lenient().doThrow(new ServiceMandatoryFieldValidationException("some unexpected error"))
                 .when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
