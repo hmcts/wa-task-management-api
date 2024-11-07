@@ -444,7 +444,8 @@ class TaskResourceDaoTest {
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
 
-        Exception exception = assertThrowsExactly(IllegalArgumentException.class, () -> taskResourceDao.getTaskResourceSummary(
+        Exception exception = assertThrowsExactly(IllegalArgumentException.class, () ->
+            taskResourceDao.getTaskResourceSummary(
             -1,
             25,
             searchRequest,
