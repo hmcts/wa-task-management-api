@@ -30,11 +30,6 @@ class NextHearingDateCalculatorTest {
 
     private NextHearingDateCalculator nextHearingDateCalculator;
 
-    @BeforeEach
-    public void before() {
-        nextHearingDateCalculator = new NextHearingDateCalculator();
-    }
-
     @ParameterizedTest
     @CsvSource({
         "true", "false"
@@ -105,7 +100,6 @@ class NextHearingDateCalculatorTest {
         assertThat(nextHearingDateCalculator.supports(
             evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable)).isTrue();
     }
-
 
     @ParameterizedTest
     @CsvSource({
@@ -193,26 +187,7 @@ class NextHearingDateCalculatorTest {
     void should_consider_only_next_hearing_date__when_given_configurable_next_hearing_date__and_un_configurable_time(
         boolean configurable, String time) {
 
-        String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDateTime"))
-            .value(CamundaValue.stringValue("20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, nextHearingDateTime);
-
-        String dateValue = nextHearingDateCalculator.calculateDate(
-                evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>(), new ArrayList<>())
-            .getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
+        should_calculate_next_hearing_date__when_next_hearing_date__and_time_are_given(configurable, time);
     }
 
     @ParameterizedTest
@@ -250,27 +225,7 @@ class NextHearingDateCalculatorTest {
     })
     void should_calculate_next_hearing_date_when_next_hearing_date_and_time_are_given_with_seconds(
         boolean configurable, String time) {
-
-        String expectedNextHearingDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDateTime"))
-            .value(CamundaValue.stringValue("20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, nextHearingDateTime);
-
-        String dateValue = nextHearingDateCalculator.calculateDate(
-                evaluationResponses, NEXT_HEARING_DATE_TYPE, configurable, new HashMap<>(), new ArrayList<>())
-            .getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate + time);
+        should_calculate_next_hearing_date__when_next_hearing_date__and_time_are_given(configurable, time);
     }
 
     @ParameterizedTest
@@ -332,5 +287,10 @@ class NextHearingDateCalculatorTest {
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedNextHearingDate2 + time);
+    }
+
+    @BeforeEach
+    public void before() {
+        nextHearingDateCalculator = new NextHearingDateCalculator();
     }
 }

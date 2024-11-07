@@ -665,23 +665,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
-            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
-                .thenReturn(Optional.of(taskResource));
-            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
-
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-
-
-            boolean taskHasUnassigned = taskResource.getState().getValue().equals(CFTTaskState.UNASSIGNED.getValue());
-            taskManagementService.unclaimTask(taskId, accessControlResponse);
-            verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+            unclaimTask_should_succeed();
         }
 
     }

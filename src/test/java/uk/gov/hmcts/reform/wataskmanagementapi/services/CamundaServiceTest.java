@@ -80,13 +80,6 @@ class CamundaServiceTest extends CamundaHelpers {
     public static final String EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID =
         "There was a problem fetching the task with id: %s";
 
-    private static final WarningValues expectedWarningValues = new WarningValues(
-        List.of(
-            new Warning("Code1", "Text1"),
-            new Warning("Code2", "Text2")
-        )
-    );
-
     @Mock
     private AuthTokenGenerator authTokenGenerator;
     @Mock
@@ -239,8 +232,7 @@ class CamundaServiceTest extends CamundaHelpers {
 
         @Test
         void should_cancel_task_when_search_history_throw_an_error() {
-            camundaService.cancelTask(taskId);
-            verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
+            should_cancel_task();
         }
 
         @Test

@@ -658,28 +658,7 @@ class NextHearingDateIntervalCalculatorTest {
     @CsvSource({"true", "false"})
     void should_not_supports_when_responses_contains_next_hearing_date_origin_and_configurable_next_hearing_date(
         boolean configurable) {
-        String expectedNextHearingDate = GIVEN_DATE.plusDays(0)
-            .format(DATE_TIME_FORMATTER);
-
-        var nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDateOrigin"))
-            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDate"))
-            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDateOrigin, nextHearingDate);
-
-        assertThat(nextHearingDateIntervalCalculator.supports(
-            evaluationResponses,
-            NEXT_HEARING_DATE_TYPE,
-            configurable
-        )).isFalse();
+        should_not_supports_when_responses_contains_next_hearing_date_origin_and_next_hearing_date(configurable);
     }
 
     @ParameterizedTest
@@ -730,31 +709,7 @@ class NextHearingDateIntervalCalculatorTest {
     @CsvSource({"true", "false"})
     void should_supports_when_responses_only_contains_next_hearing_date_origin_but_not_next_hearing_date(
         boolean configurable) {
-        String expectedNextHearingDate = GIVEN_DATE.plusDays(0)
-            .format(DATE_TIME_FORMATTER);
-
-        var nextHearingDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDateOrigin"))
-            .value(CamundaValue.stringValue(expectedNextHearingDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDateTime"))
-            .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
-            nextHearingDateOrigin,
-            nextHearingDateTime
-        );
-
-        assertThat(nextHearingDateIntervalCalculator.supports(
-            evaluationResponses,
-            NEXT_HEARING_DATE_TYPE,
-            configurable
-        )).isTrue();
+        should_supports_when_responses_only_contains_next_hearing_date_but_not_origin(configurable);
     }
 
     @ParameterizedTest
