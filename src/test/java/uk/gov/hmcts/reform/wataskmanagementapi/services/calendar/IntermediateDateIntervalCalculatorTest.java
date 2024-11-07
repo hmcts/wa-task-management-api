@@ -850,8 +850,8 @@ class IntermediateDateIntervalCalculatorTest {
         );
     }
 
-    private static Stream<ConfigurableScenario>
-    getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() { //NOSONAR
+    @SuppressWarnings("java:S1144")
+    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
         return Stream.of(
             new ConfigurableScenario(
                 true,
