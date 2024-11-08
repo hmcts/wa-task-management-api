@@ -25,8 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariab
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Warning;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
