@@ -241,7 +241,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @ParameterizedTest
     @CsvSource(value = {
         "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
-        "LEGAL_OPERATIONS,Legal Operations,ST_CIC,Special Tribunals CIC,CriminalInjuriesCompensation,Criminal Injuries Compensation,ASSIGNED,AutoAssign,Assigned",
+        "LEGAL_OPERATIONS,Legal Operations,ST_CIC,Special Tribunals CIC,"
+            + "CriminalInjuriesCompensation,Criminal Injuries Compensation,ASSIGNED,AutoAssign,Assigned",
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
