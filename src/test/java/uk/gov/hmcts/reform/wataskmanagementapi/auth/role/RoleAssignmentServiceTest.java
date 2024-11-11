@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.Collections.emptyMap;
@@ -158,7 +157,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskResource taskResource = createTestTaskWithRoleResources(
@@ -221,7 +220,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", false);
@@ -287,7 +286,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
@@ -353,7 +352,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
@@ -417,7 +416,7 @@ class RoleAssignmentServiceTest {
 
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
-            .collect(Collectors.toList());
+            .toList();
 
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskRoleResource taskRoleResource = taskRoleResource("tribunal-caseworker", true);
