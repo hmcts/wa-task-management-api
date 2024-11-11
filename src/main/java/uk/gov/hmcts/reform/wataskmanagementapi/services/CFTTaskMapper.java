@@ -285,7 +285,7 @@ public class CFTTaskMapper {
                     && ra.getAttributes().get("caseId") != null
                     && ra.getAttributes().get("caseId").equals(caseId))
                 .map(RoleAssignment::getRoleName)
-                .collect(Collectors.toList());
+                .toList();
 
 
             if (taskRoleResources != null) {
@@ -713,7 +713,7 @@ public class CFTTaskMapper {
                         "WARNING",
                         null,
                         warning.getWarningText()
-                    )).collect(Collectors.toList());
+                    )).toList();
             }
         }
         return notes;
@@ -725,7 +725,7 @@ public class CFTTaskMapper {
             List<Warning> warnings = notes.stream()
                 .filter(noteResource -> "WARNING".equals(noteResource.getNoteType()))
                 .map(noteResource -> new Warning(noteResource.getCode(), noteResource.getContent()))
-                .collect(Collectors.toList());
+                .toList();
             return new WarningValues(warnings);
         }
         return new WarningValues();

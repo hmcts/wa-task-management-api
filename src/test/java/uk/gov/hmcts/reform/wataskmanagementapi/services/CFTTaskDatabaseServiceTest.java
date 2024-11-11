@@ -291,7 +291,7 @@ class CFTTaskDatabaseServiceTest {
         List<String> taskIds = List.of("1");
         List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()); //NOSONAR List needs to be mutable to allow sorting.
         TaskResource taskResource = mock(TaskResource.class);
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
@@ -338,7 +338,7 @@ class CFTTaskDatabaseServiceTest {
         List<String> taskIds = List.of("1");
         List<Sort.Order> orders = Stream.of(CASE_NAME, MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()); //NOSONAR List needs to be mutable to allow sorting.
         TaskResource taskResource = mock(TaskResource.class);
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
@@ -387,7 +387,7 @@ class CFTTaskDatabaseServiceTest {
         List<String> caseIds = List.of("1623278362431003");
         List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()); //NOSONAR List needs to be mutable to allow sorting.
         TaskResource taskResource = mock(TaskResource.class);
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
