@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.MARK_FOR_RECONFIGURE;
@@ -50,11 +49,11 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
             .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
             .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter) filter).getValues().stream())
             .map(Object::toString)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> reconfigurableCaseIds = caseIds.stream()
             .filter(this::isReconfigurable)
-            .collect(Collectors.toList());
+            .toList();
 
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
@@ -63,7 +62,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
         List<TaskResource> successfulTaskResources = new ArrayList<>();
         List<String> taskIds = taskResources.stream()
             .map(TaskResource::getTaskId)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> failedTaskIds = updateReconfigureRequestTime(taskIds, successfulTaskResources);
 
