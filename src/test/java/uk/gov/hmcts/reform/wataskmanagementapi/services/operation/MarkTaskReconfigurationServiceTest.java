@@ -85,8 +85,6 @@ class MarkTaskReconfigurationServiceTest {
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
 
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 

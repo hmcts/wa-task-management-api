@@ -234,7 +234,7 @@ class TaskResourceSpecificationTest {
         ));
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
             criteriaBuilder, root
         );
@@ -259,7 +259,7 @@ class TaskResourceSpecificationTest {
             ));
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
             criteriaBuilder, root
         );
@@ -287,7 +287,7 @@ class TaskResourceSpecificationTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(READ);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readOwnPermissionsRequired, true,
             criteriaBuilder, root
         );
