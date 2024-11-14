@@ -208,6 +208,6 @@ public class TaskResourceDao {
                     return criteriaBuilder.desc(root.get(sortingParameter.getSortBy().getCftVariableName()));
                 }
             })
-            .filter(Objects::nonNull).collect(Collectors.toList());
+            .filter(Objects::nonNull).toList();
     }
 }

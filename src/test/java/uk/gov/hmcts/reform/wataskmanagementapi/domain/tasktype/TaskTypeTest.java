@@ -8,9 +8,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import pl.pojo.tester.api.assertion.Method;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 @ExtendWith(OutputCaptureExtension.class)
@@ -37,7 +35,7 @@ class TaskTypeTest {
         TaskType taskType = new TaskType(taskTypeId, taskTypeName);
         TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
 
-        assertTrue(taskType.equals(taskType2));
+        assertEquals(taskType, taskType2);
     }
 
     @Test
@@ -50,7 +48,7 @@ class TaskTypeTest {
         TaskType taskType = new TaskType(taskTypeId, taskTypeName);
         TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
 
-        assertTrue(taskType.equals(taskType2));
+        assertEquals(taskType, taskType2);
     }
 
     @Test
@@ -63,7 +61,7 @@ class TaskTypeTest {
         TaskType taskType = new TaskType(taskTypeId, taskTypeName);
         TaskType taskType2 = new TaskType(taskTypeId2, taskTypeName2);
 
-        assertFalse(taskType.equals(taskType2));
+        assertNotEquals(taskType, taskType2);
     }
 
     @Test
@@ -74,7 +72,7 @@ class TaskTypeTest {
         TaskType taskType = new TaskType(taskTypeId, taskTypeName);
         TaskType taskType2 = null;
 
-        assertFalse(taskType.equals(taskType2));
+        assertNotEquals(taskType, taskType2);
     }
 
     @Test

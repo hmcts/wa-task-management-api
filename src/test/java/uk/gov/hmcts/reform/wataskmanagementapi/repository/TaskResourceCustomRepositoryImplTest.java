@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCustomRepositoryImpl.RESULT_MAPPER;
 
 @ExtendWith(MockitoExtension.class)
-public class TaskResourceCustomRepositoryImplTest {
+class TaskResourceCustomRepositoryImplTest {
     @Mock
     EntityManager entityManager;
 
