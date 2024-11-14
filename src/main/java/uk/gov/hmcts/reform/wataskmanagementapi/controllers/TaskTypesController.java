@@ -43,22 +43,20 @@ public class TaskTypesController extends BaseController {
 
     @Operation(description = "Retrieve list of task types with filter by jurisdiction",
         security = {@SecurityRequirement(name = "ServiceAuthorization"), @SecurityRequirement(name = "Authorization")})
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200", description = OK,
-            content = {
-                @Content(mediaType = "application/json", schema = @Schema(implementation = GetTaskTypesResponse.class))
-            }),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR),
-        @ApiResponse(responseCode = "502", description = "Downstream Dependency Error", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))}),
-        @ApiResponse(responseCode = "503", description = "Service Unavailable", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
-    })
+    @ApiResponse(
+        responseCode = "200", description = OK,
+        content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = GetTaskTypesResponse.class))
+        })
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
+    @ApiResponse(responseCode = "502", description = "Downstream Dependency Error", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
+    @ApiResponse(responseCode = "503", description = "Service Unavailable", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
     @GetMapping
     public ResponseEntity<GetTaskTypesResponse> getTaskTypes(
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,

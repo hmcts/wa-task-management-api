@@ -24,13 +24,9 @@ import javax.persistence.Id;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "sensitive_task_event_logs")
-@TypeDefs(
-    {
-        @TypeDef(
-            name = TaskResource.JSONB,
-            typeClass = JsonType.class
-        )
-    }
+@TypeDef(
+    name = TaskResource.JSONB,
+    typeClass = JsonType.class
 )
 @SuppressWarnings("PMD.ExcessiveParameterList")
 public class SensitiveTaskEventLog implements Serializable {

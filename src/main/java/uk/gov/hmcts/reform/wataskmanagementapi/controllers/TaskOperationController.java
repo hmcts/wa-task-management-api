@@ -42,14 +42,12 @@ public class TaskOperationController extends BaseController {
     }
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task operation has been completed"),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = "Task operation has been completed")
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/operation")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")

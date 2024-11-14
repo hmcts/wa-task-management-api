@@ -35,17 +35,13 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "tasks")
-@TypeDefs(
-    {
-        @TypeDef(
-            name = "pgsql_enum",
-            typeClass = PostgreSQLEnumType.class
-        ),
-        @TypeDef(
-            name = TaskResource.JSONB,
-            typeClass = JsonType.class
-        )
-    }
+@TypeDef(
+    name = "pgsql_enum",
+    typeClass = PostgreSQLEnumType.class
+)
+@TypeDef(
+    name = TaskResource.JSONB,
+    typeClass = JsonType.class
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
     "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})

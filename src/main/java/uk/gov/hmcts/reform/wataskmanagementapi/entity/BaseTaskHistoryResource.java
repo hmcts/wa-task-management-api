@@ -22,13 +22,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 @ToString
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@TypeDefs(
-    {
-        @TypeDef(
-            name = JSONB,
-            typeClass = JsonType.class
-        )
-    }
+@TypeDef(
+    name = JSONB,
+    typeClass = JsonType.class
 )
 @SuppressWarnings({"PMD.TooManyFields"})
 @MappedSuperclass
