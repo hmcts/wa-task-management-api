@@ -22,9 +22,9 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         "%sFROM {h-schema}tasks t "
         + "WHERE indexed "
         + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, t.region, "
-        + "t.location) && :filterSignature "
+        + "t.location) && CAST(:filterSignature AS text[]) "
         + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-        + "t.security_classification) && :roleSignature "
+        + "t.security_classification) && CAST(:roleSignature AS text[]) "
         + "%s%s%s";
 
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";

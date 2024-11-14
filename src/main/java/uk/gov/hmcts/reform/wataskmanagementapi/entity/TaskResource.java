@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.sql.Types.TIMESTAMP;
+
 @ToString
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -57,6 +59,7 @@ public class TaskResource implements Serializable {
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "due_date_time")
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
@@ -132,6 +135,7 @@ public class TaskResource implements Serializable {
     private String terminationReason;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime created;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -171,6 +175,7 @@ public class TaskResource implements Serializable {
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "last_updated_timestamp")
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime lastUpdatedTimestamp;
 
     @Schema(name = "last_updated_user")

@@ -1,20 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.hibernate.boot.model.FunctionContributions;
-import org.hibernate.boot.model.FunctionContributor;
 import org.hibernate.dialect.PostgreSQLDialect;
-import org.hibernate.dialect.SQLServerDialect;
 import org.hibernate.query.sqm.function.FunctionKind;
 import org.hibernate.query.sqm.function.SqmFunctionRegistry;
 import org.hibernate.query.sqm.produce.function.PatternFunctionDescriptorBuilder;
-import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.descriptor.jdbc.JdbcType;
-import org.hibernate.type.descriptor.jdbc.spi.JdbcTypeRegistry;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
-
-import java.sql.Types;
 
 @SuppressWarnings("squid:MaximumInheritanceDepth")
 @Component

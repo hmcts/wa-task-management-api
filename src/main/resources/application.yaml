@@ -80,6 +80,9 @@ primary:
   password: ${POSTGRES_PASSWORD:wa_password}
 
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
   config:
     import: "optional:configtree:/mnt/secrets/wa/"
   application:

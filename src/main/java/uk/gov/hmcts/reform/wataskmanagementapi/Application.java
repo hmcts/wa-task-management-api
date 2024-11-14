@@ -19,7 +19,8 @@ import org.springframework.retry.annotation.EnableRetry;
     {
         "uk.gov.hmcts.reform.authorisation",
         "uk.gov.hmcts.reform.wataskmanagementapi",
-        "uk.gov.hmcts.reform.ccd.client"
+        "uk.gov.hmcts.reform.ccd.client",
+        "uk.gov.hmcts.reform.wataskmanagementapi.clients"
     })
 @EnableCaching
 @EnableRetry

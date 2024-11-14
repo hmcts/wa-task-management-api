@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
+import jakarta.validation.ConstraintViolationException;
 import lombok.Builder;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,13 +38,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationProblem;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomProblem;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.validation.ConstraintViolationException;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -51,8 +53,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.BAD_GATEWAY;
-import static org.zalando.problem.Status.BAD_REQUEST;
 import static org.zalando.problem.Status.FORBIDDEN;
 import static org.zalando.problem.Status.INTERNAL_SERVER_ERROR;
 import static org.zalando.problem.Status.NOT_FOUND;
@@ -95,6 +95,8 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleFeignAndServerException(exception);
 
+        final CustomProblem customProblem = (CustomProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_GATEWAY.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -105,7 +107,7 @@ class ApplicationProblemControllerAdviceTest {
         assertEquals(ErrorMessages.DOWNSTREAM_DEPENDENCY_ERROR.getDetail()
                          + " Message from downstream system: Downstream Dependency Error",
                      response.getBody().getDetail());
-        assertEquals(BAD_GATEWAY, response.getBody().getStatus());
+        assertEquals(502, customProblem.getStatusCode());
     }
 
     @Test
@@ -122,6 +124,8 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleServiceUnavailableException(exception);
 
+        final CustomProblem customProblem = (CustomProblem) response.getBody();
+
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -130,7 +134,7 @@ class ApplicationProblemControllerAdviceTest {
         );
         assertEquals("Service Unavailable", response.getBody().getTitle());
         assertEquals(ErrorMessages.SERVICE_UNAVAILABLE.getDetail(), response.getBody().getDetail());
-        assertEquals(SERVICE_UNAVAILABLE, response.getBody().getStatus());
+        assertEquals(503, customProblem.getStatusCode());
     }
 
     @Test
@@ -141,6 +145,8 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleJdbcConnectionException(exception);
 
+        final CustomProblem customProblem = (CustomProblem) response.getBody();
+
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -149,7 +155,7 @@ class ApplicationProblemControllerAdviceTest {
         );
         assertEquals("Service Unavailable", response.getBody().getTitle());
         assertEquals(ErrorMessages.DATABASE_IS_UNAVAILABLE.getDetail(), response.getBody().getDetail());
-        assertEquals(SERVICE_UNAVAILABLE, response.getBody().getStatus());
+        assertEquals(503, customProblem.getStatusCode());
     }
 
 
@@ -162,6 +168,9 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleConstraintViolation(exception);
 
+        final CustomConstraintViolationProblem customConstraintViolationProblem =
+            (CustomConstraintViolationProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -169,7 +178,7 @@ class ApplicationProblemControllerAdviceTest {
             response.getBody().getType()
         );
         assertEquals("Constraint Violation", response.getBody().getTitle());
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+        assertEquals(400, customConstraintViolationProblem.getStatusCode());
     }
 
     @Test
@@ -181,6 +190,9 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleConstraintViolation(exception);
 
+        final CustomConstraintViolationProblem customConstraintViolationProblem =
+            (CustomConstraintViolationProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -188,7 +200,7 @@ class ApplicationProblemControllerAdviceTest {
             response.getBody().getType()
         );
         assertEquals("Constraint Violation", response.getBody().getTitle());
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+        assertEquals(400, customConstraintViolationProblem.getStatusCode());
     }
 
     @Test
@@ -199,6 +211,9 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleConstraintViolation(constraintViolationException, nativeWebRequest);
 
+        final CustomConstraintViolationProblem customConstraintViolationProblem =
+            (CustomConstraintViolationProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -206,7 +221,7 @@ class ApplicationProblemControllerAdviceTest {
             response.getBody().getType()
         );
         assertEquals("Constraint Violation", response.getBody().getTitle());
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+        assertEquals(400, customConstraintViolationProblem.getStatusCode());
     }
 
     @Test
@@ -220,6 +235,9 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleMessageNotReadable(httpMessageNotReadableException);
 
+        final CustomProblem customConstraintViolationProblem =
+            (CustomProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -228,7 +246,7 @@ class ApplicationProblemControllerAdviceTest {
         );
         assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals("Invalid request message", response.getBody().getDetail());
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+        assertEquals(400, customConstraintViolationProblem.getStatusCode());
     }
 
     @Test
@@ -241,6 +259,9 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleMessageNotReadable(httpMessageNotReadableException);
 
+        final CustomProblem customConstraintViolationProblem =
+            (CustomProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -249,7 +270,7 @@ class ApplicationProblemControllerAdviceTest {
         );
         assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals("someMessage", response.getBody().getDetail());
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+        assertEquals(400, customConstraintViolationProblem.getStatusCode());
     }
 
 
@@ -267,6 +288,8 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleMessageNotReadable(httpMessageNotReadableException);
 
+        final CustomProblem customProblem = (CustomProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -275,7 +298,7 @@ class ApplicationProblemControllerAdviceTest {
         );
         assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals("Invalid request field: somefield.someNestedFieldName", response.getBody().getDetail());
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+        assertEquals(400, customProblem.getStatusCode());
     }
 
     @Test
@@ -293,6 +316,8 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleMessageNotReadable(httpMessageNotReadableException);
 
+        final CustomProblem customProblem = (CustomProblem) response.getBody();
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(
@@ -304,7 +329,7 @@ class ApplicationProblemControllerAdviceTest {
             "Invalid request field: somefield.someNestedFieldName: someMessage",
             response.getBody().getDetail()
         );
-        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+        assertEquals(400, customProblem.getStatusCode());
     }
 
     @ParameterizedTest
@@ -314,11 +339,14 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleApplicationProblemExceptions(scenario.exception);
 
+        final CustomProblem customConstraintViolationProblem =
+            (CustomProblem) response.getBody();
+
         assertEquals(scenario.expectedStatus.getStatusCode(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(scenario.expectedType, response.getBody().getType());
         assertEquals(scenario.expectedTitle, response.getBody().getTitle());
-        assertEquals(scenario.expectedStatus, response.getBody().getStatus());
+        assertEquals(scenario.expectedStatus.getStatusCode(), customConstraintViolationProblem.getStatusCode());
     }
 
     private static Stream<GenericExceptionScenario> genericExceptionProvider() {

@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
@@ -48,7 +49,7 @@ class ExecuteTaskReconfigurationServiceTest {
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @InjectMocks
-    private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
+    private TaskReconfigurationService taskReconfigurationService;
 
     @Test
     void should_get_tasks_with_reconfigure_request_time_and_set_to_null() {
@@ -81,7 +82,8 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        Map<String, Object> responseMap = executeTaskReconfigurationService.performOperation(request).getResponseMap();
+        Map<String, Object> responseMap = taskReconfigurationService.performTaskReconfiguration(request)
+                .getNow(new TaskOperationResponse()).getResponseMap();
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(2, tasks);
 
@@ -109,7 +111,8 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        Map<String, Object> responseMap = executeTaskReconfigurationService.performOperation(request).getResponseMap();
+        Map<String, Object> responseMap = taskReconfigurationService.performTaskReconfiguration(request)
+            .getNow(new TaskOperationResponse()).getResponseMap();
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 
@@ -147,7 +150,7 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        executeTaskReconfigurationService.performOperation(request);
+        taskReconfigurationService.performTaskReconfiguration(request);
 
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
@@ -227,7 +230,7 @@ class ExecuteTaskReconfigurationServiceTest {
                 .maxTimeLimit(30)
                 .build(), taskFilters
             );
-        executeTaskReconfigurationService.performOperation(request);
+        taskReconfigurationService.performTaskReconfiguration(request);
 
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
@@ -284,7 +287,7 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        executeTaskReconfigurationService.performOperation(request);
+        taskReconfigurationService.performTaskReconfiguration(request);
 
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
@@ -329,7 +332,7 @@ class ExecuteTaskReconfigurationServiceTest {
         assertEquals(false,taskResources.get(0).getIndexed());
         assertEquals(false,taskResources.get(1).getIndexed());
 
-        executeTaskReconfigurationService.performOperation(request);
+        taskReconfigurationService.performTaskReconfiguration(request);
 
         assertEquals(CFTTaskState.UNASSIGNED, taskResources.get(0).getState());
         assertEquals(CFTTaskState.ASSIGNED, taskResources.get(1).getState());
@@ -364,7 +367,7 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        executeTaskReconfigurationService.performOperation(request);
+        taskReconfigurationService.performTaskReconfiguration(request);
 
         verify(cftTaskDatabaseService, times(8))
             .findByIdAndStateInObtainPessimisticWriteLock(any(), anyList());
@@ -391,7 +394,8 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        Map<String, Object> responseMap = executeTaskReconfigurationService.performOperation(request).getResponseMap();
+        Map<String, Object> responseMap = taskReconfigurationService.performTaskReconfiguration(request)
+            .getNow(new TaskOperationResponse()).getResponseMap();
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 

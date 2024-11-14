@@ -328,7 +328,7 @@ public final class RoleAssignmentFilter {
         if (roleAssignment.getAuthorisations() != null) {
             if (roleAssignment.getAuthorisations().isEmpty()) {
                 Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
-                    (Object) roleAssignment.getAuthorisations().toArray()
+                    (Object) roleAssignment.getAuthorisations().toArray(new String[0])
                 );
                 return builder.or(nullAuthorizations, authorizations);
 

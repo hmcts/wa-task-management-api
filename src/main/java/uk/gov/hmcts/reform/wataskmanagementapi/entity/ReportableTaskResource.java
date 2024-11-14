@@ -6,9 +6,12 @@ import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import java.time.OffsetDateTime;
 import java.util.Date;
+
+import static java.sql.Types.TIMESTAMP;
 
 @ToString
 @Getter
@@ -29,6 +32,7 @@ public class ReportableTaskResource extends BaseTaskHistoryResource {
     private Date completedDate;
     private OffsetDateTime completedDateTime;
     private Date firstAssignedDate;
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime firstAssignedDateTime;
     private Integer numberOfReassignments;
     private Date dueDate;

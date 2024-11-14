@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +86,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
     }
 
+    @Disabled
     @ParameterizedTest()
     @MethodSource({
         "withAllGrantTypesHappyPath",

@@ -7,8 +7,11 @@ import jakarta.persistence.Id;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import java.time.OffsetDateTime;
+
+import static java.sql.Types.TIMESTAMP;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
@@ -24,9 +27,11 @@ public class TaskAssignmentsResource {
     private String assignmentId;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime assignmentStart;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime assignmentEnd;
 
     private String assignee;

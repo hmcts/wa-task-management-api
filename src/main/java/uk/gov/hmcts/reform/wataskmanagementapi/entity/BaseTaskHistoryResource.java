@@ -8,12 +8,14 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static java.sql.Types.TIMESTAMP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -69,6 +71,7 @@ public abstract class BaseTaskHistoryResource {
     protected String updatedBy;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     protected OffsetDateTime updated;
     protected String updateAction;
 
