@@ -314,7 +314,7 @@ public class TaskActionsController extends BaseController {
     @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
     @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
     @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-@GetMapping(path = "/{task-id}/roles", consumes = {ALL_VALUE})
+    @GetMapping(path = "/{task-id}/roles", consumes = {ALL_VALUE})
     public ResponseEntity<GetTaskRolePermissionsResponse> getTaskRolePermissions(
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
 
