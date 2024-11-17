@@ -13,15 +13,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperatio
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED;
 
@@ -31,15 +28,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 public class ExecuteTaskReconfigurationService implements TaskOperationPerformService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final ConfigureTaskService configureTaskService;
-    private final TaskAutoAssignmentService taskAutoAssignmentService;
+    private final TaskReconfigurationHelper taskReconfigurationHelper;
+
 
     public ExecuteTaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
-                                             ConfigureTaskService configureTaskService,
-                                             TaskAutoAssignmentService taskAutoAssignmentService) {
+                                             TaskReconfigurationHelper taskReconfigurationHelper) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.configureTaskService = configureTaskService;
-        this.taskAutoAssignmentService = taskAutoAssignmentService;
+        this.taskReconfigurationHelper = taskReconfigurationHelper;
     }
 
     @Override
@@ -56,14 +51,10 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
-        List<TaskResource> taskResources = cftTaskDatabaseService
+        List<String> taskIds = cftTaskDatabaseService
             .getActiveTasksAndReconfigureRequestTimeGreaterThan(
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), reconfigureDateTime);
         List<TaskResource> successfulTaskResources = new ArrayList<>();
-
-        List<String> taskIds = taskResources.stream()
-            .map(TaskResource::getTaskId)
-            .toList();
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
             successfulTaskResources,
@@ -120,28 +111,13 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         List<String> failedTaskIds = new ArrayList<>();
         if (endTimer.isAfter(OffsetDateTime.now())) {
             taskIds.forEach(taskId -> {
-                try {
+               try{
                     log.info("Re-configure task-id {}", taskId);
-                    Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                         .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(CFTTaskState.ASSIGNED,
-                                                                                      CFTTaskState.UNASSIGNED));
-                    if (optionalTaskResource.isPresent()) {
-                        TaskResource taskResource = optionalTaskResource.get();
-                        taskResource = configureTaskService.reconfigureCFTTask(taskResource);
-                        taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-                        taskResource.setReconfigureRequestTime(null);
-                        taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                        resetIndexed(taskResource);
-                        successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
-                    } else {
-                        optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
-                        if (optionalTaskResource.isPresent()) {
-                            TaskResource taskResource = optionalTaskResource.get();
-                            log.info("did not execute reconfigure for Task Resource: taskId: {}, caseId: {}, state: {}",
-                                     taskResource.getTaskId(), taskResource.getCaseId(), taskResource.getState());
-                        } else {
-                            log.info("Could not find task to reconfigure : taskId: {}", taskId);
-                        }
+                   // Use TaskReconfigurationHelper to reconfigure the task resource within a new transaction.
+                   // This ensures that any exceptions will trigger a rollback of the transaction.
+                    TaskResource taskResource = taskReconfigurationHelper.reconfigureTaskResource(taskId);
+                    if (taskResource!=null) {
+                        successfulTaskResources.add(taskResource);
                     }
                 } catch (Exception e) {
                     log.error("Error configuring task (id={}) ", taskId, e);
@@ -149,20 +125,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
                 }
             });
         }
-
         return failedTaskIds;
-    }
-
-    private void resetIndexed(TaskResource taskResource) {
-        log.info("indexed attribute for the task (id={}) before change is {} ",
-                 taskResource.getTaskId(), taskResource.getIndexed());
-        if (!taskResource.getIndexed()
-            && (taskResource.getState() == CFTTaskState.ASSIGNED
-                || taskResource.getState() == CFTTaskState.UNASSIGNED)) {
-            taskResource.setIndexed(true);
-        }
-        log.info("indexed attribute for the task (id={}) after change is {} ",
-                 taskResource.getTaskId(), taskResource.getIndexed());
     }
 
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {

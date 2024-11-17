@@ -180,7 +180,7 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
             List.of(ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
 
-        final List<TaskResource> actualTaskResource = cftTaskDatabaseService
+        final List<String> actualTaskResource = cftTaskDatabaseService
             .getActiveTasksAndReconfigureRequestTimeGreaterThan(
                 List.of(ASSIGNED),
                 reconfigureRequestTime

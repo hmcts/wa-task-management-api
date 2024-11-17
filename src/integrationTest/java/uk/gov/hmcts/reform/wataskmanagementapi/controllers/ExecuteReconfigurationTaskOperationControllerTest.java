@@ -438,7 +438,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         OffsetDateTime reconfigureDateTime = OffsetDateTime.now().minusSeconds(30L);
         when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
             anyList(), any()))
-            .thenReturn(taskResourcesBefore);
+            .thenReturn(taskResourcesBefore.stream().map(TaskResource::getTaskId).toList());
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)

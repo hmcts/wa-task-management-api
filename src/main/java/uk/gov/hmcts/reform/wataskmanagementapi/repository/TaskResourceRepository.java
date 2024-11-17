@@ -79,6 +79,10 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     List<TaskResource> findByStateInAndReconfigureRequestTimeGreaterThan(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
 
+    @Query("select t.taskId FROM tasks t where t.state in (:states) and t.reconfigureRequestTime > :reconfigureRequestTime")
+    @Transactional
+    List<String> findTaskIdsByStateInAndReconfigureRequestTimeGreaterThan(List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = LOCK_TIMEOUT_STR, value = "5000")})
     @Transactional
