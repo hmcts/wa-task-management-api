@@ -76,9 +76,6 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     List<TaskResource> findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
         List<String> caseIds, List<CFTTaskState> states);
 
-    List<TaskResource> findByStateInAndReconfigureRequestTimeGreaterThan(
-        List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
-
     @Query("select t.taskId FROM tasks t where t.state in (:states) and t.reconfigureRequestTime > :reconfigureRequestTime")
     @Transactional
     List<String> findTaskIdsByStateInAndReconfigureRequestTimeGreaterThan(List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);

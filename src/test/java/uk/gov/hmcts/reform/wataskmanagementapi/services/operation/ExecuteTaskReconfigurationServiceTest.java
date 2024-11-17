@@ -2,7 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -22,7 +23,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -155,7 +155,7 @@ class ExecuteTaskReconfigurationServiceTest {
     }
 
     @Test
-    void should_retry_reconfigure_if_task_is_not_reconfigured() {
+    void should_retry_reconfigure_if_task_is_not_reconfigured_and_exception_is_thrown() {
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
@@ -164,17 +164,10 @@ class ExecuteTaskReconfigurationServiceTest {
 
         when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
-////        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-////            taskResources.get(0).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-////            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.empty());
-////        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-////            taskResources.get(1).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-//            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.of(taskResources.get(1)));
-        when(taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(0).getTaskId())).thenReturn(null);
-        when(taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(1).getTaskId())).thenReturn(taskResources.get(1));
-//
-//        when(cftTaskDatabaseService.saveTask(any()))
-//            .thenReturn(taskResources.get(1));
+        when(taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(0).getTaskId()))
+            .thenThrow(new OptimisticLockException("locked")).thenReturn(taskResources.get(0));
+        when(taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(1).getTaskId()))
+            .thenReturn(taskResources.get(1));
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
@@ -186,8 +179,10 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
         executeTaskReconfigurationService.performOperation(request);
-
-        verify(taskReconfigurationHelper, times(2)).reconfigureTaskResource(any());
+        // Attempt to reconfigure both tasks initially, calling the method twice.
+        // If an OptimisticLockException is thrown for the first task, it will be retried,
+        // resulting in a total of three method calls.
+        verify(taskReconfigurationHelper, times(3)).reconfigureTaskResource(any());
     }
 
     @Test
