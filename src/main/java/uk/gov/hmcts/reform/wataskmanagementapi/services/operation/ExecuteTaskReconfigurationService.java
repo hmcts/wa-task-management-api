@@ -111,12 +111,12 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         List<String> failedTaskIds = new ArrayList<>();
         if (endTimer.isAfter(OffsetDateTime.now())) {
             taskIds.forEach(taskId -> {
-               try{
+                try {
                     log.info("Re-configure task-id {}", taskId);
-                   // Use TaskReconfigurationHelper to reconfigure the task resource within a new transaction.
-                   // This ensures that any exceptions will trigger a rollback of the transaction.
+                    // Use TaskReconfigurationHelper to reconfigure the task resource within a new transaction.
+                    // This ensures that any exceptions will trigger a rollback of the transaction.
                     TaskResource taskResource = taskReconfigurationHelper.reconfigureTaskResource(taskId);
-                    if (taskResource!=null) {
+                    if (taskResource != null) {
                         successfulTaskResources.add(taskResource);
                     }
                 } catch (Exception e) {

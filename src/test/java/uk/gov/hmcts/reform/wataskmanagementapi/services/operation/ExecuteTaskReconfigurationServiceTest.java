@@ -17,12 +17,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOpe
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
-import javax.persistence.OptimisticLockException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.persistence.OptimisticLockException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -131,13 +131,10 @@ class ExecuteTaskReconfigurationServiceTest {
         taskResources.get(3).setReconfigureRequestTime(OffsetDateTime.now());
         taskResources.get(4).setReconfigureRequestTime(OffsetDateTime.now());
 
-
-
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-                anyList(), any())).thenReturn(taskResources.stream().filter(taskResource -> (taskResource.getState()== CFTTaskState.UNASSIGNED
-        || taskResource.getState()== CFTTaskState.ASSIGNED)).map(TaskResource::getTaskId).toList());
-
-
+        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(anyList(), any()))
+            .thenReturn(taskResources.stream().filter(taskResource -> (
+                taskResource.getState() == CFTTaskState.UNASSIGNED || taskResource.getState() == CFTTaskState.ASSIGNED))
+                            .map(TaskResource::getTaskId).toList());
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
@@ -188,14 +185,12 @@ class ExecuteTaskReconfigurationServiceTest {
     @Test
     void should_not_reconfigure_for_max_time_limit() {
 
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
         when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
 
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
                 .type(TaskOperationType.EXECUTE_RECONFIGURE)

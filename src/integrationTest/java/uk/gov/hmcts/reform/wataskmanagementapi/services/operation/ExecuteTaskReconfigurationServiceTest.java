@@ -8,10 +8,10 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -31,10 +31,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 
-import javax.persistence.OptimisticLockException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
+import javax.persistence.OptimisticLockException;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
@@ -44,7 +44,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
-
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -94,20 +93,19 @@ class ExecuteTaskReconfigurationServiceTest {
     }
 
     @Test
-    void should_rollback_changes_when_exception_during_reconfigure_task_resource(){
+    void should_rollback_changes_when_exception_during_reconfigure_task_resource() {
         log.info("taskResources {}", taskResources);
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         TaskResource taskResource1 = taskResources.get(0);
-        TaskResource taskResource2 = taskResources.get(1);
-        TaskResource taskResource3 = taskResources.get(2);
         assert taskResource1 != null;
         taskResource1.setTitle("title1");
         doReturn(taskResource1).when(taskAutoAssignmentService).reAutoAssignCFTTask(taskResource1);
 
+        TaskResource taskResource2 = taskResources.get(1);
         assert taskResource2 != null;
         taskResource2.setTitle("title1");
         doThrow(new RuntimeException("Error")).when(taskAutoAssignmentService).reAutoAssignCFTTask(taskResource2);
 
+        TaskResource taskResource3 = taskResources.get(2);
         assert taskResource3 != null;
         taskResource3.setTitle("title1");
         doReturn(taskResource3).when(taskAutoAssignmentService).reAutoAssignCFTTask(taskResource3);
@@ -117,8 +115,9 @@ class ExecuteTaskReconfigurationServiceTest {
             configurationDmnResponse(),
             permissionsResponse()
         );
-        doReturn(results).when(caseConfigurationProviderService).getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean());
-
+        doReturn(results).when(caseConfigurationProviderService)
+            .getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean());
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
                 .type(TaskOperationType.EXECUTE_RECONFIGURE)
@@ -129,7 +128,7 @@ class ExecuteTaskReconfigurationServiceTest {
             taskFilters
         );
 
-        doInTransaction(()->executeTaskReconfigurationService.performOperation(request));
+        doInTransaction(() -> executeTaskReconfigurationService.performOperation(request));
         verify(cftTaskDatabaseService, times(2)).saveTask(any(TaskResource.class));
 
         final TaskResource taskResource1AfterReconfigure =
@@ -158,21 +157,20 @@ class ExecuteTaskReconfigurationServiceTest {
     }
 
     @Test
-    void should_retry_when_reconfigure_task_resource_throws_exception(){
+    void should_retry_when_reconfigure_task_resource_throws_exception() {
         log.info("taskResources {}", taskResources);
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         TaskResource taskResource1 = taskResources.get(0);
-        TaskResource taskResource2 = taskResources.get(1);
-        TaskResource taskResource3 = taskResources.get(2);
         assert taskResource1 != null;
         taskResource1.setTitle("title1");
         doReturn(taskResource1).when(taskAutoAssignmentService).reAutoAssignCFTTask(taskResource1);
 
+        TaskResource taskResource2 = taskResources.get(1);
         assert taskResource2 != null;
         taskResource2.setTitle("title1");
         doThrow(new OptimisticLockException("locked")).when(taskReconfigurationHelper)
             .reconfigureTaskResource(taskResource2.getTaskId());
 
+        TaskResource taskResource3 = taskResources.get(2);
         assert taskResource3 != null;
         taskResource3.setTitle("title1");
         doReturn(taskResource3).when(taskAutoAssignmentService).reAutoAssignCFTTask(taskResource3);
@@ -182,8 +180,10 @@ class ExecuteTaskReconfigurationServiceTest {
             configurationDmnResponse(),
             permissionsResponse()
         );
-        doReturn(results).when(caseConfigurationProviderService).getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean());
+        doReturn(results).when(caseConfigurationProviderService)
+            .getCaseRelatedConfiguration(anyString(), anyMap(), anyBoolean());
 
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
                 .type(TaskOperationType.EXECUTE_RECONFIGURE)
@@ -194,7 +194,7 @@ class ExecuteTaskReconfigurationServiceTest {
             taskFilters
         );
 
-        doInTransaction(()->executeTaskReconfigurationService.performOperation(request));
+        doInTransaction(() -> executeTaskReconfigurationService.performOperation(request));
         // 6 times because the taskResource2 will be retried
         verify(taskReconfigurationHelper, times(6)).reconfigureTaskResource(anyString());
 
@@ -222,6 +222,7 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
     }
+
     private List<TaskFilter<?>> createReconfigureTaskFilters() {
         ExecuteReconfigureTaskFilter filter = new ExecuteReconfigureTaskFilter(
             "reconfigure_request_time", OffsetDateTime.now().minus(Duration.ofDays(1)),
@@ -258,10 +259,11 @@ class ExecuteTaskReconfigurationServiceTest {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 try {
-                runnable.run();
-                }  catch (TaskExecuteReconfigurationException ex) {
-                    log.error("TaskExecuteReconfigurationException Exception {}", ex.getMessage());// Log the exception or take specific actions, but do not mark for rollback
-                } catch(Exception e) {
+                    runnable.run();
+                } catch (TaskExecuteReconfigurationException ex) {
+                    // Log the exception or take specific actions, but do not mark for rollback
+                    log.error("TaskExecuteReconfigurationException Exception {}", ex.getMessage());
+                } catch (Exception e) {
                     status.setRollbackOnly();
                     throw e;
                 }

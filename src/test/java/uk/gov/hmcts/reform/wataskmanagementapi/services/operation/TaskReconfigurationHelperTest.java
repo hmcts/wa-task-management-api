@@ -15,12 +15,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 
-import javax.persistence.OptimisticLockException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import javax.persistence.OptimisticLockException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -150,8 +150,10 @@ class TaskReconfigurationHelperTest {
             taskResources.get(1).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .thenThrow(new OptimisticLockException("locked"));
 
-        assertThrows(OptimisticLockException.class, () -> taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(0).getTaskId()));
-        assertThrows(OptimisticLockException.class, () -> taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(1).getTaskId()));
+        assertThrows(OptimisticLockException.class, () -> taskReconfigurationHelper
+            .reconfigureTaskResource(taskResources.get(0).getTaskId()));
+        assertThrows(OptimisticLockException.class, () -> taskReconfigurationHelper
+            .reconfigureTaskResource(taskResources.get(1).getTaskId()));
 
         verifyNoInteractions(configureTaskService);
         verifyNoInteractions(taskAutoAssignmentService);
