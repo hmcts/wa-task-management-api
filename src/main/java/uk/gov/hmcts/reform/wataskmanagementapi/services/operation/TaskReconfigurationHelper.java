@@ -15,15 +15,25 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Helper class for reconfiguring task resources.
+ */
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class TaskReconfigurationHelper {
 
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    private  ConfigureTaskService configureTaskService;
-    private  TaskAutoAssignmentService taskAutoAssignmentService;
+    private ConfigureTaskService configureTaskService;
+    private TaskAutoAssignmentService taskAutoAssignmentService;
 
+    /**
+     * Constructor for TaskReconfigurationHelper.
+     *
+     * @param cftTaskDatabaseService the CFT task database service
+     * @param configureTaskService the configure task service
+     * @param taskAutoAssignmentService the task auto-assignment service
+     */
     public TaskReconfigurationHelper(@Autowired CFTTaskDatabaseService cftTaskDatabaseService,
                                      @Autowired ConfigureTaskService configureTaskService,
                                      @Autowired TaskAutoAssignmentService taskAutoAssignmentService) {
@@ -32,6 +42,11 @@ public class TaskReconfigurationHelper {
         this.taskAutoAssignmentService = taskAutoAssignmentService;
     }
 
+    /**
+     * Resets the indexed attribute of the given task resource.
+     *
+     * @param taskResource the task resource to reset
+     */
     public void resetIndexed(TaskResource taskResource) {
         log.info("indexed attribute for the task (id={}) before change is {} ",
                  taskResource.getTaskId(), taskResource.getIndexed());
@@ -44,6 +59,13 @@ public class TaskReconfigurationHelper {
                  taskResource.getTaskId(), taskResource.getIndexed(), taskResource);
     }
 
+    /**
+     * Reconfigures the task resource with the given task ID.
+     * This method runs in a new transaction and rolls back if any exception occurs.
+     *
+     * @param taskId the ID of the task to reconfigure
+     * @return the reconfigured task resource, or null if the task could not be found
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public TaskResource reconfigureTaskResource(String taskId) {
         Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
