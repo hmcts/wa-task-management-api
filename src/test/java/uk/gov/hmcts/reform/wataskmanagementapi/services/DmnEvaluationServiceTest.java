@@ -333,7 +333,7 @@ class DmnEvaluationServiceTest {
             )
         );
 
-        DmnRequest<DecisionTableRequest> dmnRequest = new DmnRequest<>();
+        DmnRequest<DecisionTableRequest> dmnRequestItem = new DmnRequest<>();
 
         doReturn(mockedResponse)
             .when(camundaServiceApi)
@@ -341,7 +341,7 @@ class DmnEvaluationServiceTest {
                 BEARER_SERVICE_TOKEN,
                     DMN_KEY_PREFIX,
                 "wa",
-                dmnRequest
+                dmnRequestItem
             );
 
         List<TaskTypesDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskTypesDmn(
