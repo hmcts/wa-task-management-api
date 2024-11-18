@@ -141,7 +141,7 @@ public class TaskSearchController extends BaseController {
                 searchRequest,
                 accessControlResponse);
         } else {
-            log.info("Search tasks using Hibernate Query");
+            log.info("Search tasks using Hibernate Queries");
             response = cftQueryService.searchForTasks(
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
