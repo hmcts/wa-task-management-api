@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,6 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -166,24 +166,24 @@ class ExecuteTaskReconfigurationServiceTest {
     }
 
     private List<PermissionsDmnEvaluationResponse> permissionsResponse() {
-        return asList(
-            new PermissionsDmnEvaluationResponse(
-                stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryA,categoryC")
-            )
+        return List.of(
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("tribunalCaseworker"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("LEGAL_OPERATIONS"),
+                        stringValue("categoryA,categoryC")
+                )
         );
     }
 
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse() {
-        return asList(
-            new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                                                   booleanValue(true)
-            )
+        return List.of(
+                new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
+                        booleanValue(true)
+                )
         );
     }
 
@@ -191,7 +191,7 @@ class ExecuteTaskReconfigurationServiceTest {
         transactionTemplate.setPropagationBehavior(PROPAGATION_REQUIRED);
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
+            protected void doInTransactionWithoutResult(@NotNull TransactionStatus status) {
                 try {
                     runnable.run();
                 } catch (TaskExecuteReconfigurationException ex) {
