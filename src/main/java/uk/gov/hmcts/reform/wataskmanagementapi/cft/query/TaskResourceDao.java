@@ -118,6 +118,8 @@ public class TaskResourceDao {
                               PermissionRequirements permissionsRequired,
                               boolean availableTasksOnly) {
 
+        log.info("Search number of tasks without search_index");
+
         CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager)
             .createSubQuery()
             .createSubRoot();
