@@ -31,10 +31,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 
-import javax.persistence.OptimisticLockException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
+import javax.persistence.OptimisticLockException;
 
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -57,7 +57,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValu
 @Testcontainers
 @Sql("/scripts/wa/execute_reconfigure_task_data.sql")
 @Slf4j
-class ExecuteTaskReconfigurationServiceTest {
+class ExecuteTaskReconfigurationServiceIntegrationTest {
     @Autowired
     TaskResourceRepository taskResourceRepository;
     @SpyBean
@@ -100,7 +100,8 @@ class ExecuteTaskReconfigurationServiceTest {
         TaskResource taskResource2 = taskResources.get(1);
         assert taskResource2 != null;
         taskResource2.setTitle("title1");
-        doThrow(new OptimisticLockException("locked")).when(taskAutoAssignmentService).reAutoAssignCFTTask(taskResource2);
+        doThrow(new OptimisticLockException("locked"))
+            .when(taskAutoAssignmentService).reAutoAssignCFTTask(taskResource2);
 
         TaskResource taskResource3 = taskResources.get(2);
         assert taskResource3 != null;
