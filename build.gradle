@@ -491,6 +491,10 @@ pact {
   }
 }
 
+pactPublish {
+  pactPublish = project.pact.publish
+}
+
 task contract(type: Test) {
   description = "Runs the consumer Pact tests"
   group = 'Verification'
