@@ -23,9 +23,9 @@ import java.util.Optional;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class TaskReconfigurationHelper {
 
-    private CFTTaskDatabaseService cftTaskDatabaseService;
-    private ConfigureTaskService configureTaskService;
-    private TaskAutoAssignmentService taskAutoAssignmentService;
+    private final CFTTaskDatabaseService cftTaskDatabaseService;
+    private final ConfigureTaskService configureTaskService;
+    private final TaskAutoAssignmentService taskAutoAssignmentService;
 
     /**
      * Constructor for TaskReconfigurationHelper.
@@ -34,9 +34,9 @@ public class TaskReconfigurationHelper {
      * @param configureTaskService the configure task service
      * @param taskAutoAssignmentService the task auto-assignment service
      */
-    public TaskReconfigurationHelper(@Autowired CFTTaskDatabaseService cftTaskDatabaseService,
-                                     @Autowired ConfigureTaskService configureTaskService,
-                                     @Autowired TaskAutoAssignmentService taskAutoAssignmentService) {
+    public TaskReconfigurationHelper(CFTTaskDatabaseService cftTaskDatabaseService,
+                                     ConfigureTaskService configureTaskService,
+                                     TaskAutoAssignmentService taskAutoAssignmentService) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;

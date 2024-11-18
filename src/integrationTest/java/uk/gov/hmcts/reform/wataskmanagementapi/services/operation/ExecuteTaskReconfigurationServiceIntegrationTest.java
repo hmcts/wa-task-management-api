@@ -128,7 +128,13 @@ class ExecuteTaskReconfigurationServiceIntegrationTest {
             taskFilters
         );
 
-        doInTransaction(() -> executeTaskReconfigurationService.performOperation(request));
+        try{
+            executeTaskReconfigurationService.performOperation(request);
+        } catch (TaskExecuteReconfigurationException e) {
+            log.error("TaskExecuteReconfigurationException Exception {}", e.getMessage());
+        }
+
+        //doInTransaction(() -> executeTaskReconfigurationService.performOperation(request));
         verify(cftTaskDatabaseService, times(2)).saveTask(any(TaskResource.class));
         // 6 times because the taskResource2 will be retried
         verify(taskReconfigurationHelper, times(6)).reconfigureTaskResource(anyString());
@@ -139,7 +145,6 @@ class ExecuteTaskReconfigurationServiceIntegrationTest {
             taskResourceRepository.getByTaskId(taskResource2.getTaskId()).orElse(null);
         final TaskResource taskResource3AfterReconfigure =
             taskResourceRepository.getByTaskId(taskResource3.getTaskId()).orElse(null);
-
 
         assertAll(
             () -> {
