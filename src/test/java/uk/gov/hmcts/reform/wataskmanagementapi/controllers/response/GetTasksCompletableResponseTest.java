@@ -27,7 +27,8 @@ class GetTasksCompletableResponseTest {
         final GetTasksCompletableResponse<Task> camundaTasksGetTaskResponse =
             new GetTasksCompletableResponse<>(false, camundaTasks);
 
-        assertThat(camundaTasksGetTaskResponse.getTasks().size()).isEqualTo(1);
+        assertThat(camundaTasksGetTaskResponse.getTasks().size())
+            .isEqualTo(1); // NOSONAR assert does not contain a hasSize method
         assertThat(camundaTasksGetTaskResponse.getTasks().get(0)).isEqualTo(camundaTask);
 
     }
