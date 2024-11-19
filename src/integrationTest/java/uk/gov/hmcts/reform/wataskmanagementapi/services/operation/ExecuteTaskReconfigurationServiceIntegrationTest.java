@@ -128,7 +128,7 @@ class ExecuteTaskReconfigurationServiceIntegrationTest {
             taskFilters
         );
 
-        try{
+        try {
             executeTaskReconfigurationService.performOperation(request);
         } catch (TaskExecuteReconfigurationException e) {
             log.error("TaskExecuteReconfigurationException Exception {}", e.getMessage());
