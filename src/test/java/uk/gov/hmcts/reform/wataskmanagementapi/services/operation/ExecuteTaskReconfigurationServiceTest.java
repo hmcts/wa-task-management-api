@@ -22,6 +22,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import javax.persistence.OptimisticLockException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,7 +39,7 @@ class ExecuteTaskReconfigurationServiceTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     @Mock
-    TaskReconfigurationHelper taskReconfigurationHelper;
+    TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
     @InjectMocks
     private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
 
@@ -49,11 +50,11 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
-        when(taskReconfigurationHelper.reconfigureTaskResource(anyString()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
+        when(taskReconfigurationTransactionHandler.reconfigureTaskResource(anyString()))
+            .thenReturn(Optional.of(taskResources.get(0)))
+            .thenReturn(Optional.of(taskResources.get(1)));
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 
@@ -69,7 +70,7 @@ class ExecuteTaskReconfigurationServiceTest {
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(2, tasks);
 
-        verify(taskReconfigurationHelper, times(2)).reconfigureTaskResource(any());
+        verify(taskReconfigurationTransactionHandler, times(2)).reconfigureTaskResource(any());
 
     }
 
@@ -78,7 +79,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(List.of());
 
         TaskOperationRequest request = new TaskOperationRequest(
@@ -93,7 +94,7 @@ class ExecuteTaskReconfigurationServiceTest {
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 
-        verify(taskReconfigurationHelper, times(0)).reconfigureTaskResource(any());
+        verify(taskReconfigurationTransactionHandler, times(0)).reconfigureTaskResource(any());
     }
 
     @Test
@@ -131,7 +132,7 @@ class ExecuteTaskReconfigurationServiceTest {
         taskResources.get(3).setReconfigureRequestTime(OffsetDateTime.now());
         taskResources.get(4).setReconfigureRequestTime(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(anyList(), any()))
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(anyList(), any()))
             .thenReturn(taskResources.stream().filter(taskResource -> (
                 taskResource.getState() == CFTTaskState.UNASSIGNED || taskResource.getState() == CFTTaskState.ASSIGNED))
                             .map(TaskResource::getTaskId).toList());
@@ -148,7 +149,7 @@ class ExecuteTaskReconfigurationServiceTest {
             );
         executeTaskReconfigurationService.performOperation(request);
 
-        verify(taskReconfigurationHelper, times(3)).reconfigureTaskResource(any());
+        verify(taskReconfigurationTransactionHandler, times(3)).reconfigureTaskResource(any());
     }
 
     @Test
@@ -159,12 +160,12 @@ class ExecuteTaskReconfigurationServiceTest {
         taskResources.get(0).setReconfigureRequestTime(OffsetDateTime.now());
         taskResources.get(1).setReconfigureRequestTime(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
-        when(taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(0).getTaskId()))
-            .thenThrow(new OptimisticLockException("locked")).thenReturn(taskResources.get(0));
-        when(taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(1).getTaskId()))
-            .thenReturn(taskResources.get(1));
+        when(taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId()))
+            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.of(taskResources.get(0)));
+        when(taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(1).getTaskId()))
+            .thenReturn(Optional.of(taskResources.get(1)));
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
@@ -179,7 +180,7 @@ class ExecuteTaskReconfigurationServiceTest {
         // Attempt to reconfigure both tasks initially, calling the method twice.
         // If an OptimisticLockException is thrown for the first task, it will be retried,
         // resulting in a total of three method calls.
-        verify(taskReconfigurationHelper, times(3)).reconfigureTaskResource(any());
+        verify(taskReconfigurationTransactionHandler, times(3)).reconfigureTaskResource(any());
     }
 
     @Test
@@ -187,7 +188,7 @@ class ExecuteTaskReconfigurationServiceTest {
 
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
             anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
@@ -203,7 +204,7 @@ class ExecuteTaskReconfigurationServiceTest {
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 
-        verify(taskReconfigurationHelper, times(0)).reconfigureTaskResource(any());
+        verify(taskReconfigurationTransactionHandler, times(0)).reconfigureTaskResource(any());
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {

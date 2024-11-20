@@ -182,7 +182,7 @@ class CFTTaskDatabaseServiceTest {
             List.of(ASSIGNED), reconfigureRequestTime);
 
         final List<String> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            .getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
                 List.of(ASSIGNED),
                 reconfigureRequestTime
             );

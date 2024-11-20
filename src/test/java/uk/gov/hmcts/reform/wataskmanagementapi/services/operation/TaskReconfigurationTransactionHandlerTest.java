@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -31,8 +30,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 
-@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
-class TaskReconfigurationHelperTest {
+@ExtendWith({MockitoExtension.class})
+class TaskReconfigurationTransactionHandlerTest {
 
     @Mock
     ConfigureTaskService configureTaskService;
@@ -40,7 +39,8 @@ class TaskReconfigurationHelperTest {
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @InjectMocks TaskReconfigurationHelper taskReconfigurationHelper;
+    @InjectMocks
+    TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
 
     @Test
     void should_skip_reconfigure_if_task_is_locked() {
@@ -62,11 +62,11 @@ class TaskReconfigurationHelperTest {
             .thenReturn(taskResources.get(1));
 
 
-        taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(0).getTaskId());
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId());
         verify(configureTaskService, times(0)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
 
-        taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(1).getTaskId());
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(1).getTaskId());
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
 
@@ -91,11 +91,11 @@ class TaskReconfigurationHelperTest {
             .thenReturn(taskResources.get(1));
 
 
-        taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(0).getTaskId());
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId());
         verify(configureTaskService, times(0)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
 
-        taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(1).getTaskId());
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(1).getTaskId());
         verify(configureTaskService, times(1)).reconfigureCFTTask(any());
         verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
     }
@@ -127,8 +127,8 @@ class TaskReconfigurationHelperTest {
         assertEquals(false,taskResources.get(0).getIndexed());
         assertEquals(false,taskResources.get(1).getIndexed());
 
-        taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(0).getTaskId());
-        taskReconfigurationHelper.reconfigureTaskResource(taskResources.get(1).getTaskId());
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId());
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(1).getTaskId());
 
         assertEquals(CFTTaskState.UNASSIGNED, taskResources.get(0).getState());
         assertEquals(CFTTaskState.ASSIGNED, taskResources.get(1).getState());
@@ -150,9 +150,9 @@ class TaskReconfigurationHelperTest {
             taskResources.get(1).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .thenThrow(new OptimisticLockException("locked"));
 
-        assertThrows(OptimisticLockException.class, () -> taskReconfigurationHelper
+        assertThrows(OptimisticLockException.class, () -> taskReconfigurationTransactionHandler
             .reconfigureTaskResource(taskResources.get(0).getTaskId()));
-        assertThrows(OptimisticLockException.class, () -> taskReconfigurationHelper
+        assertThrows(OptimisticLockException.class, () -> taskReconfigurationTransactionHandler
             .reconfigureTaskResource(taskResources.get(1).getTaskId()));
 
         verifyNoInteractions(configureTaskService);

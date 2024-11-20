@@ -1195,6 +1195,115 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         common.cleanUpTask(taskId);
     }
 
+    /*
+    Scenario: Task reconfiguration with exception handling
+    This test verifies that if an exception occurs during task reconfiguration,
+    the changes are rolled back to the state before reconfiguration.
+    The test uses a DMN configuration that intentionally causes a failure to validate this behavior.
+    The DMN configuration is designed to throw an exception when reconfiguring `max_priority`,
+    and `min_priority` is set to a specific value.
+    This test ensures that both `max_priority` and `min_priority` are rolled back to their original values.
+    */
+    @Test
+    public void should_rollback_changes_done_to_task_in_case_of_any_exception_during_reconfiguration() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "reconfigFailureTask",
+            "reconfig Failure Task"
+        );
+        String taskId = taskVariables.getTaskId();
+        common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
+
+        initiateTask(taskVariables, assignerCredentials.getHeaders());
+
+        Response result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assignerCredentials.getHeaders()
+        );
+
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId));
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
+                                                     taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.body().prettyPrint();
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+        await().ignoreException(Exception.class)
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .untilAsserted(() -> {
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
+
+                taskResult.prettyPrint();
+                String taskName = taskVariables.getTaskName();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", notNullValue())
+                    .body("task.last_reconfiguration_time", nullValue())
+                    .body("task.task_title",
+                          is("reconfig Failure Task"))
+                    .body("task.due_date", notNullValue())
+                    .body("task.role_category", is("CTSC"))
+                    .body("task.minor_priority", is(500));
+            });
+        common.cleanUpTask(taskId);
+    }
+
     private TaskOperationRequest taskOperationRequestForMarkToReconfigure(TaskOperationType operationName,
                                                                           String caseId) {
         TaskOperation operation = TaskOperation.builder()

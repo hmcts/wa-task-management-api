@@ -20,22 +20,22 @@ import java.util.Optional;
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class TaskReconfigurationHelper {
+public class TaskReconfigurationTransactionHandler {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
 
     /**
-     * Constructor for TaskReconfigurationHelper.
+     * Constructor for TaskReconfigurationTransactionHandler.
      *
      * @param cftTaskDatabaseService the CFT task database service
      * @param configureTaskService the configure task service
      * @param taskAutoAssignmentService the task auto-assignment service
      */
-    public TaskReconfigurationHelper(CFTTaskDatabaseService cftTaskDatabaseService,
-                                     ConfigureTaskService configureTaskService,
-                                     TaskAutoAssignmentService taskAutoAssignmentService) {
+    public TaskReconfigurationTransactionHandler(CFTTaskDatabaseService cftTaskDatabaseService,
+                                                 ConfigureTaskService configureTaskService,
+                                                 TaskAutoAssignmentService taskAutoAssignmentService) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
@@ -66,7 +66,7 @@ public class TaskReconfigurationHelper {
      * @return the reconfigured task resource, or null if the task could not be found
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public TaskResource reconfigureTaskResource(String taskId) {
+    public Optional<TaskResource> reconfigureTaskResource(String taskId) {
         Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
             .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(
                 CFTTaskState.ASSIGNED,
@@ -79,7 +79,7 @@ public class TaskReconfigurationHelper {
             taskResource.setReconfigureRequestTime(null);
             taskResource.setLastReconfigurationTime(OffsetDateTime.now());
             resetIndexed(taskResource);
-            return cftTaskDatabaseService.saveTask(taskResource);
+            return Optional.of(cftTaskDatabaseService.saveTask(taskResource));
         } else {
             optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
             if (optionalTaskResource.isPresent()) {
@@ -90,7 +90,7 @@ public class TaskReconfigurationHelper {
             } else {
                 log.info("Could not find task to reconfigure : taskId: {}", taskId);
             }
-            return null;
+            return Optional.empty();
         }
     }
 

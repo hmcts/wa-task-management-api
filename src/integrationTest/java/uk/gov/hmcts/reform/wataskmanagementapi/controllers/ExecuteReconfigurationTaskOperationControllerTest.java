@@ -436,7 +436,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString())).thenReturn(permissionsResponse());
 
         OffsetDateTime reconfigureDateTime = OffsetDateTime.now().minusSeconds(30L);
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
             anyList(), any()))
             .thenReturn(taskResourcesBefore.stream().map(TaskResource::getTaskId).toList());
 

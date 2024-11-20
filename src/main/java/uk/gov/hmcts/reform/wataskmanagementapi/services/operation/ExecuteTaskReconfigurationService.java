@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_EXECUTE_TASKS_TO_RECONFIGURE_FAILED;
 
@@ -28,13 +29,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 public class ExecuteTaskReconfigurationService implements TaskOperationPerformService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final TaskReconfigurationHelper taskReconfigurationHelper;
+    private final TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
 
 
     public ExecuteTaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
-                                             TaskReconfigurationHelper taskReconfigurationHelper) {
+                                             TaskReconfigurationTransactionHandler
+                                                 taskReconfigurationTransactionHandler) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.taskReconfigurationHelper = taskReconfigurationHelper;
+        this.taskReconfigurationTransactionHandler = taskReconfigurationTransactionHandler;
     }
 
     @Override
@@ -52,7 +54,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
         List<String> taskIds = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeGreaterThan(
+            .getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), reconfigureDateTime);
         List<TaskResource> successfulTaskResources = new ArrayList<>();
 
@@ -113,12 +115,11 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
             taskIds.forEach(taskId -> {
                 try {
                     log.info("Re-configure task-id {}", taskId);
-                    // Use TaskReconfigurationHelper to reconfigure the task resource within a new transaction.
-                    // This ensures that any exceptions will trigger a rollback of the transaction.
-                    TaskResource taskResource = taskReconfigurationHelper.reconfigureTaskResource(taskId);
-                    if (taskResource != null) {
-                        successfulTaskResources.add(taskResource);
-                    }
+                    // Use TaskReconfigurationTransactionHandler to reconfigure the task resource within a
+                    // new transaction. This ensures that any exceptions will trigger a rollback of the transaction.
+                    Optional<TaskResource> taskResource =
+                        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskId);
+                    taskResource.ifPresent(successfulTaskResources::add);
                 } catch (Exception e) {
                     log.error("Error configuring task (id={}) ", taskId, e);
                     failedTaskIds.add(taskId);
