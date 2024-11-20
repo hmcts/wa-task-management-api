@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaExceptionMessage;
@@ -484,6 +485,53 @@ class DmnEvaluationServiceTest {
         assertThat(response.get(2).getName(), is(stringValue("key3")));
         assertThat(response.get(2).getValue(), is(stringValue("value6,value7")));
         assertThat(response.get(2).getCanReconfigure(), is(booleanValue(true)));
+    }
+
+    @Test
+    void should_not_remove_spaces_from_configuration_dmn_response_for_description() {
+        String ccdData = "{}";
+        ReflectionTestUtils.setField(dmnEvaluationService,
+                                     "fieldsToExcludeFromTrim", List.of("description", "title"));
+
+        List<ConfigurationDmnEvaluationResponse> mockedResponse = asList(
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("description"),
+                stringValue(" value1, value2, value3,value4   ")),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("title"),
+                    stringValue(" title1, title 2"),
+                    booleanValue(true)
+                )
+
+        );
+
+        String jurisdiction = "wa";
+        String caseTypeId = "wacasetype";
+
+        doReturn(mockedResponse)
+            .when(camundaServiceApi)
+            .evaluateConfigurationDmnTable(
+                BEARER_SERVICE_TOKEN,
+                WA_TASK_CONFIGURATION.getTableKey(jurisdiction, caseTypeId),
+                jurisdiction,
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
+            );
+
+        List<ConfigurationDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskConfigurationDmn(
+            jurisdiction,
+            caseTypeId,
+            ccdData,
+            TASK_ATTRIBUTES
+        );
+
+        assertThat(response.size(), is(2));
+
+        assertThat(response.get(0).getName(), is(stringValue("description")));
+        assertThat(response.get(0).getValue(), is(stringValue(" value1, value2, value3,value4   ")));
+        assertNull(response.get(0).getCanReconfigure());
+        assertThat(response.get(1).getName(), is(stringValue("title")));
+        assertThat(response.get(1).getValue(), is(stringValue(" title1, title 2")));
+        assertThat(response.get(1).getCanReconfigure(), is(booleanValue(true)));
     }
 
     @Test

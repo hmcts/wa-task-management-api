@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -33,6 +34,9 @@ public class DmnEvaluationService {
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
+
+    @Value("${config.fieldsToExcludeFromTrim}")
+    private List<String> fieldsToExcludeFromTrim;
 
     public DmnEvaluationService(CamundaServiceApi camundaServiceApi,
                                 AuthTokenGenerator serviceAuthTokenGenerator,
@@ -100,7 +104,14 @@ public class DmnEvaluationService {
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
-            return dmnResponse.stream().map(CamundaHelper::removeSpaces).toList();
+            return dmnResponse.stream().map(response -> {
+                log.info("fieldsToExcludeFromTrim {}", fieldsToExcludeFromTrim);
+                if (fieldsToExcludeFromTrim.contains(response.getName().getValue())) {
+                    return response;
+                } else {
+                    return CamundaHelper.removeSpaces(response);
+                }
+            }).toList();
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
             throw new IllegalStateException(
