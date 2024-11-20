@@ -81,6 +81,8 @@ class DmnEvaluationServiceTest {
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+        ReflectionTestUtils.setField(dmnEvaluationService,
+                                     "fieldsToExcludeFromTrim", List.of("description", "title"));
     }
 
     @Test
@@ -488,11 +490,8 @@ class DmnEvaluationServiceTest {
     }
 
     @Test
-    void should_not_remove_spaces_from_configuration_dmn_response_for_description() {
+    void should_not_remove_spaces_from_configuration_dmn_response_for_specific_fields() {
         String ccdData = "{}";
-        ReflectionTestUtils.setField(dmnEvaluationService,
-                                     "fieldsToExcludeFromTrim", List.of("description", "title"));
-
         List<ConfigurationDmnEvaluationResponse> mockedResponse = asList(
             new ConfigurationDmnEvaluationResponse(
                 stringValue("description"),

@@ -105,7 +105,6 @@ public class DmnEvaluationService {
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
             return dmnResponse.stream().map(response -> {
-                log.info("fieldsToExcludeFromTrim {}", fieldsToExcludeFromTrim);
                 if (fieldsToExcludeFromTrim.contains(response.getName().getValue())) {
                     return response;
                 } else {
