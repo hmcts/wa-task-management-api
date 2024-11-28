@@ -80,7 +80,7 @@ public class CftQueryService {
         final List<TaskResource> taskResources
             = taskResourceDao.getTaskResources(searchRequest, taskResourcesSummary);
 
-        long count = null != taskResources ? taskResources.stream().count() : 0;
+        long count = taskResources.stream().count();
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
