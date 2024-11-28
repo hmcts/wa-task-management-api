@@ -8,6 +8,7 @@ import feign.Request;
 import feign.RequestTemplate;
 import jakarta.validation.ConstraintViolationException;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,7 @@ import static org.zalando.problem.Status.NOT_FOUND;
 import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class ApplicationProblemControllerAdviceTest {
 
     private ApplicationProblemControllerAdvice applicationProblemControllerAdvice;
@@ -95,7 +97,7 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleFeignAndServerException(exception);
 
-        final CustomProblem customProblem = (CustomProblem) response.getBody();
+        final CustomProblem customProblem = safeCast(response.getBody(),CustomProblem.class);
 
         assertEquals(HttpStatus.BAD_GATEWAY.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -124,7 +126,7 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleServiceUnavailableException(exception);
 
-        final CustomProblem customProblem = (CustomProblem) response.getBody();
+        final CustomProblem customProblem = safeCast(response.getBody(),CustomProblem.class);;
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -145,7 +147,7 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleJdbcConnectionException(exception);
 
-        final CustomProblem customProblem = (CustomProblem) response.getBody();
+        final CustomProblem customProblem = safeCast(response.getBody(),CustomProblem.class);;
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -169,7 +171,7 @@ class ApplicationProblemControllerAdviceTest {
             .handleConstraintViolation(exception);
 
         final CustomConstraintViolationProblem customConstraintViolationProblem =
-            (CustomConstraintViolationProblem) response.getBody();
+            safeCast(response.getBody(),CustomConstraintViolationProblem.class);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -191,7 +193,7 @@ class ApplicationProblemControllerAdviceTest {
             .handleConstraintViolation(exception);
 
         final CustomConstraintViolationProblem customConstraintViolationProblem =
-            (CustomConstraintViolationProblem) response.getBody();
+            safeCast(response.getBody(),CustomConstraintViolationProblem.class);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -212,7 +214,7 @@ class ApplicationProblemControllerAdviceTest {
             .handleConstraintViolation(constraintViolationException, nativeWebRequest);
 
         final CustomConstraintViolationProblem customConstraintViolationProblem =
-            (CustomConstraintViolationProblem) response.getBody();
+            safeCast(response.getBody(),CustomConstraintViolationProblem.class);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -236,7 +238,7 @@ class ApplicationProblemControllerAdviceTest {
             .handleMessageNotReadable(httpMessageNotReadableException);
 
         final CustomProblem customConstraintViolationProblem =
-            (CustomProblem) response.getBody();
+            safeCast(response.getBody(),CustomProblem.class);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -260,7 +262,7 @@ class ApplicationProblemControllerAdviceTest {
             .handleMessageNotReadable(httpMessageNotReadableException);
 
         final CustomProblem customConstraintViolationProblem =
-            (CustomProblem) response.getBody();
+            safeCast(response.getBody(),CustomProblem.class);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -288,7 +290,7 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleMessageNotReadable(httpMessageNotReadableException);
 
-        final CustomProblem customProblem = (CustomProblem) response.getBody();
+        final CustomProblem customProblem = safeCast(response.getBody(),CustomProblem.class);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -316,7 +318,7 @@ class ApplicationProblemControllerAdviceTest {
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleMessageNotReadable(httpMessageNotReadableException);
 
-        final CustomProblem customProblem = (CustomProblem) response.getBody();
+        final CustomProblem customProblem = safeCast(response.getBody(),CustomProblem.class);
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -340,7 +342,7 @@ class ApplicationProblemControllerAdviceTest {
             .handleApplicationProblemExceptions(scenario.exception);
 
         final CustomProblem customConstraintViolationProblem =
-            (CustomProblem) response.getBody();
+            safeCast(response.getBody(),CustomProblem.class);
 
         assertEquals(scenario.expectedStatus.getStatusCode(), response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -455,6 +457,20 @@ class ApplicationProblemControllerAdviceTest {
         URI expectedType;
         String expectedTitle;
         Status expectedStatus;
+    }
+
+    public static <T> T safeCast(Object object, Class<T> clazz) {
+        if (clazz.isInstance(object)) {
+            return clazz.cast(object);
+        } else {
+            log.error("Expected object of type {} but received: {}",
+                         clazz.getName(),
+                         object != null ? object.getClass().getName() : "null");
+
+            throw new IllegalArgumentException(
+                "Object is not of type " + clazz.getName() + "."
+            );
+        }
     }
 
 
