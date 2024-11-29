@@ -547,8 +547,7 @@ public class TaskManagementService {
                 // Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             } catch (Exception ex) {
-                if (isCamundaStateUpdated)
-                {
+                if (isCamundaStateUpdated) {
                     log.error("Error saving task with id {} after successfully deleting Camunda task state: {}",
                               taskId, ex.getMessage(), ex);
                 }
