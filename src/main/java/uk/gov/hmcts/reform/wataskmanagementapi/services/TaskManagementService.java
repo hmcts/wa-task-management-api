@@ -528,35 +528,30 @@ public class TaskManagementService {
             camundaService.deleteCftTaskState(taskId);
             return;
         }
-
         //Terminate the task if found in the database
         if (task != null) {
             //Update cft task and terminate reason
             task.setState(CFTTaskState.TERMINATED);
             task.setTerminationReason(terminateInfo.getTerminateReason());
+            boolean isCamundaStateUpdated = false;
             try {
-                switch (terminateInfo.getTerminateReason()) {
-                    case "cancelled":
-                        setSystemUserTaskActionAttributes(task, AUTO_CANCEL);
-                        break;
-                    case "completed":
-                        setSystemUserTaskActionAttributes(task, TERMINATE);
-                        break;
-                    default:
-                        setSystemUserTaskActionAttributes(task, TERMINATE_EXCEPTION);
-                        break;
-                }
+                TaskAction taskAction = switch (terminateInfo.getTerminateReason()) {
+                    case "cancelled" -> AUTO_CANCEL;
+                    case "completed" -> TERMINATE;
+                    default -> TERMINATE_EXCEPTION;
+                };
+                setSystemUserTaskActionAttributes(task, taskAction);
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
-                try {
-                    // Commit transaction
-                    cftTaskDatabaseService.saveTask(task);
-                } catch (Exception e) {
-                    log.error("Error saving task with id {} after successfully deleting Camunda task state: {}",
-                              taskId, e.getMessage(), e);
-                    throw e;
-                }
+                isCamundaStateUpdated = true;
+                // Commit transaction
+                cftTaskDatabaseService.saveTask(task);
             } catch (Exception ex) {
+                if (isCamundaStateUpdated)
+                {
+                    log.error("Error saving task with id {} after successfully deleting Camunda task state: {}",
+                              taskId, ex.getMessage(), ex);
+                }
                 log.error("Error occurred while terminating task with id: {}", taskId, ex);
                 throw ex;
             }
