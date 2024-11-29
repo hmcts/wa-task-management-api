@@ -508,6 +508,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertEquals(CFTTaskState.ASSIGNED, task.getState());
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertNull(task.getReconfigureRequestTime());
+                assertNotNull(task.getLastReconfigurationTime());
             });
         TaskResource task = taskResourcesAfter.stream().filter(
             taskResource -> taskResource.getTaskId().equals(secondTaskId)).findFirst().orElseThrow();
@@ -515,6 +517,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             () -> assertEquals(ASSIGNEE_USER, task.getAssignee()),
             () -> assertEquals(CFTTaskState.ASSIGNED, task.getState()),
             () -> assertNotNull(task.getReconfigureRequestTime()),
+            () -> assertNull(task.getLastReconfigurationTime()),
             () -> assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate()),
             () -> assertNull(task.getMinorPriority()),
             () -> assertNull(task.getMajorPriority()),
