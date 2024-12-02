@@ -13,8 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperatio
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskExecuteReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -31,15 +29,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 public class ExecuteTaskReconfigurationService implements TaskOperationPerformService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final ConfigureTaskService configureTaskService;
-    private final TaskAutoAssignmentService taskAutoAssignmentService;
+    private final TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
+
 
     public ExecuteTaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
-                                             ConfigureTaskService configureTaskService,
-                                             TaskAutoAssignmentService taskAutoAssignmentService) {
+                                             TaskReconfigurationTransactionHandler
+                                                 taskReconfigurationTransactionHandler) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.configureTaskService = configureTaskService;
-        this.taskAutoAssignmentService = taskAutoAssignmentService;
+        this.taskReconfigurationTransactionHandler = taskReconfigurationTransactionHandler;
     }
 
     @Override
@@ -56,14 +53,10 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
         log.debug("execute tasks toReconfigure request: {}", taskOperationRequest);
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(taskOperationRequest.getTaskFilter());
         Objects.requireNonNull(reconfigureDateTime);
-        List<TaskResource> taskResources = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        List<String> taskIds = cftTaskDatabaseService
+            .getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
                 List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), reconfigureDateTime);
         List<TaskResource> successfulTaskResources = new ArrayList<>();
-
-        List<String> taskIds = taskResources.stream()
-            .map(TaskResource::getTaskId)
-            .toList();
 
         List<String> failedTaskIds = executeReconfiguration(taskIds,
             successfulTaskResources,
@@ -122,47 +115,18 @@ public class ExecuteTaskReconfigurationService implements TaskOperationPerformSe
             taskIds.forEach(taskId -> {
                 try {
                     log.info("Re-configure task-id {}", taskId);
-                    Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                         .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(CFTTaskState.ASSIGNED,
-                                                                                      CFTTaskState.UNASSIGNED));
-                    if (optionalTaskResource.isPresent()) {
-                        TaskResource taskResource = optionalTaskResource.get();
-                        taskResource = configureTaskService.reconfigureCFTTask(taskResource);
-                        taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-                        taskResource.setReconfigureRequestTime(null);
-                        taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                        resetIndexed(taskResource);
-                        successfulTaskResources.add(cftTaskDatabaseService.saveTask(taskResource));
-                    } else {
-                        optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
-                        if (optionalTaskResource.isPresent()) {
-                            TaskResource taskResource = optionalTaskResource.get();
-                            log.info("did not execute reconfigure for Task Resource: taskId: {}, caseId: {}, state: {}",
-                                     taskResource.getTaskId(), taskResource.getCaseId(), taskResource.getState());
-                        } else {
-                            log.info("Could not find task to reconfigure : taskId: {}", taskId);
-                        }
-                    }
+                    // Use TaskReconfigurationTransactionHandler to reconfigure the task resource within a
+                    // new transaction. This ensures that any exceptions will trigger a rollback of the transaction.
+                    Optional<TaskResource> taskResource =
+                        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskId);
+                    taskResource.ifPresent(successfulTaskResources::add);
                 } catch (Exception e) {
                     log.error("Error configuring task (id={}) ", taskId, e);
                     failedTaskIds.add(taskId);
                 }
             });
         }
-
         return failedTaskIds;
-    }
-
-    private void resetIndexed(TaskResource taskResource) {
-        log.info("indexed attribute for the task (id={}) before change is {} ",
-                 taskResource.getTaskId(), taskResource.getIndexed());
-        if (!taskResource.getIndexed()
-            && (taskResource.getState() == CFTTaskState.ASSIGNED
-                || taskResource.getState() == CFTTaskState.UNASSIGNED)) {
-            taskResource.setIndexed(true);
-        }
-        log.info("indexed attribute for the task (id={}) after change is {} ",
-                 taskResource.getTaskId(), taskResource.getIndexed());
     }
 
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {
