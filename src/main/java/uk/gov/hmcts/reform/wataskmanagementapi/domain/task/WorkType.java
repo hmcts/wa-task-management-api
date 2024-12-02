@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @EqualsAndHashCode
 @ToString
 @SuppressWarnings({"PMD.LawOfDemeter"})
@@ -11,13 +13,13 @@ import lombok.ToString;
 public class WorkType {
 
     @Schema(
-        required = true,
+        requiredMode = REQUIRED,
         description = "Identifier for the work type"
     )
     private final String id;
 
     @Schema(
-        required = true,
+        requiredMode = REQUIRED,
         description = "Name of the work type"
     )
     private final String label;

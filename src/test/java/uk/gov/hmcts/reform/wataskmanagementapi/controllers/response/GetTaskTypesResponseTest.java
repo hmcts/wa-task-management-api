@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
@@ -34,15 +33,15 @@ class GetTaskTypesResponseTest {
             .isEqualTo(taskTypeResponses);
 
         assertThat(getTaskTypesResponse.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType())
+                .stream().toList().get(0).getTaskType())
             .isEqualTo(taskType);
 
         assertThat(getTaskTypesResponse.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeId())
+                .stream().toList().get(0).getTaskType().getTaskTypeId())
             .isEqualTo("taskTypeId");
 
         assertThat(getTaskTypesResponse.getTaskTypeResponses()
-                .stream().collect(Collectors.toList()).get(0).getTaskType().getTaskTypeName())
+                .stream().toList().get(0).getTaskType().getTaskTypeName())
             .isEqualTo("taskTypeName");
 
     }

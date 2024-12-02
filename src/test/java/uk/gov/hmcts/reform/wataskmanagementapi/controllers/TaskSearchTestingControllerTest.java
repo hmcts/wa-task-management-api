@@ -265,7 +265,7 @@ class TaskSearchTestingControllerTest {
     }
 
     @Test
-    public void should_throw_error_when_mi_history_endpoints_called_in_prod() {
+    void should_throw_error_when_mi_history_endpoints_called_in_prod() {
         ReflectionTestUtils.setField(taskSearchTestingController, "environment", "prod");
 
         assertThatThrownBy(() -> taskSearchTestingController.searchWithCriteria(
