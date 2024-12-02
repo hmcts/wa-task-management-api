@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -306,10 +305,13 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void claimTask_should_throw_task_already_claimed_exception_when_camunda_throws_feign_exception() {
 
-            String camundaException = "{\n"
-                                      + "    \"type\": \"TaskAlreadyClaimedException\",\n"
-                                      + "    \"message\": \"Task Already Claimed Exception\"\n"
-                                      + "}";
+            String camundaException = """
+                {
+                    "type": "TaskAlreadyClaimedException",
+                    "message": "Task Already Claimed Exception"
+                }
+                """;
+
             Request request = Request.create(Request.HttpMethod.POST, "url",
                 new HashMap<>(), null, new RequestTemplate());
 
@@ -796,7 +798,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 caseType
             );
 
-            List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            List<Map<String, CamundaVariable>> mockedResponse = List.of(Map.of(
                 "taskType", new CamundaVariable("reviewTheAppeal", "String"),
                 "completionMode", new CamundaVariable("Auto", "String")
             ));
@@ -855,12 +857,12 @@ class CamundaServiceTest extends CamundaHelpers {
                 "wacasetype"
             );
 
-            List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            List<Map<String, CamundaVariable>> mockedResponse = List.of(Map.of(
                 "key1", new CamundaVariable("value1, value2", "String"),
                 "key2", new CamundaVariable("value1, value2,value3, value4 ", "String")
             ));
 
-            List<Map<String, CamundaVariable>> expectedResponse = asList(Map.of(
+            List<Map<String, CamundaVariable>> expectedResponse = List.of(Map.of(
                 "key1", new CamundaVariable("value1,value2", "String"),
                 "key2", new CamundaVariable("value1,value2,value3,value4", "String")
             ));

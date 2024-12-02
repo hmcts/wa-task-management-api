@@ -40,76 +40,6 @@ class PriorityDateIntervalCalculatorTest {
 
     private PriorityDateIntervalCalculator priorityDateIntervalCalculator;
 
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() {
-        return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00")
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0() {
-        return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00")
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWithoutPriorityDate() {
-        return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00")
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
-        return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00")
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesSkipNonWorkingDaysFalse() {
-        return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00")
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays() {
-        return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() {
-        return Stream.of(
-            new ConfigurableScenario(true, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
-            new ConfigurableScenario(false, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
-        );
-    }
-
-    @BeforeEach
-    public void before() {
-        priorityDateIntervalCalculator = new PriorityDateIntervalCalculator(new WorkingDayIndicator(
-            publicHolidaysCollection));
-
-        Set<LocalDate> localDates = Set.of(
-            LocalDate.of(2022, 1, 3),
-            LocalDate.of(2022, 4, 15),
-            LocalDate.of(2022, 4, 18),
-            LocalDate.of(2022, 5, 2),
-            LocalDate.of(2022, 6, 2),
-            LocalDate.of(2022, 6, 3),
-            LocalDate.of(2022, 8, 29),
-            LocalDate.of(2022, 9, 19),
-            LocalDate.of(2022, 12, 26),
-            LocalDate.of(2022, 12, 27)
-        );
-
-        lenient().when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI))).thenReturn(localDates);
-    }
-
     @ParameterizedTest
     @CsvSource({
         "true", "false"
@@ -157,21 +87,21 @@ class PriorityDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
-                                                           .calculateDate(
-                                                               List.of(
-                                                                   priorityDateIntervalDays,
-                                                                   priorityDateNonWorkingCalendar,
-                                                                   priorityDateMustBeWorkingDay,
-                                                                   priorityDateNonWorkingDaysOfWeek,
-                                                                   priorityDateSkipNonWorkingDays,
-                                                                   priorityDateOrigin,
-                                                                   priorityDateTime
-                                                               ),
-                                                               PRIORITY_DATE_TYPE,
-                                                               configurable,
-                                                               new HashMap<>(),
-                                                               new ArrayList<>()
-                                                           ).getValue().getValue());
+            .calculateDate(
+                List.of(
+                    priorityDateIntervalDays,
+                    priorityDateNonWorkingCalendar,
+                    priorityDateMustBeWorkingDay,
+                    priorityDateNonWorkingDaysOfWeek,
+                    priorityDateSkipNonWorkingDays,
+                    priorityDateOrigin,
+                    priorityDateTime
+                ),
+                PRIORITY_DATE_TYPE,
+                configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue());
 
         String expectedPriorityDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
 
@@ -225,8 +155,8 @@ class PriorityDateIntervalCalculatorTest {
         String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
                 List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
-                        priorityDateTime
+                    priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                    priorityDateTime
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
@@ -343,8 +273,8 @@ class PriorityDateIntervalCalculatorTest {
         String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
                 List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
-                        priorityDateTime
+                    priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                    priorityDateTime
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
@@ -464,8 +394,8 @@ class PriorityDateIntervalCalculatorTest {
         String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
                 List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
-                        priorityDateTime
+                    priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                    priorityDateTime
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
@@ -582,8 +512,8 @@ class PriorityDateIntervalCalculatorTest {
         String priorityDateValue = priorityDateIntervalCalculator
             .calculateDate(
                 List.of(priorityDateIntervalDays, priorityDateNonWorkingCalendar, priorityDateMustBeWorkingDay,
-                        priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
-                        priorityDateTime
+                    priorityDateNonWorkingDaysOfWeek, priorityDateSkipNonWorkingDays, priorityDateOrigin,
+                    priorityDateTime
                 ),
                 PRIORITY_DATE_TYPE,
                 scenario.configurable,
@@ -634,20 +564,20 @@ class PriorityDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(priorityDateIntervalCalculator
-                                                           .calculateDate(
-                                                               List.of(
-                                                                   priorityDateIntervalDays,
-                                                                   priorityDateNonWorkingCalendar,
-                                                                   priorityDateMustBeWorkingDay,
-                                                                   priorityDateNonWorkingDaysOfWeek,
-                                                                   priorityDateSkipNonWorkingDays,
-                                                                   priorityDateOrigin
-                                                               ),
-                                                               PRIORITY_DATE_TYPE,
-                                                               scenario.configurable,
-                                                               new HashMap<>(),
-                                                               new ArrayList<>()
-                                                           ).getValue().getValue());
+            .calculateDate(
+                List.of(
+                    priorityDateIntervalDays,
+                    priorityDateNonWorkingCalendar,
+                    priorityDateMustBeWorkingDay,
+                    priorityDateNonWorkingDaysOfWeek,
+                    priorityDateSkipNonWorkingDays,
+                    priorityDateOrigin
+                ),
+                PRIORITY_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
@@ -824,6 +754,77 @@ class PriorityDateIntervalCalculatorTest {
 
         assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
             .isTrue();
+    }
+
+    @BeforeEach
+    public void before() {
+        priorityDateIntervalCalculator = new PriorityDateIntervalCalculator(new WorkingDayIndicator(
+            publicHolidaysCollection));
+
+        Set<LocalDate> localDates = Set.of(
+            LocalDate.of(2022, 1, 3),
+            LocalDate.of(2022, 4, 15),
+            LocalDate.of(2022, 4, 18),
+            LocalDate.of(2022, 5, 2),
+            LocalDate.of(2022, 6, 2),
+            LocalDate.of(2022, 6, 3),
+            LocalDate.of(2022, 8, 29),
+            LocalDate.of(2022, 9, 19),
+            LocalDate.of(2022, 12, 26),
+            LocalDate.of(2022, 12, 27)
+        );
+
+        lenient().when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI))).thenReturn(localDates);
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWithoutPriorityDate() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00")
+        );
+    }
+
+    @SuppressWarnings("java:S1144")
+    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesSkipNonWorkingDaysFalse() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(true, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"),
+            new ConfigurableScenario(false, GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00")
+        );
     }
 
     static class ConfigurableScenario {

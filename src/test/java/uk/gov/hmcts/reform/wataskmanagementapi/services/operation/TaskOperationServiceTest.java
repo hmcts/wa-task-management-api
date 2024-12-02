@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
-public class TaskOperationServiceTest {
+class TaskOperationServiceTest {
 
 
     @Mock
@@ -45,7 +45,7 @@ public class TaskOperationServiceTest {
     TaskOperationResponse taskOperationResponse;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         taskOperationService = new TaskOperationService(
             List.of(markTaskReconfigurationService,
                     executeTaskReconfigurationService,

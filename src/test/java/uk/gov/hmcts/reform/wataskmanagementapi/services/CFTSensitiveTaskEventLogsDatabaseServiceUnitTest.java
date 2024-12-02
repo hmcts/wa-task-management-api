@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
-public class CFTSensitiveTaskEventLogsDatabaseServiceUnitTest {
+class CFTSensitiveTaskEventLogsDatabaseServiceUnitTest {
 
     @Mock
     ExecutorService sensitiveTaskEventLogsExecutorService;

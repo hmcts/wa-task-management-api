@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
@@ -209,7 +208,7 @@ public class CamundaHelpers {
                         processInstanceId,
                         taskId
                     ))
-            .collect(Collectors.toList());
+            .toList();
 
     }
 
@@ -227,7 +226,7 @@ public class CamundaHelpers {
                         processInstanceId,
                         taskId
                     ))
-            .collect(Collectors.toList());
+            .toList();
 
     }
 
@@ -239,7 +238,7 @@ public class CamundaHelpers {
 
         return Stream.of(variablesForProcessInstance1, variablesForProcessInstance2)
             .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+            .toList();
     }
 
 }

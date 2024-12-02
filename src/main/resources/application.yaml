@@ -21,6 +21,7 @@ config:
   taskMandatoryFieldsProvidedByClient: ${MANDATORY_TASK_FIELDS_PROVIDED_BY_CLIENT:taskName,taskType,caseTypeId,jurisdiction} //RWA-3970
   search:
     defaultMaxResults: 50
+  fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
 
 core_case_data:
   api:

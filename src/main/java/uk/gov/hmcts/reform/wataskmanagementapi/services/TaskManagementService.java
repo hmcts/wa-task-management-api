@@ -144,6 +144,15 @@ public class TaskManagementService {
         this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
     }
 
+    protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
+                                                       Optional<String> newAssignee,
+                                                       Optional<String> oldAssignee) {
+        TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
+        if (taskAction != null) {
+            setTaskActionAttributes(taskResource, assigner, taskAction);
+        }
+    }
+
     /**
      * Retrieves a task from camunda, performs role assignment verifications and returns a mapped task.
      * This method requires {@link PermissionTypes#READ} permission.
@@ -169,7 +178,6 @@ public class TaskManagementService {
 
         return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
-
 
     /**
      * Claims a task in camunda also performs role assignment verifications.
@@ -212,12 +220,6 @@ public class TaskManagementService {
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
-    }
-
-    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
-        task.setLastUpdatedTimestamp(OffsetDateTime.now());
-        task.setLastUpdatedUser(userId);
-        task.setLastUpdatedAction(action.getValue());
     }
 
     /**
@@ -270,20 +272,6 @@ public class TaskManagementService {
         camundaService.unclaimTask(taskId, taskHasUnassigned);
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
-    }
-
-    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
-                                                   Set<TaskRoleResource> taskRoleResources) {
-        for (RoleAssignment roleAssignment : roleAssignments) {
-            String roleName = roleAssignment.getRoleName();
-            for (TaskRoleResource taskRoleResource : taskRoleResources) {
-                if (roleName.equals(taskRoleResource.getRoleName())
-                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -361,92 +349,6 @@ public class TaskManagementService {
                 cftTaskDatabaseService.saveTask(task);
             }
         }
-    }
-
-    protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
-                                                       Optional<String> newAssignee,
-                                                       Optional<String> oldAssignee) {
-        TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
-        if (taskAction != null) {
-            setTaskActionAttributes(taskResource, assigner, taskAction);
-        }
-    }
-
-    private boolean verifyActionRequired(Optional<String> currentAssignee,
-                                         Optional<UserInfo> assignee) {
-
-        return (currentAssignee.isPresent()
-            || assignee.isPresent())
-            && (currentAssignee.isEmpty()
-            || assignee.isEmpty()
-            || !currentAssignee.get().equals(assignee.get().getUid()));
-    }
-
-    private PermissionRequirements assignerPermissionRequirement(UserInfo assigner,
-                                                                 Optional<UserInfo> assignee,
-                                                                 Optional<String> currentAssignee) {
-        if (currentAssignee.isEmpty() && assignee.isPresent()) {
-            return getPermissionToAssignAnUnassignedTask(assigner, assignee.get());
-        } else if (assignee.isPresent()) {
-            return getPermissionToAssignAnAssignedTask(assigner, assignee.get(), currentAssignee.get());
-        } else {
-            //Task is assigned to someone and assignee is no one
-            return PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNASSIGN, UNCLAIM);
-        }
-
-    }
-
-    private PermissionRequirements getPermissionToAssignAnAssignedTask(UserInfo assigner,
-                                                                       UserInfo assignee,
-                                                                       String currentAssignee) {
-        String assigneeUid = assignee.getUid();
-
-        if (!assigner.getUid().equals(currentAssignee)
-            && assigner.getUid().equals(assigneeUid)) {
-            //Task is assigned  to someone else and requester tries to assign it to themselves
-            return PermissionRequirementBuilder.builder()
-                .initPermissionRequirement(UNASSIGN_CLAIM)
-                .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, CLAIM), AND)
-                .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(UNASSIGN_ASSIGN)
-                .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
-                .build();
-        } else if (assigner.getUid().equals(currentAssignee)
-            && !assigner.getUid().equals(assigneeUid)) {
-            //Task is assigned to requester and requester tries to assign it to someone new
-            return PermissionRequirementBuilder.builder()
-                .initPermissionRequirement(UNCLAIM_ASSIGN)
-                .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNCLAIM, ASSIGN), AND)
-                .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(UNASSIGN_ASSIGN)
-                .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
-                .build();
-        } else {
-            //When assigner tries to assign own task again themselves, it will be filtered out before come here.
-            //Task is assigned to someone else and requester tries to assign it to someone new
-            return PermissionRequirementBuilder.builder()
-                .initPermissionRequirement(UNASSIGN_ASSIGN)
-                .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
-                .build();
-        }
-    }
-
-    private PermissionRequirements getPermissionToAssignAnUnassignedTask(UserInfo assigner,
-                                                                         UserInfo assignee) {
-        //Task is unassigned and requester tries to assign task to someone
-        PermissionRequirementBuilder builder = PermissionRequirementBuilder.builder().initPermissionRequirement(ASSIGN);
-
-        if (assigner.getUid().equals(assignee.getUid())) {
-            //Task is unassigned and requester tries to assign task to themselves
-            return builder.joinPermissionRequirement(OR)
-                .nextPermissionRequirement(CLAIM).build();
-        }
-        return builder.build();
     }
 
     /**
@@ -563,76 +465,6 @@ public class TaskManagementService {
                 cftTaskDatabaseService.saveTask(task);
             }
         }
-    }
-
-    private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
-        try {
-            //Perform Camunda updates
-            camundaService.completeTask(taskId, taskHasCompleted);
-        } catch (TaskCompleteException e) {
-            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
-            if (!isTaskCompleted) {
-                log.error("Task Completion failed for task ({}) due to {}.", taskId, e.getMessage());
-                throw e;
-            }
-
-            log.error("Task Completion failed for task ({}) as task is already complete", taskId);
-        }
-    }
-
-    private void checkCompletePermissions(String taskId, AccessControlResponse accessControlResponse,
-                                          String userId) {
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .initPermissionRequirement(asList(OWN, EXECUTE), OR)
-            .joinPermissionRequirement(OR)
-            .nextPermissionRequirement(asList(COMPLETE), OR)
-            .joinPermissionRequirement(OR)
-            .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
-            .build();
-
-        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-        );
-
-        //Safe-guard
-        checkAssignee(taskResource, userId, taskId,
-                      accessControlResponse.getRoleAssignments());
-
-    }
-
-    private void checkAssignee(TaskResource taskResource, String userId, String taskId,
-                               List<RoleAssignment> roleAssignments) {
-        if (!checkUserHasCompletePermission(roleAssignments, taskResource.getTaskRoleResources())) {
-            if (taskResource.getAssignee() == null) {
-                throw new TaskStateIncorrectException(
-                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
-                );
-            } else if (!userId.equals(taskResource.getAssignee())) {
-                throw new TaskStateIncorrectException(
-                    String.format("Could not complete task with id: %s as task was assigned to other user %s",
-                                  taskId, taskResource.getAssignee()
-                    )
-                );
-            }
-        }
-    }
-
-    private boolean checkUserHasCompletePermission(List<RoleAssignment> roleAssignments,
-                                                   Set<TaskRoleResource> taskRoleResources) {
-        if (roleAssignments != null) {
-            for (RoleAssignment roleAssignment : roleAssignments) {
-                String roleName = roleAssignment.getRoleName();
-                if (taskRoleResources != null) {
-                    for (TaskRoleResource taskRoleResource : taskRoleResources) {
-                        if (roleName.equals(taskRoleResource.getRoleName())
-                            && Boolean.TRUE.equals(taskRoleResource.getComplete())) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -784,12 +616,6 @@ public class TaskManagementService {
         return cftTaskDatabaseService.saveTask(taskResource);
     }
 
-    private void setSystemUserTaskActionAttributes(TaskResource taskResource, TaskAction taskAction) {
-        String systemUserToken = idamTokenGenerator.generate();
-        String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
-        setTaskActionAttributes(taskResource, systemUserId, taskAction);
-    }
-
     public Optional<TaskResource> getTaskById(String taskId) {
         return cftTaskDatabaseService.findByIdOnly(taskId);
     }
@@ -842,6 +668,185 @@ public class TaskManagementService {
             .map(r -> cftTaskMapper.mapToTaskRolePermissions(r))
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .toList();
+    }
+
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        task.setLastUpdatedAction(action.getValue());
+    }
+
+    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        for (RoleAssignment roleAssignment : roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            for (TaskRoleResource taskRoleResource : taskRoleResources) {
+                if (roleName.equals(taskRoleResource.getRoleName())
+                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean verifyActionRequired(Optional<String> currentAssignee,
+                                         Optional<UserInfo> assignee) {
+
+        return (currentAssignee.isPresent()
+            || assignee.isPresent())
+            && (currentAssignee.isEmpty()
+            || assignee.isEmpty()
+            || !currentAssignee.get().equals(assignee.get().getUid()));
+    }
+
+    private PermissionRequirements assignerPermissionRequirement(UserInfo assigner,
+                                                                 Optional<UserInfo> assignee,
+                                                                 Optional<String> currentAssignee) {
+        if (currentAssignee.isEmpty() && assignee.isPresent()) {
+            return getPermissionToAssignAnUnassignedTask(assigner, assignee.get());
+        } else if (assignee.isPresent()) {
+            return getPermissionToAssignAnAssignedTask(assigner, assignee.get(), currentAssignee.get());
+        } else {
+            //Task is assigned to someone and assignee is no one
+            return PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNASSIGN, UNCLAIM);
+        }
+
+    }
+
+    private PermissionRequirements getPermissionToAssignAnAssignedTask(UserInfo assigner,
+                                                                       UserInfo assignee,
+                                                                       String currentAssignee) {
+        String assigneeUid = assignee.getUid();
+
+        if (!assigner.getUid().equals(currentAssignee)
+            && assigner.getUid().equals(assigneeUid)) {
+            //Task is assigned  to someone else and requester tries to assign it to themselves
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_CLAIM)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, CLAIM), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
+                .build();
+        } else if (assigner.getUid().equals(currentAssignee)
+            && !assigner.getUid().equals(assigneeUid)) {
+            //Task is assigned to requester and requester tries to assign it to someone new
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNCLAIM_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNCLAIM, ASSIGN), AND)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
+                .build();
+        } else {
+            //When assigner tries to assign own task again themselves, it will be filtered out before come here.
+            //Task is assigned to someone else and requester tries to assign it to someone new
+            return PermissionRequirementBuilder.builder()
+                .initPermissionRequirement(UNASSIGN_ASSIGN)
+                .joinPermissionRequirement(OR)
+                .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
+                .build();
+        }
+    }
+
+    private PermissionRequirements getPermissionToAssignAnUnassignedTask(UserInfo assigner,
+                                                                         UserInfo assignee) {
+        //Task is unassigned and requester tries to assign task to someone
+        PermissionRequirementBuilder builder = PermissionRequirementBuilder.builder().initPermissionRequirement(ASSIGN);
+
+        if (assigner.getUid().equals(assignee.getUid())) {
+            //Task is unassigned and requester tries to assign task to themselves
+            return builder.joinPermissionRequirement(OR)
+                .nextPermissionRequirement(CLAIM).build();
+        }
+        return builder.build();
+    }
+
+    private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
+        try {
+            //Perform Camunda updates
+            camundaService.completeTask(taskId, taskHasCompleted);
+        } catch (TaskCompleteException e) {
+            boolean isTaskCompleted = camundaService.isTaskCompletedInCamunda(taskId);
+            if (!isTaskCompleted) {
+                log.error("Task Completion failed for task ({}) due to {}.", taskId, e.getMessage());
+                throw e;
+            }
+
+            log.error("Task Completion failed for task ({}) as task is already complete", taskId);
+        }
+    }
+
+    private void checkCompletePermissions(String taskId, AccessControlResponse accessControlResponse,
+                                          String userId) {
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .initPermissionRequirement(asList(OWN, EXECUTE), OR)
+            .joinPermissionRequirement(OR)
+            .nextPermissionRequirement(List.of(COMPLETE), OR)
+            .joinPermissionRequirement(OR)
+            .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
+            .build();
+
+        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
+
+        //Safe-guard
+        checkAssignee(taskResource, userId, taskId,
+                      accessControlResponse.getRoleAssignments());
+
+    }
+
+    private void checkAssignee(TaskResource taskResource, String userId, String taskId,
+                               List<RoleAssignment> roleAssignments) {
+        if (!checkUserHasCompletePermission(roleAssignments, taskResource.getTaskRoleResources())) {
+            if (taskResource.getAssignee() == null) {
+                throw new TaskStateIncorrectException(
+                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
+                );
+            } else if (!userId.equals(taskResource.getAssignee())) {
+                throw new TaskStateIncorrectException(
+                    String.format("Could not complete task with id: %s as task was assigned to other user %s",
+                                  taskId, taskResource.getAssignee()
+                    )
+                );
+            }
+        }
+    }
+
+    private boolean checkUserHasCompletePermission(
+        List<RoleAssignment> roleAssignments,
+        Set<TaskRoleResource> taskRoleResources
+    ) {
+        if (roleAssignments == null || taskRoleResources == null) {
+            return false;
+        }
+
+        for (RoleAssignment roleAssignment : roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            if (hasCompletePermissionForRole(taskRoleResources, roleName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasCompletePermissionForRole(Set<TaskRoleResource> taskRoleResources, String roleName) {
+        return taskRoleResources.stream()
+            .anyMatch(taskRoleResource -> roleName.equals(taskRoleResource.getRoleName())
+                && Boolean.TRUE.equals(taskRoleResource.getComplete()));
+    }
+
+    private void setSystemUserTaskActionAttributes(TaskResource taskResource, TaskAction taskAction) {
+        String systemUserToken = idamTokenGenerator.generate();
+        String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+        setTaskActionAttributes(taskResource, systemUserId, taskAction);
     }
 
     /**

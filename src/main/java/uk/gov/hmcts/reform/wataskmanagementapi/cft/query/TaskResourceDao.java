@@ -118,6 +118,8 @@ public class TaskResourceDao {
                               PermissionRequirements permissionsRequired,
                               boolean availableTasksOnly) {
 
+        log.info("Search number of tasks using Hibernate Query");
+
         CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager)
             .createSubQuery()
             .createSubRoot();
@@ -208,6 +210,6 @@ public class TaskResourceDao {
                     return criteriaBuilder.desc(root.get(sortingParameter.getSortBy().getCftVariableName()));
                 }
             })
-            .filter(Objects::nonNull).collect(Collectors.toList());
+            .filter(Objects::nonNull).toList();
     }
 }

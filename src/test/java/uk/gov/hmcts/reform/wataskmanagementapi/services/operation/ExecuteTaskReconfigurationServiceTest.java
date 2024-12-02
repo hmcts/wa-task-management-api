@@ -16,8 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFil
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -27,29 +25,25 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.persistence.OptimisticLockException;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 class ExecuteTaskReconfigurationServiceTest {
-
-    @Mock
-    ConfigureTaskService configureTaskService;
-    @Mock
-    TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
+
+    @Mock
+    TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
     @InjectMocks
     private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
+
 
     @Test
     void should_get_tasks_with_reconfigure_request_time_and_set_to_null() {
@@ -57,27 +51,18 @@ class ExecuteTaskReconfigurationServiceTest {
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(anyString(), anyList()))
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
+        when(taskReconfigurationTransactionHandler.reconfigureTaskResource(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
-        when(configureTaskService.reconfigureCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
                 .type(TaskOperationType.EXECUTE_RECONFIGURE)
-                .maxTimeLimit(2)
+                .maxTimeLimit(30)
                 .runId("")
                 .build(), taskFilters
         );
@@ -86,8 +71,7 @@ class ExecuteTaskReconfigurationServiceTest {
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(2, tasks);
 
-        verify(configureTaskService, times(2)).reconfigureCFTTask(any());
-        verify(taskAutoAssignmentService, times(2)).reAutoAssignCFTTask(any());
+        verify(taskReconfigurationTransactionHandler, times(2)).reconfigureTaskResource(any());
 
     }
 
@@ -95,12 +79,9 @@ class ExecuteTaskReconfigurationServiceTest {
     void should_not_execute_reconfigure_if_tasks_are_not_found() {
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
-        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(anyString(), anyList()))
-            .thenReturn(Optional.empty());
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(List.of());
 
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
@@ -114,44 +95,7 @@ class ExecuteTaskReconfigurationServiceTest {
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 
-        verify(configureTaskService, times(0)).configureCFTTask(any(), any());
-        verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
-    }
-
-    @Test
-    void should_skip_reconfigure_if_task_is_locked() {
-
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
-        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
-
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(0).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenReturn(Optional.empty());
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(1).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenReturn(Optional.of(taskResources.get(1)));
-
-        when(configureTaskService.reconfigureCFTTask(any()))
-            .thenReturn(taskResources.get(1));
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
-            .thenReturn(taskResources.get(1));
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(1));
-
-        TaskOperationRequest request = new TaskOperationRequest(
-            TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE)
-                .runId("")
-                .maxTimeLimit(2)
-                .build(), taskFilters
-        );
-
-        executeTaskReconfigurationService.performOperation(request);
-
-        verify(configureTaskService, times(1)).reconfigureCFTTask(any());
-        verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
+        verify(taskReconfigurationTransactionHandler, times(0)).reconfigureTaskResource(any());
     }
 
     @Test
@@ -189,34 +133,10 @@ class ExecuteTaskReconfigurationServiceTest {
         taskResources.get(3).setReconfigureRequestTime(OffsetDateTime.now());
         taskResources.get(4).setReconfigureRequestTime(OffsetDateTime.now());
 
-
-
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-                anyList(), any())).thenReturn(taskResources);
-        //update task resource state just before getting lock
-        taskResources.get(1).setState(CFTTaskState.CANCELLED);
-        cftTaskDatabaseService.deleteTasks(List.of(taskResources.get(4).getTaskId()));
-
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(0).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenReturn(Optional.of(taskResources.get(0)));
-        when(cftTaskDatabaseService.findByIdOnly(taskResources.get(1).getTaskId()))
-            .thenReturn(Optional.of(taskResources.get(1)));
-        when(cftTaskDatabaseService.findByIdOnly(taskResources.get(2).getTaskId()))
-            .thenReturn(Optional.of(taskResources.get(2)));
-        when(cftTaskDatabaseService.findByIdOnly(taskResources.get(3).getTaskId()))
-            .thenReturn(Optional.of(taskResources.get(3)));
-        when(cftTaskDatabaseService.findByIdOnly(taskResources.get(4).getTaskId()))
-            .thenReturn(Optional.empty());
-
-        when(configureTaskService.reconfigureCFTTask(any()))
-            .thenReturn(taskResources.get(0));
-
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
-            .thenReturn(taskResources.get(0));
-
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(0));
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(anyList(), any()))
+            .thenReturn(taskResources.stream().filter(taskResource -> (
+                taskResource.getState() == CFTTaskState.UNASSIGNED || taskResource.getState() == CFTTaskState.ASSIGNED))
+                            .map(TaskResource::getTaskId).toList());
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
 
@@ -230,132 +150,24 @@ class ExecuteTaskReconfigurationServiceTest {
             );
         executeTaskReconfigurationService.performOperation(request);
 
-        verify(configureTaskService, times(1)).reconfigureCFTTask(any());
-        verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
-        verify(cftTaskDatabaseService, times(4)).findByIdOnly(any());
-
-        assertAll(
-            () -> assertTrue(output.getOut().contains("did not execute reconfigure for Task Resource: taskId: "
-                                                          + taskResources.get(1).getTaskId())),
-            () -> assertTrue(output.getOut().contains("did not execute reconfigure for Task Resource: taskId: "
-                                                          + taskResources.get(2).getTaskId())),
-            () -> assertTrue(output.getOut().contains("did not execute reconfigure for Task Resource: taskId: "
-                                                          + taskResources.get(3).getTaskId())),
-            () -> assertTrue(output.getOut().contains("Could not find task to reconfigure : taskId: "
-                                                          + taskResources.get(4).getTaskId()))
-
-        );
-        assertEquals(CFTTaskState.UNASSIGNED, taskResources.get(0).getState());
-        assertEquals(CFTTaskState.CANCELLED, taskResources.get(1).getState());
-        assertEquals(CFTTaskState.COMPLETED, taskResources.get(2).getState());
-        assertEquals(CFTTaskState.TERMINATED, taskResources.get(3).getState());
+        verify(taskReconfigurationTransactionHandler, times(3)).reconfigureTaskResource(any());
     }
 
-
     @Test
-    void should_retry_and_succeed_reconfigure_if_task_is_locked() {
+    void should_retry_reconfigure_if_task_is_not_reconfigured_and_exception_is_thrown() {
 
         List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
         taskResources.get(0).setReconfigureRequestTime(OffsetDateTime.now());
         taskResources.get(1).setReconfigureRequestTime(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(0).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.empty());
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(1).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.of(taskResources.get(1)));
-
-        when(configureTaskService.reconfigureCFTTask(any()))
-            .thenReturn(taskResources.get(1));
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
-            .thenReturn(taskResources.get(1));
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(1));
-
-        TaskOperationRequest request = new TaskOperationRequest(
-            TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE)
-                .runId("")
-                .retryWindowHours(1L)
-                .maxTimeLimit(30)
-                .build(), taskFilters
-        );
-
-        executeTaskReconfigurationService.performOperation(request);
-
-        verify(configureTaskService, times(1)).reconfigureCFTTask(any());
-        verify(taskAutoAssignmentService, times(1)).reAutoAssignCFTTask(any());
-    }
-
-    @Test
-    void should_set_indexed_true() {
-
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
-        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
-        taskResources.get(0).setReconfigureRequestTime(OffsetDateTime.now());
-        taskResources.get(1).setReconfigureRequestTime(OffsetDateTime.now());
-
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(0).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenReturn(Optional.of(taskResources.get(0)));
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(1).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
+        when(taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId()))
+            .thenThrow(new OptimisticLockException("locked")).thenReturn(Optional.of(taskResources.get(0)));
+        when(taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(1).getTaskId()))
             .thenReturn(Optional.of(taskResources.get(1)));
 
-        when(configureTaskService.reconfigureCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-
-        TaskOperationRequest request = new TaskOperationRequest(
-            TaskOperation.builder()
-                .type(TaskOperationType.EXECUTE_RECONFIGURE)
-                .runId("")
-                .retryWindowHours(1L)
-                .maxTimeLimit(30)
-                .build(), taskFilters
-        );
-
-        assertEquals(false,taskResources.get(0).getIndexed());
-        assertEquals(false,taskResources.get(1).getIndexed());
-
-        executeTaskReconfigurationService.performOperation(request);
-
-        assertEquals(CFTTaskState.UNASSIGNED, taskResources.get(0).getState());
-        assertEquals(CFTTaskState.ASSIGNED, taskResources.get(1).getState());
-        assertEquals(true,taskResources.get(0).getIndexed());
-        assertEquals(true,taskResources.get(1).getIndexed());
-
-    }
-
-    @Test
-    void should_retry_and_fail_reconfigure_if_task_is_locked() {
-
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
-        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
-        taskResources.get(0).setReconfigureRequestTime(OffsetDateTime.now());
-        taskResources.get(1).setReconfigureRequestTime(OffsetDateTime.now());
-
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(0).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenThrow(new OptimisticLockException("locked"));
-        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
-            taskResources.get(1).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .thenThrow(new OptimisticLockException("locked"));
-
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
                 .type(TaskOperationType.EXECUTE_RECONFIGURE)
@@ -366,29 +178,26 @@ class ExecuteTaskReconfigurationServiceTest {
         );
 
         executeTaskReconfigurationService.performOperation(request);
-
-        verify(cftTaskDatabaseService, times(8))
-            .findByIdAndStateInObtainPessimisticWriteLock(any(), anyList());
-        verifyNoInteractions(configureTaskService);
-        verifyNoInteractions(taskAutoAssignmentService);
+        // Attempt to reconfigure both tasks initially, calling the method twice.
+        // If an OptimisticLockException is thrown for the first task, it will be retried,
+        // resulting in a total of three method calls.
+        verify(taskReconfigurationTransactionHandler, times(3)).reconfigureTaskResource(any());
     }
 
     @Test
     void should_not_reconfigure_for_max_time_limit() {
 
-        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
 
-        when(cftTaskDatabaseService.getActiveTasksAndReconfigureRequestTimeGreaterThan(
-            anyList(), any())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
+            anyList(), any())).thenReturn(taskResources.stream().map(TaskResource::getTaskId).toList());
 
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-
+        List<TaskFilter<?>> taskFilters = createReconfigureTaskFilters();
         TaskOperationRequest request = new TaskOperationRequest(
             TaskOperation.builder()
                 .type(TaskOperationType.EXECUTE_RECONFIGURE)
                 .runId("")
-                .maxTimeLimit(2)
+                .maxTimeLimit(0)
                 .build(), taskFilters
         );
 
@@ -396,8 +205,7 @@ class ExecuteTaskReconfigurationServiceTest {
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 
-        verify(configureTaskService, times(0)).configureCFTTask(any(), any());
-        verify(taskAutoAssignmentService, times(0)).reAutoAssignCFTTask(any());
+        verify(taskReconfigurationTransactionHandler, times(0)).reconfigureTaskResource(any());
     }
 
     private List<TaskFilter<?>> createReconfigureTaskFilters() {

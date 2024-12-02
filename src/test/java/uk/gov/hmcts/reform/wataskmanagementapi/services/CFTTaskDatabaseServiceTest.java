@@ -38,6 +38,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -175,19 +176,19 @@ class CFTTaskDatabaseServiceTest {
 
     @Test
     void should_find_by_state_and_reconfigure_request_time_is_not_null() {
-        TaskResource someTaskResource = mock(TaskResource.class);
         OffsetDateTime reconfigureRequestTime = OffsetDateTime.now().minusHours(1L);
-        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
-            List.of(ASSIGNED), reconfigureRequestTime)).thenReturn(List.of(someTaskResource));
+        doReturn(List.of("1234")).when(taskResourceRepository)
+            .findTaskIdsByStateInAndReconfigureRequestTimeGreaterThan(
+            List.of(ASSIGNED), reconfigureRequestTime);
 
-        final List<TaskResource> actualTaskResource = cftTaskDatabaseService
-            .getActiveTasksAndReconfigureRequestTimeGreaterThan(
+        final List<String> actualTaskResource = cftTaskDatabaseService
+            .getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
                 List.of(ASSIGNED),
                 reconfigureRequestTime
             );
 
         assertNotNull(actualTaskResource);
-        assertEquals(someTaskResource, actualTaskResource.get(0));
+        assertEquals("1234", actualTaskResource.get(0));
     }
 
     @Test
@@ -291,7 +292,7 @@ class CFTTaskDatabaseServiceTest {
         List<String> taskIds = List.of("1");
         List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()); //NOSONAR List needs to be mutable to allow sorting.
         TaskResource taskResource = mock(TaskResource.class);
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
@@ -338,7 +339,7 @@ class CFTTaskDatabaseServiceTest {
         List<String> taskIds = List.of("1");
         List<Sort.Order> orders = Stream.of(CASE_NAME, MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()); //NOSONAR List needs to be mutable to allow sorting.
         TaskResource taskResource = mock(TaskResource.class);
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);
@@ -387,7 +388,7 @@ class CFTTaskDatabaseServiceTest {
         List<String> caseIds = List.of("1623278362431003");
         List<Sort.Order> orders = Stream.of(MAJOR_PRIORITY, PRIORITY_DATE, MINOR_PRIORITY, TASK_ID)
             .map(s -> Sort.Order.asc(s.value()))
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()); //NOSONAR List needs to be mutable to allow sorting.
         TaskResource taskResource = mock(TaskResource.class);
         Task task = mock(Task.class);
         List<TaskResource> taskResources = List.of(taskResource);

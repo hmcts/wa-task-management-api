@@ -81,7 +81,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.LockTimeoutException;
 import javax.persistence.TypedQuery;
@@ -420,7 +419,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             List<String> logsList = List.copyOf(listAppender.list)
                 .stream()
                 .map(ILoggingEvent::getFormattedMessage)
-                .collect(Collectors.toList());
+                .toList();
             assertTrue(logsList.contains("PersistenceException occurred in updating indexed field of taskId:"
                                              + taskId));
         }
