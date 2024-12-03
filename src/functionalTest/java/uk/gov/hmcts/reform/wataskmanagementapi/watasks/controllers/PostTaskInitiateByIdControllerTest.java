@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -901,7 +902,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .contentType(APPLICATION_JSON_VALUE)
             .body("error", equalTo("Bad Gateway"))
             .body("status", equalTo(502))
-            .body("message", containsString("The following mandatory field are missing from task"));
+            .body("message", containsString(MANDATORY_FIELD_MISSING_ERROR.getDetail()));
 
         common.cleanUpTask(taskVariables.getTaskId());
     }
