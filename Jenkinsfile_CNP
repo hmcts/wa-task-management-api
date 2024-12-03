@@ -76,6 +76,7 @@ withPipeline(type, product, component) {
     before('functionalTest:preview') {
         env.MAX_FT_TESTS_PARALLEL_FORKS = 5
         env.ENABLE_TEST_USER_DELETION = true
+        env.MANDATORY_TASK_FIELD_CHECK_ENABLED = true
     }
 
     afterSuccess('functionalTest:preview') {
@@ -87,6 +88,7 @@ withPipeline(type, product, component) {
         env.INITIATION_JOB_RUNNING = false
         env.MAX_FT_TESTS_PARALLEL_FORKS = 5
         env.ENABLE_TEST_USER_DELETION = true
+        env.MANDATORY_TASK_FIELD_CHECK_ENABLED = true
     }
 
     afterSuccess('functionalTest:aat') {
