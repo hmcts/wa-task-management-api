@@ -55,9 +55,9 @@ import javax.persistence.criteria.Subquery;
 
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -188,6 +188,272 @@ class TaskResourceDaoTest {
         lenient().when(summaryQuery.setFirstResult(1)).thenReturn(summaryQuery);
         lenient().when(summaryQuery.setMaxResults(0)).thenReturn(summaryQuery);
         lenient().when(summaryQuery.setMaxResults(10)).thenReturn(summaryQuery);
+    }
+
+    @Test
+    void shouldReturnTaskSummary() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
+            ),
+            List.of(
+                new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT),
+                new SortingParameter(SortField.LOCATION_NAME_CAMEL_CASE, SortOrder.DESCENDANT)
+            )
+        );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
+
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
+
+        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
+
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+            10,
+            searchRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
+
+        assertNotNull(taskResourceSummary);
+        assertEquals("taskId", taskResourceSummary.get(0)[0]);
+    }
+
+    @Test
+    void should_return_task_summary_when_sorting_parameters_are_empty() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
+            ),
+            List.of()
+        );
+
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+
+        List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
+
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
+
+        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
+
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+            10,
+            searchRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
+
+        assertNotNull(taskResourceSummary);
+        assertEquals("taskId", taskResourceSummary.get(0)[0]);
+    }
+
+    @Test
+    void should_return_task_summary_when_sorting_parameters_are_null() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
+        );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
+
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
+
+        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
+
+        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
+            10,
+            searchRequest,
+            roleAssignments,
+            permissionsRequired,
+            false);
+
+        assertNotNull(taskResourceSummary);
+        assertEquals("taskId", taskResourceSummary.get(0)[0]);
+    }
+
+    @Test
+    void shouldReturnTasks() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        when(query.getResultList()).thenReturn(List.of(createTaskResource()));
+
+        List<TaskResource> taskResources = taskResourceDao.getTaskResources(
+            searchRequest,
+            List.<Object[]>of(createTaskResourceSummary())
+        );
+
+        assertNotNull(taskResources);
+        assertEquals("taskId", taskResources.get(0).getTaskId());
+    }
+
+    @Test
+    void shouldReturnCompletableTasks() {
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            "someCaseId",
+            "someEventId",
+            "IA",
+            "Asylum"
+        );
+
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+
+        when(query.getResultList()).thenReturn(List.of(createTaskResource()));
+
+        List<TaskResource> taskResources = taskResourceDao.getCompletableTaskResources(
+            searchEventAndCase,
+            roleAssignmentWithAllGrantTypes(),
+            permissionsRequired,
+            List.of("reviewTheAppeal")
+        );
+
+        assertNotNull(taskResources);
+        assertEquals("taskId", taskResources.get(0).getTaskId());
+    }
+
+    @Test
+    void shouldReturnTotalTaskCounts() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
+
+        when(countQuery.getSingleResult()).thenReturn(1L);
+
+        Long totalCount = taskResourceDao.getTotalCount(
+            searchRequest,
+            roleAssignmentWithAllGrantTypes(),
+            permissionsRequired,
+            false
+        );
+
+        assertEquals(1, totalCount);
+    }
+
+    @Test
+    void shouldGetTask() {
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(READ);
+
+        String taskId = "taskId";
+        TaskResource expectedTask = new TaskResource(
+            taskId,
+            "takeName",
+            "taskType",
+            UNCONFIGURED,
+            "caseId"
+        );
+
+        when(query.getResultList()).thenReturn(List.of(expectedTask));
+
+        Optional<TaskResource> task
+            = taskResourceDao.getTask(taskId, roleAssignmentWithAllGrantTypes(), permissionsRequired);
+
+        assertThat(task)
+            .isPresent()
+            .get().isEqualTo(expectedTask);
+    }
+
+    @Test
+    void should_raise_exception_when_invalid_limit() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
+
+        Exception exception = assertThrowsExactly(IllegalArgumentException.class, () ->
+            taskResourceDao.getTaskResourceSummary(
+                0,
+                0,
+                searchRequest,
+                roleAssignmentWithAllGrantTypes(),
+                permissionsRequired,
+                false
+            ));
+        assertEquals("Limit must not be less than one", exception.getMessage());
+    }
+
+    @Test
+    void should_raise_exception_when_invalid_offset() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
+            ),
+            List.of()
+        );
+        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleType(PermissionTypes.READ);
+
+        Exception exception = assertThrowsExactly(IllegalArgumentException.class, () ->
+            taskResourceDao.getTaskResourceSummary(
+            -1,
+            25,
+            searchRequest,
+            roleAssignmentWithAllGrantTypes(),
+            permissionsRequired,
+            false
+        ));
+        assertEquals("Offset index must not be less than zero", exception.getMessage());
     }
 
     private Object[] createTaskResourceSummary() {
@@ -326,274 +592,6 @@ class TaskResourceDaoTest {
         roleAssignments.add(roleAssignment);
 
         return roleAssignments;
-    }
-
-    @Test
-    void shouldReturnTaskSummary() {
-        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
-            ),
-            List.of(
-                new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT),
-                new SortingParameter(SortField.LOCATION_NAME_CAMEL_CASE, SortOrder.DESCENDANT)
-            )
-        );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
-
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(PermissionTypes.READ);
-
-        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
-
-        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-            10,
-            searchRequest,
-            roleAssignments,
-            permissionsRequired,
-            false);
-
-        assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0)[0]);
-    }
-
-    @Test
-    void should_return_task_summary_when_sorting_parameters_are_empty() {
-        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
-            ),
-            List.of()
-        );
-
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-
-        List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
-
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(PermissionTypes.READ);
-
-        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
-
-        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-            10,
-            searchRequest,
-            roleAssignments,
-            permissionsRequired,
-            false);
-
-        assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0)[0]);
-    }
-
-    @Test
-    void should_return_task_summary_when_sorting_parameters_are_null() {
-        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
-            ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
-        );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
-
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(PermissionTypes.READ);
-
-        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
-
-        List<Object[]> taskResourceSummary = taskResourceDao.getTaskResourceSummary(1,
-            10,
-            searchRequest,
-            roleAssignments,
-            permissionsRequired,
-            false);
-
-        assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0)[0]);
-    }
-
-    @Test
-    void shouldReturnTasks() {
-        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
-            ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
-        );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        when(query.getResultList()).thenReturn(List.of(createTaskResource()));
-
-        List<TaskResource> taskResources = taskResourceDao.getTaskResources(
-            searchRequest,
-            List.<Object[]>of(createTaskResourceSummary())
-        );
-
-        assertNotNull(taskResources);
-        assertEquals("taskId", taskResources.get(0).getTaskId());
-    }
-
-
-    @Test
-    void shouldReturnCompletableTasks() {
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            "someCaseId",
-            "someEventId",
-            "IA",
-            "Asylum"
-        );
-
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
-
-        when(query.getResultList()).thenReturn(List.of(createTaskResource()));
-
-        List<TaskResource> taskResources = taskResourceDao.getCompletableTaskResources(
-            searchEventAndCase,
-            roleAssignmentWithAllGrantTypes(),
-            permissionsRequired,
-            List.of("reviewTheAppeal")
-        );
-
-        assertNotNull(taskResources);
-        assertEquals("taskId", taskResources.get(0).getTaskId());
-    }
-
-    @Test
-    void shouldReturnTotalTaskCounts() {
-        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work")),
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
-            ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
-        );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(PermissionTypes.READ);
-
-        when(countQuery.getSingleResult()).thenReturn(1L);
-
-        Long totalCount = taskResourceDao.getTotalCount(
-            searchRequest,
-            roleAssignmentWithAllGrantTypes(),
-            permissionsRequired,
-            false
-        );
-
-        assertEquals(1, totalCount);
-    }
-
-    @Test
-    void shouldGetTask() {
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder().buildSingleType(READ);
-
-        String taskId = "taskId";
-        TaskResource expectedTask = new TaskResource(
-            taskId,
-            "takeName",
-            "taskType",
-            UNCONFIGURED,
-            "caseId"
-        );
-
-        when(query.getResultList()).thenReturn(List.of(expectedTask));
-
-        Optional<TaskResource> task
-            = taskResourceDao.getTask(taskId, roleAssignmentWithAllGrantTypes(), permissionsRequired);
-
-        assertThat(task)
-            .isPresent()
-            .get().isEqualTo(expectedTask);
-    }
-
-
-    @Test
-    void should_raise_exception_when_invalid_limit() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
-            ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
-        );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(PermissionTypes.READ);
-
-        assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
-            0,
-            0,
-            searchRequest,
-            roleAssignmentWithAllGrantTypes(),
-            permissionsRequired,
-            false
-        ))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Limit must not be less than one");
-    }
-
-    @Test
-    void should_raise_exception_when_invalid_offset() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
-                new SearchParameterList(TASK_TYPE, SearchOperator.IN, List.of("processApplication"))
-            ),
-            List.of()
-        );
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleType(PermissionTypes.READ);
-
-        assertThatThrownBy(() -> taskResourceDao.getTaskResourceSummary(
-            -1,
-            25,
-            searchRequest,
-            roleAssignmentWithAllGrantTypes(),
-            permissionsRequired,
-            false
-        ))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Offset index must not be less than zero");
     }
 
 }

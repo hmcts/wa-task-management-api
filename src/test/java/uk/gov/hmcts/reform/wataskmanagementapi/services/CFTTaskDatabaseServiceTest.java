@@ -32,6 +32,7 @@ import javax.persistence.LockTimeoutException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -130,9 +131,10 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.findByIdAndStateIn(taskId, List.of(ASSIGNED, UNASSIGNED)))
             .thenThrow(new LockTimeoutException());
 
-        assertThatThrownBy(() -> cftTaskDatabaseService
-            .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(ASSIGNED, UNASSIGNED)))
-            .isInstanceOf(LockTimeoutException.class);
+        Exception exception = assertThrowsExactly(LockTimeoutException.class, () -> cftTaskDatabaseService
+            .findByIdAndStateInObtainPessimisticWriteLock(taskId, List.of(ASSIGNED, UNASSIGNED)));
+
+        assertNotNull(exception);
     }
 
     @Test
@@ -270,10 +272,10 @@ class CFTTaskDatabaseServiceTest {
             .build();
 
         when(taskResourceRepository.searchTasksIds(1, 25,
-                                                   Set.of("*:IA:*:*:*:765324"),
-                                                   Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-                                                   List.of(),
-                                                   searchRequest
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest
         ))
             .thenReturn(List.of());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
@@ -281,7 +283,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-                                                                                accessControlResponse
+            accessControlResponse
         );
         assertEquals(0, response.getTotalRecords());
         assertTrue(response.getTasks().isEmpty());
@@ -306,10 +308,10 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
         when(taskResourceRepository.searchTasksIds(1, 25,
-                                                   Set.of("*:IA:*:*:*:765324"),
-                                                   Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-                                                   List.of(),
-                                                   searchRequest
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest
         ))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
@@ -327,7 +329,7 @@ class CFTTaskDatabaseServiceTest {
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-                                                                                accessControlResponse
+            accessControlResponse
         );
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());
@@ -354,10 +356,10 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
         when(taskResourceRepository.searchTasksIds(1, 25,
-                                                   Set.of("*:IA:*:*:*:765324"),
-                                                   Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-                                                   List.of(),
-                                                   searchRequest
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
+            List.of(),
+            searchRequest
         ))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
@@ -375,7 +377,7 @@ class CFTTaskDatabaseServiceTest {
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-                                                                                accessControlResponse
+            accessControlResponse
         );
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());
@@ -402,10 +404,10 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(roleAssignmentWithStandardGrantType(Classification.PUBLIC));
 
         when(taskResourceRepository.searchTasksIds(1, 25,
-                                                   Set.of("*:IA:*:*:*:765324"),
-                                                   Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
-                                                   caseIds,
-                                                   searchRequest
+            Set.of("*:IA:*:*:*:765324"),
+            Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
+            caseIds,
+            searchRequest
         ))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
@@ -423,7 +425,7 @@ class CFTTaskDatabaseServiceTest {
         )).thenReturn(task);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
-                                                                                accessControlResponse
+            accessControlResponse
         );
         assertEquals(1, response.getTotalRecords());
         assertEquals(1, response.getTasks().size());

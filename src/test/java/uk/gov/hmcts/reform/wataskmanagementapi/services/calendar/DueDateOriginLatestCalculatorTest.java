@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.DateTypeIntervalData.DATE_TYPE_MUST_BE_WORKING_DAY_PREVIOUS;
@@ -177,19 +178,24 @@ class DueDateOriginLatestCalculatorTest {
             .build();
 
         calculatedConfigurations.add(nextHearingDate);
-        assertThatThrownBy(() -> dueDateOriginLatestCalculator
-            .calculateDate(
-                readDueDateOriginFields(
-                    isConfigurable,
-                    dueDateLatestOrigin,
-                    nextHearingDate
-                ),
-                DUE_DATE_TYPE, isConfigurable,
-                new HashMap<>(),
-                calculatedConfigurations
-            ))
-            .isInstanceOf(DateCalculationException.class)
-            .hasMessage(String.format(INVALID_DATE_REFERENCE_FIELD, "priorityDate"));
+
+        Exception exception = assertThrowsExactly(DateCalculationException.class, () ->
+            dueDateOriginLatestCalculator
+                .calculateDate(
+                    readDueDateOriginFields(
+                        isConfigurable,
+                        dueDateLatestOrigin,
+                        nextHearingDate
+                    ),
+                    DUE_DATE_TYPE, isConfigurable,
+                    new HashMap<>(),
+                    calculatedConfigurations
+                ));
+        assertEquals(
+            String.format(INVALID_DATE_REFERENCE_FIELD, "priorityDate"),
+            exception.getMessage()
+        );
+
     }
 
     @ParameterizedTest
