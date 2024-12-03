@@ -12,13 +12,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomPostgreSQL94Dialect extends PostgreSQLDialect {
 
-    /*public CustomPostgreSQL94Dialect() {
-        super();
-        this.registerHibernateType(Types.JAVA_OBJECT, NoteResource.class.getName());
-        this.registerHibernateType(Types.OTHER, String.class.getName());
-        registerFunction("contains_text", new SQLFunctionTemplate(StandardBasicTypes.BOOLEAN, "?1 && ?2::text[]"));
-    }*/
-
     @Override
     public void initializeFunctionRegistry(FunctionContributions functionContributions) {
         super.initializeFunctionRegistry(functionContributions);

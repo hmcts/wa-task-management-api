@@ -24,7 +24,7 @@ public class CustomConstraintViolationProblem extends ConstraintViolationProblem
     @JsonIgnore
     @JsonProperty("statusType")
     public StatusType getStatus() {
-        return null;
+        return this.getStatus();
     }
 
     @JsonProperty("status")

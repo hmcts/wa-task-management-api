@@ -467,7 +467,7 @@ class ApplicationProblemControllerAdviceTest {
                          clazz.getName(),
                          object != null ? object.getClass().getName() : "null");
 
-            throw new IllegalArgumentException(
+            throw new ClassCastException(
                 "Object is not of type " + clazz.getName() + "."
             );
         }

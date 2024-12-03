@@ -370,7 +370,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
             when(camundaService.isCftTaskStateExistInCamunda(taskId))
-                .thenReturn(null);
+                .thenReturn(false);
 
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), any());

@@ -43,7 +43,7 @@ public class CustomProblem extends ThrowableProblem {
     @JsonIgnore
     @JsonProperty("statusType")
     public StatusType getStatus() {
-        return null;
+        return this.getStatus();
     }
 
     @JsonProperty("status")
