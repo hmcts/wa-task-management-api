@@ -183,7 +183,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
             }
 
             @Test
@@ -275,7 +275,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }

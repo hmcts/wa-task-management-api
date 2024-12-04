@@ -16,6 +16,8 @@ config:
   exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler,wa_workflow_api}
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil,publiclaw,privatelaw,employment}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,care_supervision_epo,prlapps,et_englandwales,et_englandwales_listings,et_englandwales_multiple,et_scotland,et_scotland_listings,et_scotland_multiple,et_admin,privatelaw_exceptionrecord,benefit}
+  taskMandatoryFieldCheckEnabled: ${MANDATORY_TASK_FIELD_CHECK_ENABLED:false}
+  taskMandatoryFields: ${MANDATORY_TASK_FIELDS:taskName,taskId,taskType,dueDateTime,state,securityClassification,title,majorPriority,minorPriority,executionTypeCode,caseId,caseTypeId,caseCategory,caseName,jurisdiction,region,location,created}
   search:
     defaultMaxResults: 50
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
