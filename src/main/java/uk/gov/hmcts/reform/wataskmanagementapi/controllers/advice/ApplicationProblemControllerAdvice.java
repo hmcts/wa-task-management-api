@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.launchdarkly.shaded.com.google.common.base.CaseFormat;
 import feign.FeignException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.http.ResponseEntity;
@@ -38,12 +39,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfiguration
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationProblem;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomProblem;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomizedConstraintViolationException;
 
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.validation.ConstraintViolationException;
 
 import static java.util.Comparator.comparing;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -78,12 +80,10 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
         return ResponseEntity.status(statusType.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(Problem.builder()
-                .withType(type)
-                .withTitle(title)
-                .withDetail(detail.getDetail() + " Message from downstream system: " + ex.getMessage())
-                .withStatus(statusType)
-                .build());
+            .body(new CustomProblem(type, statusType.getStatusCode(), title,
+                                    detail.getDetail()
+                                        + " Message from downstream system: "
+                                        + ex.getMessage()));
     }
 
     @ExceptionHandler({
@@ -100,12 +100,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
         return ResponseEntity.status(statusType.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(Problem.builder()
-                .withType(type)
-                .withTitle(title)
-                .withDetail(detail.getDetail())
-                .withStatus(statusType)
-                .build());
+            .body(new CustomProblem(type, statusType.getStatusCode(), title, detail.getDetail()));
     }
 
     @ExceptionHandler(JDBCConnectionException.class)
@@ -119,12 +114,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
         return ResponseEntity.status(statusType.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(Problem.builder()
-                .withType(type)
-                .withTitle(title)
-                .withDetail(detail.getDetail())
-                .withStatus(statusType)
-                .build());
+            .body(new CustomProblem(type, statusType.getStatusCode(), title, detail.getDetail()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -137,13 +127,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         String errorMessage = extractErrors(exception);
         return ResponseEntity.status(statusType.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(Problem.builder()
-                .withType(type)
-                .withTitle(title)
-                .withDetail(errorMessage)
-                .withStatus(statusType)
-                .build());
-
+            .body(new CustomProblem(type, statusType.getStatusCode(), title, errorMessage));
     }
 
     @ExceptionHandler({
@@ -154,10 +138,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(new ConstraintViolationProblem(
+            .body(new CustomConstraintViolationProblem(
                 ex.getType(),
                 ex.getStatus(),
-                ex.getViolations())
+                ex.getViolations(),
+                ex.getStatus().getStatusCode())
             );
     }
 
@@ -175,10 +160,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
         return ResponseEntity.status(status.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(new ConstraintViolationProblem(
+            .body(new CustomConstraintViolationProblem(
                 type,
                 status,
-                violations)
+                violations,
+                status.getStatusCode())
             );
     }
 
@@ -203,10 +189,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
 
         return ResponseEntity.status(status.getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(new ConstraintViolationProblem(
+            .body(new CustomConstraintViolationProblem(
                 type,
                 status,
-                violations)
+                violations,
+                status.getStatusCode())
             );
 
     }
@@ -233,12 +220,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(Problem.builder()
-                .withType(ex.getType())
-                .withTitle(ex.getTitle())
-                .withDetail(ex.getMessage())
-                .withStatus(ex.getStatus())
-                .build());
+            .body(new CustomProblem(ex.getType(), ex.getStatus().getStatusCode(), ex.getTitle(), ex.getMessage()));
     }
 
     /**

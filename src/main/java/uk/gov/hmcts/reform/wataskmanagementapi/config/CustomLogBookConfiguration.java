@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.zalando.logbook.HeaderFilter;
-import org.zalando.logbook.HeaderFilters;
+import org.zalando.logbook.core.HeaderFilters;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
 
 @Configuration
