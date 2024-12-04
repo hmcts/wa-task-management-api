@@ -102,8 +102,6 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
         TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
         assertDoesNotThrow(() -> taskMandatoryFieldsValidator.validate(task));
 
-    }
-
     @ParameterizedTest
     @NullSource
     @EmptySource
