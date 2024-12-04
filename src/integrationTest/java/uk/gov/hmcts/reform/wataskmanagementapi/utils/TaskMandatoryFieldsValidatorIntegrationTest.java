@@ -101,13 +101,13 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     void should_validate_successfully_when_all_mandatory_fields_are_present(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location, String roleCategory, String workTypeResource) {
         TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
         assertDoesNotThrow(() -> taskMandatoryFieldsValidator.validate(task));
+    }
 
     @ParameterizedTest
     @NullSource
     @EmptySource
     @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing and field name present in message")
-    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_missing_and_field_name_present_in_message(
-        String attributeValue) {
+    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_missing_and_field_name_present_in_message(String attributeValue) {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId(attributeValue);
         ServiceMandatoryFieldValidationException exception =
