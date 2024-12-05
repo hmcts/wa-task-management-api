@@ -6,13 +6,17 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 
 /**
  * Helper class for reconfiguring task resources.
@@ -25,6 +29,7 @@ public class TaskReconfigurationTransactionHandler {
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
+    private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     /**
      * Constructor for TaskReconfigurationTransactionHandler.
@@ -35,10 +40,12 @@ public class TaskReconfigurationTransactionHandler {
      */
     public TaskReconfigurationTransactionHandler(CFTTaskDatabaseService cftTaskDatabaseService,
                                                  ConfigureTaskService configureTaskService,
-                                                 TaskAutoAssignmentService taskAutoAssignmentService) {
+                                                 TaskAutoAssignmentService taskAutoAssignmentService,
+                                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
+        this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
     }
 
     /**
@@ -74,12 +81,20 @@ public class TaskReconfigurationTransactionHandler {
             ));
         if (optionalTaskResource.isPresent()) {
             TaskResource taskResource = optionalTaskResource.get();
-            taskResource = configureTaskService.reconfigureCFTTask(taskResource);
-            taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-            taskResource.setReconfigureRequestTime(null);
-            taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-            resetIndexed(taskResource);
-            return Optional.of(cftTaskDatabaseService.saveTask(taskResource));
+            try {
+                log.info("Re-configure task-id {}", taskId);
+                taskResource = configureTaskService.reconfigureCFTTask(taskResource);
+                taskMandatoryFieldsValidator.validate(taskResource);
+                taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                taskResource.setReconfigureRequestTime(null);
+                taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                resetIndexed(taskResource);
+                return Optional.of(cftTaskDatabaseService.saveTask(taskResource));
+            } catch (ServiceMandatoryFieldValidationException e) {
+                log.error("Error when reconfiguring task({})",
+                          MANDATORY_FIELD_MISSING_ERROR.getDetail() + taskId + e.getMessage(), e);
+                throw e;
+            }
         } else {
             optionalTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
             if (optionalTaskResource.isPresent()) {
