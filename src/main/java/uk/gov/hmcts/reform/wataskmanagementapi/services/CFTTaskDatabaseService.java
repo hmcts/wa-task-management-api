@@ -75,9 +75,9 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(caseIds, states);
     }
 
-    public List<TaskResource> getActiveTasksAndReconfigureRequestTimeGreaterThan(
+    public List<String> getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
         List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime) {
-        return tasksRepository.findByStateInAndReconfigureRequestTimeGreaterThan(
+        return tasksRepository.findTaskIdsByStateInAndReconfigureRequestTimeGreaterThan(
             states, reconfigureRequestTime);
     }
 
