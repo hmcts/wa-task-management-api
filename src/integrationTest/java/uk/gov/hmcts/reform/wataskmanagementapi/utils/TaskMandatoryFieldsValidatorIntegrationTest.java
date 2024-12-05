@@ -59,38 +59,38 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
 
     @ParameterizedTest
     @CsvSource({
-        "'', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', '', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', '', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', '', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', '', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', '', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', '', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', '', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', '', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', '', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', ''",
-        ", 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', , 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', , 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', , 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', , 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', , 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', , 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', , 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', , '765324', 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', , 'roleCategory', 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', , 'workTypeResource'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', ",
+        "'', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskName'",
+        "'someTaskName', '', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskType'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', '', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'title'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', '', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', '', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseTypeId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', '', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', '', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseName'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', '', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'jurisdiction'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', '', '765324', 'roleCategory', 'workTypeResource', 'region'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '', 'roleCategory', 'workTypeResource', 'location'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', '', 'workTypeResource', 'roleCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', '', 'workTypeResource'",
+        ", 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskName'",
+        "'someTaskName', , 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskType'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', , 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'title'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', , 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', , 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseTypeId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', , 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', , 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseName'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', , 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'jurisdiction'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', , '765324', 'roleCategory', 'workTypeResource', 'region'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', , 'roleCategory', 'workTypeResource', 'location'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', , 'workTypeResource', 'roleCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', , 'workTypeResource'",
 
     })
     @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
-    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_missing(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location, String roleCategory, String workTypeResource) {
+    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_missing(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location, String roleCategory, String workTypeResource, String fieldName) {
         TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
         ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, () -> taskMandatoryFieldsValidator.validate(task));
         String message = exception.getMessage();
-        assertTrue(message.contains("cannot be null or empty"));
+        assertTrue(message.contains(fieldName + " cannot be null or empty"));
     }
 
     @ParameterizedTest
