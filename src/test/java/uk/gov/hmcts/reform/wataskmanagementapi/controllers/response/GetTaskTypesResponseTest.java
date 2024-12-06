@@ -27,7 +27,7 @@ class GetTaskTypesResponseTest {
         final GetTaskTypesResponse getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
 
         assertThat(getTaskTypesResponse.getTaskTypeResponses().size())
-            .isEqualTo(1);
+            .isEqualTo(1); // NOSONAR assert does not contain a hasSize method
 
         assertThat(getTaskTypesResponse.getTaskTypeResponses())
             .isEqualTo(taskTypeResponses);
