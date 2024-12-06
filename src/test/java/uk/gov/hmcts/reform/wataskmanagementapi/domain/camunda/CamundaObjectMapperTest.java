@@ -94,8 +94,8 @@ class CamundaObjectMapperTest {
         CamundaVariable actual = camundaObjectMapper.readValue(expectedCamundaVariable, CamundaVariable.class);
         assertNotNull(actual.getType());
         assertNotNull(actual.getValue());
-        assertEquals(actual.getType(), "string");
-        assertEquals(actual.getValue(), "assigned");
+        assertEquals("string", actual.getType());
+        assertEquals("assigned", actual.getValue());
     }
 
     @Test
