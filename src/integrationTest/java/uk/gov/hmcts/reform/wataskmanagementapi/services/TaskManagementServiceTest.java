@@ -45,6 +45,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -127,6 +128,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
+    @MockBean
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach
     void setUp() {
@@ -151,7 +154,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentVerification,
             entityManager,
             systemUserIdamToken,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
         mockServices.mockServiceAPIs();
     }
