@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -64,15 +66,19 @@ class TaskMandatoryFieldsValidatorTest {
         assertDoesNotThrow(() -> taskMandatoryFieldsValidator.validate(task));
     }
 
-    @Test
-    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
-    void should_throw_service_mandatory_field_validation_exception_when_service_specific_mandatory_field_is_missing() {
+    @ParameterizedTest(name = "should throw exception when a mandatory field is missing")
+    @CsvSource({
+        "'', ''",
+        ","
+    })
+    void should_throw_exception_when_service_specific_mandatory_field_is_missing(String caseId,
+                                                                                 String workTypeResource) {
         taskMandatoryFieldsValidator = new TaskMandatoryFieldsValidator(
             launchDarklyFeatureFlagProvider, true,
             List.of("caseId", "caseName", "taskId", "workTypeResource"), jsonParserUtils);
         TaskResource task = getTaskResource(taskId);
-        task.setCaseId("");
-        task.setWorkTypeResource(new WorkTypeResource("", "workTypeDescription"));
+        task.setCaseId(caseId);
+        task.setWorkTypeResource(new WorkTypeResource(workTypeResource, "workTypeDescription"));
         ServiceMandatoryFieldValidationException exception =
             assertThrows(ServiceMandatoryFieldValidationException.class,
                          () -> taskMandatoryFieldsValidator.validate(task));
