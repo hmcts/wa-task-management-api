@@ -2,10 +2,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mockito;
@@ -18,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.JsonParserUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
@@ -32,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -53,19 +57,57 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
             .thenReturn(LDValue.parse("{\"jurisdictions\":[\"WA\"]}"));
     }
 
-    @Test
+    @ParameterizedTest
+    @CsvSource({
+        "'', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskName'",
+        "'someTaskName', '', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskType'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', '', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'title'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', '', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', '', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseTypeId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', '', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', '', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseName'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', '', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'jurisdiction'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', '', '765324', 'roleCategory', 'workTypeResource', 'region'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '', 'roleCategory', 'workTypeResource', 'location'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', '', 'workTypeResource', 'roleCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', '', 'workTypeResource'",
+        ", 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskName'",
+        "'someTaskName', , 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskType'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', , 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'title'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', , 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', , 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseTypeId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', , 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', , 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseName'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', , 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'jurisdiction'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', , '765324', 'roleCategory', 'workTypeResource', 'region'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', , 'roleCategory', 'workTypeResource', 'location'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', , 'workTypeResource', 'roleCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', , 'workTypeResource'",
+
+    })
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
+    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_missing(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location, String roleCategory, String workTypeResource, String fieldName) {
+        TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
+        ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, () -> taskMandatoryFieldsValidator.validate(task));
+        String message = exception.getMessage();
+        assertTrue(message.contains(fieldName + " cannot be null or empty"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
+        })
     @DisplayName("should validate successfully when all mandatory fields are present")
-    void should_validate_successfully_when_all_mandatory_fields_are_present() {
-        TaskResource task = getTaskResource(taskId);
+    void should_validate_successfully_when_all_mandatory_fields_are_present(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location, String roleCategory, String workTypeResource) {
+        TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
         assertDoesNotThrow(() -> taskMandatoryFieldsValidator.validate(task));
     }
 
     @ParameterizedTest
     @NullSource
     @EmptySource
-    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is empty")
-    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_empty(
-        String attributeValue) {
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing and field name present in message")
+    void should_throw_service_mandatory_field_validation_exception_when_a_mandatory_field_is_missing_and_field_name_present_in_message(String attributeValue) {
         TaskResource task = getTaskResource(taskId);
         task.setCaseId(attributeValue);
         ServiceMandatoryFieldValidationException exception =
@@ -133,28 +175,64 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     }
 
     private static TaskResource getTaskResource(String taskId) {
-        final TaskResource taskResource = new TaskResource(
+        return getTaskResource(
             taskId,
             "someTaskName",
             "someTaskType",
+            "PUBLIC",
+            "title",
+            "CASE_ID",
+            "Asylum",
+            "CaseCategory",
+            "CaseName",
+            "IA",
+            "TestRegion",
+            "765324"
+        );
+    }
+
+    private static TaskResource getTaskResource(String taskId, String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location) {
+        final TaskResource taskResource = new TaskResource(
+            taskId,
+            taskName,
+            taskType,
             CFTTaskState.UNASSIGNED
         );
         taskResource.setCreated(OffsetDateTime.now());
         taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction("IA");
-        taskResource.setCaseTypeId("Asylum");
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("CASE_ID");
-        taskResource.setTitle("title");
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseTypeId);
+        taskResource.setSecurityClassification(SecurityClassification.valueOf(securityClassification));
+        taskResource.setLocation(location);
+        taskResource.setRegion(region);
+        taskResource.setCaseId(caseId);
+        taskResource.setTitle(title);
         taskResource.setMajorPriority(2000);
         taskResource.setMinorPriority(500);
         taskResource.setExecutionTypeCode(
             new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"));
-        taskResource.setCaseCategory("CaseCategory");
-        taskResource.setCaseName("CaseName");
+        taskResource.setCaseCategory(caseCategory);
+        taskResource.setCaseName(caseName);
+        return taskResource;
+    }
+
+    private static TaskResource getTaskResource(String taskId, String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location, String roleCategory, String workTypeResource) {
+        TaskResource taskResource = getTaskResource(
+            taskId,
+            taskName,
+            taskType,
+            securityClassification,
+            title,
+            caseId,
+            caseTypeId,
+            caseCategory,
+            caseName,
+            jurisdiction,
+            region,
+            location
+        );
+        taskResource.setRoleCategory(roleCategory);
+        taskResource.setWorkTypeResource(new WorkTypeResource((String) workTypeResource, StringUtils.EMPTY));
         return taskResource;
     }
 }

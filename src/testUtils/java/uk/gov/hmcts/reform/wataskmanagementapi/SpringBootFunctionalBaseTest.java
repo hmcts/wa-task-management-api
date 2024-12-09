@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassifica
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
@@ -70,7 +71,7 @@ public abstract class SpringBootFunctionalBaseTest {
         "Could not complete task with id: %s as task was assigned to other user %s";
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-    private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
+    protected static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
     protected static final String TASK_GET_ENDPOINT = "task/{task-id}";
     protected static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
     protected static final String WA_JURISDICTION = "WA";
@@ -105,6 +106,8 @@ public abstract class SpringBootFunctionalBaseTest {
     protected IdamService idamService;
     @Autowired
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @Autowired
+    protected TaskMandatoryFieldsValidator  taskMandatoryFieldsValidator;
     @Autowired
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
@@ -296,7 +299,24 @@ public abstract class SpringBootFunctionalBaseTest {
         };
     }
 
-    private void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
+    public void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
+
+        InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(testVariables, additionalProperties);
+        Response response = restApiActions.post(
+            TASK_INITIATION_ENDPOINT,
+            testVariables.getTaskId(),
+            initiateTaskRequest,
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
+
+        //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
+        // second initiation request, so we are by-passing 503 and 201 response statuses.
+        assertResponse(response);
+
+    }
+
+    protected InitiateTaskRequestMap initiateTaskRequestMap(TestVariables testVariables, Map<String,
+        String> additionalProperties) {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(10);
@@ -320,18 +340,7 @@ public abstract class SpringBootFunctionalBaseTest {
             INITIATION,
             taskAttributes
         );
-
-        Response response = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            testVariables.getTaskId(),
-            initiateTaskRequest,
-            authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
-
-        //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
-        // second initiation request, so we are by-passing 503 and 201 response statuses.
-        assertResponse(response);
-
+        return initiateTaskRequest;
     }
 
     private void assertResponse(Response response) {

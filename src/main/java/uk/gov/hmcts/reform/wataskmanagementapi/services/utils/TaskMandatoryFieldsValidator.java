@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 
 import java.util.ArrayList;
@@ -26,12 +28,13 @@ import javax.validation.ValidationException;
 public class TaskMandatoryFieldsValidator {
 
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    private final boolean isMandatoryFieldCheckEnabled;
+    private final boolean taskMandatoryFieldCheckEnabled;
     private final List<String> taskMandatoryFields;
     public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
     private final JsonParserUtils jsonParserUtils;
 
-    private final List<String> tmSpecificMandatoryFields = List.of("taskId", "state","executionTypeCode","created");
+    private final List<String> tmSpecificMandatoryFields = List.of("taskId", "state","executionTypeCode","created",
+                                                                   "dueDateTime", "majorPriority", "minorPriority");
 
     /**
      * Constructor for TaskMandatoryFieldsValidator.
@@ -47,7 +50,7 @@ public class TaskMandatoryFieldsValidator {
                                         @Value("${config.taskMandatoryFields}") List<String> taskMandatoryFields,
                                         JsonParserUtils jsonParserUtils) {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
-        this.isMandatoryFieldCheckEnabled = taskMandatoryFieldCheckEnabled;
+        this.taskMandatoryFieldCheckEnabled = taskMandatoryFieldCheckEnabled;
         this.taskMandatoryFields = taskMandatoryFields;
         this.jsonParserUtils = jsonParserUtils;
     }
@@ -59,8 +62,7 @@ public class TaskMandatoryFieldsValidator {
      */
     public void validate(TaskResource task) {
         log.info("Validating mandatory fields for task {}", task.getTaskId());
-
-        if (isMandatoryFieldCheckEnabled) {
+        if (taskMandatoryFieldCheckEnabled) {
             LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
                 FeatureFlag.WA_MANDATORY_FIELD_CHECK,
                 LDValue.of("{\"jurisdictions\": []}")
@@ -105,11 +107,11 @@ public class TaskMandatoryFieldsValidator {
     }
 
     /**
-     * Validates the mandatory fields of a task.
+     * Validates the mandatory fields of a given task.
      *
      * @param task the task to be validated
-     * @throws ValidationException if any mandatory field is missing or invalid
-     * @throws IllegalArgumentException if a property value cannot be found
+     * @throws ServiceMandatoryFieldValidationException if any service-specific mandatory fields are null or empty
+     * @throws ValidationException if any TM-specific mandatory fields are null or empty
      */
     public void validateTaskMandatoryFields(TaskResource task) {
         List<String> serviceSpecificErrors = new ArrayList<>();
@@ -135,7 +137,19 @@ public class TaskMandatoryFieldsValidator {
         }
     }
 
+    /**
+     * Checks if the given field value is null or empty.
+     *
+     * @param fieldValue the value of the field to be checked
+     * @return true if the field value is null or empty, false otherwise
+     */
     private boolean isFieldNullOrEmpty(Object fieldValue) {
+        if (fieldValue instanceof WorkTypeResource workTypeResource) {
+            return workTypeResource.getId() == null || workTypeResource.getId().isBlank();
+        } else if (fieldValue instanceof ExecutionTypeResource executionTypeResource) {
+            return executionTypeResource.getExecutionCode() == null
+                || executionTypeResource.getExecutionCode().getValue().isBlank();
+        }
         return fieldValue == null || fieldValue.toString().isBlank();
     }
 
