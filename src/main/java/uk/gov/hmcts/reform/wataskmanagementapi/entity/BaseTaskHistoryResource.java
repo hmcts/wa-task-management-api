@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,13 +21,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 @ToString
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@TypeDefs(
-    {
-        @TypeDef(
-            name = JSONB,
-            typeClass = JsonType.class
-        )
-    }
+@TypeDef(
+    name = JSONB,
+    typeClass = JsonType.class
 )
 @SuppressWarnings({"PMD.TooManyFields"})
 @MappedSuperclass
