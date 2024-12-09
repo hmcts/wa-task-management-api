@@ -450,7 +450,7 @@ class TaskActionsControllerTest {
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
                 SERVICE_AUTHORIZATION_TOKEN);
 
-        assertEquals(responseEntity.getStatusCode(),HttpStatus.CREATED);
+        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     }
 
     @Test
@@ -464,7 +464,7 @@ class TaskActionsControllerTest {
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
                 SERVICE_AUTHORIZATION_TOKEN);
 
-        assertEquals(responseEntity.getStatusCode(),HttpStatus.FORBIDDEN);
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
     }
 
     @Test
@@ -477,7 +477,7 @@ class TaskActionsControllerTest {
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
                 SERVICE_AUTHORIZATION_TOKEN);
 
-        assertEquals(responseEntity.getStatusCode(), BAD_REQUEST);
+        assertEquals(BAD_REQUEST, responseEntity.getStatusCode());
     }
 
     @Test
@@ -494,7 +494,7 @@ class TaskActionsControllerTest {
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
                 SERVICE_AUTHORIZATION_TOKEN);
 
-        assertEquals(responseEntity.getStatusCode(), INTERNAL_SERVER_ERROR);
+        assertEquals(INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
 

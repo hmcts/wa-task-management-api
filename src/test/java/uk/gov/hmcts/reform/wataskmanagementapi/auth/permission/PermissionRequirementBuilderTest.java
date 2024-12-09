@@ -28,17 +28,17 @@ class PermissionRequirementBuilderTest {
         Exception exception = assertThrows(IllegalStateException.class, () -> {
             builder.joinPermissionRequirement(PermissionJoin.AND);
         });
-        assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
+        assertEquals(NOT_INITIATED_ERROR, exception.getMessage());
 
         exception = assertThrows(IllegalStateException.class, () -> {
             builder.nextPermissionRequirement(List.of(), PermissionJoin.AND);
         });
-        assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
+        assertEquals(NOT_INITIATED_ERROR, exception.getMessage());
 
         exception = assertThrows(IllegalStateException.class, () -> {
             builder.nextPermissionRequirement(OWN);
         });
-        assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
+        assertEquals(NOT_INITIATED_ERROR, exception.getMessage());
     }
 
     @Test
@@ -49,7 +49,7 @@ class PermissionRequirementBuilderTest {
         Exception exception = assertThrows(IllegalStateException.class, () -> {
             builder.initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND);
         });
-        assertEquals(exception.getMessage(), ALREADY_INITIATED_ERROR);
+        assertEquals(ALREADY_INITIATED_ERROR, exception.getMessage());
     }
 
     @Test
@@ -60,12 +60,12 @@ class PermissionRequirementBuilderTest {
         Exception exception = assertThrows(IllegalStateException.class, () -> {
             builder.nextPermissionRequirement(List.of(MANAGE), PermissionJoin.AND);
         });
-        assertEquals(exception.getMessage(), NOT_JOINED_ERROR);
+        assertEquals(NOT_JOINED_ERROR, exception.getMessage());
 
         exception = assertThrows(IllegalStateException.class, () -> {
             builder.nextPermissionRequirement(MANAGE);
         });
-        assertEquals(exception.getMessage(), NOT_JOINED_ERROR);
+        assertEquals(NOT_JOINED_ERROR, exception.getMessage());
     }
 
     @Test
@@ -76,19 +76,19 @@ class PermissionRequirementBuilderTest {
             builder.initPermissionRequirement(null, PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_TYPES_ERROR);
+        assertEquals(NULL_PERMISSION_TYPES_ERROR, exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> {
             builder.initPermissionRequirement(List.of(), PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), EMPTY_PERMISSION_TYPES_ERROR);
+        assertEquals(EMPTY_PERMISSION_TYPES_ERROR, exception.getMessage());
 
         exception = assertThrows(NullPointerException.class, () -> {
             builder.initPermissionRequirement(List.of(MANAGE), null);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_JOIN_ERROR);
+        assertEquals(NULL_PERMISSION_JOIN_ERROR, exception.getMessage());
     }
 
     @Test
@@ -99,7 +99,7 @@ class PermissionRequirementBuilderTest {
             builder.initPermissionRequirement(null);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_TYPES_ERROR);
+        assertEquals(NULL_PERMISSION_TYPES_ERROR, exception.getMessage());
 
         PermissionRequirements requirements = builder.initPermissionRequirement(MANAGE).build();
         assertEquals(List.of(MANAGE), requirements.getPermissionRequirement().getPermissionTypes());
@@ -118,19 +118,19 @@ class PermissionRequirementBuilderTest {
             builder.nextPermissionRequirement(null, PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_TYPES_ERROR);
+        assertEquals(NULL_PERMISSION_TYPES_ERROR, exception.getMessage());
 
         exception = assertThrows(IllegalArgumentException.class, () -> {
             builder.nextPermissionRequirement(List.of(), PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), EMPTY_PERMISSION_TYPES_ERROR);
+        assertEquals(EMPTY_PERMISSION_TYPES_ERROR, exception.getMessage());
 
         exception = assertThrows(NullPointerException.class, () -> {
             builder.nextPermissionRequirement(List.of(MANAGE), null);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_JOIN_ERROR);
+        assertEquals(NULL_PERMISSION_JOIN_ERROR, exception.getMessage());
     }
 
     @Test
