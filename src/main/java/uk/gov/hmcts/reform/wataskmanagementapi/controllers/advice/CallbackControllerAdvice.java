@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.RequireDbLockException
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -79,6 +80,11 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler({NullPointerException.class, RequireDbLockException.class})
     protected ResponseEntity<ErrorMessage> handleGenericException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ServiceMandatoryFieldValidationException.class)
+    protected ResponseEntity<ErrorMessage> handleServiceMandatoryFieldValidationException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.BAD_GATEWAY);
     }
 
     private ResponseEntity<ErrorMessage> getErrorMessageResponseEntity(Exception ex, HttpStatus httpStatus) {

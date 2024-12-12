@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +61,8 @@ class UnclaimTaskTest extends CamundaHelpers {
     private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
     IdamTokenGenerator idamTokenGenerator;
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -121,7 +124,8 @@ class UnclaimTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator
         );
 
 
