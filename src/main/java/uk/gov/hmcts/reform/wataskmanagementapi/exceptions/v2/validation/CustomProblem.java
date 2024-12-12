@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.zalando.problem.Status;
 import org.zalando.problem.StatusType;
 import org.zalando.problem.ThrowableProblem;
 
@@ -43,7 +44,7 @@ public class CustomProblem extends ThrowableProblem {
     @JsonIgnore
     @JsonProperty("statusType")
     public StatusType getStatus() {
-        return null;
+        return Status.valueOf(this.statusCode);
     }
 
     @JsonProperty("status")
