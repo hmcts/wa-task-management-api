@@ -61,8 +61,8 @@ public class TaskMandatoryFieldsValidator {
      * @param task the task to be validated
      */
     public void validate(TaskResource task) {
-        log.info("Validating mandatory fields for task {}", task.getTaskId());
         if (taskMandatoryFieldCheckEnabled) {
+            log.info("Validating mandatory fields for task {}", task.getTaskId());
             LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
                 FeatureFlag.WA_MANDATORY_FIELD_CHECK,
                 LDValue.of("{\"jurisdictions\": []}")
