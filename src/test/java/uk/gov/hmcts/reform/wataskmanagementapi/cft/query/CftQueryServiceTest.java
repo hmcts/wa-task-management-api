@@ -379,7 +379,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             );
             SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
-            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            PermissionRequirementBuilder.builder()
                 .buildSingleRequirementWithAnd(OWN, READ);
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -557,7 +557,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            PermissionRequirementBuilder.builder()
                 .buildSingleRequirementWithAnd(OWN, READ);
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);

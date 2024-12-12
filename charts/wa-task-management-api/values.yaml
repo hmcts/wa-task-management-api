@@ -54,8 +54,8 @@ java:
     POSTGRES_REPLICA_HOST: cft-task-postgres-db-flexible-replica-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_REPLICA_NAME: cft_task_db
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"
-    ALLOWED_JURISDICTIONS: wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT
-    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS,ET_EnglandWales,ET_EnglandWales_Listings,ET_EnglandWales_Multiple,ET_Scotland,ET_Scotland_Listings,ET_Scotland_Multiple,ET_Admin,privatelaw_exceptionrecord,benefit
+    ALLOWED_JURISDICTIONS: wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT,ST_CIC
+    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS,ET_EnglandWales,ET_EnglandWales_Listings,ET_EnglandWales_Multiple,ET_Scotland,ET_Scotland_Listings,ET_Scotland_Multiple,ET_Admin,privatelaw_exceptionrecord,benefit,CriminalInjuriesCompensation
     TASK_TYPE_CACHE_TIMEOUT_DURATION: 60
     TASK_TYPE_CACHE_TIMEOUT_TIMEUNIT: MINUTES
     CALENDAR_CACHE_TIMEOUT_DURATION: 24

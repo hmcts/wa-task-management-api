@@ -205,7 +205,7 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
             throw new ConflictException("Task '" + task.getTaskId()
-                                        + "' is already claimed by someone else.", null);
+                                            + "' is already claimed by someone else.", null);
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
@@ -227,7 +227,7 @@ public class TaskManagementService {
     @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
         log.info("GP for {} and {} is {}", accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
+                 accessControlResponse.getUserInfo().getEmail()
         );
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
@@ -310,7 +310,7 @@ public class TaskManagementService {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
                 TaskAction taskAction = buildTaskActionAttributeForAssign(assigner.getUid(), Optional.empty(),
-                    currentAssignee);
+                                                                          currentAssignee);
                 unclaimTask(taskId, assigner.getUid(), taskHasUnassigned, taskAction);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
@@ -332,7 +332,7 @@ public class TaskManagementService {
                 task.setState(CFTTaskState.ASSIGNED);
                 task.setAssignee(assignee.get().getUid());
                 updateTaskActionAttributesForAssign(task, assigner.getUid(),
-                    Optional.of(assignee.get().getUid()), currentAssignee);
+                                                    Optional.of(assignee.get().getUid()), currentAssignee);
                 //Perform Camunda updates
                 camundaService.assignTask(
                     taskId,
@@ -370,7 +370,7 @@ public class TaskManagementService {
 
         if (!taskResource.getTaskRoleResources().stream().anyMatch(permission -> permission.getCancel().equals(true))
             && (taskResource.getAssignee() == null
-                || !userId.equals(taskResource.getAssignee()))) {
+            || !userId.equals(taskResource.getAssignee()))) {
             cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
                 taskId,
                 accessControlResponse.getRoleAssignments(),
@@ -387,7 +387,7 @@ public class TaskManagementService {
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
         log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
-            taskId, previousTaskState, isCftTaskStateExist
+                 taskId, previousTaskState, isCftTaskStateExist
         );
 
         try {
@@ -404,7 +404,7 @@ public class TaskManagementService {
         } catch (TaskCancelException ex) {
             if (isCftTaskStateExist) {
                 log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
-                    taskId, ex.getMessage()
+                         taskId, ex.getMessage()
                 );
                 throw ex;
             }
@@ -413,13 +413,13 @@ public class TaskManagementService {
                 task.setState(CFTTaskState.TERMINATED);
                 cftTaskDatabaseService.saveTask(task);
                 log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
-                    taskId, previousTaskState
+                         taskId, previousTaskState
                 );
                 return;
             }
 
             log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
-                     + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+                         + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
             throw ex;
         }
     }
@@ -445,9 +445,9 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         CFTTaskState state = task.getState();
         taskHasCompleted = state != null
-                           && (state.equals(CFTTaskState.COMPLETED)
-                               || state.equals(CFTTaskState.TERMINATED)
-                                  && task.getTerminationReason().equals("completed"));
+            && (state.equals(CFTTaskState.COMPLETED)
+            || state.equals(CFTTaskState.TERMINATED)
+            && task.getTerminationReason().equals("completed"));
 
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
@@ -692,10 +692,10 @@ public class TaskManagementService {
                                          Optional<UserInfo> assignee) {
 
         return (currentAssignee.isPresent()
-                || assignee.isPresent())
-               && (currentAssignee.isEmpty()
-                   || assignee.isEmpty()
-                   || !currentAssignee.get().equals(assignee.get().getUid()));
+            || assignee.isPresent())
+            && (currentAssignee.isEmpty()
+            || assignee.isEmpty()
+            || !currentAssignee.get().equals(assignee.get().getUid()));
     }
 
     private PermissionRequirements assignerPermissionRequirement(UserInfo assigner,
@@ -730,7 +730,7 @@ public class TaskManagementService {
                 .nextPermissionRequirement(List.of(UNASSIGN, ASSIGN), AND)
                 .build();
         } else if (assigner.getUid().equals(currentAssignee)
-                   && !assigner.getUid().equals(assigneeUid)) {
+            && !assigner.getUid().equals(assigneeUid)) {
             //Task is assigned to requester and requester tries to assign it to someone new
             return PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(UNCLAIM_ASSIGN)
@@ -796,7 +796,7 @@ public class TaskManagementService {
 
         //Safe-guard
         checkAssignee(taskResource, userId, taskId,
-            accessControlResponse.getRoleAssignments());
+                      accessControlResponse.getRoleAssignments());
 
     }
 
@@ -810,7 +810,7 @@ public class TaskManagementService {
             } else if (!userId.equals(taskResource.getAssignee())) {
                 throw new TaskStateIncorrectException(
                     String.format("Could not complete task with id: %s as task was assigned to other user %s",
-                        taskId, taskResource.getAssignee()
+                                  taskId, taskResource.getAssignee()
                     )
                 );
             }
@@ -838,7 +838,7 @@ public class TaskManagementService {
     private boolean hasCompletePermissionForRole(Set<TaskRoleResource> taskRoleResources, String roleName) {
         return taskRoleResources.stream()
             .anyMatch(taskRoleResource -> roleName.equals(taskRoleResource.getRoleName())
-                                          && Boolean.TRUE.equals(taskRoleResource.getComplete()));
+                && Boolean.TRUE.equals(taskRoleResource.getComplete()));
     }
 
     private void setSystemUserTaskActionAttributes(TaskResource taskResource, TaskAction taskAction) {
