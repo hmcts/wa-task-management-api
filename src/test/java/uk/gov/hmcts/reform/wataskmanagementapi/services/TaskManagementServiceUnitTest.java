@@ -72,6 +72,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerif
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -186,6 +188,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     private CriteriaBuilder builder;
     @Mock
     private CriteriaQuery<TaskResource> criteriaQuery;
+
+    @Mock
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @Mock
     private Predicate predicate;
     @Mock
@@ -230,7 +235,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator
         );
 
 
@@ -2430,6 +2436,17 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        void should_throw_exception_for_missing_mandatory_fields_on_task_initiation()
+            throws ServiceMandatoryFieldValidationException {
+            lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
+                .thenReturn(taskResource);
+            lenient().doThrow(new ServiceMandatoryFieldValidationException("some unexpected error"))
+                .when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(ServiceMandatoryFieldValidationException.class);
         }
 
         @Test

@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfig
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -121,7 +122,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private RoleAssignmentVerificationService roleAssignmentVerification;
     @Mock
     private EntityManager entityManager;
-
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
@@ -146,7 +148,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());
