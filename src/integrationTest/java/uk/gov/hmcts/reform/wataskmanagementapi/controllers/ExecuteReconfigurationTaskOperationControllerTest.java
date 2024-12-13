@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -117,6 +119,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     private RoleAssignmentService roleAssignmentService;
     @MockBean
     private IdamWebApi idamWebApi;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
@@ -1217,7 +1221,9 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
     @Test
     void should_not_execute_reconfigure_if_task_validation_fails(CapturedOutput output) throws Exception {
-
+        String jsonString = "{\"jurisdictions\":[\"WA\"]}";
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(LDValue.parse(jsonString));
         String caseIdToday = "caseId" + OffsetDateTime.now();
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
@@ -1249,16 +1255,18 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        Thread.sleep(5000);
-
-        taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
-        taskResources.forEach(task -> {
-            assertNull(task.getLastReconfigurationTime());
-            assertNotNull(task.getReconfigureRequestTime());
-        });
-        assertTrue(output.getOut()
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .untilAsserted(() -> {
+        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                taskResourcesAfter.forEach(task -> {
+                    assertNull(task.getLastReconfigurationTime());
+                    assertNotNull(task.getReconfigureRequestTime());
+                });
+                assertTrue(output.getOut()
                        .contains(MANDATORY_FIELD_MISSING_ERROR.getDetail() + taskResources.get(0).getTaskId()));
+            });
     }
 
     @Test
