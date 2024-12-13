@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -874,6 +875,38 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         //Expect to get 503 for database conflict
         initiateTask(taskVariables, waCaseworkerCredentials.getHeaders(), assertConsumer);
         common.cleanUpTask(taskId);
+    }
+
+    @Ignore
+    @Test
+    public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "validateMandatoryTaskAttributesDuringInitiation",
+            "validateMandatoryTaskAttributesDuringInitiation"
+        );
+
+        assignerCredentials = authorizationProvider.getNewWaTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
+        common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
+                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
+
+        InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(taskVariables, null);
+        Response response = restApiActions.post(
+            TASK_INITIATION_ENDPOINT,
+            taskVariables.getTaskId(),
+            initiateTaskRequest,
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.BAD_GATEWAY.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("error", equalTo("Bad Gateway"))
+            .body("status", equalTo(502))
+            .body("message", containsString(MANDATORY_FIELD_MISSING_ERROR.getDetail()));
+
+        common.cleanUpTask(taskVariables.getTaskId());
     }
 
     @Test
