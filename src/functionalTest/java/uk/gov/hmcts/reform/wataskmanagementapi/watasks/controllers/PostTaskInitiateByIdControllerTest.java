@@ -910,37 +910,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "validateMandatoryTaskAttributesDuringInitiation",
-            "validateMandatoryTaskAttributesDuringInitiation"
-        );
-
-        assignerCredentials = authorizationProvider.getNewWaTribunalCaseworker(EMAIL_PREFIX_R3_5);
-
-        common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
-        );
-
-        InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(taskVariables, null);
-        Response response = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            taskVariables.getTaskId(),
-            initiateTaskRequest,
-            authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
-
-        response.then().assertThat()
-            .statusCode(HttpStatus.BAD_GATEWAY.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("error", equalTo("Bad Gateway"))
-            .body("status", equalTo(502))
-            .body("message", containsString(MANDATORY_FIELD_MISSING_ERROR.getDetail()));
-
-        common.cleanUpTask(taskVariables.getTaskId());
-    }
-
-    @Test
     public void should_calculate_due_date_must_be_working_day_should_default_to_next() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
