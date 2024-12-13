@@ -62,7 +62,7 @@ public class TaskMandatoryFieldsValidator {
      */
     public void validate(TaskResource task) {
         log.info("Validating mandatory fields for task {}", task.getTaskId());
-        if (isMandatoryFieldCheckEnabled()) {
+        if (taskMandatoryFieldCheckEnabled) {
             LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
                 FeatureFlag.WA_MANDATORY_FIELD_CHECK,
                 LDValue.of("{\"jurisdictions\": []}")
@@ -86,10 +86,6 @@ public class TaskMandatoryFieldsValidator {
                 validateTaskMandatoryFields(task);
             }
         }
-    }
-
-    public boolean isMandatoryFieldCheckEnabled() {
-        return taskMandatoryFieldCheckEnabled;
     }
 
     /**
