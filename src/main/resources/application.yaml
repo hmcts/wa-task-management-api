@@ -157,13 +157,6 @@ logging:
     org.zalando.logbook: INFO
     org.testcontainers: INFO
     com.github.dockerjava: INFO
-    org:
-      springframework:
-        core:
-          env: DEBUG
-        boot:
-          context:
-            config: DEBUG
 
 logbook:
   include: /task/**

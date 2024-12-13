@@ -1259,13 +1259,13 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .untilAsserted(() -> {
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
                 taskResourcesAfter.forEach(task -> {
                     assertNull(task.getLastReconfigurationTime());
                     assertNotNull(task.getReconfigureRequestTime());
                 });
                 assertTrue(output.getOut()
-                       .contains(MANDATORY_FIELD_MISSING_ERROR.getDetail() + taskResources.get(0).getTaskId()));
+                               .contains(MANDATORY_FIELD_MISSING_ERROR.getDetail() + taskResources.get(0).getTaskId()));
             });
     }
 
