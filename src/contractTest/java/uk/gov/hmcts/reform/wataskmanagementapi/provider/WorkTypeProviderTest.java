@@ -69,11 +69,6 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
         workTypes.add(new WorkType("follow_up", "Follow Up"));
         workTypes.add(new WorkType("pre_hearing", "Pre-Hearing"));
         workTypes.add(new WorkType("post_hearing", "Post-Hearing"));
-        workTypes.add(new WorkType("intermediate_track_hearing_work", "Intermediate track hearing work"));
-        workTypes.add(new WorkType("multi_track_hearing_work", "Multi track hearing work"));
-        workTypes.add(new WorkType("intermediate_track_decision_making_work",
-                                   "Intermediate track decision making work"));
-        workTypes.add(new WorkType("multi_track_decision_making_work", "Multi track decision making work"));
 
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         UserInfo userInfo = mock((UserInfo.class));
