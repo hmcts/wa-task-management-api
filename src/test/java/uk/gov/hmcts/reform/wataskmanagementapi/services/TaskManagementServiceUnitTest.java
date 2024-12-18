@@ -2208,7 +2208,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-                TaskResource taskResource = spy(TaskResource.class);
                 PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
 
@@ -2220,7 +2219,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     ));
                 assertEquals("Task Not Found Error: The task could not be found.",
                     exception.getMessage());
-
+                TaskResource taskResource = spy(TaskResource.class);
                 verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
