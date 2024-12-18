@@ -65,6 +65,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerif
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -188,6 +190,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     private CriteriaBuilderImpl builder;
     @Mock
     private CriteriaQuery<TaskResource> criteriaQuery;
+
+    @Mock
+    private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @Mock
     private Predicate predicate;
     @Mock
@@ -232,7 +237,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator
         );
 
 
@@ -337,7 +343,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
         @Test
         void getTask_should_throw_task_not_found_exception_when_task_does_not_exist() {
 
-            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(READ);
+            PermissionRequirementBuilder.builder().buildSingleType(READ);
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))
@@ -503,7 +509,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-            TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
                 .joinPermissionRequirement(PermissionJoin.OR)
@@ -1580,7 +1585,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
-            PermissionRequirements requirements = PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
+            PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
@@ -1815,7 +1820,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-            TaskResource taskResource = spy(TaskResource.class);
             PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                 .joinPermissionRequirement(OR)
@@ -1964,7 +1968,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 when(roleAssignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
                 List<RoleAssignment> roleAssignments = List.of(roleAssignment);
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-                TaskResource taskResource = spy(TaskResource.class);
 
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
@@ -2056,7 +2059,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-                TaskResource taskResource = spy(TaskResource.class);
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -2182,7 +2184,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-                TaskResource taskResource = spy(TaskResource.class);
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
@@ -2206,7 +2207,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 TaskResource taskResource = spy(TaskResource.class);
-                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -2396,7 +2397,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-                PermissionRequirements requirements = PermissionRequirementBuilder.builder()
+                PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2441,6 +2442,17 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        void should_throw_exception_for_missing_mandatory_fields_on_task_initiation()
+            throws ServiceMandatoryFieldValidationException {
+            lenient().when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
+                .thenReturn(taskResource);
+            lenient().doThrow(new ServiceMandatoryFieldValidationException("some unexpected error"))
+                .when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(ServiceMandatoryFieldValidationException.class);
         }
 
         @Test
