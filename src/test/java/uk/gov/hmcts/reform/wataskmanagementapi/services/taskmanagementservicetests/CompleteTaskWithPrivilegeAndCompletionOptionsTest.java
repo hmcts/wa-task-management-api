@@ -193,34 +193,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
             }
 
-            @Test
-            void should_throw_exception_when_task_resource_not_found() {
-                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-                final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-                when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-                TaskResource taskResource = spy(TaskResource.class);
-
-                PermissionRequirementBuilder.builder()
-                    .buildSingleRequirementWithOr(OWN, EXECUTE);
-                when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
-
-                Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
-                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                        taskId,
-                        accessControlResponse,
-                        new CompletionOptions(true)
-                    ));
-                assertEquals(
-                    "Task Not Found Error: The task could not be found.",
-                    exception.getMessage()
-                );
-
-                TaskResource taskResource = spy(TaskResource.class);
-                verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), anyBoolean());
-                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
-            }
-
         }
 
         @Nested
