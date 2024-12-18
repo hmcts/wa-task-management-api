@@ -220,10 +220,6 @@ class CaseConfigurationProviderServiceTest {
         String taskAttributesString = "{\"taskType\":\"taskType\"}";
         Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.now().plusDays(2);
-        String defaultDate = date.format(formatter) + "T16:00";
-
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributesString))
             .thenReturn(asList(

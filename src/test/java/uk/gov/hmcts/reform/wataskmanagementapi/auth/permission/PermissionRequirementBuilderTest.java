@@ -61,7 +61,6 @@ class PermissionRequirementBuilderTest {
         });
 
         assertEquals(NOT_INITIATED_ERROR, exception.getMessage());
-
     }
 
     @Test

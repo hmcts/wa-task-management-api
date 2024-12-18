@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,9 @@ class AssignTaskTest extends CamundaHelpers {
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     IdamTokenGenerator idamTokenGenerator;
+
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -72,6 +76,28 @@ class AssignTaskTest extends CamundaHelpers {
 
     @Mock
     private List<TaskOperationPerformService> taskOperationPerformServices;
+
+    @BeforeEach
+    public void setUp() {
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            cftTaskDatabaseService,
+            cftQueryService,
+            cftSensitiveTaskEventLogsDatabaseService);
+        taskManagementService = new TaskManagementService(
+            camundaService,
+            cftTaskDatabaseService,
+            cftTaskMapper,
+            configureTaskService,
+            taskAutoAssignmentService,
+            roleAssignmentVerification,
+            entityManager,
+            idamTokenGenerator,
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
+
+
+        taskId = UUID.randomUUID().toString();
+    }
 
     @Test
     void assignTask_should_succeed() {
@@ -234,28 +260,6 @@ class AssignTaskTest extends CamundaHelpers {
         );
 
     }
-
-    @BeforeEach
-    public void setUp() {
-        roleAssignmentVerification = new RoleAssignmentVerificationService(
-            cftTaskDatabaseService,
-            cftQueryService,
-            cftSensitiveTaskEventLogsDatabaseService);
-        taskManagementService = new TaskManagementService(
-            camundaService,
-            cftTaskDatabaseService,
-            cftTaskMapper,
-            configureTaskService,
-            taskAutoAssignmentService,
-            roleAssignmentVerification,
-            entityManager,
-            idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
-
-
-        taskId = UUID.randomUUID().toString();
-    }
-
 
 }
 
