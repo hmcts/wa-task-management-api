@@ -25,13 +25,6 @@
   "automergeType": "pr",
   "packageRules": [
     {
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "automerge": true
-    },
-    {
       "matchDatasources": [
         "terraform-module",
         "terraform-provider"
