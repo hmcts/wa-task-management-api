@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -66,6 +67,8 @@ class CancelTaskTest extends CamundaHelpers {
     IdamTokenGenerator idamTokenGenerator;
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     String taskId;
     @Mock
     private EntityManager entityManager;
@@ -190,7 +193,8 @@ class CancelTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();

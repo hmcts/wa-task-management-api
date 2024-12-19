@@ -170,8 +170,6 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
 
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
             when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenThrow(FeignException.NotFound.class);
 
             assertThatThrownBy(() -> camundaService.getUnmappedCamundaTask(taskId))

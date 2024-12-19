@@ -16,7 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType.NEXT_HEARING_DATE;
 
 @ExtendWith(MockitoExtension.class)
@@ -144,14 +145,19 @@ class NextHearingDateCalculatorTest {
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate);
 
-        assertThatThrownBy(() -> nextHearingDateCalculator.calculateDate(
-            evaluationResponses,
-            NEXT_HEARING_DATE_TYPE,
-            configurable,
-            new HashMap<>(),
-            new ArrayList<>()
-        )).isInstanceOf(RuntimeException.class)
-            .hasMessage("Provided date has invalid format: " + expectedNextHearingDate + time);
+        Exception exception = assertThrowsExactly(RuntimeException.class, () ->
+            nextHearingDateCalculator.calculateDate(
+                evaluationResponses,
+                NEXT_HEARING_DATE_TYPE,
+                configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ));
+        assertEquals(
+            "Provided date has invalid format: " + expectedNextHearingDate + time,
+            exception.getMessage()
+        );
+
     }
 
     @ParameterizedTest
