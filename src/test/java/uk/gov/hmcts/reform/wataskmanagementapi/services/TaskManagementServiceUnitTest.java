@@ -100,6 +100,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -180,10 +181,11 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     AccessControlResponse accessControlResponse;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
-
+    TaskManagementService taskManagementService;
+    String taskId;
+    String caseId;
     @Mock
     private EntityManager entityManager;
-
     @Mock(extraInterfaces = Serializable.class)
     private CriteriaBuilder builder;
     @Mock
@@ -214,9 +216,158 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
-    TaskManagementService taskManagementService;
-    String taskId;
-    String caseId;
+    @Test
+    void unclaimTask_succeed_when_task_assignee_differs_from_user_and_has_unassign_gp_flag_on() {
+
+        userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        RoleAssignment roleAssignment1 = new RoleAssignment(
+            ActorIdType.IDAM,
+            IDAM_USER_ID,
+            RoleType.ORGANISATION,
+            "judge",
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of("workTypes", "hearing_work")
+        );
+        RoleAssignment roleAssignment2 = new RoleAssignment(
+            ActorIdType.IDAM,
+            IDAM_USER_ID,
+            RoleType.ORGANISATION,
+            "tribunal-caseworker",
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of("workTypes", "hearing_work")
+        );
+        List<RoleAssignment> roleAssignmentList = asList(roleAssignment1, roleAssignment2);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        PermissionRequirements requirements
+            = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+        when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
+            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
+
+        when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+        when(taskResource.getAssignee()).thenReturn("wrongid");
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            new String[]{"SPECIFIC", "STANDARD"},
+            0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+        );
+        Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>();
+        taskRoleResourcesItems.add(taskRoleResource);
+        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
+
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
+
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
+        boolean taskHasUnassigned = taskResource.getState().getValue().equals(CFTTaskState.UNASSIGNED.getValue());
+        taskManagementService.unclaimTask(taskId, accessControlResponse);
+        verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+    }
+
+    @Test
+    void unclaimTask_throw_403_when_task_assignee_differs_from_user_and_no_unassign_gp_flag_on() {
+
+        userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        RoleAssignment roleAssignment = new RoleAssignment(
+            ActorIdType.IDAM,
+            IDAM_USER_ID,
+            RoleType.ORGANISATION,
+            "tribunal-caseworker",
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of("workTypes", "hearing_work")
+        );
+        List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        PermissionRequirements requirements
+            = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
+        when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
+            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
+
+        when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+        when(taskResource.getAssignee()).thenReturn("wrongid");
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            new String[]{"SPECIFIC", "STANDARD"},
+            0,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        );
+        Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>();
+        taskRoleResourcesItems.add(taskRoleResource);
+        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
+
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
+
+        assertThatThrownBy(() -> taskManagementService.unclaimTask(
+            taskId,
+            accessControlResponse
+        ))
+            .isInstanceOf(RoleAssignmentVerificationException.class)
+            .hasNoCause()
+            .hasMessage("Role Assignment Verification: "
+                        + "The request failed the Role Assignment checks performed.");
+
+        verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
+    }
 
     @BeforeEach
     public void setUp() {
@@ -271,10 +422,10 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             anyString(),
             anyMap()
         )).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
-                                  CamundaValue.stringValue("caseName"),
-                                  CamundaValue.stringValue("Value"),
-                                  CamundaValue.booleanValue(true)
-                              )
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
+            )
         ));
         lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
         lenient().when(userInfo.getUid()).thenReturn("IDAM_SYSTEM_USER");
@@ -415,7 +566,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 .map(ILoggingEvent::getFormattedMessage)
                 .toList();
             assertTrue(logsList.contains("PersistenceException occurred in updating indexed field of taskId:"
-                                             + taskId));
+                                         + taskId));
         }
     }
 
@@ -684,159 +835,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
     }
 
-    @Test
-    void unclaimTask_succeed_when_task_assignee_differs_from_user_and_has_unassign_gp_flag_on() {
-
-        userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-        RoleAssignment roleAssignment1 = new RoleAssignment(
-            ActorIdType.IDAM,
-            IDAM_USER_ID,
-            RoleType.ORGANISATION,
-            "judge",
-            Classification.PUBLIC,
-            GrantType.SPECIFIC,
-            RoleCategory.JUDICIAL,
-            false,
-            Map.of("workTypes", "hearing_work")
-        );
-        RoleAssignment roleAssignment2 = new RoleAssignment(
-            ActorIdType.IDAM,
-            IDAM_USER_ID,
-            RoleType.ORGANISATION,
-            "tribunal-caseworker",
-            Classification.PUBLIC,
-            GrantType.SPECIFIC,
-            RoleCategory.JUDICIAL,
-            false,
-            Map.of("workTypes", "hearing_work")
-        );
-        List<RoleAssignment> roleAssignmentList = asList(roleAssignment1, roleAssignment2);
-
-        TaskResource taskResource = spy(TaskResource.class);
-        PermissionRequirements requirements
-            = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
-        when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
-            .thenReturn(Optional.of(taskResource));
-        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
-
-        when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
-        when(taskResource.getAssignee()).thenReturn("wrongid");
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            "tribunal-caseworker",
-            true,
-            false,
-            false,
-            false,
-            false,
-            false,
-            new String[]{"SPECIFIC", "STANDARD"},
-            0,
-            false,
-            "JUDICIAL",
-            taskId,
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            true,
-            false,
-            false,
-            false
-        );
-        Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-        taskRoleResources.add(taskRoleResource);
-        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
-
-        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
-
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-            .thenReturn(Optional.of(taskResource));
-        when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-
-
-        boolean taskHasUnassigned = taskResource.getState().getValue().equals(CFTTaskState.UNASSIGNED.getValue());
-        taskManagementService.unclaimTask(taskId, accessControlResponse);
-        verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
-    }
-
-    @Test
-    void unclaimTask_throw_403_when_task_assignee_differs_from_user_and_no_unassign_gp_flag_on() {
-
-        userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-        RoleAssignment roleAssignment = new RoleAssignment(
-            ActorIdType.IDAM,
-            IDAM_USER_ID,
-            RoleType.ORGANISATION,
-            "tribunal-caseworker",
-            Classification.PUBLIC,
-            GrantType.SPECIFIC,
-            RoleCategory.JUDICIAL,
-            false,
-            Map.of("workTypes", "hearing_work")
-        );
-        List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
-
-        TaskResource taskResource = spy(TaskResource.class);
-        PermissionRequirements requirements
-            = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(UNCLAIM, UNASSIGN);
-        when(cftQueryService.getTask(taskId, roleAssignmentList, requirements))
-            .thenReturn(Optional.of(taskResource));
-        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
-
-        when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
-        when(taskResource.getAssignee()).thenReturn("wrongid");
-
-        TaskRoleResource taskRoleResource = new TaskRoleResource(
-            "tribunal-caseworker",
-            true,
-            false,
-            false,
-            false,
-            false,
-            false,
-            new String[]{"SPECIFIC", "STANDARD"},
-            0,
-            false,
-            "JUDICIAL",
-            taskId,
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false
-        );
-        Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-        taskRoleResources.add(taskRoleResource);
-        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
-
-        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
-
-        assertThatThrownBy(() -> taskManagementService.unclaimTask(
-            taskId,
-            accessControlResponse
-        ))
-            .isInstanceOf(RoleAssignmentVerificationException.class)
-            .hasNoCause()
-            .hasMessage("Role Assignment Verification: "
-                            + "The request failed the Role Assignment checks performed.");
-
-        verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
-    }
-
     @Nested
     @DisplayName("assignTask()")
     class Release2EndpointsAssignTask {
@@ -875,7 +873,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             boolean isTaskAssigned = taskResource.getState().getValue().equals(CFTTaskState.ASSIGNED.getValue());
@@ -910,15 +908,16 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             ).thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-            assertThatThrownBy(() -> taskManagementService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse)
-            ))
-                .isInstanceOf(RoleAssignmentVerificationException.class)
-                .hasNoCause()
-                .hasMessage("Role Assignment Verification: "
-                                + "The user being assigned the Task has failed the Role Assignment checks performed.");
+
+            Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                taskManagementService.assignTask(
+                    taskId,
+                    assignerAccessControlResponse,
+                    Optional.of(assigneeAccessControlResponse)
+                ));
+            assertEquals("Role Assignment Verification: "
+                         + "The user being assigned the Task has failed the Role Assignment checks performed.",
+                exception.getMessage());
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -941,15 +940,15 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             )).thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-            assertThatThrownBy(() -> taskManagementService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse)
-            ))
-                .isInstanceOf(RoleAssignmentVerificationException.class)
-                .hasNoCause()
-                .hasMessage("Role Assignment Verification: "
-                                + "The user assigning the Task has failed the Role Assignment checks performed.");
+            Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                taskManagementService.assignTask(
+                    taskId,
+                    assignerAccessControlResponse,
+                    Optional.of(assigneeAccessControlResponse)
+                ));
+            assertEquals("Role Assignment Verification: "
+                         + "The user assigning the Task has failed the Role Assignment checks performed.",
+                exception.getMessage());
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -962,14 +961,14 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
 
-            assertThatThrownBy(() -> taskManagementService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse)
-            ))
-                .isInstanceOf(NullPointerException.class)
-                .hasNoCause()
-                .hasMessage("Assigner userId cannot be null");
+            Exception exception = assertThrowsExactly(NullPointerException.class, () ->
+                taskManagementService.assignTask(
+                    taskId,
+                    assignerAccessControlResponse,
+                    Optional.of(assigneeAccessControlResponse)
+                ));
+            assertEquals("Assigner userId cannot be null",
+                exception.getMessage());
 
             when(assignerAccessControlResponse.getUserInfo())
                 .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
@@ -983,14 +982,14 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             ).thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-            assertThatThrownBy(() -> taskManagementService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse)
-            ))
-                .isInstanceOf(NullPointerException.class)
-                .hasNoCause()
-                .hasMessage("Assignee userId cannot be null");
+            exception = assertThrowsExactly(NullPointerException.class, () ->
+                taskManagementService.assignTask(
+                    taskId,
+                    assignerAccessControlResponse,
+                    Optional.of(assigneeAccessControlResponse)
+                ));
+            assertEquals("Assignee userId cannot be null",
+                exception.getMessage());
         }
 
         @Test
@@ -1016,14 +1015,15 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             ).thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-            assertThatThrownBy(() -> taskManagementService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse)
-            ))
-                .isInstanceOf(NullPointerException.class)
-                .hasNoCause()
-                .hasMessage("Assignee userId cannot be null");
+            Exception exception = assertThrowsExactly(NullPointerException.class, () ->
+                taskManagementService.assignTask(
+                    taskId,
+                    assignerAccessControlResponse,
+                    Optional.of(assigneeAccessControlResponse)
+                ));
+            assertEquals("Assignee userId cannot be null",
+                exception.getMessage());
+
         }
 
         @Test
@@ -1048,15 +1048,15 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
 
-            assertThatThrownBy(() -> taskManagementService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                Optional.of(assigneeAccessControlResponse)
-            ))
-                .isInstanceOf(RoleAssignmentVerificationException.class)
-                .hasNoCause()
-                .hasMessage("Role Assignment Verification: "
-                                + "The user assigning the Task has failed the Role Assignment checks performed.");
+            Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                taskManagementService.assignTask(
+                    taskId,
+                    assignerAccessControlResponse,
+                    Optional.of(assigneeAccessControlResponse)
+                ));
+            assertEquals("Role Assignment Verification: "
+                         + "The user assigning the Task has failed the Role Assignment checks performed.",
+                exception.getMessage());
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -1091,7 +1091,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             verify(taskResource).setAssignee(IDAM_USER_ID);
@@ -1133,7 +1133,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             verify(taskResource).setAssignee(SECONDARY_IDAM_USER_ID);
@@ -1183,7 +1183,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             verify(taskResource).setAssignee(SECONDARY_IDAM_USER_ID);
@@ -1230,7 +1230,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             verify(taskResource).setAssignee(IDAM_USER_ID);
@@ -1280,7 +1280,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             verify(taskResource).setAssignee(IDAM_USER_ID);
@@ -1337,7 +1337,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             verify(taskResource, never()).setAssignee(any());
@@ -1366,7 +1366,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
 
             taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                             Optional.of(assigneeAccessControlResponse)
+                Optional.of(assigneeAccessControlResponse)
             );
 
             verify(taskResource, never()).setAssignee(any());
@@ -1472,9 +1472,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 false,
                 false
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource));
+            Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>(List.of(taskRoleResource));
 
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -1545,9 +1545,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 "roleName", false, false, false, false, false,
                 false, new String[]{}, 1, false, "roleCategory"
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-            taskRoleResources.add(taskRoleResource);
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>();
+            taskRoleResourcesItems.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
@@ -1635,9 +1635,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 false,
                 false
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource));
+            Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>(List.of(taskRoleResource));
 
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -1700,9 +1700,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 false,
                 false
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource));
+            Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>(List.of(taskRoleResource));
 
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
             assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
                 .isInstanceOf(TaskCancelException.class);
 
@@ -1732,9 +1732,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 "roleName", false, false, false, false, false,
                 false, new String[]{}, 1, false, "roleCategory"
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-            taskRoleResources.add(taskRoleResource);
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>();
+            taskRoleResourcesItems.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -1764,9 +1764,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 "roleName", false, false, false, false, false,
                 false, new String[]{}, 1, false, "roleCategory"
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-            taskRoleResources.add(taskRoleResource);
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>();
+            taskRoleResourcesItems.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -1789,9 +1789,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(asList(COMPLETE), OR)
+                .nextPermissionRequirement(List.of(COMPLETE), OR)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                 .build();
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
@@ -1817,9 +1817,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(asList(COMPLETE), OR)
+                .nextPermissionRequirement(List.of(COMPLETE), OR)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                 .build();
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                 .thenReturn(Optional.empty());
@@ -1846,9 +1846,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                 .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(asList(COMPLETE), OR)
+                .nextPermissionRequirement(List.of(COMPLETE), OR)
                 .joinPermissionRequirement(OR)
-                .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                 .build();
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
@@ -1970,15 +1970,16 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     .thenReturn(Optional.empty());
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(true)
-                ))
-                    .isInstanceOf(RoleAssignmentVerificationException.class)
-                    .hasNoCause()
-                    .hasMessage("Role Assignment Verification: "
-                                    + "The request failed the Role Assignment checks performed.");
+                Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(true)
+                    ));
+                assertEquals("Role Assignment Verification: "
+                             + "The request failed the Role Assignment checks performed.",
+                    exception.getMessage());
+
             }
 
             @Test
@@ -1988,14 +1989,15 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
                 TaskResource taskResource = spy(TaskResource.class);
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(true)
-                ))
-                    .isInstanceOf(TaskNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Not Found Error: The task could not be found.");
+                Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(true)
+                    ));
+                assertEquals("Task Not Found Error: The task could not be found.",
+                    exception.getMessage());
+
                 verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
@@ -2019,9 +2021,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                     .build();
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
@@ -2055,15 +2057,15 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(RoleAssignmentVerificationException.class)
-                    .hasNoCause()
-                    .hasMessage("Role Assignment Verification: "
-                                    + "The request failed the Role Assignment checks performed.");
+                Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals("Role Assignment Verification: "
+                             + "The request failed the Role Assignment checks performed.",
+                    exception.getMessage());
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -2078,24 +2080,23 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                     .build();
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
                     .thenReturn(Optional.of(taskResource));
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskStateIncorrectException.class)
-                    .hasNoCause()
-                    .hasMessage(
-                        String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
-                    );
+                Exception exception = assertThrowsExactly(TaskStateIncorrectException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals(
+                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
+                    exception.getMessage());
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -2106,14 +2107,14 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 TaskResource taskResource = spy(TaskResource.class);
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Not Found Error: The task could not be found.");
+                Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals("Task Not Found Error: The task could not be found.",
+                    exception.getMessage());
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
@@ -2184,15 +2185,16 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     .thenReturn(Optional.empty());
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(true)
-                ))
-                    .isInstanceOf(RoleAssignmentVerificationException.class)
-                    .hasNoCause()
-                    .hasMessage("Role Assignment Verification: "
-                                    + "The request failed the Role Assignment checks performed.");
+                Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(true)
+                    ));
+                assertEquals("Role Assignment Verification: "
+                             + "The request failed the Role Assignment checks performed.",
+                    exception.getMessage());
+
             }
 
             @Test
@@ -2200,18 +2202,18 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-                TaskResource taskResource = spy(TaskResource.class);
                 PermissionRequirementBuilder.builder()
                     .buildSingleRequirementWithOr(OWN, EXECUTE);
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(true)
-                ))
-                    .isInstanceOf(TaskNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Not Found Error: The task could not be found.");
+                Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(true)
+                    ));
+                assertEquals("Task Not Found Error: The task could not be found.",
+                    exception.getMessage());
+                TaskResource taskResource = spy(TaskResource.class);
                 verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
@@ -2232,9 +2234,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 PermissionRequirements requirements = PermissionRequirementBuilder.builder()
                     .initPermissionRequirement(asList(OWN, EXECUTE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE), OR)
                     .joinPermissionRequirement(OR)
-                    .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+                    .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
                     .build();
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
                 when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), requirements))
@@ -2269,7 +2271,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
                 when(cftQueryService.getTask(any(), anyList(),
-                                             any(PermissionRequirements.class)
+                    any(PermissionRequirements.class)
                 )).thenReturn(Optional.of(taskResource));
 
                 when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
@@ -2303,7 +2305,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
                 when(cftQueryService.getTask(any(), anyList(),
-                                             any(PermissionRequirements.class)
+                    any(PermissionRequirements.class)
                 )).thenReturn(Optional.of(taskResource));
 
                 when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
@@ -2340,15 +2342,15 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     .thenReturn(Optional.empty());
                 when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(RoleAssignmentVerificationException.class)
-                    .hasNoCause()
-                    .hasMessage("Role Assignment Verification: "
-                                    + "The request failed the Role Assignment checks performed.");
+                Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals("Role Assignment Verification: "
+                             + "The request failed the Role Assignment checks performed.",
+                    exception.getMessage());
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -2368,16 +2370,17 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 when(cftQueryService.getTask(any(), anyList(), any(PermissionRequirements.class)))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(null);
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskStateIncorrectException.class)
-                    .hasNoCause()
-                    .hasMessage(
-                        String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
-                    );
+
+                Exception exception = assertThrowsExactly(TaskStateIncorrectException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals(
+                    String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
+                    exception.getMessage()
+                );
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -2396,14 +2399,16 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
                 TaskResource taskResource = spy(TaskResource.class);
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
-                    .isInstanceOf(TaskNotFoundException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Not Found Error: The task could not be found.");
+                Exception exception = assertThrowsExactly(TaskNotFoundException.class, () ->
+                    taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    ));
+                assertEquals(
+                    "Task Not Found Error: The task could not be found.",
+                    exception.getMessage()
+                );
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
@@ -2458,7 +2463,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(GenericServerErrorException.class)
                 .hasMessage("Generic Server Error: The action could not be completed "
-                                + "because there was a problem when initiating the task.");
+                            + "because there was a problem when initiating the task.");
         }
 
         @Test
@@ -2470,7 +2475,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(DatabaseConflictException.class)
                 .hasMessage("Database Conflict Error: "
-                                + "The action could not be completed because there was a conflict in the database.");
+                            + "The action could not be completed because there was a conflict in the database.");
         }
 
         @Test
@@ -2501,7 +2506,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             verify(configureTaskService).configureCFTTask(
                 eq(taskResource),
-                argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
+                argThat(taskToConfigure -> taskToConfigure.equals(new TaskToConfigure(
                     taskId,
                     A_TASK_TYPE,
                     "aCaseId",
@@ -3085,7 +3090,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, COMPLETE, COMPLETE_OWN,
-                        CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN
+                    CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN
                 )
             ));
 
@@ -3093,7 +3098,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             expectedRolePermission = taskRolePermissions.get(1);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, COMPLETE, COMPLETE_OWN,
-                        CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_CLAIM
+                    CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_CLAIM
                 )
             ));
 
@@ -3101,7 +3106,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             expectedRolePermission = taskRolePermissions.get(2);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, COMPLETE, COMPLETE_OWN,
-                        CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN
+                    CANCEL_OWN, CLAIM, UNCLAIM, ASSIGN, UNASSIGN, UNCLAIM_ASSIGN, UNASSIGN_ASSIGN
                 )
             ));
         }
