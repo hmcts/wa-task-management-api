@@ -34,6 +34,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -151,20 +152,15 @@ class MarkTaskReconfigurationServiceTest {
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_cannot_be_reconfigurable() {
         List<TaskFilter<?>> taskFilters = createTaskFilters();
-        when(caseConfigurationProviderService.evaluateConfigurationDmn(
-            anyString(),
-            any()
-        )).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
-            CamundaValue.stringValue("caseName"),
-            CamundaValue.stringValue("Value"),
-            CamundaValue.booleanValue(false)
-        )));
 
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
         int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
             .get("successfulTaskResources");
+
+        verify(caseConfigurationProviderService, times(0)).evaluateConfigurationDmn(anyString(),
+                                                                                    any());
 
         assertEquals(0, taskResourcesMarked);
     }
@@ -172,19 +168,15 @@ class MarkTaskReconfigurationServiceTest {
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_cannot_be_reconfigurable_when_null() {
         List<TaskFilter<?>> taskFilters = createTaskFilters();
-        when(caseConfigurationProviderService.evaluateConfigurationDmn(
-            anyString(),
-            any()
-        )).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
-            CamundaValue.stringValue("caseName"),
-            CamundaValue.stringValue("Value"),
-            null
-        )));
+
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
         int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
             .get("successfulTaskResources");
+
+        verify(caseConfigurationProviderService, times(0)).evaluateConfigurationDmn(anyString(),
+                                                                                    any());
 
         assertEquals(0, taskResourcesMarked);
     }

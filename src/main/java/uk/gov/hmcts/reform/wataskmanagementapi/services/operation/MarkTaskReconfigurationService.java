@@ -51,13 +51,9 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
             .map(Object::toString)
             .toList();
 
-        List<String> reconfigurableCaseIds = caseIds.stream()
-            .filter(this::isReconfigurable)
-            .toList();
-
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-                reconfigurableCaseIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+                caseIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
         List<TaskResource> successfulTaskResources = new ArrayList<>();
         List<String> taskIds = taskResources.stream()
