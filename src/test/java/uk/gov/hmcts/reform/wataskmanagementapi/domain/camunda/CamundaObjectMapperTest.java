@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
 class CamundaObjectMapperTest {
@@ -94,8 +94,8 @@ class CamundaObjectMapperTest {
         CamundaVariable actual = camundaObjectMapper.readValue(expectedCamundaVariable, CamundaVariable.class);
         assertNotNull(actual.getType());
         assertNotNull(actual.getValue());
-        assertEquals(actual.getType(), "string");
-        assertEquals(actual.getValue(), "assigned");
+        assertEquals("string", actual.getType());
+        assertEquals("assigned", actual.getValue());
     }
 
     @Test
@@ -112,7 +112,7 @@ class CamundaObjectMapperTest {
 
     @Test
     void should_throw_IllegalArgumentException_when_invalid_object_is_passed() {
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrowsExactly(IllegalArgumentException.class, () ->
             camundaObjectMapper.asCamundaJsonString(new Object()));
     }
 
