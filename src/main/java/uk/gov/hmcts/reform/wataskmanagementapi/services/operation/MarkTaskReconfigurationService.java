@@ -81,17 +81,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
         }
         return new TaskOperationResponse();
     }
-
-    public boolean isReconfigurable(String caseId) {
-        List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
-            .evaluateConfigurationDmn(caseId, emptyMap());
-        return results.stream().filter(result -> result.getCanReconfigure() != null)
-            .findAny()
-            .map(result -> result.getCanReconfigure().getValue())
-            .orElseGet(() -> false);
-    }
-
-
+    
     private List<String> updateReconfigureRequestTime(List<String> taskIds,
                                                       List<TaskResource> successfulTaskResources) {
         List<String> failedTaskIds = new ArrayList<>();
