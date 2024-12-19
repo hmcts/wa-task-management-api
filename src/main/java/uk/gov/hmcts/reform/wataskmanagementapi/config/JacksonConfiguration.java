@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.zalando.problem.ProblemModule;
+import org.zalando.problem.violations.ConstraintViolationProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
@@ -53,7 +53,7 @@ public class JacksonConfiguration {
                 new ParameterNamesModule(),
                 new JavaTimeModule(),
                 new Jdk8Module(),
-                new ProblemModule(),
+                new ConstraintViolationProblemModule(),
                 module
             );
     }

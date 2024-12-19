@@ -1,12 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config.executors;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.PreDestroy;
 
 @Slf4j
 @Component
