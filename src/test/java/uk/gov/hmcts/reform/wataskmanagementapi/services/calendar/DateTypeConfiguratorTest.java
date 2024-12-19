@@ -49,14 +49,14 @@ class DateTypeConfiguratorTest {
 
         @Test
         void should_return_nextHearingDate_empty() {
-            ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            ConfigurationDmnEvaluationResponse nextHearingDateItem = ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDate"))
                 .value(CamundaValue.stringValue(""))
                 .canReconfigure(CamundaValue.booleanValue(true))
                 .build();
             //create a list of dmn responses including nextHearingDate which is set to null
             // e.g. when camunda value is empty for nextHearingDate it should set the value to empty
-            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, dueDate,
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDateItem, dueDate,
                                                                                    priorityDate
             );
 
@@ -72,7 +72,7 @@ class DateTypeConfiguratorTest {
             assertThat(dmnEvaluationResponses)
                 .hasSize(1)
                 .contains(
-                    nextHearingDate
+                    nextHearingDateItem
                 );
         }
 
@@ -284,7 +284,7 @@ class DateTypeConfiguratorTest {
                 .value(CamundaValue.stringValue("nextHearingDate,dueDate,priorityDate"))
                 .build();
 
-            ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
+            ConfigurationDmnEvaluationResponse nextHearingDateItem = ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("nextHearingDate"))
                 .value(CamundaValue.stringValue(nextHearingDateValue))
                 .canReconfigure(CamundaValue.booleanValue(true))
@@ -304,7 +304,7 @@ class DateTypeConfiguratorTest {
 
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
                 calculatedDates,
-                nextHearingDate,
+                nextHearingDateItem,
                 priorityDate,
                 dueDateOriginEarliest
             );

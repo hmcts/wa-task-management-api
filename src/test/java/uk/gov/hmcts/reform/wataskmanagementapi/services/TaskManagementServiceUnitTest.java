@@ -755,9 +755,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             false,
             false
         );
-        Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-        taskRoleResources.add(taskRoleResource);
-        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+        Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>();
+        taskRoleResourcesCollection.add(taskRoleResource);
+        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
 
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
 
@@ -825,9 +825,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             false,
             false
         );
-        Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-        taskRoleResources.add(taskRoleResource);
-        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+        Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>();
+        taskRoleResourcesCollection.add(taskRoleResource);
+        when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
 
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
 
@@ -1478,9 +1478,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 false,
                 false
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource));
+            Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>(asList(taskRoleResource));
 
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -1551,9 +1551,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 "roleName", false, false, false, false, false,
                 false, new String[]{}, 1, false, "roleCategory"
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-            taskRoleResources.add(taskRoleResource);
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>();
+            taskRoleResourcesCollection.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
@@ -1641,9 +1641,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 false,
                 false
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource));
+            Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>(asList(taskRoleResource));
 
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -1706,9 +1706,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 false,
                 false
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource));
+            Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>(asList(taskRoleResource));
 
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
             assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
                 .isInstanceOf(TaskCancelException.class);
 
@@ -1738,9 +1738,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 "roleName", false, false, false, false, false,
                 false, new String[]{}, 1, false, "roleCategory"
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-            taskRoleResources.add(taskRoleResource);
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>();
+            taskRoleResourcesCollection.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
@@ -1770,9 +1770,9 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 "roleName", false, false, false, false, false,
                 false, new String[]{}, 1, false, "roleCategory"
             );
-            Set<TaskRoleResource> taskRoleResources = new HashSet<>();
-            taskRoleResources.add(taskRoleResource);
-            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
+            Set<TaskRoleResource> taskRoleResourcesCollection = new HashSet<>();
+            taskRoleResourcesCollection.add(taskRoleResource);
+            when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesCollection);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
 

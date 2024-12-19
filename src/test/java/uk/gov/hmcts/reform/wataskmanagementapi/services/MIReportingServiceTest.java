@@ -252,7 +252,7 @@ class MIReportingServiceTest {
 
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
-        TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);
+        taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);
 
         when(taskAssignmentsRepository.findAllByTaskIdOrderByAssignmentIdAsc(anyString()))
             .thenReturn(newArrayList());
