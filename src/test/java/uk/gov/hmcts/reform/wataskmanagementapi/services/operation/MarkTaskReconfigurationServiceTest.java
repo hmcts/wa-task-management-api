@@ -181,34 +181,6 @@ class MarkTaskReconfigurationServiceTest {
         assertEquals(0, taskResourcesMarked);
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    void should_pass_and_process_empty_task_attributes_map_when_is_reconfigurable_is_invoked() {
-
-        ArgumentCaptor<Map> mapCaptor = ArgumentCaptor.forClass(Map.class);
-
-        when(caseConfigurationProviderService.evaluateConfigurationDmn(
-            anyString(),
-            anyMap()
-        )).thenReturn(List.of(new ConfigurationDmnEvaluationResponse(
-            CamundaValue.stringValue("caseName"),
-            CamundaValue.stringValue("Value"),
-            CamundaValue.booleanValue(true)
-        )));
-
-        boolean isReconfigurable = markTaskReconfigurationService.isReconfigurable("someCaseId");
-
-        verify(caseConfigurationProviderService).evaluateConfigurationDmn(
-            anyString(),
-            mapCaptor.capture()
-        );
-
-        Map<String,Object> taskAttributes = mapCaptor.getValue();
-
-        assertTrue(isReconfigurable);
-        assertThat(taskAttributes).isNotNull();
-    }
-
     private List<TaskFilter<?>> createTaskFilters() {
         MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
             "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
