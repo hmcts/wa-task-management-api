@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -48,6 +50,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskReconfigurationTransactionHandler;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -73,6 +76,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -87,6 +91,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -114,12 +119,16 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     private RoleAssignmentService roleAssignmentService;
     @MockBean
     private IdamWebApi idamWebApi;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
     @SpyBean
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
+    @SpyBean
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     private String taskId;
     private String bearerAccessToken1;
@@ -172,6 +181,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         //mark to reconfigure
         mockMvc.perform(
@@ -230,6 +240,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId1-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -319,6 +330,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -422,6 +434,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
         taskId = UUID.randomUUID().toString();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -543,6 +556,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -605,6 +619,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId3-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -672,6 +687,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -760,6 +776,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -850,6 +867,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -909,6 +927,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, null, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -970,6 +989,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, OLD_ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1063,6 +1083,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         String dueDateTimeCheck = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1158,6 +1179,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String caseIdToday = "caseId" + OffsetDateTime.now();
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -1198,11 +1220,62 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     }
 
     @Test
+    void should_not_execute_reconfigure_if_task_validation_fails(CapturedOutput output) throws Exception {
+        String jsonString = "{\"jurisdictions\":[\"WA\"]}";
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(LDValue.parse(jsonString));
+        String caseIdToday = "caseId" + OffsetDateTime.now();
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+
+        taskResources.forEach(task -> {
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(LocalDate.now(), task.getReconfigureRequestTime().toLocalDate());
+        });
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .untilAsserted(() -> {
+                List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                taskResourcesAfter.forEach(task -> {
+                    assertNull(task.getLastReconfigurationTime());
+                    assertNotNull(task.getReconfigureRequestTime());
+                });
+                assertTrue(output.getOut()
+                               .contains(MANDATORY_FIELD_MISSING_ERROR.getDetail() + taskResources.get(0).getTaskId()));
+            });
+    }
+
+    @Test
     void should_execute_reconfigure_on_task_and_fail_due_to_calendar_configuration_alerts_captured(CapturedOutput output)
         throws Exception {
         String caseIdToday = "calendarCaseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
