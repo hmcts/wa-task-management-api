@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -35,17 +34,13 @@ import javax.persistence.OneToMany;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "tasks")
-@TypeDefs(
-    {
-        @TypeDef(
-            name = "pgsql_enum",
-            typeClass = PostgreSQLEnumType.class
-        ),
-        @TypeDef(
-            name = TaskResource.JSONB,
-            typeClass = JsonType.class
-        )
-    }
+@TypeDef(
+    name = "pgsql_enum",
+    typeClass = PostgreSQLEnumType.class
+)
+@TypeDef(
+    name = TaskResource.JSONB,
+    typeClass = JsonType.class
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
     "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
