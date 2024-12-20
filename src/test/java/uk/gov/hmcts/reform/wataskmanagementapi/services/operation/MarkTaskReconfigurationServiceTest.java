@@ -85,6 +85,9 @@ class MarkTaskReconfigurationServiceTest {
         TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
             .markTasksToReconfigure(taskFilters);
 
+        verify(caseConfigurationProviderService, times(0)).evaluateConfigurationDmn(anyString(),
+                                                                                    any());
+
         int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
             .get("successfulTaskResources");
 
@@ -141,38 +144,6 @@ class MarkTaskReconfigurationServiceTest {
 
         int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
             .get("successfulTaskResources");
-
-        assertEquals(0, taskResourcesMarked);
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_cannot_be_reconfigurable() {
-        List<TaskFilter<?>> taskFilters = createTaskFilters();
-
-        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
-            .markTasksToReconfigure(taskFilters);
-
-        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
-            .get("successfulTaskResources");
-
-        verify(caseConfigurationProviderService, times(0)).evaluateConfigurationDmn(anyString(),
-                                                                                    any());
-
-        assertEquals(0, taskResourcesMarked);
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_cannot_be_reconfigurable_when_null() {
-        List<TaskFilter<?>> taskFilters = createTaskFilters();
-
-        TaskOperationResponse taskOperationResponse = markTaskReconfigurationService
-            .markTasksToReconfigure(taskFilters);
-
-        int taskResourcesMarked = (int) taskOperationResponse.getResponseMap()
-            .get("successfulTaskResources");
-
-        verify(caseConfigurationProviderService, times(0)).evaluateConfigurationDmn(anyString(),
-                                                                                    any());
 
         assertEquals(0, taskResourcesMarked);
     }

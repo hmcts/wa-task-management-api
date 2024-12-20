@@ -31,14 +31,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
 public class MarkTaskReconfigurationService implements TaskOperationPerformService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final CaseConfigurationProviderService caseConfigurationProviderService;
     private final IdamTokenGenerator idamTokenGenerator;
 
     public MarkTaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
-                                          CaseConfigurationProviderService caseConfigurationProviderService,
                                           IdamTokenGenerator idamTokenGenerator) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.caseConfigurationProviderService = caseConfigurationProviderService;
         this.idamTokenGenerator = idamTokenGenerator;
     }
 
