@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperatio
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
