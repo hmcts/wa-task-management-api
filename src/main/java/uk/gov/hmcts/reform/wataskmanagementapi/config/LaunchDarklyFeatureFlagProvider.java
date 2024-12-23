@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.launchdarkly.sdk.LDContext;
+import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
