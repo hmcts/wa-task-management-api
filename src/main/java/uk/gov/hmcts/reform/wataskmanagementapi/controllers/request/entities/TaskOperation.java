@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 @Schema(
     name = "TaskOperation",
     description = "Allows specifying certain operations on a task"
@@ -16,7 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOpe
 @Builder
 public class TaskOperation {
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     @JsonProperty("name")
     private TaskOperationType type;
 

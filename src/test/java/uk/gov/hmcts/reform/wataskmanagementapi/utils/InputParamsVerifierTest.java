@@ -12,12 +12,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.DeleteTaskC
 class InputParamsVerifierTest {
 
     @Test
-    public void shouldVerifyCaseRef() {
+    void shouldVerifyCaseRef() {
         assertDoesNotThrow(() -> verifyCaseId("1615817621013640"));
     }
 
     @Test
-    public void shouldNotVerifyCaseRefDueToWrongCaseRefPattern() {
+    void shouldNotVerifyCaseRefDueToWrongCaseRefPattern() {
         final String caseRef = "123456";
         try {
             verifyCaseId(caseRef);
@@ -29,7 +29,7 @@ class InputParamsVerifierTest {
     }
 
     @Test
-    public void shouldNotVerifyCaseRefDueToCaseRefNull() {
+    void shouldNotVerifyCaseRefDueToCaseRefNull() {
         final String caseRef = null;
         try {
             verifyCaseId(caseRef);

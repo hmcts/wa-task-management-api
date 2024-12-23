@@ -102,7 +102,7 @@ public class TaskResourceDao {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .map(Object::toString)
-            .collect(Collectors.toList());
+            .toList();
         List<Order> orders = getSortOrders(searchRequest, builder, root);
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskQuery(taskIds, builder, root);
 
@@ -117,6 +117,8 @@ public class TaskResourceDao {
                               List<RoleAssignment> roleAssignments,
                               PermissionRequirements permissionsRequired,
                               boolean availableTasksOnly) {
+
+        log.info("Search number of tasks using Hibernate Query");
 
         CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager)
             .createSubQuery()
@@ -208,6 +210,6 @@ public class TaskResourceDao {
                     return criteriaBuilder.desc(root.get(sortingParameter.getSortBy().getCftVariableName()));
                 }
             })
-            .filter(Objects::nonNull).collect(Collectors.toList());
+            .filter(Objects::nonNull).toList();
     }
 }

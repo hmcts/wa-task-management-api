@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
 class CamundaObjectMapperTest {
@@ -22,11 +22,6 @@ class CamundaObjectMapperTest {
     );
 
     CamundaObjectMapper camundaObjectMapper;
-
-    @BeforeEach
-    public void setUp() {
-        camundaObjectMapper = new CamundaObjectMapper();
-    }
 
     @Test
     void should_convert_object_to_camunda_json() {
@@ -51,12 +46,11 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asCamundaJsonString(testObject);
 
         String expected = "{\"processVariablesMap\":"
-            + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
-            + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
-            + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
-
 
     @Test
     void should_convert_object_to_json() {
@@ -81,32 +75,35 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asJsonString(testObject);
 
         String expected = "{\"process_variables_map\":"
-            + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
-            + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
-            + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 
     @Test
     void read_value_method_should_return_correct_attributes() {
 
-        String expectedCamundaVariable = "{\n"
-            + "    \"value\": \"assigned\",\n"
-            + "    \"type\": \"string\"\n"
-            + "}";
+        String expectedCamundaVariable = """
+            {
+                "value": "assigned",
+                "type": "string"
+            }
+            """;
 
         CamundaVariable actual = camundaObjectMapper.readValue(expectedCamundaVariable, CamundaVariable.class);
         assertNotNull(actual.getType());
         assertNotNull(actual.getValue());
-        assertEquals(actual.getType(), "string");
-        assertEquals(actual.getValue(), "assigned");
+        assertEquals("string", actual.getType());
+        assertEquals("assigned", actual.getValue());
     }
 
     @Test
     void should_return_correct_attributes_of_map() {
 
         CamundaVariable variable = new CamundaVariable(EXPECTED_ADDITIONAL_PROPERTIES, "String");
-        Optional<Map<String, String>> output = camundaObjectMapper.read(variable, new TypeReference<>() {});
+        Optional<Map<String, String>> output = camundaObjectMapper.read(variable, new TypeReference<>() {
+        });
         Assertions.assertThat(output).isPresent()
             .get()
             .isEqualTo(EXPECTED_ADDITIONAL_PROPERTIES);
@@ -115,7 +112,12 @@ class CamundaObjectMapperTest {
 
     @Test
     void should_throw_IllegalArgumentException_when_invalid_object_is_passed() {
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrowsExactly(IllegalArgumentException.class, () ->
             camundaObjectMapper.asCamundaJsonString(new Object()));
+    }
+
+    @BeforeEach
+    public void setUp() {
+        camundaObjectMapper = new CamundaObjectMapper();
     }
 }

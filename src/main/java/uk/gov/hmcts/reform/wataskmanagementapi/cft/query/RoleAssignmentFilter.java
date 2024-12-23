@@ -82,7 +82,7 @@ public final class RoleAssignmentFilter {
         Root<TaskResource> root) {
         // filter roles which are active.
         final List<RoleAssignment> activeRoleAssignments = roleAssignments
-            .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+            .stream().filter(RoleAssignmentFilter::filterByActiveRole).toList();
 
         RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
             activeRoleAssignments,
@@ -111,7 +111,7 @@ public final class RoleAssignmentFilter {
                                                               Root<TaskResource> root,
                                                               Join<TaskResource, TaskRoleResource> taskRoleResources) {
         final List<RoleAssignment> activeRoleAssignments = roleAssignments
-            .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+            .stream().filter(RoleAssignmentFilter::filterByActiveRole).toList();
 
         RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
             activeRoleAssignments,

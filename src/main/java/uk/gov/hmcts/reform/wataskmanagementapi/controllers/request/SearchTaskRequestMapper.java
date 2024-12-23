@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID_CAMEL_CASE;
@@ -33,7 +32,9 @@ public final class SearchTaskRequestMapper {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
         "applications", "priority", "access_requests", "error_management",
-        "review_case", "evidence", "follow_up", "pre_hearing", "post_hearing"
+        "review_case", "evidence", "follow_up", "pre_hearing", "post_hearing",
+        "intermediate_track_hearing_work", "multi_track_hearing_work",
+        "intermediate_track_decision_making_work", "multi_track_decision_making_work"
     );
 
     private SearchTaskRequestMapper() {
@@ -106,14 +107,14 @@ public final class SearchTaskRequestMapper {
         return getValueOrEmpty(stateParam).stream()
             .filter(StringUtils::hasText)
             .map(value -> CFTTaskState.valueOf(value.toUpperCase(Locale.ROOT)))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private static List<RoleCategory> getRoleCategory(SearchParameterList roleCtgParam) {
         return getValueOrEmpty(roleCtgParam).stream()
             .filter(StringUtils::hasText)
             .map(value -> RoleCategory.valueOf(value.toUpperCase(Locale.ROOT)))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private static EnumMap<SearchParameterKey, SearchParameterList> asEnumMapForListOfStrings(

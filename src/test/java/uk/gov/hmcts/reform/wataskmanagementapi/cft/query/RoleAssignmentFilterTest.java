@@ -54,7 +54,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTe
 
 
 @ExtendWith(MockitoExtension.class)
-public class RoleAssignmentFilterTest {
+class RoleAssignmentFilterTest {
 
     @Mock
     private Root<TaskResource> root;
@@ -78,7 +78,7 @@ public class RoleAssignmentFilterTest {
     private Path<Object> classificationPath;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         lenient().when(root.join("taskRoleResources")).thenReturn(taskRoleResources);
         lenient().when(taskRoleResources.get("read")).thenReturn(pathObject);
         lenient().when(builder.or(any())).thenReturn(inObject);

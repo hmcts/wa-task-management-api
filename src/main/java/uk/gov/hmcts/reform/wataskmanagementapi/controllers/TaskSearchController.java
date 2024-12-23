@@ -141,6 +141,7 @@ public class TaskSearchController extends BaseController {
                 searchRequest,
                 accessControlResponse);
         } else {
+            log.info("Search tasks using Hibernate Queries");
             response = cftQueryService.searchForTasks(
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
@@ -171,6 +172,8 @@ public class TaskSearchController extends BaseController {
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
+
+        log.info("POST /search-for-completable - {}", searchEventAndCase.toString());
 
         GetTasksCompletableResponse<Task> response;
         Optional<AccessControlResponse> optionalAccessControlResponse = accessControlService

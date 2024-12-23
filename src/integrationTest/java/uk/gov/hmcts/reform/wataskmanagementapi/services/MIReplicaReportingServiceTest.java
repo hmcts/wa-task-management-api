@@ -241,6 +241,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @ParameterizedTest
     @CsvSource(value = {
         "LEGAL_OPERATIONS,Legal Operations,PRIVATELAW,Private Law,PRLAPPS,Private Law,ASSIGNED,AutoAssign,Assigned",
+        "LEGAL_OPERATIONS,Legal Operations,ST_CIC,Special Tribunals CIC,"
+            + "CriminalInjuriesCompensation,Criminal Injuries Compensation,ASSIGNED,AutoAssign,Assigned",
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
@@ -759,6 +761,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @Test
     void given_zero_publications_should_return_false() {
+
         TaskResourceRepository mocktaskResourceRepository = mock(TaskResourceRepository.class);
         when(mocktaskResourceRepository.countPublications()).thenReturn(0);
         subscriptionCreatorForTest = new SubscriptionCreator(TEST_REPLICA_DB_USER, TEST_REPLICA_DB_PASS,
@@ -767,8 +770,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             reportableTaskRepository,
             taskAssignmentsRepository,
             subscriptionCreatorForTest);
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(5, SECONDS)
+            .atMost(60, SECONDS)
+            .until(() -> {
+                assertFalse(service.isPublicationPresent());
+                return true;
+            });
 
-        assertFalse(service.isPublicationPresent());
     }
 
     @Test

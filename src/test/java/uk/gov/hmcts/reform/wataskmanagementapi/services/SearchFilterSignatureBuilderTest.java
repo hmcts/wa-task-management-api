@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SearchFilterSignatureBuilderTest {
+class SearchFilterSignatureBuilderTest {
 
     @Test
     void buildWildCardSignatureForEmptyFields() {

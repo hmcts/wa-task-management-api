@@ -246,32 +246,41 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
      * details with internal Java package/class names.
      */
     private String extractErrors(HttpMessageNotReadableException exception) {
-        String msg = null;
         Throwable cause = exception.getCause();
+
         if (cause instanceof JsonParseException jpe) {
-            msg = jpe.getOriginalMessage();
+            return handleJsonParseException(jpe);
         } else if (cause instanceof MismatchedInputException mie) {
-            if (mie.getPath() != null && !mie.getPath().isEmpty()) {
-                String fieldName = mie.getPath().stream()
-                    .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
-                    .collect(Collectors.joining("."));
-                msg = "Invalid request field: " + fieldName;
-            }
+            return handleMismatchedInputException(mie);
         } else if (cause instanceof JsonMappingException jme) {
-            msg = jme.getOriginalMessage();
-            if (jme.getPath() != null && !jme.getPath().isEmpty()) {
-                String fieldName = jme.getPath().stream()
-                    .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
-                    .collect(Collectors.joining("."));
-                msg = "Invalid request field: "
-                      + fieldName
-                      + ": "
-                      + msg;
-            }
+            return handleJsonMappingException(jme);
         } else {
-            msg = "Invalid request message";
+            return "Invalid request message";
         }
-        return msg;
+    }
+
+    private String handleJsonParseException(JsonParseException jpe) {
+        return jpe.getOriginalMessage();
+    }
+
+    private String handleMismatchedInputException(MismatchedInputException mie) {
+        if (mie.getPath() != null && !mie.getPath().isEmpty()) {
+            String fieldName = extractFieldName(mie.getPath());
+            return "Invalid request field: " + fieldName;
+        }
+        return "Invalid request message";
+    }
+
+    private String handleJsonMappingException(JsonMappingException jme) {
+        String fieldName = extractFieldName(jme.getPath());
+        String originalMessage = jme.getOriginalMessage();
+        return "Invalid request field: " + fieldName + ": " + originalMessage;
+    }
+
+    private String extractFieldName(List<JsonMappingException.Reference> path) {
+        return path.stream()
+            .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
+            .collect(Collectors.joining("."));
     }
 
     /**
