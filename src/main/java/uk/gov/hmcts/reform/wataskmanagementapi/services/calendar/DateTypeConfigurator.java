@@ -26,13 +26,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.CyclomaticComplexity"})
 public class DateTypeConfigurator {
 
-    public static final List<DateTypeObject> DEFAULT_DATE_TYPES = Arrays.stream(DateType.values())
+    private static final List<DateTypeObject> DEFAULT_DATE_TYPES = Arrays.stream(DateType.values())
         .filter(d -> d != CALCULATED_DATES)
         .sorted(Comparator.comparing(DateType::getOrder))
         .map(d -> new DateTypeObject(d, d.getType()))
         .toList();
 
-    public static final List<DateTypeObject> MANDATORY_DATE_TYPES = Arrays.stream(DateType.values())
+    private static final List<DateTypeObject> MANDATORY_DATE_TYPES = Arrays.stream(DateType.values())
         .filter(d -> d != CALCULATED_DATES)
         .filter(d -> d != INTERMEDIATE_DATE)
         .sorted(Comparator.comparing(DateType::getOrder))
@@ -149,7 +149,7 @@ public class DateTypeConfigurator {
             .reduce((a, b) -> b)
             .map(r -> Arrays.stream(r.getValue().getValue().split(","))
                 .map(s -> new DateTypeObject(DateType.from(s), s))
-                .collect(Collectors.toList()));
+                .toList());
 
         if (dateTypes.isPresent()) {
             List<DateTypeObject> filtered = new ArrayList<>(dateTypes.get()).stream()
@@ -238,7 +238,7 @@ public class DateTypeConfigurator {
         String dateTypeName = dateTypeObject.dateTypeName;
         List<ConfigurationDmnEvaluationResponse> filtered = configResponses.get().stream()
             .filter(r -> !r.getName().getValue().contains(dateTypeName))
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()); //NOSONAR List needs to be mutable.
         if (dateTypeResponse != null) {
             Optional.of(dateTypeResponse).filter(r -> !r.getValue().getValue().isBlank()).ifPresent(filtered::add);
         }
