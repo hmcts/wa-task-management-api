@@ -556,6 +556,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                 .and().body("task.id", equalTo(taskId))
                 .body("task.task_state", is("assigned"))
+                .body("task.role_category", equalTo("JUDICIARY"))
                 .body("task.reconfigure_request_time", notNullValue())
                 .body("task.last_reconfiguration_time", nullValue())
                 .body("task.additional_properties",
@@ -599,7 +600,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                             .statusCode(HttpStatus.OK.value())
                             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                             .and().body("task.id", equalTo(taskId))
-                            .body("task.role_category", nullValue())
+                            .body("task.role_category", equalTo("ADMIN"))
                             .body("task.task_state", is("assigned"))
                             .body("task.reconfigure_request_time", nullValue())
                             .body("task.last_reconfiguration_time", notNullValue())

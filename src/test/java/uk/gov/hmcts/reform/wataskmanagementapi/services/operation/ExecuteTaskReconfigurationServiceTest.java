@@ -38,6 +38,7 @@ class ExecuteTaskReconfigurationServiceTest {
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
+
     @Mock
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
     @InjectMocks
