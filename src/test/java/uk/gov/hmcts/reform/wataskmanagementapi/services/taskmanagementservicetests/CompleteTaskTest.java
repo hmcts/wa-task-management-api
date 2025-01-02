@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,8 @@ class CompleteTaskTest extends CamundaHelpers {
     private EntityManager entityManager;
     @Mock
     private List<TaskOperationPerformService> taskOperationPerformServices;
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
 
     @Test
@@ -433,7 +436,8 @@ class CompleteTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();

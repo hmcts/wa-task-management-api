@@ -171,6 +171,26 @@ public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
                             .stringType("id", "post_hearing")
                             .stringType("label", "Post-Hearing");
                     })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "intermediate_track_hearing_work")
+                            .stringType("label", "Intermediate track hearing work");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "multi_track_hearing_work")
+                            .stringType("label", "Multi track hearing work");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "intermediate_track_decision_making_work")
+                            .stringType("label", "Intermediate track decision making work");
+                    })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "multi_track_decision_making_work")
+                            .stringType("label", "Multi track decision making work");
+                    })
                 )
         ).build();
     }
