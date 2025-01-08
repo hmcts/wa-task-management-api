@@ -41,7 +41,7 @@ public class LaunchDarklyFeatureFlagProvider {
         log.debug("Attempting to retrieve feature flag '{}'", featureFlag.getKey());
         LDValue result =  ldClient.jsonValueVariation(
             featureFlag.getKey(),
-            TM_USER,
+            LDContext.fromUser(TM_USER),
             defaultValue
         );
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
