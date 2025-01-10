@@ -14,10 +14,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalCalculator;
@@ -41,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.lenient;
@@ -49,7 +54,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 class CaseConfigurationProviderServiceTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
@@ -232,6 +237,24 @@ class CaseConfigurationProviderServiceTest {
 
         assertEquals(Optional.of("value1"), mappedData.getProcessVariables().get("name1"));
         assertEquals(Optional.empty(), mappedData.getProcessVariables().get("name2"));
+    }
+
+    @Test
+    void should_log_and_throw_an_exception_when_client_specific_mandatory_fields_are_missing(CapturedOutput output) {
+        ReflectionTestUtils.setField(caseConfigurationProviderService, "taskMandatoryFieldsProvidedByClient",
+                                     List.of("caseTypeId", "jurisdiction", "name", "taskType"));
+        String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
+        lenient().when(caseDetails.getCaseType()).thenReturn("");
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+
+        assertThatThrownBy(() ->  caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes, false)
+        )
+            .isInstanceOf(BadRequestException.class)
+            .hasMessage("Mandatory fields not provided by client: caseTypeId, name");
+
+        assertTrue(output.getOut().contains("Task Configuration : Mandatory fields not provided by client:"));
     }
 
     @Test

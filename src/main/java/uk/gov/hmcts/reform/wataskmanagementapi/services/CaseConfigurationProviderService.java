@@ -5,15 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -37,6 +40,9 @@ public class CaseConfigurationProviderService {
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
     private final DateTypeConfigurator dateTypeConfigurator;
+
+    @Value("${config.taskMandatoryFieldsProvidedByClient}")
+    List<String> taskMandatoryFieldsProvidedByClient;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
@@ -67,8 +73,12 @@ public class CaseConfigurationProviderService {
         String caseDataString = writeValueAsString(caseDetails.getData());
         String taskAttributesString = writeValueAsString(taskAttributes);
         log.debug("Case Configuration : task Attributes {}", taskAttributesString);
+
+        validateClientProvidedMandatoryFields(taskAttributes, caseDetails);
+
         String jurisdiction = caseDetails.getJurisdiction();
         String caseType = caseDetails.getCaseType();
+
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(
@@ -113,7 +123,7 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
-        log.debug("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
+        log.info("Case Configuration : caseConfiguration Variables {}", caseConfigurationVariables);
         // Enrich case configuration variables with extra variables
         Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
@@ -125,6 +135,28 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResultsAfterUpdate,
             filteredPermissionDmnResults
         );
+    }
+
+    private void validateClientProvidedMandatoryFields(Map<String, Object> taskAttributes, CaseDetails caseDetails) {
+        Map<String, Object> updatedTaskAttributes = new ConcurrentHashMap<>(taskAttributes);
+        updatedTaskAttributes.put("caseTypeId", caseDetails.getCaseType());
+        updatedTaskAttributes.put("jurisdiction", caseDetails.getJurisdiction());
+
+        List<String> missingFields = new ArrayList<>();
+        taskMandatoryFieldsProvidedByClient.forEach(mandatoryField -> {
+            Object value = updatedTaskAttributes.get(mandatoryField);
+            if (value == null || value.toString().isBlank()) {
+                missingFields.add(mandatoryField);
+            }
+        });
+
+        if (!missingFields.isEmpty()) {
+            String missingFieldsMessage = String.join(", ", missingFields);
+            log.error("Task Configuration : Mandatory fields not provided by client: {}", missingFieldsMessage);
+            throw new BadRequestException(
+                String.format("Mandatory fields not provided by client: %s", missingFieldsMessage)
+            );
+        }
     }
 
     public List<ConfigurationDmnEvaluationResponse> evaluateConfigurationDmn(
