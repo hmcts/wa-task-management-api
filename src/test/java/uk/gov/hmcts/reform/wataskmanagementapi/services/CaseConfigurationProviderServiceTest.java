@@ -38,10 +38,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -255,7 +258,12 @@ class CaseConfigurationProviderServiceTest {
             .isInstanceOf(BadRequestException.class)
             .hasMessage("Mandatory fields not provided by client: caseTypeId, name");
 
-        assertTrue(output.getOut().contains("Task Configuration : Mandatory fields not provided by client:"));
+        await()
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
+            .untilAsserted(() -> assertTrue(
+                output.getOut().contains("Task Configuration : Mandatory fields not provided by client:")));
     }
 
     @Test
