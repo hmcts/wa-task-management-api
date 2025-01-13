@@ -109,6 +109,8 @@ class CaseConfigurationProviderServiceTest {
         );
 
         lenient().when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI))).thenReturn(localDates);
+        ReflectionTestUtils.setField(caseConfigurationProviderService, "taskMandatoryFieldsProvidedByClient",
+                                     List.of());
     }
 
     public static Stream<Arguments> scenarioProvider() {
@@ -241,13 +243,12 @@ class CaseConfigurationProviderServiceTest {
 
     @Test
     void should_log_and_throw_an_exception_when_client_specific_mandatory_fields_are_missing(CapturedOutput output) {
-        ReflectionTestUtils.setField(caseConfigurationProviderService, "taskMandatoryFieldsProvidedByClient",
-                                     List.of("caseTypeId", "jurisdiction", "name", "taskType"));
         String someCaseId = "someCaseId";
         Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
         lenient().when(caseDetails.getCaseType()).thenReturn("");
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
-
+        ReflectionTestUtils.setField(caseConfigurationProviderService, "taskMandatoryFieldsProvidedByClient",
+                                     List.of("caseTypeId", "jurisdiction", "name", "taskType"));
         assertThatThrownBy(() ->  caseConfigurationProviderService
             .getCaseRelatedConfiguration(someCaseId, taskAttributes, false)
         )
