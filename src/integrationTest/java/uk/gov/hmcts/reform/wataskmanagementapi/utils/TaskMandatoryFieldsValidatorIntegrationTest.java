@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootIntegrationBaseTest {
@@ -53,8 +53,9 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
-        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
-            .thenReturn(LDValue.parse("{\"jurisdictions\":[\"WA\"]}"));
+        doReturn(LDValue.parse("{\"jurisdictions\":[\"WA\"]}")).when(launchDarklyFeatureFlagProvider)
+            .getJsonValue(any(), any());
+
     }
 
     @ParameterizedTest
@@ -137,7 +138,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     void should_throw_illegal_argument_exception_when_property_value_cannot_be_found() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            new LaunchDarklyFeatureFlagProvider(ldClient), true, List.of("field1", "field2"),
+            launchDarklyFeatureFlagProvider, true, List.of("field1", "field2"),
             jsonParserUtils);
         assertThrows(IllegalArgumentException.class, () -> validator.validate(task));
     }
