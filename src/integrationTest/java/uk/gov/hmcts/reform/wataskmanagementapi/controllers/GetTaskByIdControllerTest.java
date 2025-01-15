@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.zalando.problem.Status;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -616,7 +617,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .andDo(print())
             .andExpectAll(
-                status().is(HttpStatus.NOT_FOUND.value()),
+                status().is(Status.NOT_FOUND.getStatusCode()),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
