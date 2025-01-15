@@ -31,7 +31,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -894,7 +893,7 @@ public class TaskManagementService {
             taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
-        } catch (FeignException | BadRequestException e) {
+        } catch (FeignException e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw e;
         } catch (ServiceMandatoryFieldValidationException e) {

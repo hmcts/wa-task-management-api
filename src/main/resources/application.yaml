@@ -18,7 +18,7 @@ config:
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,care_supervision_epo,prlapps,et_englandwales,et_englandwales_listings,et_englandwales_multiple,et_scotland,et_scotland_listings,et_scotland_multiple,et_admin,privatelaw_exceptionrecord,benefit,CriminalInjuriesCompensation}
   taskMandatoryFieldCheckEnabled: ${MANDATORY_TASK_FIELD_CHECK_ENABLED:false}
   taskMandatoryFields: ${MANDATORY_TASK_FIELDS:taskName,taskId,taskType,dueDateTime,state,securityClassification,title,majorPriority,minorPriority,executionTypeCode,caseId,caseTypeId,caseCategory,caseName,jurisdiction,region,location,created,roleCategory,workTypeResource}
-  taskMandatoryFieldsProvidedByClient: ${MANDATORY_TASK_FIELDS_PROVIDED_BY_CLIENT:name,taskType,caseTypeId,jurisdiction}
+  taskMandatoryFieldsProvidedByClient: ${MANDATORY_TASK_FIELDS_PROVIDED_BY_CLIENT:name,taskType,caseId}
   search:
     defaultMaxResults: 50
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
