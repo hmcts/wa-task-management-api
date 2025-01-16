@@ -34,6 +34,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Value("${config.taskMandatoryFieldCheckEnabled}")
     private Boolean taskMandatoryFieldCheckEnabled;
+
     @Before
     public void setUp() {
         waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
