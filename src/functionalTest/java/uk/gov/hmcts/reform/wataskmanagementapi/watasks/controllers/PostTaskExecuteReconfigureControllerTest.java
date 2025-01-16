@@ -184,7 +184,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "MANDATORY_TASK_FIELD_CHECK_ENABLED", matches="true")
+    @EnabledIfEnvironmentVariable(named = "MANDATORY_TASK_FIELD_CHECK_ENABLED", matches = "true")
     public void should_not_reconfigure_task_when_task_validation_fails_during_reconfiguration()
         throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
