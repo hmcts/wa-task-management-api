@@ -1089,49 +1089,49 @@ class CaseConfigurationProviderServiceTest {
         when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", ""));
 
         List<PermissionsDmnEvaluationResponse> permissions = asList(
-            new PermissionsDmnEvaluationResponse(
-                stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryB")
-            ),
-            new PermissionsDmnEvaluationResponse(
-                stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryC")
-            )
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("tribunalCaseworker"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("LEGAL_OPERATIONS"),
+                        stringValue("categoryB")
+                ),
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("seniorTribunalCaseworker"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("LEGAL_OPERATIONS"),
+                        stringValue("categoryC")
+                )
         );
 
         lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
-            .thenReturn(permissions);
+                .thenReturn(permissions);
 
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
-            .thenReturn(asList(
-                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
-                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name3"),
-                    stringValue("updatedvalue3")
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name4"),
-                    stringValue("updatedvalue4")
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name5"),
-                    stringValue("updatedvalue5")
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name6"),
-                    stringValue("updatedvalue6"))
-            ));
+                .thenReturn(asList(
+                        new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name3"),
+                                stringValue("updatedvalue3")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name4"),
+                                stringValue("updatedvalue4")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name5"),
+                                stringValue("updatedvalue5")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                            stringValue("additionalProperties_name6"),
+                            stringValue("updatedvalue6"))
+                ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
             .getCaseRelatedConfiguration(someCaseId, taskAttributes, true);

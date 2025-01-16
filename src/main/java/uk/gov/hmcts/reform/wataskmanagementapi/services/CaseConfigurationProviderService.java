@@ -58,9 +58,9 @@ public class CaseConfigurationProviderService {
      */
     @SuppressWarnings("unchecked")
     public TaskConfigurationResults getCaseRelatedConfiguration(
-        String caseId,
-        Map<String, Object> taskAttributes,
-        boolean isReconfigureRequest) {
+            String caseId,
+            Map<String, Object> taskAttributes,
+            boolean isReconfigureRequest) {
         // Obtain case from ccd
         CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
@@ -158,19 +158,19 @@ public class CaseConfigurationProviderService {
         List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults;
         if (!isReconfigureRequest) {
             Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
-                .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
-                .map(this::removeAdditionalFromCamundaName)
-                //Using optional to allow null values
-                .collect(toMap(r -> r.getName().getValue(), r -> Optional.ofNullable(r.getValue().getValue())));
+                    .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
+                    .map(this::removeAdditionalFromCamundaName)
+                    //Using optional to allow null values
+                    .collect(toMap(r -> r.getName().getValue(), r -> Optional.ofNullable(r.getValue().getValue())));
 
             configResponses = taskConfigurationDmnResults.stream()
-                .filter(r -> !r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
-                .collect(Collectors.toList());
+                    .filter(r -> !r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
+                    .collect(Collectors.toList());
 
             if (!additionalProperties.isEmpty()) {
                 configResponses.add(new ConfigurationDmnEvaluationResponse(
-                    CamundaValue.stringValue(ADDITIONAL_PROPERTIES_KEY),
-                    CamundaValue.stringValue(writeValueAsString(additionalProperties))
+                        CamundaValue.stringValue(ADDITIONAL_PROPERTIES_KEY),
+                        CamundaValue.stringValue(writeValueAsString(additionalProperties))
                 ));
             }
         }

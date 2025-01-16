@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
@@ -16,14 +17,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTask
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
@@ -32,9 +36,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TITLE;
 
 @ExtendWith({MockitoExtension.class})
 class ExclusiveTaskActionsControllerTest {
@@ -64,6 +68,8 @@ class ExclusiveTaskActionsControllerTest {
         lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
         lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
         lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
+        ReflectionTestUtils.setField(exclusiveTaskActionsController, "taskMandatoryFieldsProvidedByClient",
+                                     List.of());
     }
 
     @Nested
@@ -103,7 +109,7 @@ class ExclusiveTaskActionsControllerTest {
             InitiateTaskRequestMap req = new InitiateTaskRequestMap(
                 INITIATION,
                 Map.of(
-                    TASK_TITLE.value(), "aTaskTitle",
+                    TITLE.value(), "aTaskTitle",
                     TASK_NAME.value(), "aTaskName"
                 )
             );
@@ -119,6 +125,29 @@ class ExclusiveTaskActionsControllerTest {
                                 + "client/user had insufficient rights to a resource.");
         }
 
+    }
+
+    @Test
+    void should_fail_when_initiating_a_task_and_client_mandatory_field_not_present_and_return_400() {
+        ReflectionTestUtils.setField(exclusiveTaskActionsController, "taskMandatoryFieldsProvidedByClient",
+                                     List.of("name", "taskType", "caseId"));
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
+            INITIATION,
+            Map.of(
+                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal"
+            )
+        );
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        CustomConstraintViolationException exception =
+            assertThrows(CustomConstraintViolationException.class, () ->
+                exclusiveTaskActionsController.initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req));
+        assertEquals(exception.getViolations().size(), 1);
+        assertEquals(exception.getViolations().get(0).getField(), "caseId");
+        assertEquals(exception.getViolations().get(0).getMessage(), "must not be empty");
     }
 
     @Test

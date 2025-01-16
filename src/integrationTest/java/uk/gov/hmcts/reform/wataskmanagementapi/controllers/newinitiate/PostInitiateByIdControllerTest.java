@@ -1424,7 +1424,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
             TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
             TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
             DUE_DATE.value(), formattedDueDate
         );
 
@@ -1437,7 +1436,14 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
                          .content(asJsonString(req)))
             .andExpectAll(
-                status().isBadRequest());
+                status().isBadRequest(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.violations[0].field").value("caseId"),
+                jsonPath("$.violations[0].message").value("must not be empty"));
+
 
     }
 }

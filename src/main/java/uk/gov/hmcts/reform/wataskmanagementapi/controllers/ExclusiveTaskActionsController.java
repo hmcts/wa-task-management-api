@@ -91,18 +91,12 @@ public class ExclusiveTaskActionsController extends BaseController {
 
     private void validateInitiateTaskRequestMap(Map<String, Object> taskAttributes) {
         List<Violation> violations = new ArrayList<>();
-
-        if (taskAttributes == null || taskAttributes.isEmpty()) {
-            violations.add(new Violation(
-                "InitiateTaskRequestMap.task_attributes",
-                "InitiateTaskRequestMap task attributes must not be empty")
-            );
-        }
+        String errorMessage = "must not be empty";
         taskMandatoryFieldsProvidedByClient.forEach(mandatoryField -> {
-            if (!taskAttributes.containsKey(mandatoryField)) {
+            if (taskAttributes != null && !taskAttributes.containsKey(mandatoryField)) {
                 violations.add(new Violation(
-                    "mandatoryField",
-                    mandatoryField + "not present in InitiateTaskRequestMap task attributes")
+                    mandatoryField,
+                    errorMessage)
                 );
             }
         });
