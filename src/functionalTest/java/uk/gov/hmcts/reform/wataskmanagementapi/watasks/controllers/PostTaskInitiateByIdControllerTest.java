@@ -4,8 +4,8 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -878,7 +878,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "MANDATORY_TASK_FIELD_CHECK_ENABLED", matches = "true")
+    @EnabledIf(expression = "#{${config.taskMandatoryFieldCheckEnabled}}", loadContext = true)
     public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringInitiation",

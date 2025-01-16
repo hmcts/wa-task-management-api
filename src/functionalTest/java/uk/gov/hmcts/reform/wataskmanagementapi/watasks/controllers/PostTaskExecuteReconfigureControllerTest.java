@@ -6,9 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -184,7 +184,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "MANDATORY_TASK_FIELD_CHECK_ENABLED", matches = "true")
+    @EnabledIf(expression = "#{${config.taskMandatoryFieldCheckEnabled}}", loadContext = true)
     public void should_not_reconfigure_task_when_task_validation_fails_during_reconfiguration()
         throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
