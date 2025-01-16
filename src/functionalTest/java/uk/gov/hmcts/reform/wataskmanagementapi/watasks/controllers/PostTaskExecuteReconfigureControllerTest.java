@@ -2,13 +2,15 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import net.thucydides.core.annotations.Title;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.EnabledIf;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -52,6 +54,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @Slf4j
 public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
+    @Value("${config.taskMandatoryFieldCheckEnabled}")
+    private Boolean taskMandatoryFieldCheckEnabled;
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
 
     @Before
@@ -184,9 +188,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @EnabledIf(expression = "#{${config.taskMandatoryFieldCheckEnabled}}", loadContext = true)
+    @Title("Run this test only if the taskMandatoryFieldCheckEnabled flag is enabled")
     public void should_not_reconfigure_task_when_task_validation_fails_during_reconfiguration()
         throws Exception {
+        Assume.assumeTrue("Feature is not enabled, skipping the test.", taskMandatoryFieldCheckEnabled);
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringReconfiguration",
             "validateMandatoryTaskAttributesDuringReconfiguration"

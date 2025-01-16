@@ -1,11 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import net.thucydides.core.annotations.Title;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit.jupiter.EnabledIf;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -30,6 +32,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
+    @Value("${config.taskMandatoryFieldCheckEnabled}")
+    private Boolean taskMandatoryFieldCheckEnabled;
     @Before
     public void setUp() {
         waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
@@ -878,8 +882,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @EnabledIf(expression = "#{${config.taskMandatoryFieldCheckEnabled}}", loadContext = true)
+    @Title("Run this test only if the taskMandatoryFieldCheckEnabled flag is enabled")
     public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
+        Assume.assumeTrue("Feature is not enabled, skipping the test.", taskMandatoryFieldCheckEnabled);
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringInitiation",
             "validateMandatoryTaskAttributesDuringInitiation"
