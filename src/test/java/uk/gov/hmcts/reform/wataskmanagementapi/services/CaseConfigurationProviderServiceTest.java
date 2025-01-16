@@ -1089,68 +1089,68 @@ class CaseConfigurationProviderServiceTest {
         when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", ""));
 
         List<PermissionsDmnEvaluationResponse> permissions = asList(
-            new PermissionsDmnEvaluationResponse(
-                stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryB")
-            ),
-            new PermissionsDmnEvaluationResponse(
-                stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryC")
-            )
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("tribunalCaseworker"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("LEGAL_OPERATIONS"),
+                        stringValue("categoryB")
+                ),
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("seniorTribunalCaseworker"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("LEGAL_OPERATIONS"),
+                        stringValue("categoryC")
+                )
         );
 
         lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
-            .thenReturn(permissions);
+                .thenReturn(permissions);
 
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
-            .thenReturn(asList(
-                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
-                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name3"),
-                    stringValue("updatedvalue3")
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name4"),
-                    stringValue("updatedvalue4")
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name5"),
-                    stringValue("updatedvalue5")
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_name6"),
-                    stringValue("updatedvalue6"))
-            ));
+                .thenReturn(asList(
+                        new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name3"),
+                                stringValue("updatedvalue3")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name4"),
+                                stringValue("updatedvalue4")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_name5"),
+                                stringValue("updatedvalue5")
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                            stringValue("additionalProperties_name6"),
+                            stringValue("updatedvalue6"))
+                ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes, true);
+                .getCaseRelatedConfiguration(someCaseId, taskAttributes, true);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
 
         Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
-            .hasSize(6)
-            .contains(
-                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
-                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name3"),
-                                                       stringValue("updatedvalue3")),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name4"),
-                                                       stringValue("updatedvalue4")),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name5"),
-                                                       stringValue("updatedvalue5")),
-                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name6"),
-                                                       stringValue("updatedvalue6")));
+                .hasSize(6)
+                .contains(
+                        new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name3"),
+                                stringValue("updatedvalue3")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name4"),
+                                                               stringValue("updatedvalue4")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name5"),
+                                               stringValue("updatedvalue5")),
+                        new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name6"),
+                                                               stringValue("updatedvalue6")));
     }
 
     @Test
@@ -1159,59 +1159,59 @@ class CaseConfigurationProviderServiceTest {
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, Object> taskAttributes = new ConcurrentHashMap<>();
         Map<String, String> additionalProperties = Map.of(
-            "roleAssignmentId", roleAssignmentId,
-            "key1", "val1"
+                "roleAssignmentId", roleAssignmentId,
+                "key1", "val1"
         );
         taskAttributes.put("additionalProperties", additionalProperties);
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         List<PermissionsDmnEvaluationResponse> permissions = List.of(
-            new PermissionsDmnEvaluationResponse(
-                stringValue("reviewSpecificAccessRequestJudiciary"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null,
-                stringValue("JUDICIAL"),
-                stringValue("categoryB")
-            )
+                new PermissionsDmnEvaluationResponse(
+                        stringValue("reviewSpecificAccessRequestJudiciary"),
+                        stringValue("Read,Refer,Own,Manage,Cancel"),
+                        null,
+                        null,
+                        null,
+                        stringValue("JUDICIAL"),
+                        stringValue("categoryB")
+                )
         );
 
         lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
-            .thenReturn(permissions);
+                .thenReturn(permissions);
 
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
-            .thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_roleAssignmentId"),
-                    stringValue(roleAssignmentId),
-                    booleanValue(true)
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_key1"),
-                    stringValue("val2"),
-                    booleanValue(false)
-                )
-            ));
+                .thenReturn(List.of(
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_roleAssignmentId"),
+                                stringValue(roleAssignmentId),
+                                booleanValue(true)
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_key1"),
+                                stringValue("val2"),
+                                booleanValue(false)
+                        )
+                ));
 
         TaskConfigurationResults mappedData = caseConfigurationProviderService
-            .getCaseRelatedConfiguration(someCaseId, taskAttributes, true);
+                .getCaseRelatedConfiguration(someCaseId, taskAttributes, true);
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
 
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
-            .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
-            .isEmpty();
+                .filteredOn(r -> r.getName().getValue().equals("additionalProperties"))
+                .isEmpty();
         Assertions.assertThat(mappedData.getConfigurationDmnResponse())
-            .contains(
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_roleAssignmentId"),
-                    stringValue(roleAssignmentId),
-                    booleanValue(true)
-                ),
-                new ConfigurationDmnEvaluationResponse(
-                    stringValue("additionalProperties_key1"),
-                    stringValue("val2"),
-                    booleanValue(false)));
+                .contains(
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_roleAssignmentId"),
+                                stringValue(roleAssignmentId),
+                                booleanValue(true)
+                        ),
+                        new ConfigurationDmnEvaluationResponse(
+                                stringValue("additionalProperties_key1"),
+                                stringValue("val2"),
+                                booleanValue(false)));
     }
 
     private String writeValueAsString(Map<String, String> data) {
