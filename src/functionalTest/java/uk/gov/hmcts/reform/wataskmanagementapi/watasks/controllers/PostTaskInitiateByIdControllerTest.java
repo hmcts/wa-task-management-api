@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import net.thucydides.core.annotations.Title;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Value("${config.taskMandatoryFieldCheckEnabled}")
@@ -883,8 +884,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Title("Run this test only if the taskMandatoryFieldCheckEnabled flag is enabled")
-    public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
+    @DisplayName("should return a 502 if task is missing mandatory task attributes and mandatory fields feature enabled")
+    public void should_return_a_502_if_task_is_missing_mandatory_task_attributes_and_mandatory_fields_feature_enabled() {
         Assume.assumeTrue("Feature is not enabled, skipping the test.", taskMandatoryFieldCheckEnabled);
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringInitiation",
