@@ -68,7 +68,7 @@ class ExclusiveTaskActionsControllerTest {
         lenient().when(idamTokenGenerator.generate()).thenReturn("SYSTEM_BEARER_TOKEN");
         lenient().when(idamTokenGenerator.getUserInfo(any())).thenReturn(userInfo);
         lenient().when(userInfo.getUid()).thenReturn("SYSTEM_USER_IDAM_ID");
-        ReflectionTestUtils.setField(exclusiveTaskActionsController, "taskMandatoryFieldsProvidedByClient",
+        ReflectionTestUtils.setField(exclusiveTaskActionsController, "initiationRequestRequiredFields",
                                      List.of());
     }
 
@@ -129,7 +129,7 @@ class ExclusiveTaskActionsControllerTest {
 
     @Test
     void should_fail_when_initiating_a_task_and_client_mandatory_field_not_present_and_return_400() {
-        ReflectionTestUtils.setField(exclusiveTaskActionsController, "taskMandatoryFieldsProvidedByClient",
+        ReflectionTestUtils.setField(exclusiveTaskActionsController, "initiationRequestRequiredFields",
                                      List.of("name", "taskType", "caseId"));
         InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,

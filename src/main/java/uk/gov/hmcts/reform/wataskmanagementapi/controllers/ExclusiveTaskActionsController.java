@@ -45,8 +45,8 @@ public class ExclusiveTaskActionsController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
-    @Value("${config.taskMandatoryFieldsProvidedByClient}")
-    private List<String> taskMandatoryFieldsProvidedByClient;
+    @Value("${config.initiationRequestRequiredFields}")
+    private List<String> initiationRequestRequiredFields;
 
     @Autowired
     public ExclusiveTaskActionsController(ClientAccessControlService clientAccessControlService,
@@ -77,7 +77,7 @@ public class ExclusiveTaskActionsController extends BaseController {
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
-        validateInitiateTaskRequestMap(initiateTaskRequest.getTaskAttributes());
+        validateInitiationRequestMap(initiateTaskRequest.getTaskAttributes());
         TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
         taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
@@ -87,10 +87,10 @@ public class ExclusiveTaskActionsController extends BaseController {
             .body(savedTask);
     }
 
-    private void validateInitiateTaskRequestMap(Map<String, Object> taskAttributes) {
+    private void validateInitiationRequestMap(Map<String, Object> taskAttributes) {
         List<Violation> violations = new ArrayList<>();
         String errorMessage = "must not be empty";
-        taskMandatoryFieldsProvidedByClient.forEach(mandatoryField -> {
+        initiationRequestRequiredFields.forEach(mandatoryField -> {
             if (taskAttributes != null && !taskAttributes.containsKey(mandatoryField)) {
                 violations.add(new Violation(
                     mandatoryField,

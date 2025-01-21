@@ -70,7 +70,3 @@ logging:
 config:
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS,ET_EnglandWales,ET_EnglandWales_Listings,ET_EnglandWales_Multiple,ET_Scotland,ET_Scotland_Listings,ET_Scotland_Multiple,ET_Admin,benefit}
-  taskMandatoryFieldCheckEnabled: ${MANDATORY_TASK_FIELD_CHECK_ENABLED:true}
-  taskMandatoryFields: ${MANDATORY_TASK_FIELDS:taskName,taskId,taskType,dueDateTime,state,securityClassification,title,majorPriority,minorPriority,executionTypeCode,caseId,caseTypeId,caseCategory,caseName,jurisdiction,region,location,created,roleCategory,workTypeResource}
-  taskMandatoryFieldsProvidedByClient: ${MANDATORY_TASK_FIELDS_PROVIDED_BY_CLIENT:name,taskType,caseId}
-  fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
