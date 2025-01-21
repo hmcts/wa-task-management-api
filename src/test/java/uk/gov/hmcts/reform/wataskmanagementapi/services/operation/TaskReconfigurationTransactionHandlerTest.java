@@ -189,7 +189,7 @@ class TaskReconfigurationTransactionHandlerTest {
             .untilAsserted(() ->
                                assertTrue(output.toString().contains(MANDATORY_FIELD_MISSING_ERROR.getDetail()
                                                                          + taskId))
-            );
+        );
     }
 
     private List<TaskResource> taskResourcesToReconfigure(OffsetDateTime reconfigureTime) {
