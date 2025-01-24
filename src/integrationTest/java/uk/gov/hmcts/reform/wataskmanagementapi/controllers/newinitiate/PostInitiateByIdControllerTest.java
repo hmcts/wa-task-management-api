@@ -1376,7 +1376,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_throw_bad_request_when_client_specific_mandatory_fields_are_missing_during_task_initiation()
+    void should_throw_bad_request_when_initiation_mandatory_fields_required_are_missing_during_task_initiation()
         throws Exception {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);

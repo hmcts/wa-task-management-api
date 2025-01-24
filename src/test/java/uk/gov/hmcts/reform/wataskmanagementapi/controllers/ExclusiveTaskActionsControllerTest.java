@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenExc
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,9 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.*;
 
 @ExtendWith({MockitoExtension.class})
 class ExclusiveTaskActionsControllerTest {
@@ -127,16 +128,29 @@ class ExclusiveTaskActionsControllerTest {
 
     }
 
-    @Test
-    void should_fail_when_initiating_a_task_and_client_mandatory_field_not_present_and_return_400() {
+    @ParameterizedTest
+    @CsvSource(value = {
+        ",taskType,caseId,name",
+        "name,,caseId,taskType",
+        "name,taskType,,caseId",
+        "NULL,taskType,caseId,name",
+        "name,NULL,caseId,taskType",
+        "name,taskType,NULL,caseId"}, nullValues = "NULL")
+    void should_fail_when_initiating_a_task_and_client_mandatory_field_not_present_and_return_400(String name,
+                                                                                                  String taskType,
+                                                                                                  String caseId,
+                                                                                                  String fieldName) {
         ReflectionTestUtils.setField(exclusiveTaskActionsController, "initiationRequestRequiredFields",
                                      List.of("name", "taskType", "caseId"));
+        Map<String, Object> inputRequestMap = new HashMap<>();
+        inputRequestMap.put(TITLE.value(), "aTaskTitle");
+        inputRequestMap.put(TASK_NAME.value(), name);
+        inputRequestMap.put(TASK_TYPE.value(), taskType);
+        inputRequestMap.put(CASE_ID.value(), caseId);
+
         InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
-            Map.of(
-                TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-                TASK_NAME.value(), "follow Up Overdue Reasons For Appeal"
-            )
+            inputRequestMap
         );
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -146,7 +160,7 @@ class ExclusiveTaskActionsControllerTest {
             assertThrows(CustomConstraintViolationException.class, () ->
                 exclusiveTaskActionsController.initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req));
         assertEquals(exception.getViolations().size(), 1);
-        assertEquals(exception.getViolations().get(0).getField(), "caseId");
+        assertEquals(exception.getViolations().get(0).getField(), fieldName);
         assertEquals(exception.getViolations().get(0).getMessage(), "must not be empty");
     }
 

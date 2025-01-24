@@ -91,11 +91,10 @@ public class ExclusiveTaskActionsController extends BaseController {
         List<Violation> violations = new ArrayList<>();
         String errorMessage = "must not be empty";
         initiationRequestRequiredFields.forEach(mandatoryField -> {
-            if (taskAttributes != null && !taskAttributes.containsKey(mandatoryField)) {
-                violations.add(new Violation(
-                    mandatoryField,
-                    errorMessage)
-                );
+            Object value = taskAttributes != null ? taskAttributes.get(mandatoryField) : null;
+
+            if (value == null || value.toString().isBlank()) {
+                violations.add(new Violation(mandatoryField, errorMessage));
             }
         });
 
@@ -103,7 +102,6 @@ public class ExclusiveTaskActionsController extends BaseController {
             throw new CustomConstraintViolationException(violations);
         }
     }
-
     @Operation(description = "Exclusive access only: Terminate a Task identified by an id.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task has been terminated", content = {
