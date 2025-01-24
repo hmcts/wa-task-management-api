@@ -139,7 +139,7 @@ class ExclusiveTaskActionsControllerTest {
         "NULL,taskType,caseId,name",
         "name,NULL,caseId,taskType",
         "name,taskType,NULL,caseId"}, nullValues = "NULL")
-    void should_fail_when_initiating_a_task_and_client_mandatory_field_not_present_and_return_400(String name,
+    void should_fail_when_initiating_a_task_and_client_mandatory_field_value_not_present_and_return_400(String name,
                                                                                                   String taskType,
                                                                                                   String caseId,
                                                                                                   String fieldName) {
@@ -150,6 +150,35 @@ class ExclusiveTaskActionsControllerTest {
         inputRequestMap.put(TASK_NAME.value(), name);
         inputRequestMap.put(TASK_TYPE.value(), taskType);
         inputRequestMap.put(CASE_ID.value(), caseId);
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
+            INITIATION,
+            inputRequestMap
+        );
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        CustomConstraintViolationException exception =
+            assertThrows(CustomConstraintViolationException.class, () ->
+                exclusiveTaskActionsController.initiate(SERVICE_AUTHORIZATION_TOKEN, taskId, req));
+        assertEquals(exception.getViolations().size(), 1);
+        assertEquals(exception.getViolations().get(0).getField(), fieldName);
+        assertEquals(exception.getViolations().get(0).getMessage(), "must not be empty");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"name","taskType","caseId"})
+    void should_fail_when_initiating_a_task_and_client_mandatory_field_not_present_and_return_400(String fieldName) {
+        ReflectionTestUtils.setField(exclusiveTaskActionsController, "initiationRequestRequiredFields",
+                                     List.of("name", "taskType", "caseId"));
+        Map<String, Object> inputRequestMap = new HashMap<>();
+        inputRequestMap.put(TITLE.value(), "aTaskTitle");
+        inputRequestMap.put(TASK_NAME.value(), "taskName");
+        inputRequestMap.put(TASK_TYPE.value(), "taskType");
+        inputRequestMap.put(CASE_ID.value(), "caseId");
+
+        inputRequestMap.remove(fieldName);
 
         InitiateTaskRequestMap req = new InitiateTaskRequestMap(
             INITIATION,
