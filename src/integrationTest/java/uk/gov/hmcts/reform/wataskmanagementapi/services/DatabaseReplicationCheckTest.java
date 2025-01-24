@@ -17,8 +17,9 @@ import java.sql.SQLException;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 
 @ActiveProfiles("replica")
 @Slf4j
@@ -33,36 +34,50 @@ public class DatabaseReplicationCheckTest extends ReplicaBaseTest {
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:scripts/wa/delete_task_data.sql",
             "classpath:scripts/wa/insert_task_data.sql"})
-    void should_verify_termination_process_populated_for_a_task_in_replica_tables() {
-        String taskId = "9a6cc5cf-c973-11eb-bdba-0242ac111001";
-
+    void should_verify_termination_process_populated_for_a_task_in_primary_and_replica_tables() {
+        String taskIdWithTerminationProcess = "9a6cc5cf-c973-11eb-bdba-0242ac111001";
+        String taskIdWithOutTerminationProcess = "9a6cc5cf-c973-11eb-bdba-0242ac111011";
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .until(
                 () -> {
-                    String terminationProcess = selectTaskColumnValueFromTable(taskId,
-                                                                               TASKS_TABLE_NAME,
-                                                                               TERMINATION_PROCESS_COLUMN_NAME,
-                                                                               container);
+                    String terminationProcess =
+                        selectTaskColumnValueFromTable(taskIdWithTerminationProcess,
+                                                       TASKS_TABLE_NAME,
+                                                       TERMINATION_PROCESS_COLUMN_NAME,
+                                                       container);
+                    assertNotNull(terminationProcess);
                     String terminationProcessInReplicaDB =
-                        selectTaskColumnValueFromTable(taskId,
+                        selectTaskColumnValueFromTable(taskIdWithTerminationProcess,
                                                        TASKS_TABLE_NAME,
                                                        TERMINATION_PROCESS_COLUMN_NAME,
                                                        containerReplica);
                     assertEquals(terminationProcess, terminationProcessInReplicaDB);
                     terminationProcessInReplicaDB =
-                        selectTaskColumnValueFromTable(taskId,
+                        selectTaskColumnValueFromTable(taskIdWithTerminationProcess,
                                                        TASK_HISTORY_TABLE_NAME,
                                                        TERMINATION_PROCESS_COLUMN_NAME,
                                                        containerReplica);
                     assertEquals(terminationProcess, terminationProcessInReplicaDB);
                     terminationProcessInReplicaDB =
-                        selectTaskColumnValueFromTable(taskId,
+                        selectTaskColumnValueFromTable(taskIdWithTerminationProcess,
                                                        REPORTABLE_TASK_TABLE_NAME,
                                                        TERMINATION_PROCESS_COLUMN_NAME,
                                                        containerReplica);
                     assertEquals(terminationProcess, terminationProcessInReplicaDB);
+                    terminationProcess =
+                        selectTaskColumnValueFromTable(taskIdWithOutTerminationProcess,
+                                                       TASKS_TABLE_NAME,
+                                                       TERMINATION_PROCESS_COLUMN_NAME,
+                                                       container);
+                    assertNull(terminationProcess);
+                    terminationProcessInReplicaDB =
+                        selectTaskColumnValueFromTable(taskIdWithOutTerminationProcess,
+                                                       TASKS_TABLE_NAME,
+                                                       TERMINATION_PROCESS_COLUMN_NAME,
+                                                       containerReplica);
+                    assertNull(terminationProcessInReplicaDB);
                     return true;
                 });
     }
