@@ -21,6 +21,8 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.persistence.OptimisticLockException;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -181,7 +183,13 @@ class TaskReconfigurationTransactionHandlerTest {
         assertThrows(ServiceMandatoryFieldValidationException.class, () -> taskReconfigurationTransactionHandler
             .reconfigureTaskResource(taskId));
         verifyNoInteractions(taskAutoAssignmentService);
-        assertTrue(output.toString().contains(MANDATORY_FIELD_MISSING_ERROR.getDetail() + taskId));
+        await().ignoreException(AssertionError.class)
+            .pollDelay(5, SECONDS)
+            .atMost(30, SECONDS)
+            .untilAsserted(() ->
+                               assertTrue(output.toString().contains(MANDATORY_FIELD_MISSING_ERROR.getDetail()
+                                                                         + taskId))
+        );
     }
 
     private List<TaskResource> taskResourcesToReconfigure(OffsetDateTime reconfigureTime) {
