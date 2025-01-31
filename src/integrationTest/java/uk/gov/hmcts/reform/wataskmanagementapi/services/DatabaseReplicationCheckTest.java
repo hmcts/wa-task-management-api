@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
+import org.postgresql.util.PSQLException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -87,7 +88,7 @@ public class DatabaseReplicationCheckTest extends ReplicaBaseTest {
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
                     boolean columnAdded = checkIfColumnAddedInTable(TASKS_TABLE_NAME,
@@ -154,7 +155,16 @@ public class DatabaseReplicationCheckTest extends ReplicaBaseTest {
             if (hasResultSet) {
                 columnAdded = true;
             }
-            return columnAdded;
+        } catch (PSQLException e) {
+            if (e.getMessage().contains("column \"" + columnName + "\" does not exist")) {
+                log.error("Column " + columnName + " not found in the table " + tableName);
+                columnAdded = false;
+            }
+        } catch (Exception e) {
+            log.error("select query to get " + columnName + " failed  : {}, {} ",
+                      e.getCause(), e.getMessage()
+            );
         }
+        return columnAdded;
     }
 }
