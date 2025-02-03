@@ -55,7 +55,8 @@ public class ExclusiveTaskActionsController extends BaseController {
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR),
+        @ApiResponse(responseCode = "502", description = BAD_GATEWAY)
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/{task-id}/initiation")
