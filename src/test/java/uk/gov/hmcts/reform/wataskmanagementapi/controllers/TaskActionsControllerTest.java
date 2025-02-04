@@ -240,13 +240,14 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             null
         );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1))
-            .completeTask(taskId, mockAccessControlResponse);
+            .completeTask(taskId, mockAccessControlResponse,Optional.empty());
 
     }
 
@@ -265,6 +266,7 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             request
         );
 
@@ -273,7 +275,8 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTaskWithPrivilegeAndCompletionOptions(
             taskId,
             mockAccessControlResponse,
-            request.getCompletionOptions()
+            request.getCompletionOptions(),
+                Optional.empty()
         );
 
     }
@@ -290,6 +293,7 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             request
         );
 
@@ -297,7 +301,8 @@ class TaskActionsControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1)).completeTask(
             taskId,
-            mockAccessControlResponse
+            mockAccessControlResponse,
+            Optional.empty()
         );
 
     }
@@ -318,6 +323,7 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             request
         ))
             .isInstanceOf(GenericForbiddenException.class)

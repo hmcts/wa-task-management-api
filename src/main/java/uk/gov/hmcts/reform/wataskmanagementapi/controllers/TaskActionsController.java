@@ -12,15 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -225,6 +217,7 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
+                                             @RequestParam(value = COMPLETION_PROCESS, required = false) String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -232,7 +225,7 @@ public class TaskActionsController extends BaseController {
             accessControlResponse.getUserInfo().getUid());
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse);
+            taskManagementService.completeTask(taskId, accessControlResponse, Optional.ofNullable(completionProcess));
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -241,7 +234,8 @@ public class TaskActionsController extends BaseController {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    completeTaskRequest.getCompletionOptions()
+                    completeTaskRequest.getCompletionOptions(),
+                    Optional.ofNullable(completionProcess)
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);

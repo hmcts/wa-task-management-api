@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
@@ -437,11 +438,11 @@ public class TaskManagementService {
      * @param accessControlResponse the access control response containing user id and role assignments.
      */
     @Transactional
-    public void completeTask(String taskId, AccessControlResponse accessControlResponse) {
+    public void completeTask(String taskId, AccessControlResponse accessControlResponse, Optional<String> completionProcess) {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
-
+        String terminationProcess = completionProcess.orElse(null);
         boolean taskHasCompleted;
 
         checkCompletePermissions(taskId, accessControlResponse, userId);
@@ -461,9 +462,22 @@ public class TaskManagementService {
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
+                checkAndSetTerminationProcess(completionProcess, task);
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
+        }
+    }
+
+    private void checkAndSetTerminationProcess(Optional<String> completionProcess, TaskResource task) {
+        String terminationProcessStr = completionProcess.orElse(null);
+        try {
+            TerminationProcess terminationProcess = TerminationProcess.valueOf(terminationProcessStr);
+            task.setTerminationProcess(terminationProcess);
+            log.info("TerminationProcess value: {} was received and updated in database for task with id {}", completionProcess, task.getTaskId());
+        } catch (IllegalArgumentException e) {
+            // Log a warning if the value is not present in the enum
+            log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id {}", terminationProcessStr, task.getTaskId());
         }
     }
 
@@ -478,7 +492,8 @@ public class TaskManagementService {
     @Transactional
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
-                                                              CompletionOptions completionOptions) {
+                                                              CompletionOptions completionOptions,
+                                                              Optional<String> completionProcess) {
         String userId = accessControlResponse.getUserInfo().getUid();
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -497,19 +512,20 @@ public class TaskManagementService {
 
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.COMPLETED);
-            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
             //Perform Camunda updates
             camundaService.assignAndCompleteTask(
                 taskId,
                 userId,
                 taskStateIsAssignedAlready
             );
+            task.setState(CFTTaskState.COMPLETED);
+            checkAndSetTerminationProcess(completionProcess, task);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
         } else {
-            completeTask(taskId, accessControlResponse);
+            completeTask(taskId, accessControlResponse, completionProcess);
         }
     }
 

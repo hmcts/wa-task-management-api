@@ -458,7 +458,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse,null)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
@@ -485,7 +485,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
@@ -525,7 +525,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        Optional.empty()
                     )))
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
@@ -564,7 +565,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        Optional.empty()
                     )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
