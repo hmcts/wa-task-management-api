@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("replica")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class DatabaseReplicationCheckTest extends ReplicaBaseTest {
+public class TerminationProcessColumnAdditionTest extends ReplicaBaseTest {
     private static final String TERMINATION_PROCESS_COLUMN_NAME = "termination_process";
     private static final String TASKS_TABLE_NAME = "tasks";
     private static final String TASK_HISTORY_TABLE_NAME = "task_history";
