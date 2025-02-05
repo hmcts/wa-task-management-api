@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -17,8 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
 
 @SuppressWarnings({
     "PMD.UseVarargs", "PMD.TooManyMethods"})
