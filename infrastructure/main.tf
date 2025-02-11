@@ -39,6 +39,7 @@ locals {
     lastUpdated = timestamp()
   }
   common_tags = merge(var.common_tags, local.computed_tags)
+  db_name = "${var.postgres_db_component_name}-postgres-db-flexible"
 }
 
 //New Azure Flexible database
@@ -47,15 +48,19 @@ module "wa_task_management_api_database_flexible" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source           = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product          = var.product
-  component        = var.component
-  name             = "${var.postgres_db_component_name}-postgres-db-flexible"
-  pgsql_sku        = var.pgsql_sku
-  pgsql_storage_mb = var.pgsql_storage_mb
-  location         = var.location
-  business_area    = var.business_area
-  env              = var.env
+  source                      = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product                     = var.product
+  component                   = var.component
+  name                        = local.db_name
+  pgsql_sku                   = var.pgsql_sku
+  pgsql_storage_mb            = var.pgsql_storage_mb
+  location                    = var.location
+  business_area               = var.business_area
+  env                         = var.env
+  action_group_name           = join("-", [local.db_name, var.action_group_name])
+  email_address_key           = var.email_address_key
+  email_address_key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+
   pgsql_databases = [
     {
       name : var.postgresql_database_name
@@ -85,13 +90,18 @@ module "wa_task_management_api_database_flexible_replica" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source        = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product       = var.product
-  component     = var.component
-  name          = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
-  location      = var.location
-  business_area = var.business_area
-  env           = var.env
+  source                      = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product                     = var.product
+  component                   = var.component
+  name                        = join("-", [local.db_name, "replica"])
+  location                    = var.location
+  business_area               = var.business_area
+  env                         = var.env
+  action_group_name           = join("-", [local.db_name, "replica", var.action_group_name])
+  email_address_key           = var.email_address_key
+  email_address_key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+
+
   pgsql_databases = [
     {
       name : var.postgresql_database_name
@@ -166,4 +176,3 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEXIBLE-REPLICA" {
   value        = "cft_task_db"
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
-
