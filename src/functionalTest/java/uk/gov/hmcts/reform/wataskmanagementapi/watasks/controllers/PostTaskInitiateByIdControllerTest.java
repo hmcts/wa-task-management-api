@@ -877,8 +877,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         common.cleanUpTask(taskId);
     }
 
-    @Ignore
     @Test
+    @Ignore("Ignoring the test as the test is failing in nightly build as mandatory field check is not enabled in AAT.")
     public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringInitiation",
