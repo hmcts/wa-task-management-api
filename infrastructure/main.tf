@@ -60,6 +60,9 @@ module "wa_task_management_api_database_flexible" {
   action_group_name           = join("-", [local.db_name, var.action_group_name])
   email_address_key           = var.email_address_key
   email_address_key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+  cpu_threshold               = var.cpu_threshold
+  memory_threshold            = var.memory_threshold
+  storage_threshold           = var.storage_threshold
 
   pgsql_databases = [
     {
