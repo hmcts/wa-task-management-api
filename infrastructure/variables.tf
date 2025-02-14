@@ -61,3 +61,33 @@ variable "pgsql_sku" {
 variable "jenkins_AAD_objectId" {}
 
 variable "aks_subscription_id" {}
+
+variable "action_group_name" {
+  description = "The name of the Action Group to create."
+  type        = string
+  default     = "wa-support"
+}
+
+variable "email_address_key" {
+  description = "Email address key in azure Key Vault."
+  type        = string
+  default     = "db-alert-monitoring-email-address"
+}
+
+variable "cpu_threshold" {
+  default     = 5
+  type        = number
+  description = "Average CPU utilisation threshold"
+}
+
+variable "memory_threshold" {
+  default     = 5
+  type        = number
+  description = "Average memory utilisation threshold"
+}
+
+variable "storage_threshold" {
+  default     = 0.5
+  type        = number
+  description = "Average storage utilisation threshold"
+}
