@@ -341,7 +341,9 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.3.4'
 
 
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: '2.7.15'
+  implementation (group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: '2.7.15') {
+    exclude group: 'net.minidev', module: 'json-smart'
+  }
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-context', version: '4.1.4'
 
