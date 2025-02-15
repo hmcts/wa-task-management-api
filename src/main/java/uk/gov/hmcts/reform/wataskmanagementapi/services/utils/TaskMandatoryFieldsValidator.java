@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.launchdarkly.sdk.LDValue;
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceM
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.ValidationException;
 
 /**
  * Service to validate mandatory fields of a task.
