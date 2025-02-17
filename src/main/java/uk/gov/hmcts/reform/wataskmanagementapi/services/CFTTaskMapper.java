@@ -285,7 +285,7 @@ public class CFTTaskMapper {
                     && ra.getAttributes().get("caseId") != null
                     && ra.getAttributes().get("caseId").equals(caseId))
                 .map(RoleAssignment::getRoleName)
-                .collect(Collectors.toList());
+                .toList();
 
 
             if (taskRoleResources != null) {
@@ -317,55 +317,31 @@ public class CFTTaskMapper {
 
     private Set<PermissionTypes> evaluatePermissionsFoundAndCollectResults(TaskRoleResource taskRoleResource) {
         Set<PermissionTypes> accumulator = new HashSet<>();
-        if (taskRoleResource.getRead()) {
-            accumulator.add(PermissionTypes.READ);
-        }
-        if (taskRoleResource.getManage()) {
-            accumulator.add(PermissionTypes.MANAGE);
-        }
-        if (taskRoleResource.getExecute()) {
-            accumulator.add(PermissionTypes.EXECUTE);
-        }
-        if (taskRoleResource.getCancel()) {
-            accumulator.add(PermissionTypes.CANCEL);
-        }
-        if (taskRoleResource.getOwn()) {
-            accumulator.add(PermissionTypes.OWN);
-        }
-        if (taskRoleResource.getRefer()) {
-            accumulator.add(PermissionTypes.REFER);
-        }
-        if (taskRoleResource.getClaim()) {
-            accumulator.add(PermissionTypes.CLAIM);
-        }
-        if (taskRoleResource.getAssign()) {
-            accumulator.add(PermissionTypes.ASSIGN);
-        }
-        if (taskRoleResource.getUnassign()) {
-            accumulator.add(PermissionTypes.UNASSIGN);
-        }
-        if (taskRoleResource.getUnassignAssign()) {
-            accumulator.add(PermissionTypes.UNASSIGN_ASSIGN);
-        }
-        if (taskRoleResource.getComplete()) {
-            accumulator.add(PermissionTypes.COMPLETE);
-        }
-        if (taskRoleResource.getCompleteOwn()) {
-            accumulator.add(PermissionTypes.COMPLETE_OWN);
-        }
-        if (taskRoleResource.getCancelOwn()) {
-            accumulator.add(PermissionTypes.CANCEL_OWN);
-        }
-        if (taskRoleResource.getUnassignClaim()) {
-            accumulator.add(PermissionTypes.UNASSIGN_CLAIM);
-        }
-        if (taskRoleResource.getUnclaim()) {
-            accumulator.add(PermissionTypes.UNCLAIM);
-        }
-        if (taskRoleResource.getUnclaimAssign()) {
-            accumulator.add(PermissionTypes.UNCLAIM_ASSIGN);
-        }
+
+        addPermission(accumulator, taskRoleResource.getRead(), PermissionTypes.READ);
+        addPermission(accumulator, taskRoleResource.getManage(), PermissionTypes.MANAGE);
+        addPermission(accumulator, taskRoleResource.getExecute(), PermissionTypes.EXECUTE);
+        addPermission(accumulator, taskRoleResource.getCancel(), PermissionTypes.CANCEL);
+        addPermission(accumulator, taskRoleResource.getOwn(), PermissionTypes.OWN);
+        addPermission(accumulator, taskRoleResource.getRefer(), PermissionTypes.REFER);
+        addPermission(accumulator, taskRoleResource.getClaim(), PermissionTypes.CLAIM);
+        addPermission(accumulator, taskRoleResource.getAssign(), PermissionTypes.ASSIGN);
+        addPermission(accumulator, taskRoleResource.getUnassign(), PermissionTypes.UNASSIGN);
+        addPermission(accumulator, taskRoleResource.getUnassignAssign(), PermissionTypes.UNASSIGN_ASSIGN);
+        addPermission(accumulator, taskRoleResource.getComplete(), PermissionTypes.COMPLETE);
+        addPermission(accumulator, taskRoleResource.getCompleteOwn(), PermissionTypes.COMPLETE_OWN);
+        addPermission(accumulator, taskRoleResource.getCancelOwn(), PermissionTypes.CANCEL_OWN);
+        addPermission(accumulator, taskRoleResource.getUnassignClaim(), PermissionTypes.UNASSIGN_CLAIM);
+        addPermission(accumulator, taskRoleResource.getUnclaim(), PermissionTypes.UNCLAIM);
+        addPermission(accumulator, taskRoleResource.getUnclaimAssign(), PermissionTypes.UNCLAIM_ASSIGN);
+
         return accumulator;
+    }
+
+    private void addPermission(Set<PermissionTypes> accumulator, boolean condition, PermissionTypes permission) {
+        if (condition) {
+            accumulator.add(permission);
+        }
     }
 
     private WorkTypeResource extractWorkType(Map<CamundaVariableDefinition, Object> attributes) {
@@ -737,7 +713,7 @@ public class CFTTaskMapper {
                         "WARNING",
                         null,
                         warning.getWarningText()
-                    )).collect(Collectors.toList());
+                    )).toList();
             }
         }
         return notes;
@@ -749,7 +725,7 @@ public class CFTTaskMapper {
             List<Warning> warnings = notes.stream()
                 .filter(noteResource -> "WARNING".equals(noteResource.getNoteType()))
                 .map(noteResource -> new Warning(noteResource.getCode(), noteResource.getContent()))
-                .collect(Collectors.toList());
+                .toList();
             return new WarningValues(warnings);
         }
         return new WarningValues();
