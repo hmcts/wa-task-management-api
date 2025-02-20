@@ -2200,11 +2200,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @ParameterizedTest(name = "{0}")
     @MethodSource({
         "grantTypeSpecificErrorScenario",
-       /* "grantTypeStandardErrorScenario",
+        "grantTypeStandardErrorScenario",
         "grantTypeChallengedErrorScenario",
         "grantTypeWithStandardAndExcludedErrorScenario",
         "grantTypeWithChallengedAndExcludedErrorScenario",
-        "inValidBeginAndEndTime"*/
+        "inValidBeginAndEndTime"
     })
     void should_return_empty_list_when_search_request_is_invalid(TaskQueryScenario scenario) {
 
