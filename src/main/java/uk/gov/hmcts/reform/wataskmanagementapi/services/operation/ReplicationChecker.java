@@ -48,23 +48,24 @@ public class ReplicationChecker implements TaskOperationPerformService {
 
     public TaskOperationResponse performReplicationCheck() {
         List<TaskResource> lastUpdatedTasks = cftTaskDatabaseService.findLastFiveUpdatedTasks();
-        SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         List<TaskResource> notReplicated = new ArrayList<>();
         List<Future<?>> checks = new ArrayList<>();
 
-        for (TaskResource task : lastUpdatedTasks) {
-            Future<?> future = executor.submit(() -> {
-                try {
-                    await()
-                        .pollInterval(1, SECONDS)
-                        .atMost(20, SECONDS)
-                        .until(checkTaskHistory(task));
-                } catch (ConditionTimeoutException ex) {
-                    replicationLog(task);
-                    notReplicated.add(task);
-                }
-            });
-            checks.add(future);
+        try (SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor()) {
+            for (TaskResource task : lastUpdatedTasks) {
+                Future<?> future = executor.submit(() -> {
+                    try {
+                        await()
+                            .pollInterval(1, SECONDS)
+                            .atMost(20, SECONDS)
+                            .until(checkTaskHistory(task));
+                    } catch (ConditionTimeoutException ex) {
+                        replicationLog(task);
+                        notReplicated.add(task);
+                    }
+                });
+                checks.add(future);
+            }
         }
 
         waitForCheckCompletion(checks);
