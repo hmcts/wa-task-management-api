@@ -38,6 +38,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
@@ -45,8 +48,10 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
@@ -75,7 +80,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
+
+    @Autowired
+    TaskResourceRepository taskResourceRepository;
 
     @BeforeEach
     void setUp() {
@@ -83,6 +93,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
             allowedJurisdictionConfiguration
         );
+
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
     }
 
     @ParameterizedTest()
@@ -109,9 +121,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
         SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
-
+        indexRecord();
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        final GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
@@ -816,6 +828,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
+            .attributes(Collections.emptyMap())
             .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -867,12 +880,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .build();
         roleAssignments.add(roleAssignment);
 
-        final Map<String, String> excludeddAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
-        );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
-            .attributes(excludeddAttributes)
+            .attributes(Collections.emptyMap())
             .grantType(GrantType.EXCLUDED)
             .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -889,6 +899,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.SPECIFIC)
+            .attributes(Collections.emptyMap())
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -916,5 +927,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             return scenarioName;
         }
 
+    }
+
+    private void indexRecord() {
+        List<String> ids = new ArrayList<>();
+        taskResourceRepository.findAll().forEach(taskResource -> ids.add(taskResource.getTaskId()));
+        ids.forEach(id -> {
+            Optional<TaskResource> taskResource = taskResourceRepository.findById(id);
+            TaskResource task = taskResource.get();
+            task.setIndexed(true);
+            taskResourceRepository.save(task);
+        });
     }
 }
