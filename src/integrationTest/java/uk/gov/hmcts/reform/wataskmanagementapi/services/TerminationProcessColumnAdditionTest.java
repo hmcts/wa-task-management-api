@@ -97,6 +97,9 @@ public class TerminationProcessColumnAdditionTest extends ReplicaBaseTest {
                     assertTrue(columnAdded);
 
                     columnAdded = checkIfColumnAddedInTable(TASKS_TABLE_NAME,
+
+
+                    boolean columnAdded = checkIfColumnAddedInTable(TASKS_TABLE_NAME,
                                                             TERMINATION_PROCESS_COLUMN_NAME,
                                                             containerReplica);
                     assertTrue(columnAdded);
