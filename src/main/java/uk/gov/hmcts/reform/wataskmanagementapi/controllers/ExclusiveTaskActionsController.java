@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -38,6 +45,8 @@ public class ExclusiveTaskActionsController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
+    @Value("${config.initiationRequestRequiredFields}")
+    private List<String> initiationRequestRequiredFields;
 
     @Autowired
     public ExclusiveTaskActionsController(ClientAccessControlService clientAccessControlService,
@@ -69,7 +78,7 @@ public class ExclusiveTaskActionsController extends BaseController {
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
-
+        validateInitiationRequestMap(initiateTaskRequest.getTaskAttributes());
         TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
         taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
@@ -77,6 +86,22 @@ public class ExclusiveTaskActionsController extends BaseController {
             .status(HttpStatus.CREATED)
             .cacheControl(CacheControl.noCache())
             .body(savedTask);
+    }
+
+    private void validateInitiationRequestMap(Map<String, Object> taskAttributes) {
+        List<Violation> violations = new ArrayList<>();
+        String errorMessage = "must not be empty";
+        initiationRequestRequiredFields.forEach(mandatoryField -> {
+            Object value = taskAttributes != null ? taskAttributes.get(mandatoryField) : null;
+
+            if (value == null || value.toString().isBlank()) {
+                violations.add(new Violation(mandatoryField, errorMessage));
+            }
+        });
+
+        if (!violations.isEmpty()) {
+            throw new CustomConstraintViolationException(violations);
+        }
     }
 
     @Operation(description = "Exclusive access only: Terminate a Task identified by an id.")
