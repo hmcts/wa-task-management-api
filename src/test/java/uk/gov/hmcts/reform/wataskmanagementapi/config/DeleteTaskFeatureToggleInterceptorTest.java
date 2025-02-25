@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,8 +11,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import static com.microsoft.applicationinsights.core.dependencies.http.HttpStatus.SC_SERVICE_UNAVAILABLE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;

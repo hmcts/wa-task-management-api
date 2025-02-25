@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import jakarta.persistence.EntityManager;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;

@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.ia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
 
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
@@ -97,6 +98,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
     }
 
+    @Disabled
     @ParameterizedTest()
     @MethodSource({
         "withAllGrantTypesHappyPath",

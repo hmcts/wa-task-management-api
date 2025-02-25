@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.wa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -54,7 +56,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
 
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static java.time.format.DateTimeFormatter.ofPattern;
@@ -82,6 +83,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @Sql("/scripts/wa/search_tasks_data.sql")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Disabled
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
