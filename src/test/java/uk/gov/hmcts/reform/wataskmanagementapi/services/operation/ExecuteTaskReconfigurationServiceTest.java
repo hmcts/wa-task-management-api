@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
+import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
@@ -23,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import javax.persistence.OptimisticLockException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,7 +43,7 @@ class ExecuteTaskReconfigurationServiceTest {
     @Mock
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
     @InjectMocks
-    private ExecuteTaskReconfigurationService executeTaskReconfigurationService;
+    private TaskReconfigurationService taskReconfigurationService;
 
 
     @Test
@@ -67,7 +68,8 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        Map<String, Object> responseMap = executeTaskReconfigurationService.performOperation(request).getResponseMap();
+        Map<String, Object> responseMap = taskReconfigurationService.performTaskReconfiguration(request)
+                .getNow(new TaskOperationResponse()).getResponseMap();
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(2, tasks);
 
@@ -91,7 +93,8 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        Map<String, Object> responseMap = executeTaskReconfigurationService.performOperation(request).getResponseMap();
+        Map<String, Object> responseMap = taskReconfigurationService.performTaskReconfiguration(request)
+            .getNow(new TaskOperationResponse()).getResponseMap();
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 
@@ -148,7 +151,7 @@ class ExecuteTaskReconfigurationServiceTest {
                 .maxTimeLimit(30)
                 .build(), taskFilters
             );
-        executeTaskReconfigurationService.performOperation(request);
+        taskReconfigurationService.performTaskReconfiguration(request);
 
         verify(taskReconfigurationTransactionHandler, times(3)).reconfigureTaskResource(any());
     }
@@ -177,7 +180,7 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        executeTaskReconfigurationService.performOperation(request);
+        taskReconfigurationService.performTaskReconfiguration(request);
         // Attempt to reconfigure both tasks initially, calling the method twice.
         // If an OptimisticLockException is thrown for the first task, it will be retried,
         // resulting in a total of three method calls.
@@ -201,7 +204,8 @@ class ExecuteTaskReconfigurationServiceTest {
                 .build(), taskFilters
         );
 
-        Map<String, Object> responseMap = executeTaskReconfigurationService.performOperation(request).getResponseMap();
+        Map<String, Object> responseMap = taskReconfigurationService.performTaskReconfiguration(request)
+            .getNow(new TaskOperationResponse()).getResponseMap();
         int tasks = (int) responseMap.get("successfulTaskResources");
         assertEquals(0, tasks);
 
