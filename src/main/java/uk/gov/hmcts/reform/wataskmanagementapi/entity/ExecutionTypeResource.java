@@ -1,30 +1,25 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
 
 @EqualsAndHashCode
 @Getter
 @ToString
 @Entity(name = "execution_types")
-@TypeDef(
-    name = "pgsql_enum",
-    typeClass = PostgreSQLEnumType.class
-)
 @Builder
 public class ExecutionTypeResource implements Serializable {
 
@@ -33,7 +28,7 @@ public class ExecutionTypeResource implements Serializable {
     @Id
     @Column(name = "execution_code")
     @Enumerated(EnumType.STRING)
-    @Type(type = "pgsql_enum")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Schema(name = "execution_code")
     private ExecutionType executionCode;
 

@@ -9,9 +9,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -19,6 +18,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
@@ -31,7 +31,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @ConfigurationProperties(prefix = "security")
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration {
 
     public static final String AUTHORIZATION = "Authorization";
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
@@ -48,8 +48,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.serviceAuthFiler = serviceAuthFiler;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
             .addFilterBefore(serviceAuthFiler, AbstractPreAuthenticatedProcessingFilter.class)
@@ -61,11 +62,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .formLogin().disable()
             .logout().disable()
             .authorizeRequests()
-            .antMatchers("/task-configuration/**").permitAll()
-            .antMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
-            .antMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
-            .antMatchers(HttpMethod.POST, "/task/{\\\\d+}/notes").permitAll()
-            .antMatchers(HttpMethod.DELETE, "/task/{\\\\d+}").permitAll()
+            .requestMatchers("/task-configuration/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
+            .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
+            .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/notes").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/task/{\\\\d+}").permitAll()
             .anyRequest().authenticated()
             .and()
             .oauth2ResourceServer()
@@ -73,11 +74,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .and()
             .and()
             .oauth2Client();
+
+        return http.build();
     }
 
-    @Override
-    public void configure(WebSecurity web) {
-        web.ignoring().mvcMatchers(anonymousPaths.toArray(String[]::new));
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(anonymousPaths.toArray(String[]::new));
     }
 
     @Bean
