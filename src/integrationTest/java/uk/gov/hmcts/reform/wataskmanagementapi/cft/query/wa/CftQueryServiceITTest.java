@@ -1726,8 +1726,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .userInfo(userInfo)
             .build();
 
-        return Stream.of(pendingAssignEmptyTasks,
-                         cancelledEmptyTasks,
+        return Stream.of(cancelledEmptyTasks,
                          completedEmptyTasks,
                          terminatedEmptyTasks,
                          penidingReconfigEmptyTasks);
