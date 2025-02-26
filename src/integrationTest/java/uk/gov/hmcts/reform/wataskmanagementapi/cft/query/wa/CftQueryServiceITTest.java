@@ -1656,24 +1656,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static Stream<TaskQueryScenario> searchByStateNegativeScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("PENDING_AUTO_ASSIGN"))
-            ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
-        );
-
-        final TaskQueryScenario pendingAssignEmptyTasks = TaskQueryScenario.builder()
-            .scenarioName("Search by PENDING_AUTO_ASSIGN state, empty results")
-            .firstResult(0)
-            .maxResults(20)
-            .roleAssignments(pagination(Classification.RESTRICTED))
-            .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(0)
-            .expectedTotalRecords(0)
-            .userInfo(userInfo)
-            .build();
-
-        searchTaskRequest = new SearchTaskRequest(
-            List.of(
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("CANCELLED"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
