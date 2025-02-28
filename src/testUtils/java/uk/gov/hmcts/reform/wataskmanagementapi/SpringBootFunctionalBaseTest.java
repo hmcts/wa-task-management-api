@@ -24,6 +24,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredenti
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
@@ -45,6 +47,7 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
@@ -112,6 +115,8 @@ public abstract class SpringBootFunctionalBaseTest {
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
+    @Autowired
+    TaskResourceRepository taskResourceRepository;
 
     @Value("${targets.camunda}")
     private String camundaUrl;
@@ -311,7 +316,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
         // second initiation request, so we are by-passing 503 and 201 response statuses.
-        assertResponse(response);
+        assertResponse(response,testVariables.getTaskId());
 
     }
 
@@ -343,7 +348,7 @@ public abstract class SpringBootFunctionalBaseTest {
         return initiateTaskRequest;
     }
 
-    private void assertResponse(Response response) {
+    private void assertResponse(Response response,String taskId) {
         response.prettyPrint();
 
         int statusCode = response.getStatusCode();
@@ -361,6 +366,8 @@ public abstract class SpringBootFunctionalBaseTest {
                     .body("detail", equalTo(
                         "Database Conflict Error: The action could not be completed because "
                             + "there was a conflict in the database."));
+                Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
+                assertThat(taskResource).isPresent();
                 break;
             case 201:
                 log.info("task Initiation got successfully with status, {}", statusCode);
