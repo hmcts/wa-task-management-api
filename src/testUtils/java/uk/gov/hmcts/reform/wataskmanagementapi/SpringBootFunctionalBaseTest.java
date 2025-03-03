@@ -24,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredenti
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
@@ -113,8 +112,6 @@ public abstract class SpringBootFunctionalBaseTest {
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
-    @Autowired
-    TaskResourceRepository taskResourceRepository;
 
     @Value("${targets.camunda}")
     private String camundaUrl;
