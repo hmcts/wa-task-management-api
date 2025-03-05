@@ -191,6 +191,11 @@ public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
                             .stringType("id", "multi_track_decision_making_work")
                             .stringType("label", "Multi track decision making work");
                     })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "query_work")
+                            .stringType("label", "Query work");
+                    })
                 )
         ).build();
     }
