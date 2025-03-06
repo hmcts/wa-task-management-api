@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -22,10 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static java.util.Collections.emptyList;
 import static java.util.List.of;
@@ -328,7 +328,7 @@ public final class RoleAssignmentFilter {
         if (roleAssignment.getAuthorisations() != null) {
             if (roleAssignment.getAuthorisations().isEmpty()) {
                 Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
-                    (Object) roleAssignment.getAuthorisations().toArray()
+                    (Object) roleAssignment.getAuthorisations().toArray(new String[0])
                 );
                 return builder.or(nullAuthorizations, authorizations);
 

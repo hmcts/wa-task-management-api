@@ -80,10 +80,13 @@ public class CftQueryService {
         final List<TaskResource> taskResources
             = taskResourceDao.getTaskResources(searchRequest, taskResourcesSummary);
 
-        Long count = taskResourceDao.getTotalCount(searchRequest,
-            roleAssignments,
-            permissionsRequired,
-            availableTasksOnly);
+        //There is an issue with the query involving count with Hibernate.
+        //Hibernate search is not being used in prod. There is a plan to remove the unused code, in the future.
+        //PDT's are using test controller for verifying the tasks.
+        //The test controller is still invoking the hibernate search queries.
+        //To progress with the springboot upgrade,
+        // the hibernate query was bypassed and acquiring the count from the taskResources.
+        long count = taskResources.stream().count();
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->

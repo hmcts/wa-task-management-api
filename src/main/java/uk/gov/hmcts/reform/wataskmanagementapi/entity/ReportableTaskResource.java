@@ -1,14 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import java.time.OffsetDateTime;
 import java.util.Date;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+
+import static java.sql.Types.TIMESTAMP;
 
 @ToString
 @Getter
@@ -29,6 +32,7 @@ public class ReportableTaskResource extends BaseTaskHistoryResource {
     private Date completedDate;
     private OffsetDateTime completedDateTime;
     private Date firstAssignedDate;
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime firstAssignedDateTime;
     private Integer numberOfReassignments;
     private Date dueDate;
