@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import com.launchdarkly.sdk.LDUser;
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,16 +24,15 @@ class LaunchDarklyFeatureFlagProviderTest {
     @InjectMocks
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    private LDUser expectedLdUser;
+    private LDContext expectedLdContext;
 
     @BeforeEach
     void setup() {
-
-        expectedLdUser = new LDUser.Builder("wa-task-management-api")
-            .name("some user id")
-            .firstName("Work Allocation")
-            .lastName("Task Management")
-            .email("test@test.com")
+        expectedLdContext = LDContext.builder("wa-task-management-api")
+            .set("name", "some user id")
+            .set("email", "test@test.com")
+            .set("firstName", "Work Allocation")
+            .set("lastName", "Task Management")
             .build();
     }
 
@@ -47,7 +46,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         boolean boolVariationReturn,
         boolean expectedFlagValue
     ) {
-        when(ldClient.boolVariation(FeatureFlag.TEST_KEY.getKey(), expectedLdUser, defaultValue))
+        when(ldClient.boolVariation(FeatureFlag.TEST_KEY.getKey(), expectedLdContext, defaultValue))
             .thenReturn(boolVariationReturn);
 
         assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(
