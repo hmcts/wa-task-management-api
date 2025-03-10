@@ -106,7 +106,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(17)
+            jsonPath("$.work_types.length()").value(18)
         ).andReturn();
 
 
@@ -130,7 +130,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(17)
+            jsonPath("$.work_types.length()").value(18)
         );
     }
 
@@ -343,12 +343,15 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                                                    "Intermediate track decision making work");
         WorkType expectedWorkType17 = new WorkType("multi_track_decision_making_work",
                                                    "Multi track decision making work");
+        WorkType expectedWorkType18 = new WorkType("query_work",
+                                                   "Query work");
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
             expectedWorkType7, expectedWorkType8, expectedWorkType9,
             expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13,
-            expectedWorkType14, expectedWorkType15, expectedWorkType16, expectedWorkType17
+            expectedWorkType14, expectedWorkType15, expectedWorkType16, expectedWorkType17,
+            expectedWorkType18
         ));
     }
 
