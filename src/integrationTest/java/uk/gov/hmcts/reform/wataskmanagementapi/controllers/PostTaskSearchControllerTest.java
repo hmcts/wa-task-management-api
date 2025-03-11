@@ -1160,12 +1160,15 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     "values": [
                       "hearing_work","upper_tribunal","routine_work","routine_work","decision_making_work",
                       "applications","priority","error_management","access_requests","review_case","evidence",
-                      "follow_up","pre_hearing","post_hearing"
+                      "follow_up","pre_hearing","post_hearing","intermediate_track_hearing_work",
+                      "multi_track_hearing_work","intermediate_track_decision_making_work",
+                      "multi_track_decision_making_work","query_work"
                     ]
                   }
                 ]
               }
             """;
+
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
