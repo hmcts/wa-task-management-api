@@ -84,6 +84,9 @@ primary:
   password: ${POSTGRES_PASSWORD:wa_password}
 
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
   config:
     import: "optional:configtree:/mnt/secrets/wa/"
   application:
@@ -104,7 +107,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       naming:
-        physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
+        physical-strategy: io.hypersistence.utils.hibernate.naming.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
         query:
