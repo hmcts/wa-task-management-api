@@ -311,7 +311,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
         // second initiation request, so we are by-passing 503 and 201 response statuses.
-        assertResponse(response);
+        assertResponse(response,testVariables.getTaskId());
 
     }
 
@@ -343,7 +343,7 @@ public abstract class SpringBootFunctionalBaseTest {
         return initiateTaskRequest;
     }
 
-    private void assertResponse(Response response) {
+    private void assertResponse(Response response,String taskId) {
         response.prettyPrint();
 
         int statusCode = response.getStatusCode();
@@ -361,6 +361,16 @@ public abstract class SpringBootFunctionalBaseTest {
                     .body("detail", equalTo(
                         "Database Conflict Error: The action could not be completed because "
                             + "there was a conflict in the database."));
+
+                Response result = restApiActions.get(
+                    "task/{task-id}",
+                    taskId,
+                    waCaseworkerCredentials.getHeaders()
+                );
+                result.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and()
+                    .body("task.id", equalTo(taskId));
                 break;
             case 201:
                 log.info("task Initiation got successfully with status, {}", statusCode);

@@ -322,9 +322,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
-
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -359,9 +356,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
-
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
@@ -398,8 +392,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(any(), any(), any(), eq(true)))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -458,9 +450,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
-
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
@@ -543,8 +532,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, true))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -583,8 +570,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(any(), any(), any(), eq(true)))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -624,8 +609,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -662,8 +645,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 

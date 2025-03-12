@@ -534,7 +534,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            ENDPOINT_BEING_TESTED
+                + "?first_result=0&max_results=10",
             searchTaskRequest,
             ginIndexCaseworkerCredentials.getHeaders()
         );
