@@ -9,10 +9,20 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -62,6 +72,9 @@ public class TaskActionsController extends BaseController {
     private final SystemDateProvider systemDateProvider;
 
     private final TaskDeletionService taskDeletionService;
+
+    @Value("${config.updateCompletionProcessFlagEnabled}")
+    private boolean updateCompletionProcessFlagEnabled;
 
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
@@ -217,12 +230,15 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
-                                             @RequestParam(value = COMPLETION_PROCESS, required = false) String completionProcess,
+                                             @RequestParam(name = COMPLETION_PROCESS, required = false) String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
+        if (!updateCompletionProcessFlagEnabled) {
+            completionProcess = Optional.empty().toString();
+        }
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse, Optional.ofNullable(completionProcess));
