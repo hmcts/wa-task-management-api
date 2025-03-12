@@ -442,7 +442,6 @@ public class TaskManagementService {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
-        String terminationProcess = completionProcess.orElse(null);
         boolean taskHasCompleted;
 
         checkCompletePermissions(taskId, accessControlResponse, userId);
@@ -469,6 +468,13 @@ public class TaskManagementService {
         }
     }
 
+    /**
+     * Validates and sets the termination process for a given task.
+     *
+     * @param completionProcess An Optional containing the termination process as a String.
+     * @param task The TaskResource object to update with the termination process.
+     * @throws IllegalArgumentException if the completionProcess value is not a valid TerminationProcess enum value.
+     */
     private void checkAndSetTerminationProcess(Optional<String> completionProcess, TaskResource task) {
         String terminationProcessStr = completionProcess.orElse(null);
         try {
