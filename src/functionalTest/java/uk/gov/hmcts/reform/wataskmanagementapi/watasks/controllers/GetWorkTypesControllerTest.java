@@ -49,7 +49,7 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
             "tribunal-caseworker");
 
         Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
+            ENDPOINT_BEING_TESTED + "?filter-by-user=true",
             waCaseworkerCredentials.getHeaders()
         );
         result.then().assertThat()
@@ -73,7 +73,7 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
         common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
+            ENDPOINT_BEING_TESTED + "?filter-by-user=true",
             waCaseworkerCredentials.getHeaders()
         );
         result.then().assertThat()
@@ -92,7 +92,7 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
         common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED + "/?filter-by-user=false",
+            ENDPOINT_BEING_TESTED + "?filter-by-user=false",
             waCaseworkerCredentials.getHeaders()
         );
         result.then().assertThat()
@@ -120,7 +120,8 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
             Map.of("id", "multi_track_hearing_work", "label", "Multi track hearing work"),
             Map.of("id", "intermediate_track_decision_making_work",
                    "label", "Intermediate track decision making work"),
-            Map.of("id", "multi_track_decision_making_work", "label", "Multi track decision making work")
+            Map.of("id", "multi_track_decision_making_work", "label", "Multi track decision making work"),
+            Map.of("id", "query_work", "label", "Query work")
         );
         Assertions.assertEquals(expectedWorkTypes, workTypes);
 
@@ -130,7 +131,7 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_403_when_the_user_did_not_have_any_roles() {
 
         Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED + "/?filter-by-user=true",
+            ENDPOINT_BEING_TESTED + "?filter-by-user=true",
             caseworkerCredentials.getHeaders()
         );
 
