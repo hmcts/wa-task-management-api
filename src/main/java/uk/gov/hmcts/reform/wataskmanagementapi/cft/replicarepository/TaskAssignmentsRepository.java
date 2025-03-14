@@ -13,4 +13,6 @@ public interface TaskAssignmentsRepository
 
     List<TaskAssignmentsResource> findAllByTaskIdOrderByAssignmentIdAsc(String taskId);
 
+    List<TaskAssignmentsResource> findAllByTaskIdIn(List<String> taskIdList);
+
 }

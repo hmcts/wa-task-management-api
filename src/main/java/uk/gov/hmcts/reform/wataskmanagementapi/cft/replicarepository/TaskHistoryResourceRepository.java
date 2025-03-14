@@ -22,6 +22,8 @@ public interface TaskHistoryResourceRepository
 
     List<TaskHistoryResource> getByCaseId(String caseId);
 
+    List<TaskHistoryResource> findAllByTaskIdIn(List<String> taskIds);
+
     @Query(value = CHECK_SUBSCRIPTION, nativeQuery = true)
     int countSubscriptions();
 }

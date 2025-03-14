@@ -88,4 +88,29 @@ public class MIReplicaDBDao {
         }
 
     }
+
+    public void callReplicaCleanupFunction(OffsetDateTime createdTimeFrom, OffsetDateTime createdTimeTo) {
+
+        log.info("From time: " + Timestamp.valueOf(createdTimeFrom.toLocalDateTime()));
+        log.info("To time: " + Timestamp.valueOf(createdTimeTo.toLocalDateTime()));
+        String runFunction = " select cft_task_db.task_cleanup_between_dates_replica( ?,? ) ";
+
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, userName, password);
+             PreparedStatement preparedStatement = conn.prepareStatement(runFunction)) {
+
+            preparedStatement.setTimestamp(1, Timestamp.valueOf(createdTimeFrom.toLocalDateTime()));
+            preparedStatement.setTimestamp(2, Timestamp.valueOf(createdTimeTo.toLocalDateTime()));
+
+            preparedStatement.execute();
+
+        } catch (SQLException e) {
+            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
+                      e.getSQLState(), e.getMessage());
+            throw new ReplicationException("An error occurred while executing mark_report_tasks_for_refresh", e);
+        } catch (Exception e) {
+            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
+                      e.getCause(), e.getMessage());
+            throw new ReplicationException("An error occurred while executing mark_report_tasks_for_refresh", e);
+        }
+    }
 }

@@ -21,4 +21,6 @@ public interface ReportableTaskRepository
 
     @Query(value = SHOW_WAL_LEVEL, nativeQuery = true)
     String showWalLevel();
+
+    List<ReportableTaskResource> findAllByTaskIdIn(List<String> taskIdList);
 }

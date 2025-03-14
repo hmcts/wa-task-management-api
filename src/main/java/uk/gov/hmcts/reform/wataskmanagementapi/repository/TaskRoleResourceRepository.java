@@ -11,4 +11,6 @@ public interface TaskRoleResourceRepository
 
     List<TaskRoleResource> findByTaskId(String taskId);
 
+    List<TaskRoleResource> findAllByTaskIdIn(List<String> taskIds);
+
 }
