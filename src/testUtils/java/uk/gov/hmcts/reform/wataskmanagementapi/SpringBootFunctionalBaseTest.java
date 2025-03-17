@@ -376,7 +376,7 @@ public abstract class SpringBootFunctionalBaseTest {
                 Response result = restApiActions.get(
                     "task/{task-id}",
                     taskId,
-                    waCaseworkerCredentials.getHeaders()
+                    baseCaseworkerCredentials.getHeaders()
                 );
                 result.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
