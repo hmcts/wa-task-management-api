@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -39,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.Enum.valueOf;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -248,6 +250,44 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 secondTaskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
         assertFalse(taskResource2.isPresent());
+    }
+
+    @Test
+    void given_task_is_created_when_find_by_id_and_return_termination_process() {
+
+        String firstTaskId = UUID.randomUUID().toString();
+        String secondTaskId = UUID.randomUUID().toString();
+
+
+        TaskResource firstTask = createTask(firstTaskId, "tribunal-caseofficer", "IA",
+                                            "startAppeal", "someAssignee", "1623278362430412",
+                                            CFTTaskState.ASSIGNED);
+        TaskResource secondTask = createTask(secondTaskId, "tribunal-caseofficer", "IA",
+                                             "startAppeal", "someAssignee",
+                                             "1623278362430412", CFTTaskState.UNASSIGNED);
+       TerminationProcess selectedTerminationProcess = TerminationProcess.valueOf("EXUI_CASE_EVENT_COMPLETION");
+
+        firstTask.setTerminationProcess(TerminationProcess.valueOf((String) "EXUI_CASE_EVENT_COMPLETION"));
+        secondTask.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION);
+
+        taskResourceRepository.save(firstTask);
+        taskResourceRepository.save(secondTask);
+
+        final Optional<TaskResource> taskResource = taskResourceRepository
+            .findById(firstTaskId);
+        assertAll(
+            () -> assertTrue(taskResource.isPresent()),
+            () -> assertEquals(firstTaskId, taskResource.get().getTaskId()),
+            () -> assertEquals(TerminationProcess.valueOf("EXUI_CASE_EVENT_COMPLETION"), taskResource.get().getTerminationProcess())
+        );
+        final Optional<TaskResource> taskResourceTwo = taskResourceRepository
+            .findById(secondTaskId);
+           assertAll(
+            () -> assertTrue(taskResourceTwo.isPresent()),
+            () -> assertEquals(secondTaskId, taskResourceTwo.get().getTaskId()),
+            () -> assertEquals(TerminationProcess.valueOf("EXUI_USER_COMPLETION"), taskResourceTwo.get().getTerminationProcess())
+        );
+
     }
 
     @Test
