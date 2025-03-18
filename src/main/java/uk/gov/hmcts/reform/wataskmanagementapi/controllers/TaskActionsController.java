@@ -234,14 +234,15 @@ public class TaskActionsController extends BaseController {
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        Optional<String> completionProcessOptional = Optional.ofNullable(completionProcess);
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
         if (!updateCompletionProcessFlagEnabled) {
-            completionProcess = Optional.empty().toString();
+            completionProcessOptional = Optional.empty();
         }
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse, Optional.ofNullable(completionProcess));
+            taskManagementService.completeTask(taskId, accessControlResponse, completionProcessOptional);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -251,7 +252,7 @@ public class TaskActionsController extends BaseController {
                     taskId,
                     accessControlResponse,
                     completeTaskRequest.getCompletionOptions(),
-                    Optional.ofNullable(completionProcess)
+                    completionProcessOptional
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);

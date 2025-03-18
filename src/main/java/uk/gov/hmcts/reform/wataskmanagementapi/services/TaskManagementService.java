@@ -478,7 +478,7 @@ public class TaskManagementService {
     private void checkAndSetTerminationProcess(Optional<String> completionProcess, TaskResource task) {
         String terminationProcessStr = completionProcess.orElse(null);
         try {
-            TerminationProcess terminationProcess = TerminationProcess.valueOf(terminationProcessStr);
+            TerminationProcess terminationProcess = terminationProcessStr != null ? TerminationProcess.valueOf(terminationProcessStr) : null;
             task.setTerminationProcess(terminationProcess);
             log.info("TerminationProcess value: {} was received and updated in database for task with id {}", completionProcess, task.getTaskId());
         } catch (IllegalArgumentException e) {

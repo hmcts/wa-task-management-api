@@ -247,7 +247,7 @@ class TaskActionsControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1))
-            .completeTask(taskId, mockAccessControlResponse,Optional.empty());
+            .completeTask(taskId, mockAccessControlResponse, Optional.empty());
 
     }
 
