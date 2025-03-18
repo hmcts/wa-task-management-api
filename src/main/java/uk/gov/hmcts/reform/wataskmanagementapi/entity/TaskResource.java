@@ -190,7 +190,6 @@ public class TaskResource implements Serializable {
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "termination_process_enum")
-    @Schema(name = "termination_process")
     private TerminationProcess terminationProcess;
 
     protected TaskResource() {

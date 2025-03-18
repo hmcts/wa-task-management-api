@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum TerminationProcess {
 
     EXUI_USER_COMPLETION("EXUI_USER_COMPLETION"),
@@ -11,7 +14,4 @@ public enum TerminationProcess {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
-    }
 }
