@@ -1181,7 +1181,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                   }
                 ]
             }
-        """, workType);
+            """, workType);
 
         mockMvc.perform(
                 post("/task")
