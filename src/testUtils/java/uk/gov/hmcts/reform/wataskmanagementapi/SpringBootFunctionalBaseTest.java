@@ -299,7 +299,8 @@ public abstract class SpringBootFunctionalBaseTest {
         };
     }
 
-    public void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties, Headers headers) {
+    public void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties,
+                                    Headers headers) {
 
         InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(testVariables, additionalProperties);
         Response response = restApiActions.post(
