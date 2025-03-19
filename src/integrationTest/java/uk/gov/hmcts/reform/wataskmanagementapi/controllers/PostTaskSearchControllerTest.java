@@ -1170,17 +1170,17 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
 
         String content = String.format("""
-        {
-            "search_parameters": [
-              {
-                "key": "work_type",
-                "operator": "IN",
-                "values": [
-                  "%s"
+            {
+                "search_parameters": [
+                  {
+                    "key": "work_type",
+                    "operator": "IN",
+                    "values": [
+                      "%s"
+                    ]
+                  }
                 ]
-              }
-            ]
-        }
+            }
         """, workType);
 
         mockMvc.perform(
