@@ -81,6 +81,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@Sql(scripts = "/scripts/search_task_work_types.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
@@ -1132,8 +1134,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     status().isOk()));
     }
 
-    @Sql("/scripts/search_task_work_types.sql")
-    @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
     @ParameterizedTest
     @ValueSource(strings = {
         "query_work",
@@ -1158,7 +1158,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "WA");
         roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), workType);
 
         List<RoleAssignment> allTestRoles =
