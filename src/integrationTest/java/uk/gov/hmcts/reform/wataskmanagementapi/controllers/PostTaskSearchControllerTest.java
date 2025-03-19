@@ -82,8 +82,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Sql("/scripts/search_task_work_types.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
@@ -1134,6 +1132,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     status().isOk()));
     }
 
+    @Sql("/scripts/search_task_work_types.sql")
+    @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
     @ParameterizedTest
     @ValueSource(strings = {
         "query_work",
