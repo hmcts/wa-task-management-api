@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -60,6 +61,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_OTHER_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
@@ -579,6 +581,67 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertNotNull(taskResource.get().getLastUpdatedTimestamp());
             assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
             assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
+        }
+
+        @Test
+        void should_succeed_and_return_204_and_update_completion_process_when_flag_enabled() throws Exception {
+
+            mockServices.mockUserInfo();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+                .roleAssignmentAttribute(
+                    RoleAssignmentAttribute.builder()
+                        .jurisdiction("IA")
+                        .caseType("Asylum")
+                        .caseId("completeCaseId1")
+                        .build()
+                )
+                .build();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+                false, true, true, false, false, false,
+                new String[]{}, 1, false,
+                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            );
+            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+            doNothing().when(camundaServiceApi).assignTask(any(), any(), any());
+            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+            mockMvc.perform(
+                    post(ENDPOINT_BEING_TESTED)
+                        .param(COMPLETION_PROCESS, "EXUI_USER_COMPLETION")
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(APPLICATION_JSON_VALUE)
+                )
+                .andExpect(status().isNoContent());
+
+            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(COMPLETED, taskResource.get().getState());
+            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
+            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
+            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
+            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
+            assertEquals(TerminationProcess.valueOf("EXUI_USER_COMPLETION"), taskResource.get().getTerminationProcess());
         }
 
         @Test
