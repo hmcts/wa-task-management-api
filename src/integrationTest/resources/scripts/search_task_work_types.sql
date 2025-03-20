@@ -83,4 +83,23 @@ false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "
 false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
 'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'title', 'multi_track_decision_making_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00');
 
-
+INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
+"read", own, "execute", manage, cancel,
+authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
+VALUES
+('8d6cc5cf-c973-11eb-bdba-0242ac115011', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111011', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115012', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111012', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115013', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111013', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115014', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111014', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115015', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111015', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115016', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111016', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115017', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111017', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115018', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111018', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115019', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111019', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115020', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111020', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115021', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111021', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115022', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111022', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115023', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111023', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115024', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111024', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115025', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111025', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac115026', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111026', '2025-05-09T20:15:45.345875+01:00');

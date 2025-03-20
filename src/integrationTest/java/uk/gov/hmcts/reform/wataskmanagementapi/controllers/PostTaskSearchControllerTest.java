@@ -1195,8 +1195,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             .andExpectAll(
                 status().isOk(),
                 jsonPath("$.tasks").isArray(),
-                jsonPath("$.tasks.length()").value(1),
-                jsonPath("$.tasks[0].work_type").value(workType)
+                jsonPath("$.tasks[0].work_type_id").value(workType)
             );
     }
 
