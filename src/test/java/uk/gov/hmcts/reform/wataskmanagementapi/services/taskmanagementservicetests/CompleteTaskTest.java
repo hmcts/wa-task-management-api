@@ -106,7 +106,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        taskManagementService.completeTask(taskId, accessControlResponse, Optional.empty());
+        taskManagementService.completeTask(taskId, accessControlResponse, null);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -140,7 +140,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        taskManagementService.completeTask(taskId, accessControlResponse, Optional.empty());
+        taskManagementService.completeTask(taskId, accessControlResponse, null);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -164,7 +164,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        taskManagementService.completeTask(taskId, accessControlResponse, Optional.empty());
+        taskManagementService.completeTask(taskId, accessControlResponse, null);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -193,7 +193,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         when(camundaService.isTaskCompletedInCamunda(taskId)).thenReturn(true);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        taskManagementService.completeTask(taskId, accessControlResponse,Optional.empty());
+        taskManagementService.completeTask(taskId, accessControlResponse,null);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -222,7 +222,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.completeTask(
             taskId,
             accessControlResponse,
-            Optional.empty()
+            null
         ))
             .isInstanceOf(TaskCompleteException.class)
             .hasNoCause()
@@ -247,7 +247,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
-        taskManagementService.completeTask(taskId, accessControlResponse, Optional.empty());
+        taskManagementService.completeTask(taskId, accessControlResponse, null);
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         verify(camundaService, times(0)).completeTask(taskId, false);
@@ -268,7 +268,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(taskResource.getState()).thenReturn(CFTTaskState.TERMINATED);
         when(taskResource.getTerminationReason()).thenReturn("completed");
-        taskManagementService.completeTask(taskId, accessControlResponse, Optional.empty());
+        taskManagementService.completeTask(taskId, accessControlResponse, null);
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         verify(camundaService, times(0)).completeTask(taskId, false);
@@ -294,7 +294,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.completeTask(
             taskId,
             accessControlResponse,
-            Optional.empty()
+            null
         ))
             .isInstanceOf(TaskCompleteException.class)
             .hasNoCause()
@@ -321,7 +321,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-        taskManagementService.completeTask(taskId, accessControlResponse, Optional.empty());
+        taskManagementService.completeTask(taskId, accessControlResponse, null);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -347,7 +347,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.completeTask(
             taskId,
             accessControlResponse,
-            Optional.empty()
+            null
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
@@ -381,7 +381,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.completeTask(
             taskId,
             accessControlResponse,
-            Optional.empty()
+            null
         ))
             .isInstanceOf(TaskStateIncorrectException.class)
             .hasNoCause()
@@ -401,7 +401,7 @@ class CompleteTaskTest extends CamundaHelpers {
         assertThatThrownBy(() -> taskManagementService.completeTask(
             taskId,
             accessControlResponse,
-            Optional.empty()
+            null
         ))
             .isInstanceOf(NullPointerException.class)
             .hasNoCause()
@@ -418,7 +418,7 @@ class CompleteTaskTest extends CamundaHelpers {
 
         TaskResource taskResource = spy(TaskResource.class);
 
-        assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse, Optional.empty()))
+        assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse, null))
             .isInstanceOf(TaskNotFoundException.class)
             .hasNoCause()
             .hasMessage("Task Not Found Error: The task could not be found.");

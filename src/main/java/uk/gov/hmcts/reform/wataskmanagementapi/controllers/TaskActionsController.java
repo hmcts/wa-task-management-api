@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -61,6 +63,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEntityBuilder.buildErrorResponseEntityAndLogError;
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+@Slf4j
 @RestController
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
@@ -237,12 +240,10 @@ public class TaskActionsController extends BaseController {
         Optional<String> completionProcessOptional = Optional.ofNullable(completionProcess);
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
-        if (!updateCompletionProcessFlagEnabled) {
-            completionProcessOptional = Optional.empty();
-        }
+        TerminationProcess terminationProcess = validateTerminationProcess(completionProcessOptional, taskId);
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse, completionProcessOptional);
+            taskManagementService.completeTask(taskId, accessControlResponse, terminationProcess);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -252,7 +253,7 @@ public class TaskActionsController extends BaseController {
                     taskId,
                     accessControlResponse,
                     completeTaskRequest.getCompletionOptions(),
-                    completionProcessOptional
+                    terminationProcess
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -418,5 +419,28 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
+    }
+
+    /**
+     * validates TerminationProcess based on the provided completionProcess and taskId.
+     *
+     * @param completionProcess an Optional containing the completion process string
+     * @param taskId the ID of the task
+     * @return the TerminationProcess if updateCompletionProcessFlagEnabled is true and the completionProcess is valid, otherwise null
+     */
+    protected TerminationProcess validateTerminationProcess(Optional<String> completionProcess, String taskId) {
+        if (!updateCompletionProcessFlagEnabled) {
+            return null;
+        }
+        return completionProcess.map(process -> {
+            try {
+                TerminationProcess terminationProcess = TerminationProcess.valueOf(process);
+                log.info("TerminationProcess value: {} was received and updated in database for task with id {}", process, taskId);
+                return terminationProcess;
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id {}", process, taskId);
+                return null;
+            }
+        }).orElse(null);
     }
 }

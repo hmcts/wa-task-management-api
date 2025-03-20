@@ -158,7 +158,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(true),
-                    Optional.empty()
+                    null
                 );
                 boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -185,7 +185,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        Optional.empty()
+                        null
                     ));
                 assertEquals(
                     "Role Assignment Verification: "
@@ -230,7 +230,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false),
-                    Optional.empty()
+                    null
                 );
                 boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -257,7 +257,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        Optional.empty()
+                        null
                     ));
                 assertEquals(
                     "Role Assignment Verification: "
@@ -293,7 +293,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        Optional.empty()
+                        null
                     ));
                 assertEquals(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
@@ -318,7 +318,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        Optional.empty()
+                        null
                     ));
                 assertEquals(
                     "Task Not Found Error: The task could not be found.",

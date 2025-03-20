@@ -7,12 +7,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -45,8 +47,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -247,7 +251,7 @@ class TaskActionsControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1))
-            .completeTask(taskId, mockAccessControlResponse, Optional.empty());
+            .completeTask(taskId, mockAccessControlResponse, null);
 
     }
 
@@ -276,7 +280,7 @@ class TaskActionsControllerTest {
             taskId,
             mockAccessControlResponse,
             request.getCompletionOptions(),
-                Optional.empty()
+                null
         );
 
     }
@@ -302,7 +306,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            Optional.empty()
+            null
         );
 
     }
@@ -503,10 +507,91 @@ class TaskActionsControllerTest {
         assertEquals(INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
+    @Test
+    void should_return_null_when_updateCompletionProcessFlagEnabled_is_false() {
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", false);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.of("EXUI_USER_COMPLETION"), taskId);
+        assertNull(result);
+    }
+
+    @Test
+    void should_return_null_when_completionProcess_is_empty() {
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", true);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.empty(), taskId);
+        assertNull(result);
+    }
+
+    @Test
+    void should_return_terminationProcess_when_completionProcess_is_valid() {
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", true);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.of("EXUI_USER_COMPLETION"), taskId);
+        assertNotNull(result);
+        assertEquals(TerminationProcess.EXUI_USER_COMPLETION, result);
+    }
+
+    @Test
+    void should_return_null_when_completionProcess_is_invalid() {
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", true);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.of("INVALID_PROCESS"), taskId);
+        assertNull(result);
+    }
+
+    @Test
+    void should_complete_task_with_null_termination_process_when_flag_disabled() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
+        CompleteTaskRequest request = new CompleteTaskRequest(null);
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            "EXUI_USER_COMPLETION",
+            request
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(taskManagementService, times(1)).completeTask(
+            taskId,
+            mockAccessControlResponse,
+            null
+        );
+
+    }
+
+    @Test
+    void should_complete_task_with_valid_termination_process_when_flag_enabled() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
+                                     true);
+        CompleteTaskRequest request = new CompleteTaskRequest(null);
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            "EXUI_USER_COMPLETION",
+            request
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(taskManagementService, times(1)).completeTask(
+            taskId,
+            mockAccessControlResponse,
+            TerminationProcess.valueOf("EXUI_USER_COMPLETION")
+        );
+
+    }
 
     private NotesRequest addNotes() {
-        NoteResource noteResource = new NoteResource(
-            "code", "notetype", "userId", "content");
-        return new NotesRequest(List.of(noteResource));
+            NoteResource noteResource = new NoteResource(
+                "code", "notetype", "userId", "content");
+            return new NotesRequest(List.of(noteResource));
+        }
     }
-}

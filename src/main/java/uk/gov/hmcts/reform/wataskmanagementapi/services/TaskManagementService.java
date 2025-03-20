@@ -436,9 +436,10 @@ public class TaskManagementService {
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
+     * @param terminationProcess
      */
     @Transactional
-    public void completeTask(String taskId, AccessControlResponse accessControlResponse, Optional<String> completionProcess) {
+    public void completeTask(String taskId, AccessControlResponse accessControlResponse, TerminationProcess terminationProcess) {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
@@ -461,7 +462,7 @@ public class TaskManagementService {
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
-                checkAndSetTerminationProcess(completionProcess, task);
+                task.setTerminationProcess(terminationProcess);
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
@@ -494,12 +495,13 @@ public class TaskManagementService {
      * @param taskId                The task id to complete.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @param completionOptions     The completion options to orchestrate how this completion should be handled.
+     * @param terminationProcess
      */
     @Transactional
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions,
-                                                              Optional<String> completionProcess) {
+                                                              TerminationProcess terminationProcess) {
         String userId = accessControlResponse.getUserInfo().getUid();
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -525,13 +527,13 @@ public class TaskManagementService {
                 taskStateIsAssignedAlready
             );
             task.setState(CFTTaskState.COMPLETED);
-            checkAndSetTerminationProcess(completionProcess, task);
             setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
+            task.setTerminationProcess(terminationProcess);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
         } else {
-            completeTask(taskId, accessControlResponse, completionProcess);
+            completeTask(taskId, accessControlResponse, terminationProcess);
         }
     }
 

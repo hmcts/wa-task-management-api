@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,7 +42,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static java.lang.Enum.valueOf;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -252,42 +253,35 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertFalse(taskResource2.isPresent());
     }
 
-    @Test
-    void given_task_is_created_when_find_by_id_and_return_termination_process() {
+    @ParameterizedTest
+    @CsvSource(value = {
+        "EXUI_CASE_EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
+        "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
+        "NULL,NULL"
+    }, nullValues = "NULL")
+    void given_task_is_created_when_find_by_id_and_return_termination_process(String terminationProcess,
+                                                                              String expectedTerminationProcess) {
 
-        String firstTaskId = UUID.randomUUID().toString();
-        String secondTaskId = UUID.randomUUID().toString();
+        log.info("Termination Process: {}", terminationProcess);
+        log.info("Expected Termination Process: {}", expectedTerminationProcess);
+        String taskId = UUID.randomUUID().toString();
 
-
-        TaskResource firstTask = createTask(firstTaskId, "tribunal-caseofficer", "IA",
+        TaskResource taskResource = createTask(taskId, "tribunal-caseofficer", "IA",
                                             "startAppeal", "someAssignee", "1623278362430412",
                                             CFTTaskState.ASSIGNED);
-        TaskResource secondTask = createTask(secondTaskId, "tribunal-caseofficer", "IA",
-                                             "startAppeal", "someAssignee",
-                                             "1623278362430412", CFTTaskState.UNASSIGNED);
-       TerminationProcess selectedTerminationProcess = TerminationProcess.valueOf("EXUI_CASE_EVENT_COMPLETION");
+        TerminationProcess terminationProcessEnum = terminationProcess != null ? TerminationProcess.valueOf(terminationProcess) : null;
 
-        firstTask.setTerminationProcess(TerminationProcess.valueOf((String) "EXUI_CASE_EVENT_COMPLETION"));
-        secondTask.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION);
+        taskResource.setTerminationProcess(terminationProcessEnum);
 
-        taskResourceRepository.save(firstTask);
-        taskResourceRepository.save(secondTask);
+        taskResourceRepository.save(taskResource);
 
-        final Optional<TaskResource> taskResource = taskResourceRepository
-            .findById(firstTaskId);
+        Optional<TaskResource> taskResourceInDb = taskResourceRepository
+            .findById(taskId);
         assertAll(
-            () -> assertTrue(taskResource.isPresent()),
-            () -> assertEquals(firstTaskId, taskResource.get().getTaskId()),
-            () -> assertEquals(TerminationProcess.valueOf("EXUI_CASE_EVENT_COMPLETION"), taskResource.get().getTerminationProcess())
+            () -> assertTrue(taskResourceInDb.isPresent()),
+            () -> assertEquals(taskId, taskResourceInDb.get().getTaskId()),
+            () -> assertEquals(terminationProcessEnum, taskResourceInDb.get().getTerminationProcess())
         );
-        final Optional<TaskResource> taskResourceTwo = taskResourceRepository
-            .findById(secondTaskId);
-           assertAll(
-            () -> assertTrue(taskResourceTwo.isPresent()),
-            () -> assertEquals(secondTaskId, taskResourceTwo.get().getTaskId()),
-            () -> assertEquals(TerminationProcess.valueOf("EXUI_USER_COMPLETION"), taskResourceTwo.get().getTerminationProcess())
-        );
-
     }
 
     @Test

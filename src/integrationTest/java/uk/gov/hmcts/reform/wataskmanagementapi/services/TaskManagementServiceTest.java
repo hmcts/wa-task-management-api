@@ -526,7 +526,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        Optional.empty()
+                        null
                     )))
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
@@ -566,7 +566,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        Optional.empty()
+                        null
                     )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
