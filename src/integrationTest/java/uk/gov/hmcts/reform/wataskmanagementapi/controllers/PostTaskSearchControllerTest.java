@@ -1136,6 +1136,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+        "hearing_work",
+        "upper_tribunal",
+        "routine_work",
         "query_work",
         "decision_making_work",
         "applications",
