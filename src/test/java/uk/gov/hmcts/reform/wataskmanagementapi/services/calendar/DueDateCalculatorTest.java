@@ -61,7 +61,7 @@ class DueDateCalculatorTest {
 
 
     @BeforeEach
-    public void before() {
+    void before() {
         dueDateCalculator = new DueDateCalculator();
     }
 

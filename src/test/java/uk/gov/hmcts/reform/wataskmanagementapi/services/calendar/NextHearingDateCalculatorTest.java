@@ -335,7 +335,7 @@ class NextHearingDateCalculatorTest {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         nextHearingDateCalculator = new NextHearingDateCalculator();
     }
 }

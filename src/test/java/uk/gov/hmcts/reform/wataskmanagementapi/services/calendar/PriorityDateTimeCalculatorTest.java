@@ -26,7 +26,7 @@ class PriorityDateTimeCalculatorTest {
     private PriorityDateTimeCalculator priorityDateTimeCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         priorityDateTimeCalculator = new PriorityDateTimeCalculator();
     }
 

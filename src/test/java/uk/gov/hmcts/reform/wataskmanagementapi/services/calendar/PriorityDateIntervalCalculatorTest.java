@@ -757,7 +757,7 @@ class PriorityDateIntervalCalculatorTest {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         priorityDateIntervalCalculator = new PriorityDateIntervalCalculator(new WorkingDayIndicator(
             publicHolidaysCollection));
 
