@@ -6,7 +6,9 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -1138,6 +1140,73 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                      assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_start").toString());
         assertEquals(resultHistoryJsonPathEvaluator.get("task_history_list.get(3).updated").toString(),
                      assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+
+        String taskId = taskVariables.getTaskId();
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        Response resultReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultReportable.prettyPrint();
+        resultReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1));
+
+
+        Response resultComplete = restApiActions.post(
+            ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_USER_COMPLETION",
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultComplete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Response resultHistory = restApiActions.get(
+            ENDPOINT_BEING_TESTED_HISTORY,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultHistory.prettyPrint();
+        resultHistory.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_history_list.size()", equalTo(4))
+            .body("task_history_list.get(3).termination_process", equalTo("EXUI_USER_COMPLETION")
+            );
+
+        Response resultCompleteReport = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultCompleteReport.prettyPrint();
+        resultCompleteReport.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+            .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_USER_COMPLETION"));
 
         common.cleanUpTask(taskId);
     }

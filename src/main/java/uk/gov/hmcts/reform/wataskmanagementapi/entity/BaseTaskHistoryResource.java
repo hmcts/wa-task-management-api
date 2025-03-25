@@ -102,6 +102,8 @@ public abstract class BaseTaskHistoryResource {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime priorityDate;
 
+    private String terminationProcess;
+
     //abstract class must have abstract method
     protected abstract String getTaskTitle();
 }

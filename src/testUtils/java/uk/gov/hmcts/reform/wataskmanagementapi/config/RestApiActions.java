@@ -29,16 +29,24 @@ public class RestApiActions {
     RequestSpecBuilder requestSpecBuilder = new RequestSpecBuilder();
     RequestSpecification specification;
 
+//    public RestApiActions(final String baseUri, final PropertyNamingStrategy propertyNamingStrategy) {
+//        this.baseUri = baseUri;
+//        this.propertyNamingStrategy = propertyNamingStrategy;
+//    }
+
     public RestApiActions(final String baseUri, final PropertyNamingStrategy propertyNamingStrategy) {
         this.baseUri = baseUri;
         this.propertyNamingStrategy = propertyNamingStrategy;
+        this.specification = new RequestSpecBuilder()
+            .setBaseUri(baseUri)
+            .build();
     }
 
-    public RestApiActions setUp() {
-        requestSpecBuilder.setBaseUri(baseUri);
-        specification = requestSpecBuilder.build();
-        return this;
-    }
+//    public RestApiActions setUp() {
+//        requestSpecBuilder.setBaseUri(baseUri);
+//        specification = requestSpecBuilder.build();
+//        return this;
+//    }
 
     public Response get(String path, Header header) {
         return this.get(path, null, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, new Headers(header));
@@ -248,5 +256,11 @@ public class RestApiActions {
                 .when()
                 .delete(path);
         }
+    }
+
+    public void updateBaseUri(String newBaseUri) {
+        this.specification = new RequestSpecBuilder()
+            .setBaseUri(newBaseUri)
+            .build();
     }
 }

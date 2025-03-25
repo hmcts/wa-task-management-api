@@ -282,6 +282,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals(taskId, taskResourceInDb.get().getTaskId()),
             () -> assertEquals(terminationProcessEnum, taskResourceInDb.get().getTerminationProcess())
         );
+
     }
 
     @Test
