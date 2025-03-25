@@ -5,6 +5,7 @@ import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
@@ -54,7 +55,8 @@ public class ReplicationCheckerTest extends ReplicaBaseTest {
                     assertEquals(taskResource.getState().toString(), taskHistoryResourceList.get(0).getState());
                     assertEquals(taskResource.getLastUpdatedUser(), taskHistoryResourceList.get(0).getUpdatedBy());
                     assertEquals(taskResource.getLastUpdatedAction(), taskHistoryResourceList.get(0).getUpdateAction());
-
+                    assertEquals(taskResource.getTerminationProcess().toString(),
+                                 taskHistoryResourceList.get(0).getTerminationProcess());
                     return true;
                 });
 
@@ -88,6 +90,7 @@ public class ReplicationCheckerTest extends ReplicaBaseTest {
         taskResource.setPriorityDate(OffsetDateTime.parse("2022-05-15T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-05-05T20:15:45.345875+01:00"));
         taskResource.setLastUpdatedAction("Configure");
+        taskResource.setTerminationProcess(TerminationProcess.EXUI_CASE_EVENT_COMPLETION);
         return taskResourceRepository.save(taskResource);
     }
 }

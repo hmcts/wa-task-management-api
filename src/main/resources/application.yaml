@@ -90,6 +90,7 @@ spring:
       matching-strategy: ANT_PATH_MATCHER
   config:
     import: "optional:configtree:/mnt/secrets/wa/"
+    legacy-processing: true
   application:
     name: WA Task Management
   main:
@@ -161,6 +162,7 @@ logging:
     org.zalando.logbook: INFO
     org.testcontainers: INFO
     com.github.dockerjava: INFO
+    org.springframework.boot.context.config: DEBUG
 
 logbook:
   include: /task/**
