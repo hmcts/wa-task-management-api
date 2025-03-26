@@ -24,16 +24,17 @@ idam:
 
 #Point to in memory database which enables spring context to start and run ft tests against TEST_URL
 spring.flyway.enabled: false
+
 spring:
   datasource:
     driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:cft_task_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:wa_workflow_api
     username: sa
     password: password
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
       default_schema: cft_task_db
 config:
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT,ST_CIC}
@@ -42,6 +43,6 @@ config:
   taskMandatoryFields: ${MANDATORY_TASK_FIELDS:taskName,taskId,taskType,dueDateTime,state,securityClassification,title,majorPriority,minorPriority,executionTypeCode,caseId,caseTypeId,caseCategory,caseName,jurisdiction,region,location,created,roleCategory,workTypeResource}
   initiationRequestRequiredFields: ${INITIATION_REQUEST_REQUIRED_FIELDS:name,taskType,caseId}
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
-  updateCompletionProcessFlagEnabled: true
+  updateCompletionProcessFlagEnabled: ${UPDATE_COMPLETION_PROCESS_FLAG_ENABLED:true}
 
 initiation_job_running: ${INITIATION_JOB_RUNNING:false}

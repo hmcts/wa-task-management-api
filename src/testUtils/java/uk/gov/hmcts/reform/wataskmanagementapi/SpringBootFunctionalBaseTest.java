@@ -9,10 +9,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
@@ -22,7 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.TaskManagementApiTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -64,10 +60,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WARNING_LIST;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
 @ActiveProfiles("functional")
-@Import(TaskManagementApiTestConfiguration.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @Slf4j
 public abstract class SpringBootFunctionalBaseTest {
 
@@ -96,14 +90,10 @@ public abstract class SpringBootFunctionalBaseTest {
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
-    @Autowired
     protected RestApiActions restApiActions;
-    @Autowired
     protected RestApiActions camundaApiActions;
 
-    @Autowired
     protected RestApiActions workflowApiActions;
-    @Autowired
     protected RestApiActions launchDarklyActions;
     @Autowired
     protected AuthorizationProvider authorizationProvider;
@@ -120,9 +110,6 @@ public abstract class SpringBootFunctionalBaseTest {
     protected TaskMandatoryFieldsValidator  taskMandatoryFieldsValidator;
     @Autowired
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
-
-    @LocalServerPort
-    protected int port;
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
 
@@ -151,11 +138,13 @@ public abstract class SpringBootFunctionalBaseTest {
     protected String idamSystemUser;
 
     @Before
-    public void setUpGivens() {
-        restApiActions.updateBaseUri("http://localhost:" + port);
-
+    public void setUpGivens() throws IOException {
+        restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
+        camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+        workflowApiActions = new RestApiActions(workflowUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
+        launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
 
         given = new GivensBuilder(
             camundaApiActions,
@@ -376,7 +365,7 @@ public abstract class SpringBootFunctionalBaseTest {
                 Response result = restApiActions.get(
                     "task/{task-id}",
                     taskId,
-                    baseCaseworkerCredentials.getHeaders()
+                    waCaseworkerCredentials.getHeaders()
                 );
                 result.then().assertThat()
                     .statusCode(HttpStatus.OK.value())

@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.TaskManagementConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -89,9 +88,6 @@ class TaskActionsControllerTest {
     @Mock
     private TaskDeletionService taskDeletionService;
 
-    @Mock
-    private TaskManagementConfiguration taskManagementConfiguration;
-
     private TaskActionsController taskActionsController;
     private String taskId;
 
@@ -103,8 +99,7 @@ class TaskActionsControllerTest {
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService,
-            taskManagementConfiguration
+            taskDeletionService
         );
 
     }
