@@ -436,7 +436,7 @@ public class TaskManagementService {
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
-     * @param terminationProcess
+     * @param terminationProcess    the termination process using which task is completed
      */
     @Transactional
     public void completeTask(String taskId, AccessControlResponse accessControlResponse, TerminationProcess terminationProcess) {
@@ -470,32 +470,13 @@ public class TaskManagementService {
     }
 
     /**
-     * Validates and sets the termination process for a given task.
-     *
-     * @param completionProcess An Optional containing the termination process as a String.
-     * @param task The TaskResource object to update with the termination process.
-     * @throws IllegalArgumentException if the completionProcess value is not a valid TerminationProcess enum value.
-     */
-    private void checkAndSetTerminationProcess(Optional<String> completionProcess, TaskResource task) {
-        String terminationProcessStr = completionProcess.orElse(null);
-        try {
-            TerminationProcess terminationProcess = terminationProcessStr != null ? TerminationProcess.valueOf(terminationProcessStr) : null;
-            task.setTerminationProcess(terminationProcess);
-            log.info("TerminationProcess value: {} was received and updated in database for task with id {}", completionProcess, task.getTaskId());
-        } catch (IllegalArgumentException e) {
-            // Log a warning if the value is not present in the enum
-            log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id {}", terminationProcessStr, task.getTaskId());
-        }
-    }
-
-    /**
      * This method is only used by privileged clients allowing them to set a predefined options for completion.
      * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                The task id to complete.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @param completionOptions     The completion options to orchestrate how this completion should be handled.
-     * @param terminationProcess
+     * @param terminationProcess    the termination process using which task is completed
      */
     @Transactional
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
