@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.TaskManagementConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -76,25 +76,21 @@ public class TaskActionsController extends BaseController {
 
     private final TaskDeletionService taskDeletionService;
 
-    private final TaskManagementConfiguration taskManagementConfiguration;
-
+    @Value("${config.updateCompletionProcessFlagEnabled}")
     private boolean updateCompletionProcessFlagEnabled;
-
 
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService,
-                                 TaskDeletionService taskDeletionService,
-                                 TaskManagementConfiguration taskManagementConfiguration) {
+                                 TaskDeletionService taskDeletionService) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
-        this.taskManagementConfiguration = taskManagementConfiguration;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -433,9 +429,7 @@ public class TaskActionsController extends BaseController {
      * @return the TerminationProcess if updateCompletionProcessFlagEnabled is true and the completionProcess is valid, otherwise null
      */
     protected TerminationProcess validateTerminationProcess(Optional<String> completionProcess, String taskId) {
-
-        log.info("updateCompletionProcessFlagEnabled {}", taskManagementConfiguration.isUpdateCompletionProcessFlagEnabled());
-        if (!taskManagementConfiguration.isUpdateCompletionProcessFlagEnabled()) {
+        if (!updateCompletionProcessFlagEnabled) {
             return null;
         }
         return completionProcess.map(process -> {

@@ -6,15 +6,19 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.PropertyPlaceholderHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,12 +28,14 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("checkstyle:LineLength")
+@SpringBootTest(properties = "spring.profiles.active=functional")
 public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
@@ -1145,8 +1151,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     }
 
     @Test
-    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
+    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() throws IOException {
 
+        String propertyValue = getPropertyValue("config.updateCompletionProcessFlagEnabled",
+                                                "UPDATE_COMPLETION_PROCESS_FLAG_ENABLED");
+        assumeTrue("Skipping test as flag is set to false", Boolean.parseBoolean(propertyValue));
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         initiateTask(taskVariables);
@@ -1371,4 +1380,40 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
+    /**
+     * Retrieves the value of a property from a YAML file and resolves any placeholders using environment variables.
+     *
+     * @param propertyName the name of the property to retrieve
+     * @param envVariable the name of the environment variable to use for placeholder resolution
+     * @return the resolved property value
+     * @throws IOException if an I/O error occurs
+     */
+    private String getPropertyValue(String propertyName, String envVariable) throws IOException {
+        // Load the YAML properties from the application.yaml file
+        YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
+        PropertySource<?> yamlTestProperties = loader.load(
+            "defaultApplicationYaml", new ClassPathResource("application.yaml")
+        ).get(0);
+
+        // Retrieve the original value of the specified property
+        String originalValue = (String) yamlTestProperties.getProperty(propertyName);
+
+        // Manually resolve placeholders using environment variables
+        PropertyPlaceholderHelper placeholderHelper = new PropertyPlaceholderHelper("${", "}", ":", true);
+
+        // Ensure the original value is not null
+        assert originalValue != null;
+
+        // Replace placeholders in the original value with environment variable values
+        String resolvedValue = placeholderHelper.replacePlaceholders(
+            originalValue,
+            placeholderName -> {
+                if (envVariable.equals(placeholderName)) {
+                    return System.getenv(envVariable);
+                }
+                return null; // explicitly returns null if another placeholder is found
+            }
+        );
+        return resolvedValue;
+    }
 }
