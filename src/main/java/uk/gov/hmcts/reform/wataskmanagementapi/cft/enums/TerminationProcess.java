@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
 import lombok.Getter;
+
 @Getter
 public enum TerminationProcess {
 

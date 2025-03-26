@@ -269,7 +269,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         TaskResource taskResource = createTask(taskId, "tribunal-caseofficer", "IA",
                                             "startAppeal", "someAssignee", "1623278362430412",
                                             CFTTaskState.ASSIGNED);
-        TerminationProcess terminationProcessEnum = terminationProcess != null ? TerminationProcess.valueOf(terminationProcess) : null;
+        TerminationProcess terminationProcessEnum =
+            terminationProcess != null ? TerminationProcess.valueOf(terminationProcess) : null;
 
         taskResource.setTerminationProcess(terminationProcessEnum);
 

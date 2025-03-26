@@ -77,7 +77,8 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
         UserInfo userInfo = mock((UserInfo.class));
         when(userInfo.getUid()).thenReturn("someUserId");
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any(), any());
+        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(
+            any(), any(), any(), any());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
 

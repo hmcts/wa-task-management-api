@@ -7,7 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.env.YamlPropertySourceLoader;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
@@ -1198,8 +1197,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultHistory.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("task_history_list.size()", equalTo(4))
-            .body("task_history_list.get(3).termination_process", equalTo("EXUI_USER_COMPLETION")
-            );
+            .body("task_history_list.get(3).termination_process", equalTo("EXUI_USER_COMPLETION"));
 
         Response resultCompleteReport = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
