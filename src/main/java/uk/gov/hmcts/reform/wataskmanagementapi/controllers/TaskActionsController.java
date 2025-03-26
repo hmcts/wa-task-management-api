@@ -233,7 +233,8 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
-                                             @RequestParam(name = COMPLETION_PROCESS, required = false) String completionProcess,
+                                             @RequestParam(name = COMPLETION_PROCESS, required = false)
+                                                 String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -426,7 +427,8 @@ public class TaskActionsController extends BaseController {
      *
      * @param completionProcess an Optional containing the completion process string
      * @param taskId the ID of the task
-     * @return the TerminationProcess if updateCompletionProcessFlagEnabled is true and the completionProcess is valid, otherwise null
+     * @return the TerminationProcess if updateCompletionProcessFlagEnabled is true and the completionProcess is valid,
+     *                                                                                                  otherwise null
      */
     protected TerminationProcess validateTerminationProcess(Optional<String> completionProcess, String taskId) {
         if (!updateCompletionProcessFlagEnabled) {
@@ -435,10 +437,12 @@ public class TaskActionsController extends BaseController {
         return completionProcess.map(process -> {
             try {
                 TerminationProcess terminationProcess = TerminationProcess.valueOf(process);
-                log.info("TerminationProcess value: {} was received and updated in database for task with id {}", process, taskId);
+                log.info("TerminationProcess value: {} was received and updated in database for task with id"
+                             + " {}", process, taskId);
                 return terminationProcess;
             } catch (IllegalArgumentException e) {
-                log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id {}", process, taskId);
+                log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id"
+                             + " {}", process, taskId);
                 return null;
             }
         }).orElse(null);

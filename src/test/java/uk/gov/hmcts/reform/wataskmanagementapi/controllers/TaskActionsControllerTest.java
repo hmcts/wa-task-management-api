@@ -509,21 +509,24 @@ class TaskActionsControllerTest {
     @Test
     void should_return_null_when_updateCompletionProcessFlagEnabled_is_false() {
         ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", false);
-        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.of("EXUI_USER_COMPLETION"), taskId);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(
+            Optional.of("EXUI_USER_COMPLETION"), taskId);
         assertNull(result);
     }
 
     @Test
     void should_return_null_when_completionProcess_is_empty() {
         ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", true);
-        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.empty(), taskId);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(
+            Optional.empty(), taskId);
         assertNull(result);
     }
 
     @Test
     void should_return_terminationProcess_when_completionProcess_is_valid() {
         ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", true);
-        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.of("EXUI_USER_COMPLETION"), taskId);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(
+            Optional.of("EXUI_USER_COMPLETION"), taskId);
         assertNotNull(result);
         assertEquals(TerminationProcess.EXUI_USER_COMPLETION, result);
     }
@@ -531,7 +534,8 @@ class TaskActionsControllerTest {
     @Test
     void should_return_null_when_completionProcess_is_invalid() {
         ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled", true);
-        TerminationProcess result = taskActionsController.validateTerminationProcess(Optional.of("INVALID_PROCESS"), taskId);
+        TerminationProcess result = taskActionsController.validateTerminationProcess(
+            Optional.of("INVALID_PROCESS"), taskId);
         assertNull(result);
     }
 
@@ -585,12 +589,11 @@ class TaskActionsControllerTest {
             mockAccessControlResponse,
             TerminationProcess.valueOf("EXUI_USER_COMPLETION")
         );
-
     }
 
     private NotesRequest addNotes() {
-            NoteResource noteResource = new NoteResource(
+        NoteResource noteResource = new NoteResource(
                 "code", "notetype", "userId", "content");
-            return new NotesRequest(List.of(noteResource));
-        }
+        return new NotesRequest(List.of(noteResource));
     }
+}

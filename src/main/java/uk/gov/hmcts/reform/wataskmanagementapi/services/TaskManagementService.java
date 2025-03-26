@@ -439,7 +439,8 @@ public class TaskManagementService {
      * @param terminationProcess    the termination process using which task is completed
      */
     @Transactional
-    public void completeTask(String taskId, AccessControlResponse accessControlResponse, TerminationProcess terminationProcess) {
+    public void completeTask(String taskId, AccessControlResponse accessControlResponse,
+                             TerminationProcess terminationProcess) {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
