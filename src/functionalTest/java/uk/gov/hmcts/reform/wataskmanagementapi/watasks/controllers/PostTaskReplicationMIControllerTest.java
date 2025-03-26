@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("checkstyle:LineLength")
-@SpringBootTest(properties = "spring.profiles.active=functional")
 public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
