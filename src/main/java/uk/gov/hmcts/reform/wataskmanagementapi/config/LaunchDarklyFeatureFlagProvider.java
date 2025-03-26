@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
@@ -29,7 +30,7 @@ public class LaunchDarklyFeatureFlagProvider {
                   featureFlag.getKey(), email);
         boolean result =  ldClient.boolVariation(
             featureFlag.getKey(),
-            createLaunchDarklyUser(userId, email),
+            createLaunchDarklyContext(userId, email),
             true);
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
         return result;
@@ -40,19 +41,19 @@ public class LaunchDarklyFeatureFlagProvider {
         log.debug("Attempting to retrieve feature flag '{}'", featureFlag.getKey());
         LDValue result =  ldClient.jsonValueVariation(
             featureFlag.getKey(),
-            TM_USER,
+            LDContext.fromUser(TM_USER),
             defaultValue
         );
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
         return result;
     }
 
-    private LDUser createLaunchDarklyUser(String userId, String email) {
-        return new LDUser.Builder("wa-task-management-api")
-            .name(userId)
-            .email(email)
-            .firstName("Work Allocation")
-            .lastName("Task Management")
+    private LDContext createLaunchDarklyContext(String userId, String email) {
+        return LDContext.builder("wa-task-management-api")
+            .set("name", userId)
+            .set("email", email)
+            .set("firstName", "Work Allocation")
+            .set("lastName", "Task Management")
             .build();
     }
 
