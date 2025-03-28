@@ -30,7 +30,7 @@ class IntermediateDateCalculatorTest {
 
 
     @BeforeEach
-    public void before() {
+    void before() {
         intermediateDateCalculator = new IntermediateDateCalculator();
     }
 

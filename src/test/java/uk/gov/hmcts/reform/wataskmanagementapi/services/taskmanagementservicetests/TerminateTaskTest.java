@@ -74,7 +74,7 @@ class TerminateTaskTest extends CamundaHelpers {
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
             cftQueryService,

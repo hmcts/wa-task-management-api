@@ -197,7 +197,7 @@ class TaskTypesServiceTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         taskTypesService = new TaskTypesService(
             dmnEvaluationService
         );

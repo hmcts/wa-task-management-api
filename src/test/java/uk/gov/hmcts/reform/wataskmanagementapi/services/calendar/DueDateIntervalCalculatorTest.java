@@ -747,7 +747,7 @@ class DueDateIntervalCalculatorTest {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         dueDateIntervalCalculator = new DueDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection));
 
         Set<LocalDate> localDates = Set.of(

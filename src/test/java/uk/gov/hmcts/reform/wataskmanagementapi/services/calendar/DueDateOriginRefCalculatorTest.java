@@ -36,7 +36,7 @@ class DueDateOriginRefCalculatorTest {
     private DueDateOriginRefCalculator dueDateOriginRefCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         dueDateOriginRefCalculator = new DueDateOriginRefCalculator(new WorkingDayIndicator(publicHolidaysCollection));
         calculatedConfigurations = new ArrayList<>();
         Set<LocalDate> localDates = Set.of(

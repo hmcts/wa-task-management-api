@@ -38,7 +38,7 @@ class AccessControlServiceTest {
     private AccessControlService accessControlService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         accessControlService = new AccessControlService(idamService, roleAssignmentService);
     }
 
@@ -177,7 +177,7 @@ class AccessControlServiceTest {
 
         when(roleAssignmentService.getRolesForUser(mockedUserInfo.getUid(), idamToken))
             .thenReturn(Collections.emptyList());
-        
+
         Optional<AccessControlResponse> result = accessControlService.getAccessControlResponse(idamToken);
 
         assertEquals(Optional.empty(), result);

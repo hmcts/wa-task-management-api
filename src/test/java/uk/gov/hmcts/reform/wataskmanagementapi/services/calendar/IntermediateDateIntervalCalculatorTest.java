@@ -791,7 +791,7 @@ class IntermediateDateIntervalCalculatorTest {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         intermediateDateIntervalCalculator = new IntermediateDateIntervalCalculator(new WorkingDayIndicator(
             publicHolidaysCollection));
 

@@ -701,7 +701,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         private PermissionRequirements permissionsRequired;
 
         @BeforeEach
-        public void setup() {
+        void setup() {
             permissionsRequired = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(OWN, EXECUTE);
         }
 
