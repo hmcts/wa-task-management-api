@@ -75,6 +75,7 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
                                    "Intermediate track decision making work"));
         workTypes.add(new WorkType("multi_track_decision_making_work", "Multi track decision making work"));
         workTypes.add(new WorkType("query_work", "Query work"));
+        workTypes.add(new WorkType("welsh_translation_work", "Welsh translation work"));
 
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         UserInfo userInfo = mock((UserInfo.class));
