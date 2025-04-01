@@ -104,6 +104,11 @@ withPipeline(type, product, component) {
 
     onPR() {
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
+        enableFortifyScan()
+    }
+
+    after('fortify-scan') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
     }
 
     // Sync environment specific branches with master branch
