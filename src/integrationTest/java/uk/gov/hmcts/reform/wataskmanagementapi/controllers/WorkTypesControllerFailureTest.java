@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -51,17 +51,17 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/work-types";
 
-    @MockBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @Mock
     private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
-    @MockBean
+    @Mock
     private AuthTokenGenerator serviceAuthTokenGenerator;
     private ServiceMocks mockServices;
     private UserInfo mockedUserInfo;

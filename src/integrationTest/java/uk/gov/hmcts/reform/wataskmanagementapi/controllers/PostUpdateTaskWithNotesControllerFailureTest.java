@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -49,19 +48,19 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
     private static final String ENDPOINT_PATH = "/task/%s/notes";
     private static String ENDPOINT_BEING_TESTED;
 
-    @MockBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @Mock
     private TaskManagementService taskManagementService;
-    @MockBean
+    @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @Mock
     private ClientAccessControlService clientAccessControlService;
 
     @Mock

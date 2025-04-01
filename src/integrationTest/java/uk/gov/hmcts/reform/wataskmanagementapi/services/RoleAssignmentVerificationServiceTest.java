@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -25,13 +25,13 @@ public class RoleAssignmentVerificationServiceTest extends SpringBootIntegration
 
     @Autowired
     SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
-    @MockBean
+    @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockBean
+    @Mock
     CftQueryService cftQueryService;
-    @MockBean
+    @Mock
     PermissionRequirements permissionsRequired;
-    @MockBean
+    @Mock
     CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
 
     RoleAssignmentVerificationService roleAssignmentVerificationService;

@@ -9,9 +9,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -84,34 +83,34 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-    @MockBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @Mock
     private CamundaService camundaService;
-    @SpyBean
+    @Spy
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-    @SpyBean
+    @Spy
     private CftQueryService cftQueryService;
-    @SpyBean
+    @Spy
     private CFTTaskMapper cftTaskMapper;
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
-    @MockBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockBean
+    @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockBean
+    @Mock
     private ConfigureTaskService configureTaskService;
-    @MockBean
+    @Mock
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @Autowired
     private TransactionHelper transactionHelper;

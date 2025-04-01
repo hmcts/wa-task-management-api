@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.Mock;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
     CamundaServiceApi.class
 })
 public class CamundaConsumerApplication {
-    @MockBean
+    @Mock
     RestTemplate restTemplate;
 }
 

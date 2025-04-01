@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -94,24 +93,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s/initiation";
     private static String ENDPOINT_BEING_TESTED;
-    @MockBean
+    @Mock
     private ClientAccessControlService clientAccessControlService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     private ServiceMocks mockServices;
-    @MockBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @Mock
     private CcdDataServiceApi ccdDataServiceApi;
-    @MockBean
+    @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     private CaseDetails caseDetails;

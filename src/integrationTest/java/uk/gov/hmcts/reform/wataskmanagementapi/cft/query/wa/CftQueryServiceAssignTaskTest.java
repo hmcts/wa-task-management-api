@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -60,15 +59,15 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     private UserInfo assignerUserInfo;
     @Mock
     private UserInfo assigneeUserInfo;
-    @MockBean
+    @Mock
     private CamundaService camundaService;
-    @MockBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     private EntityManager entityManager;

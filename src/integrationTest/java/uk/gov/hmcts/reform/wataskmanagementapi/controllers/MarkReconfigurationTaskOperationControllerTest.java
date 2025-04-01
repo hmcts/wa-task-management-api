@@ -3,9 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -66,19 +66,19 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
 
-    @MockBean
+    @Mock
     private ClientAccessControlService clientAccessControlService;
 
-    @MockBean
+    @Mock
     private CaseConfigurationProviderService caseConfigurationProviderService;
 
-    @SpyBean
+    @Spy
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
-    @MockBean(name = "systemUserIdamInfo")
+    @Mock(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
 
-    @MockBean
+    @Mock
     private IdamWebApi idamWebApi;
 
     @Autowired
