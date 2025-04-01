@@ -7,9 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -54,19 +54,19 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/task-types";
     private static final String DMN_NAME = "Task Types DMN";
 
-    @MockBean
+    @Mock
     private IdamWebApi idamWebApi;
 
-    @MockBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
 
-    @MockBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
 
-    @MockBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
 
-    @MockBean
+    @Mock
     private AuthTokenGenerator serviceAuthTokenGenerator;
 
     @Autowired

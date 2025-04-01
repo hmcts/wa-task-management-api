@@ -9,8 +9,8 @@ import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,10 +41,10 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     @Autowired
     RoleAssignmentServiceApi roleAssignmentApi;
 
-    @MockBean
+    @Mock
     AuthTokenGenerator authTokenGenerator;
 
-    @MockBean
+    @Mock
     IdamTokenGenerator systemUserIdamToken;
 
     private RoleAssignmentService roleAssignmentService;
