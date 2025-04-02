@@ -5,13 +5,13 @@ import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
@@ -56,7 +56,7 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
     PermissionRequirements granularPermissionsRequiredAndAssignee = PermissionRequirementBuilder.builder()
         .buildSingleType(COMPLETE_OWN);
 
-    @MockitoBean
+    @Mock
     private CamundaService camundaService;
     @Autowired
     private EntityManager entityManager;

@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -90,13 +90,13 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private TaskResourceRepository taskResourceRepository;
     @Autowired
     private EntityManager entityManager;
-    @MockitoBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
     @Spy
     private CamundaService camundaService;
     @Spy
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean
+    @Mock
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Autowired
     private CFTTaskMapper cftTaskMapper;
@@ -107,30 +107,30 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
-    @MockitoBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockitoBean
+    @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @MockitoBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockitoBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockitoBean
+    @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockitoBean
+    @Mock
     private ConfigureTaskService configureTaskService;
-    @MockitoBean
+    @Mock
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
-    @MockitoBean
+    @Mock
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @MockitoBean(name = "systemUserIdamInfo")
+    @Mock(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
-    @MockitoBean
+    @Mock
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach

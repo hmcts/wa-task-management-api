@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam;
 
+import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -13,10 +13,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 })
 public class IdamConsumerApplication {
 
-    @MockitoBean
+    @Mock
     AuthTokenGenerator authTokenGenerator;
 
-    @MockitoBean
+    @Mock
     RestTemplate restTemplate;
 
 }

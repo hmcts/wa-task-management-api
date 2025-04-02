@@ -4,9 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
@@ -57,19 +57,19 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s";
     public static final String SYSTEM_USER_1 = "system_user1";
     private static String ENDPOINT_BEING_TESTED;
-    @MockitoBean
+    @Mock
     private ClientAccessControlService clientAccessControlService;
     @Autowired
     private TaskManagementService taskManagementService;
-    @MockitoBean
+    @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @MockitoBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean(name = "systemUserIdamInfo")
+    @Mock(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
-    @MockitoBean
+    @Mock
     private IdamWebApi idamWebApi;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;

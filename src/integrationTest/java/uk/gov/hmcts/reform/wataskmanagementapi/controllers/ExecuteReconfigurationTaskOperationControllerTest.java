@@ -4,6 +4,8 @@ import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -11,8 +13,6 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -103,31 +103,31 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     public static final String ASSIGNEE_USER = "assigneeUser";
     public static final String OLD_ASSIGNEE_USER = "oldAssigneeUser";
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    @MockitoBean(name = "systemUserIdamInfo")
+    @Mock(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
-    @MockitoBean
+    @Mock
     private ClientAccessControlService clientAccessControlService;
-    @MockitoBean
+    @Mock
     private CftQueryService cftQueryService;
-    @MockitoBean
+    @Mock
     private CcdDataService ccdDataService;
-    @MockitoBean
+    @Mock
     private DmnEvaluationService dmnEvaluationService;
-    @MockitoSpyBean
+    @Spy
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean
+    @Mock
     private RoleAssignmentService roleAssignmentService;
-    @MockitoBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockitoBean
+    @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
-    @MockitoSpyBean
+    @Spy
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
-    @MockitoSpyBean
+    @Spy
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     private String taskId;
