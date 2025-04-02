@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
@@ -23,7 +23,7 @@ public class IdamServiceUserIdCacheTest {
     private final String bearerAccessToken1 = "some bearer access token3";
     private final String bearerAccessToken2 = "some bearer access token4";
 
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
 
     @Autowired

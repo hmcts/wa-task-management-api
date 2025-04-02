@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -68,19 +69,19 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/cancel";
     private static String ENDPOINT_BEING_TESTED;
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockBean
     private CamundaService camundaService;
-    @Mock
+    @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
+    @MockBean
     private AccessControlService accessControlService;
     @Mock
     private UserInfo mockedUserInfo;

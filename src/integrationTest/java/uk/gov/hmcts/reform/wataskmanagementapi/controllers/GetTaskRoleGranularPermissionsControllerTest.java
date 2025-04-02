@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -54,15 +55,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class GetTaskRoleGranularPermissionsControllerTest extends SpringBootIntegrationBaseTest {
 
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockBean
     private AuthTokenGenerator serviceAuthTokenGenerator;
-    @Mock
+    @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
+    @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;

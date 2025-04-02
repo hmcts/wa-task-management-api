@@ -5,9 +5,9 @@ import com.google.common.testing.FakeTicker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,7 +38,7 @@ public class CalendarCacheManagerTest {
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
 
-    @Spy
+    @SpyBean
     private PublicHolidayService publicHolidayService;
 
     @DisplayName("(Access calendars successfully and retrieve results which are also cached)")

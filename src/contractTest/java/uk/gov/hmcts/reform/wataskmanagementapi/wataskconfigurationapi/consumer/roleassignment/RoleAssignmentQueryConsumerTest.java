@@ -12,8 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,9 +53,9 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     protected ObjectMapper objectMapper;
     @Autowired
     RoleAssignmentServiceApi roleAssignmentApi;
-    @Mock
+    @MockBean
     AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockBean
     private IdamTokenGenerator idamTokenGenerator;
     private RoleAssignmentService roleAssignmentService;
 

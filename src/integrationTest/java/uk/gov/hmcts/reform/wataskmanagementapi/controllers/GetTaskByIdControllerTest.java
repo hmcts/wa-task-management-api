@@ -7,6 +7,7 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -85,25 +86,25 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     private UserInfo mockedUserInfo;
-    @Mock
+    @MockBean
     private IdamService idamService;
-    @Mock
+    @MockBean
     CcdDataServiceApi ccdDataServiceApi;
-    @Mock
+    @MockBean
     private ClientAccessControlService clientAccessControlService;
     @Mock
     private CaseDetails caseDetails;

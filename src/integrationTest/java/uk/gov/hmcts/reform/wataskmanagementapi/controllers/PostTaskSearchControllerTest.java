@@ -8,9 +8,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
@@ -85,21 +86,21 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
+    @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Spy
+    @SpyBean
     private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;

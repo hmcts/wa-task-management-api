@@ -11,8 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -90,11 +91,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private TaskResourceRepository taskResourceRepository;
     @Autowired
     private EntityManager entityManager;
-    @Mock
+    @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @Spy
+    @SpyBean
     private CamundaService camundaService;
-    @Spy
+    @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
@@ -107,30 +108,30 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
+    @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Mock
+    @MockBean
     private ConfigureTaskService configureTaskService;
-    @Mock
+    @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
-    @Mock
+    @MockBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @Mock(name = "systemUserIdamInfo")
+    @MockBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
-    @Mock
+    @MockBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach

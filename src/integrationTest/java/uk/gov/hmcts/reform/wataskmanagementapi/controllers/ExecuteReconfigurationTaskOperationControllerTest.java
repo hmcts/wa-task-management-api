@@ -4,10 +4,10 @@ import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
@@ -103,31 +103,31 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     public static final String ASSIGNEE_USER = "assigneeUser";
     public static final String OLD_ASSIGNEE_USER = "oldAssigneeUser";
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    @Mock(name = "systemUserIdamInfo")
+    @MockBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
-    @Mock
+    @MockBean
     private ClientAccessControlService clientAccessControlService;
-    @Mock
+    @MockBean
     private CftQueryService cftQueryService;
-    @Mock
+    @MockBean
     private CcdDataService ccdDataService;
-    @Mock
+    @MockBean
     private DmnEvaluationService dmnEvaluationService;
-    @Spy
+    @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockBean
     private RoleAssignmentService roleAssignmentService;
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
-    @Spy
+    @SpyBean
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
-    @Spy
+    @SpyBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     private String taskId;
