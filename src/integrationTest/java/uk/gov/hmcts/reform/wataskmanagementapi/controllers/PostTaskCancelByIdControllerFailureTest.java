@@ -3,9 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -55,19 +55,19 @@ class PostTaskCancelByIdControllerFailureTest extends SpringBootIntegrationBaseT
 
     private static final String ENDPOINT_PATH = "/task/%s/cancel";
     private static String ENDPOINT_BEING_TESTED;
-    @MockitoBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockitoBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockitoBean
+    @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @MockitoBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockitoBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean
+    @Mock
     private UserInfo mockedUserInfo;
     private ServiceMocks mockServices;
     private String taskId;

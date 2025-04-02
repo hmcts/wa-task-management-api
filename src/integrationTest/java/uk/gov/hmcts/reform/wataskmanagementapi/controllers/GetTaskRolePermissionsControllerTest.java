@@ -4,10 +4,10 @@ import jakarta.persistence.EntityManager;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -56,17 +56,17 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest {
 
-    @MockitoBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockitoBean
+    @Mock
     private AuthTokenGenerator serviceAuthTokenGenerator;
-    @MockitoBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockitoBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockitoBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockitoBean
+    @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     private EntityManager entityManager;

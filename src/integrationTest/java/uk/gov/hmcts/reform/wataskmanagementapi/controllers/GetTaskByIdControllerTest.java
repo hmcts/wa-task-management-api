@@ -5,11 +5,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.zalando.problem.Status;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -85,27 +85,27 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
-    @MockitoBean
+    @Mock
     private IdamWebApi idamWebApi;
-    @MockitoBean
+    @Mock
     private CamundaServiceApi camundaServiceApi;
-    @MockitoBean
+    @Mock
     private AuthTokenGenerator authTokenGenerator;
-    @MockitoBean
+    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockitoBean
+    @Mock
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean
+    @Mock
     private UserInfo mockedUserInfo;
-    @MockitoBean
+    @Mock
     private IdamService idamService;
-    @MockitoBean
+    @Mock
     CcdDataServiceApi ccdDataServiceApi;
-    @MockitoBean
+    @Mock
     private ClientAccessControlService clientAccessControlService;
-    @MockitoBean
+    @Mock
     private CaseDetails caseDetails;
 
 

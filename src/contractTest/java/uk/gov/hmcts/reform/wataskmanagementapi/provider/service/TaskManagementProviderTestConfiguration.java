@@ -9,12 +9,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import org.mockito.Mock;
 import org.springframework.boot.jackson.JsonComponentModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.zalando.problem.jackson.ProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
@@ -48,37 +48,37 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 public class TaskManagementProviderTestConfiguration {
 
-    @MockitoBean
+    @Mock
     private EntityManager entityManager;
-    @MockitoBean
+    @Mock
     private EntityManagerFactory entityManagerFactory;
-    @MockitoBean
+    @Mock
     private CamundaService camundaService;
-    @MockitoBean
+    @Mock
     private CFTTaskMapper cftTaskMapper;
-    @MockitoBean
+    @Mock
     private CftQueryService cftQueryService;
-    @MockitoBean
+    @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean
+    @Mock
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-    @MockitoBean
+    @Mock
     private IdamService idamService;
-    @MockitoBean
+    @Mock
     private RoleAssignmentService roleAssignmentService;
-    @MockitoBean
+    @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockitoBean
+    @Mock
     private ConfigureTaskService configureTaskService;
-    @MockitoBean
+    @Mock
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @MockitoBean
+    @Mock
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @MockitoBean
+    @Mock
     private IdamTokenGenerator idamTokenGenerator;
-    @MockitoBean
+    @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-    @MockitoBean
+    @Mock
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
