@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -55,23 +54,26 @@ public class SecurityConfiguration {
 
         http
             .addFilterBefore(serviceAuthFiler, AbstractPreAuthenticatedProcessingFilter.class)
-            .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
-            .exceptionHandling(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .formLogin(Customizer.withDefaults())
-            .logout(Customizer.withDefaults())
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/task-configuration/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/notes").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/task/{\\\\d+}").permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(Customizer.withDefaults())
-            )
-            .oauth2Client(Customizer.withDefaults());
+            .sessionManagement().sessionCreationPolicy(STATELESS)
+            .and()
+            .exceptionHandling()
+            .and()
+            .csrf().disable()
+            .formLogin().disable()
+            .logout().disable()
+            .authorizeRequests()
+            .requestMatchers("/task-configuration/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
+            .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
+            .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/notes").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/task/{\\\\d+}").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .oauth2ResourceServer()
+            .jwt()
+            .and()
+            .and()
+            .oauth2Client();
 
         return http.build();
     }

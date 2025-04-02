@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment;
 
-import org.mockito.Mock;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -13,6 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 })
 public class RoleAssignmentConsumerApplication {
 
-    @Mock
+    @MockBean
     RestTemplate restTemplate;
 }

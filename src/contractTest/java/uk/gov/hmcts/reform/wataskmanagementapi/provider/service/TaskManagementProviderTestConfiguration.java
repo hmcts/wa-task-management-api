@@ -9,8 +9,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import org.mockito.Mock;
 import org.springframework.boot.jackson.JsonComponentModule;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -48,37 +48,37 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 public class TaskManagementProviderTestConfiguration {
 
-    @Mock
+    @MockBean
     private EntityManager entityManager;
-    @Mock
+    @MockBean
     private EntityManagerFactory entityManagerFactory;
-    @Mock
+    @MockBean
     private CamundaService camundaService;
-    @Mock
+    @MockBean
     private CFTTaskMapper cftTaskMapper;
-    @Mock
+    @MockBean
     private CftQueryService cftQueryService;
-    @Mock
+    @MockBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockBean
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-    @Mock
+    @MockBean
     private IdamService idamService;
-    @Mock
+    @MockBean
     private RoleAssignmentService roleAssignmentService;
-    @Mock
+    @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Mock
+    @MockBean
     private ConfigureTaskService configureTaskService;
-    @Mock
+    @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
+    @MockBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @Mock
+    @MockBean
     private IdamTokenGenerator idamTokenGenerator;
-    @Mock
+    @MockBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-    @Mock
+    @MockBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
 

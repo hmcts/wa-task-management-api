@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -43,16 +43,16 @@ class UpdateSearchIndexTaskOperationControllerTest extends SpringBootIntegration
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
 
-    @Mock
+    @MockBean
     private ClientAccessControlService clientAccessControlService;
 
-    @Spy
+    @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
-    @Mock(name = "systemUserIdamInfo")
+    @MockBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
 
-    @Mock
+    @MockBean
     private IdamWebApi idamWebApi;
 
     private String taskId;
