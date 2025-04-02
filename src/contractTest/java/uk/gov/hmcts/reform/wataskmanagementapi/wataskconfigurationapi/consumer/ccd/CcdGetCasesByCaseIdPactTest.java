@@ -10,11 +10,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
@@ -38,10 +38,10 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
     @Autowired
     CcdDataServiceApi ccdDataServiceApi;
 
-    @Mock
+    @MockitoBean
     AuthTokenGenerator authTokenGenerator;
 
-    @Mock
+    @MockitoBean
     IdamTokenGenerator systemTokenGenerator;
 
     private CcdDataService ccdDataService;

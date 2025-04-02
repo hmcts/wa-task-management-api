@@ -6,9 +6,9 @@ import feign.RequestTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -66,21 +66,21 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 
 class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBaseTest {
 
-    @Mock
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockitoBean
     private UserInfo mockedUserInfo;
-    @Mock
+    @MockitoBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private String taskId;
     private ServiceMocks mockServices;
@@ -121,6 +121,11 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             "asylum"
         );
         mockServices.mockServiceAPIs();
+        when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+            .thenReturn(List.of("wa", "ia", "sscs", "civil"));
+
+        when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+            .thenReturn(List.of("asylum", "wacasetype", "sscs", "civil"));
 
         FeignException mockFeignException = mock(FeignException.class);
         when(mockFeignException.contentUTF8())
