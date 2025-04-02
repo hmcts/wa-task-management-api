@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -83,13 +83,13 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-    @Mock
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockitoBean
     private CamundaService camundaService;
     @Spy
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockitoBean
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Spy
     private CftQueryService cftQueryService;
@@ -98,19 +98,19 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
-    @Mock
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Mock
+    @MockitoBean
     private ConfigureTaskService configureTaskService;
-    @Mock
+    @MockitoBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @Autowired
     private TransactionHelper transactionHelper;
@@ -119,16 +119,16 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
     private RoleAssignmentVerificationService roleAssignmentVerification;
-    @Mock
+    @MockitoBean
     private EntityManager entityManager;
-    @Mock
+    @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-    @Mock
+    @MockitoBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
-    @Mock
+    @MockitoBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @Mock
+    @MockitoBean
     private IdamTokenGenerator idamTokenGenerator;
 
     @BeforeEach

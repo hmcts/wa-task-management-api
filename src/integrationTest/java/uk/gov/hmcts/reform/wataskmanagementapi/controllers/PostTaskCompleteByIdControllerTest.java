@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -72,27 +72,27 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
     private static String ENDPOINT_BEING_TESTED;
-    @Mock
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockitoBean
     private IdamService idamService;
-    @Mock
+    @MockitoBean
     private UserInfo mockedUserInfo;
-    @Mock
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
     private ServiceMocks mockServices;
     private String taskId;
-    @Mock
+    @MockitoBean
     private AccessControlService accessControlService;
 
     @BeforeEach

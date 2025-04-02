@@ -6,10 +6,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -64,23 +64,23 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
     private static String ENDPOINT_BEING_TESTED;
-    @Mock
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
+    @MockitoBean
     private IdamService idamService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockitoBean
     private UserInfo mockedUserInfo;
-    @Mock
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
     private ServiceMocks mockServices;
     private String taskId;

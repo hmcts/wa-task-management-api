@@ -3,12 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -66,19 +66,19 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
 
-    @Mock
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
 
-    @Mock
+    @MockitoBean
     private CaseConfigurationProviderService caseConfigurationProviderService;
 
-    @Spy
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
-    @Mock(name = "systemUserIdamInfo")
+    @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
 
-    @Mock
+    @MockitoBean
     private IdamWebApi idamWebApi;
 
     @Autowired
