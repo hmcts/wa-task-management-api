@@ -9,10 +9,12 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -79,7 +81,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@Sql(scripts = "/scripts/search_task_work_types.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @MockBean
@@ -513,7 +517,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                                + "decision_making_work, applications, priority, access_requests, "
                                + "error_management, review_case, evidence, follow_up, pre_hearing, post_hearing, "
                                + "intermediate_track_hearing_work, multi_track_hearing_work, "
-                               + "intermediate_track_decision_making_work, multi_track_decision_making_work]")
+                               + "intermediate_track_decision_making_work, multi_track_decision_making_work, "
+                               + "query_work]")
                 ));
     }
 
@@ -1129,50 +1134,72 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     status().isOk()));
     }
 
-    @Disabled
-    @Test
-    void should_return_200_and_accept_work_type_values() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "hearing_work",
+        "upper_tribunal",
+        "routine_work",
+        "query_work",
+        "decision_making_work",
+        "applications",
+        "priority",
+        "error_management",
+        "access_requests",
+        "review_case",
+        "evidence",
+        "follow_up",
+        "pre_hearing",
+        "post_hearing",
+        "intermediate_track_hearing_work",
+        "multi_track_hearing_work",
+        "intermediate_track_decision_making_work",
+        "multi_track_decision_making_work"
+    })
+    void should_return_200_and_filter_by_each_work_type(String workType) throws Exception {
 
         UserInfo userInfo = mockServices.mockUserInfo();
-
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "WA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), workType);
 
         List<RoleAssignment> allTestRoles =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(allTestRoles));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        String content = """
+
+        String content = String.format("""
             {
                 "search_parameters": [
                   {
                     "key": "work_type",
                     "operator": "IN",
                     "values": [
-                      "hearing_work","upper_tribunal","routine_work","routine_work","decision_making_work",
-                      "applications","priority","error_management","access_requests","review_case","evidence",
-                      "follow_up","pre_hearing","post_hearing"
+                      "%s"
                     ]
                   }
                 ]
-              }
-            """;
+            }
+            """, workType);
+
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("first_result", "0")
+                    .param("max_results", "10")
                     .content(content)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
-            .andExpectAll(status().isOk());
+            .andExpectAll(
+                status().isOk(),
+                jsonPath("$.tasks").isArray(),
+                jsonPath("$.tasks[0].work_type_id").value(workType)
+            );
     }
 
     @Test
