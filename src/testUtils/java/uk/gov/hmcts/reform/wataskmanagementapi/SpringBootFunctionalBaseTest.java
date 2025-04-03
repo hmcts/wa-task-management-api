@@ -277,7 +277,7 @@ public abstract class SpringBootFunctionalBaseTest {
                     }
                 );
         } else {
-            sendInitiateRequest(testVariables, additionalProperties);
+            sendInitiateRequest(testVariables, additionalProperties,headers);
         }
 
         Response response = restApiActions.get(
@@ -299,7 +299,8 @@ public abstract class SpringBootFunctionalBaseTest {
         };
     }
 
-    public void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties) {
+    public void sendInitiateRequest(TestVariables testVariables, Map<String, String> additionalProperties,
+                                    Headers headers) {
 
         InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(testVariables, additionalProperties);
         Response response = restApiActions.post(
@@ -311,7 +312,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
         // second initiation request, so we are by-passing 503 and 201 response statuses.
-        assertResponse(response,testVariables.getTaskId());
+        assertResponse(response,testVariables.getTaskId(),headers);
 
     }
 
@@ -343,7 +344,7 @@ public abstract class SpringBootFunctionalBaseTest {
         return initiateTaskRequest;
     }
 
-    private void assertResponse(Response response,String taskId) {
+    private void assertResponse(Response response, String taskId, Headers headers) {
         response.prettyPrint();
 
         int statusCode = response.getStatusCode();
@@ -365,7 +366,7 @@ public abstract class SpringBootFunctionalBaseTest {
                 Response result = restApiActions.get(
                     "task/{task-id}",
                     taskId,
-                    waCaseworkerCredentials.getHeaders()
+                    headers
                 );
                 result.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
