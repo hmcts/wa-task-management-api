@@ -35,6 +35,7 @@ def secrets = [
     secret('cft-task-POSTGRES-USER-FLEXIBLE', 'POSTGRES_USERNAME'),
 
     secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
+    secret('generic-docker-pact-broker-password', 'GENERIC_DOCKER_PACT_BROKER_YAML_PASS'),
 
   ],
   's2s-${env}': [
