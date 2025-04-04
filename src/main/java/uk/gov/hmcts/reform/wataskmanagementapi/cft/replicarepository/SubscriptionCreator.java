@@ -88,7 +88,8 @@ public class SubscriptionCreator {
 
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
             + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
-        log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
+        int passwordLength = replicaPassword.length();
+        log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - passwordLength));
 
         String subscriptionUrl;
         if (LOCAL_ARM_ARCH.equals(environment)) {
