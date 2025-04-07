@@ -212,10 +212,7 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "report_refresh_request_time")
     private OffsetDateTime reportRefreshRequestTime;
 
-    @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType.class)
-    @Column(columnDefinition = "termination_process_enum")
     @Schema(name = "termination_process")
-    private TerminationProcess terminationProcess;
+    private String terminationProcess;
 
 }

@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -45,6 +44,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -583,8 +583,15 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
 
-        @Test
-        void should_succeed_and_return_204_and_update_completion_process_when_flag_enabled() throws Exception {
+        @ParameterizedTest
+        @CsvSource(value = {
+            "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
+            "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
+            "NULL, NULL",
+            ",NULL"
+        }, delimiter = ',', nullValues = "NULL")
+        void should_succeed_and_return_204_and_update_completion_process_when_flag_enabled(
+            String completionProcess, String terminationProcess) throws Exception {
 
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -626,7 +633,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
-                        .param(COMPLETION_PROCESS, "EXUI_USER_COMPLETION")
+                        .param(COMPLETION_PROCESS, completionProcess)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
@@ -641,7 +648,12 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertNotNull(taskResource.get().getLastUpdatedTimestamp());
             assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
             assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
-            assertEquals(TerminationProcess.valueOf("EXUI_USER_COMPLETION"), taskResource.get().getTerminationProcess());
+            if (terminationProcess == null) {
+                assertNull(taskResource.get().getTerminationProcess());
+            }
+            else {
+                assertEquals(terminationProcess, taskResource.get().getTerminationProcess());
+            }
         }
 
         @Test
