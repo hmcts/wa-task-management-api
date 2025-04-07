@@ -562,6 +562,7 @@ public class TaskResource implements Serializable {
     public void setTerminationProcess(String terminationProcess) {
         this.terminationProcess = terminationProcess;
     }
+
     public TaskResource(String taskId,
                         String caseId,
                         String jurisdiction,

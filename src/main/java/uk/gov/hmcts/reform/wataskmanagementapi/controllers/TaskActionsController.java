@@ -337,7 +337,7 @@ public class TaskActionsController extends BaseController {
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-            schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
+                schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),

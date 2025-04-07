@@ -648,10 +648,9 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertNotNull(taskResource.get().getLastUpdatedTimestamp());
             assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
             assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
-            if (terminationProcess == null) {
+            if (completionProcess == null) {
                 assertNull(taskResource.get().getTerminationProcess());
-            }
-            else {
+            } else {
                 assertEquals(terminationProcess, taskResource.get().getTerminationProcess());
             }
         }
