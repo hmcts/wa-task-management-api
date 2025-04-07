@@ -90,7 +90,10 @@ public class SubscriptionCreator {
 
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
             + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
-        log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - passwordLength));
+
+        String replicaUrlNoPassword = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
+            + AND_USER + replicaUser;
+        log.info("replicaUrl = " + replicaUrlNoPassword);
 
 
         String subscriptionUrl;
