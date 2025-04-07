@@ -92,6 +92,7 @@ public class SubscriptionCreator {
             + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
         log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - passwordLength));
 
+
         String subscriptionUrl;
         if (LOCAL_ARM_ARCH.equals(environment)) {
             //this is for integration tests and mac chips
