@@ -106,7 +106,7 @@ public class TaskActionsController extends BaseController {
     })
     @GetMapping(path = "/{task-id}", consumes = {ALL_VALUE})
     public ResponseEntity<GetTaskResponse<Task>> getTask(@Parameter(hidden = true)
-                                                             @RequestHeader(AUTHORIZATION) String authToken,
+                                                         @RequestHeader(AUTHORIZATION) String authToken,
                                                          @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -193,7 +193,7 @@ public class TaskActionsController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<Void> assignTask(@Parameter(hidden = true)
-                                               @RequestHeader(AUTHORIZATION) String assignerAuthToken,
+                                           @RequestHeader(AUTHORIZATION) String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
                                            @RequestBody AssignTaskRequest assignTaskRequest) {
 
@@ -231,17 +231,17 @@ public class TaskActionsController extends BaseController {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> completeTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
                                              @Parameter(hidden = true)
-                                                @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+                                             @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestParam(name = COMPLETION_PROCESS, required = false)
-                                                 String completionProcess,
+                                             String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         Optional<String> completionProcessOptional = Optional.ofNullable(completionProcess);
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
-            accessControlResponse.getUserInfo().getUid());
-        TerminationProcess terminationProcess = validateTerminationProcess(completionProcessOptional, taskId);
+                 accessControlResponse.getUserInfo().getUid());
+        String terminationProcess = validateTerminationProcess(completionProcessOptional, taskId);
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse, terminationProcess);
@@ -337,7 +337,7 @@ public class TaskActionsController extends BaseController {
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-                schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
+            schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
@@ -430,16 +430,16 @@ public class TaskActionsController extends BaseController {
      * @return the TerminationProcess if updateCompletionProcessFlagEnabled is true and the completionProcess is valid,
      *                                                                                                  otherwise null
      */
-    protected TerminationProcess validateTerminationProcess(Optional<String> completionProcess, String taskId) {
-        if (!updateCompletionProcessFlagEnabled) {
+    protected String validateTerminationProcess(Optional<String> completionProcess, String taskId) {
+        if (!updateCompletionProcessFlagEnabled || completionProcess.isEmpty()) {
             return null;
         }
         return completionProcess.map(process -> {
             try {
-                TerminationProcess terminationProcess = TerminationProcess.valueOf(process);
-                log.info("TerminationProcess value: {} was received and updated in database for task with id"
+                TerminationProcess terminationProcess = TerminationProcess.fromValue(process);
+                log.info("TerminationProcess value: {} was received and updating in database for task with id"
                              + " {}", process, taskId);
-                return terminationProcess;
+                return terminationProcess.getValue();
             } catch (IllegalArgumentException e) {
                 log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id"
                              + " {}", process, taskId);

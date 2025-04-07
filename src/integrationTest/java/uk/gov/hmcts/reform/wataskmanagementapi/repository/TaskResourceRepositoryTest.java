@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -255,7 +254,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "EXUI_CASE_EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
+        "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
         "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
         "NULL,NULL"
     }, nullValues = "NULL")
@@ -267,12 +266,10 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         String taskId = UUID.randomUUID().toString();
 
         TaskResource taskResource = createTask(taskId, "tribunal-caseofficer", "IA",
-                                            "startAppeal", "someAssignee", "1623278362430412",
-                                            CFTTaskState.ASSIGNED);
-        TerminationProcess terminationProcessEnum =
-            terminationProcess != null ? TerminationProcess.valueOf(terminationProcess) : null;
+                                               "startAppeal", "someAssignee", "1623278362430412",
+                                               CFTTaskState.ASSIGNED);
 
-        taskResource.setTerminationProcess(terminationProcessEnum);
+        taskResource.setTerminationProcess(terminationProcess);
 
         taskResourceRepository.save(taskResource);
 
@@ -281,7 +278,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertAll(
             () -> assertTrue(taskResourceInDb.isPresent()),
             () -> assertEquals(taskId, taskResourceInDb.get().getTaskId()),
-            () -> assertEquals(terminationProcessEnum, taskResourceInDb.get().getTerminationProcess())
+            () -> assertEquals(terminationProcess, taskResourceInDb.get().getTerminationProcess())
         );
 
     }

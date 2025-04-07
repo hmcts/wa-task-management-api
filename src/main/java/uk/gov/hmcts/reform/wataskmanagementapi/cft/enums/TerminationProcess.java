@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-@Getter
 public enum TerminationProcess {
 
     EXUI_USER_COMPLETION("EXUI_USER_COMPLETION"),
@@ -13,5 +13,23 @@ public enum TerminationProcess {
 
     TerminationProcess(String value) {
         this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static TerminationProcess fromValue(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("TerminationProcess value cannot be null");
+        }
+        for (TerminationProcess terminationProcess : TerminationProcess.values()) {
+            if (terminationProcess.getValue().equalsIgnoreCase(value)) {
+                return terminationProcess;
+            }
+        }
+        throw new IllegalArgumentException("Unknown TerminationProcess: " + value);
     }
 }
