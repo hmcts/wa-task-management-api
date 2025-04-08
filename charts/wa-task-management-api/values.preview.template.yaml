@@ -35,6 +35,7 @@ java:
     SPRING_PROFILES_ACTIVE: "preview,replica"
     DB_READER_USERNAME: "{{ .Values.postgresql.auth.username}}"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: true
+    UPDATE_COMPLETION_PROCESS_FLAG_ENABLED: true
   postgresql:
     enabled: true
     auth:

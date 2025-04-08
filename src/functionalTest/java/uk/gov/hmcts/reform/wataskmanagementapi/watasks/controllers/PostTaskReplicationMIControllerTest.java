@@ -1180,7 +1180,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
 
         Response resultComplete = restApiActions.post(
-            ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_USER_COMPLETION",
+            ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
             caseworkerCredentials.getHeaders()
         );
@@ -1197,7 +1197,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultHistory.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("task_history_list.size()", equalTo(4))
-            .body("task_history_list.get(3).termination_process", equalTo("EXUI_USER_COMPLETION"));
+            .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"));
 
         Response resultCompleteReport = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1212,7 +1212,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
             .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
             .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
-            .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_USER_COMPLETION"));
+            .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"));
 
         common.cleanUpTask(taskId);
     }
