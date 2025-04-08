@@ -605,19 +605,21 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         @Test
         @DisplayName("should_log_error_and_not_update_camunda_state_on_task_attribute_update_failure")
         void should_log_error_and_not_update_camunda_state_on_task_attribute_update_failure(CapturedOutput output) {
-            String taskId = UUID.randomUUID().toString();
-            createAndAssignTestTask(taskId);
-            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            String randomTaskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(randomTaskId);
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(randomTaskId);
             TaskResource taskResource = savedTaskResource.orElse(null);
             assertNotNull(taskResource);
             TerminateInfo terminateInfo = new TerminateInfo(null);
             assertThatThrownBy(() -> taskManagementService.terminateTask(
-                taskId,
+                randomTaskId,
                 terminateInfo
             )).isInstanceOf(NullPointerException.class);
-            verify(camundaService, never()).deleteCftTaskState(taskId);
+            verify(camundaService, never()).deleteCftTaskState(randomTaskId);
             verify(cftTaskDatabaseService, never()).saveTask(taskResource);
-            assertTrue(output.getOut().contains("Error occurred while terminating task with id: " + taskId));
+            assertTrue(output.getOut()
+                           .contains("Error occurred while terminating task with id: " + randomTaskId),
+                       "Received log message:" + output.getOut());
         }
 
         @Nested
