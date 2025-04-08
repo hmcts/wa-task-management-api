@@ -160,12 +160,12 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     new CompletionOptions(true),
                     "EXUI_USER_COMPLETION"
                 );
-                boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
-                    .equals(mockedVariables.get("taskState"));
                 assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
                 assertEquals("EXUI_USER_COMPLETION", taskResource.getTerminationProcess());
 
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+                boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
+                    .equals(mockedVariables.get("taskState"));
                 verify(camundaService, times(1))
                     .assignAndCompleteTask(taskId, IDAM_USER_ID, taskStateIsAssignededAlready);
             }
