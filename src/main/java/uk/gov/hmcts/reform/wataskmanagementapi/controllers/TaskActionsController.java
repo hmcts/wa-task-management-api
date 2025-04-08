@@ -423,12 +423,11 @@ public class TaskActionsController extends BaseController {
     }
 
     /**
-     * validates TerminationProcess based on the provided completionProcess and taskId.
+     * Validates the termination process value and returns it if valid.
      *
-     * @param completionProcess an Optional containing the completion process string
-     * @param taskId the ID of the task
-     * @return the TerminationProcess if updateCompletionProcessFlagEnabled is true and the completionProcess is valid,
-     *                                                                                                  otherwise null
+     * @param completionProcess the completion process value
+     * @param taskId the task ID
+     * @return the validated termination process value or null if not valid
      */
     protected String validateTerminationProcess(Optional<String> completionProcess, String taskId) {
         if (!updateCompletionProcessFlagEnabled || completionProcess.isEmpty()) {
