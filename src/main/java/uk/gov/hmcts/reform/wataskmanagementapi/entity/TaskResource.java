@@ -186,6 +186,9 @@ public class TaskResource implements Serializable {
 
     private Boolean indexed = false;
 
+    @Schema(name = "termination_process")
+    private String terminationProcess;
+
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
     }
@@ -554,6 +557,10 @@ public class TaskResource implements Serializable {
 
     public void setIndexed(Boolean indexed) {
         this.indexed = indexed;
+    }
+
+    public void setTerminationProcess(String terminationProcess) {
+        this.terminationProcess = terminationProcess;
     }
 
     public TaskResource(String taskId,

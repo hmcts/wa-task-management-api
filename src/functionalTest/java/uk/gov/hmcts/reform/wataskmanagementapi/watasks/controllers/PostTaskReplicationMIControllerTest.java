@@ -6,13 +6,18 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.env.YamlPropertySourceLoader;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.PropertyPlaceholderHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,6 +27,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -1142,6 +1148,75 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() throws IOException {
+
+        String propertyValue = getPropertyValue("config.updateCompletionProcessFlagEnabled",
+                                                "UPDATE_COMPLETION_PROCESS_FLAG_ENABLED");
+        assumeTrue("Skipping test as flag is set to false", Boolean.parseBoolean(propertyValue));
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+
+        String taskId = taskVariables.getTaskId();
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        Response resultReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultReportable.prettyPrint();
+        resultReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1));
+
+
+        Response resultComplete = restApiActions.post(
+            ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultComplete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Response resultHistory = restApiActions.get(
+            ENDPOINT_BEING_TESTED_HISTORY,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        resultHistory.prettyPrint();
+        resultHistory.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_history_list.size()", equalTo(4))
+            .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"));
+
+        Response resultCompleteReport = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultCompleteReport.prettyPrint();
+        resultCompleteReport.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+            .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"));
+
+        common.cleanUpTask(taskId);
+    }
+
 
     @Test
     public void user_should_cancel_task_when_role_assignment_verification_passed() {
@@ -1302,4 +1377,40 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
+    /**
+     * Retrieves the value of a property from a YAML file and resolves any placeholders using environment variables.
+     *
+     * @param propertyName the name of the property to retrieve
+     * @param envVariable the name of the environment variable to use for placeholder resolution
+     * @return the resolved property value
+     * @throws IOException if an I/O error occurs
+     */
+    private String getPropertyValue(String propertyName, String envVariable) throws IOException {
+        // Load the YAML properties from the application.yaml file
+        YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
+        PropertySource<?> yamlTestProperties = loader.load(
+            "defaultApplicationYaml", new ClassPathResource("application.yaml")
+        ).get(0);
+
+        // Retrieve the original value of the specified property
+        String originalValue = (String) yamlTestProperties.getProperty(propertyName);
+
+        // Manually resolve placeholders using environment variables
+        PropertyPlaceholderHelper placeholderHelper = new PropertyPlaceholderHelper("${", "}", ":", true);
+
+        // Ensure the original value is not null
+        assert originalValue != null;
+
+        // Replace placeholders in the original value with environment variable values
+        String resolvedValue = placeholderHelper.replacePlaceholders(
+            originalValue,
+            placeholderName -> {
+                if (envVariable.equals(placeholderName)) {
+                    return System.getenv(envVariable);
+                }
+                return null; // explicitly returns null if another placeholder is found
+            }
+        );
+        return resolvedValue;
+    }
 }

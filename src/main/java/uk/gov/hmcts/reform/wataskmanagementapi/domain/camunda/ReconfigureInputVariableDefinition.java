@@ -93,4 +93,6 @@ public class ReconfigureInputVariableDefinition {
     private String lastUpdatedAction;
 
     private Boolean indexed;
+
+    private String terminationProcess;
 }
