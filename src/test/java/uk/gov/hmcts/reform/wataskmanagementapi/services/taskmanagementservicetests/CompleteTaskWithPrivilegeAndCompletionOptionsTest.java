@@ -153,7 +153,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
@@ -164,6 +163,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 assertEquals("EXUI_USER_COMPLETION", taskResource.getTerminationProcess());
 
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
                     .equals(mockedVariables.get("taskState"));
                 verify(camundaService, times(1))
