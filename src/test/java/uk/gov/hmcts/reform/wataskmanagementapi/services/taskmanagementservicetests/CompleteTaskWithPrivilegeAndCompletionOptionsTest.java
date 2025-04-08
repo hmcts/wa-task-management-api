@@ -153,16 +153,19 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(true)
+                    new CompletionOptions(true),
+                    "EXUI_USER_COMPLETION"
                 );
+                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                assertEquals("EXUI_USER_COMPLETION", taskResource.getTerminationProcess());
+
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
                     .equals(mockedVariables.get("taskState"));
-                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
-                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
                 verify(camundaService, times(1))
                     .assignAndCompleteTask(taskId, IDAM_USER_ID, taskStateIsAssignededAlready);
             }
@@ -183,7 +186,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        null
                     ));
                 assertEquals(
                     "Role Assignment Verification: "
@@ -227,7 +231,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(false)
+                    new CompletionOptions(false),
+                    null
                 );
                 boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -253,7 +258,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals(
                     "Role Assignment Verification: "
@@ -288,7 +294,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
@@ -312,7 +319,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals(
                     "Task Not Found Error: The task could not be found.",

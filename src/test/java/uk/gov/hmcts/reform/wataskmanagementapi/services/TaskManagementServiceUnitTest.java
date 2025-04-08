@@ -1802,7 +1802,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
 
-            taskManagementService.completeTask(taskId, accessControlResponse);
+            taskManagementService.completeTask(taskId, accessControlResponse, null);
             boolean taskStateIsCompletedAlready = taskResource.getState().equals(CFTTaskState.COMPLETED);
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
@@ -1827,7 +1827,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1857,7 +1858,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(TaskStateIncorrectException.class)
                 .hasNoCause()
@@ -1875,7 +1877,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
@@ -1891,7 +1894,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             TaskResource taskResource = spy(TaskResource.class);
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
+            assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse, null))
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
@@ -1944,7 +1947,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(true)
+                    new CompletionOptions(true),
+                    null
                 );
                 boolean taskStateIsAssignedAlready = TaskState.ASSIGNED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -1974,7 +1978,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -1993,7 +1998,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        null
                     ));
                 assertEquals("Task Not Found Error: The task could not be found.",
                     exception.getMessage());
@@ -2037,7 +2043,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(false)
+                    new CompletionOptions(false),
+                    null
                 );
                 boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -2061,7 +2068,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -2092,7 +2100,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
@@ -2111,7 +2120,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals("Task Not Found Error: The task could not be found.",
                     exception.getMessage());
@@ -2164,7 +2174,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(true)
+                    new CompletionOptions(true),
+                    null
                 );
                 boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
                     .equals(taskResource.getState().getValue());
@@ -2189,7 +2200,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -2209,7 +2221,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        null
                     ));
                 assertEquals("Task Not Found Error: The task could not be found.",
                     exception.getMessage());
@@ -2250,7 +2263,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(false)
+                    new CompletionOptions(false),
+                    null
                 );
                 boolean taskStateIsCompletedAlready = CFTTaskState.COMPLETED.getValue()
                     .equals(taskResource.getState().getValue());
@@ -2283,7 +2297,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(false)
+                    new CompletionOptions(false),
+                    null
                 );
                 boolean taskStateIsCompletedAlready = CFTTaskState.COMPLETED.getValue()
                     .equals(taskResource.getState().getValue());
@@ -2318,7 +2333,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    new CompletionOptions(false)
+                    new CompletionOptions(false),
+                    null
                 );
                 boolean taskStateIsCompletedAlready = CFTTaskState.TERMINATED.getValue()
                     .equals(taskResource.getState().getValue());
@@ -2346,7 +2362,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -2375,7 +2392,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
@@ -2403,7 +2421,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        null
                     ));
                 assertEquals(
                     "Task Not Found Error: The task could not be found.",

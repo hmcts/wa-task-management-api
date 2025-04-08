@@ -7,8 +7,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +21,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -59,6 +63,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEntityBuilder.buildErrorResponseEntityAndLogError;
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+@Slf4j
 @RestController
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
@@ -70,6 +75,9 @@ public class TaskActionsController extends BaseController {
     private final SystemDateProvider systemDateProvider;
 
     private final TaskDeletionService taskDeletionService;
+
+    @Value("${config.updateCompletionProcessFlagEnabled}")
+    private boolean updateCompletionProcessFlagEnabled;
 
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
@@ -225,14 +233,18 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
+                                             @RequestParam(name = COMPLETION_PROCESS, required = false)
+                                             String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        Optional<String> completionProcessOptional = Optional.ofNullable(completionProcess);
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
-            accessControlResponse.getUserInfo().getUid());
+                 accessControlResponse.getUserInfo().getUid());
+        String terminationProcess = validateTerminationProcess(completionProcessOptional, taskId);
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse);
+            taskManagementService.completeTask(taskId, accessControlResponse, terminationProcess);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -241,7 +253,8 @@ public class TaskActionsController extends BaseController {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    completeTaskRequest.getCompletionOptions()
+                    completeTaskRequest.getCompletionOptions(),
+                    terminationProcess
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -407,5 +420,30 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
+    }
+
+    /**
+     * Validates the termination process value and returns it if valid.
+     *
+     * @param completionProcess the completion process value
+     * @param taskId the task ID
+     * @return the validated termination process value or null if not valid
+     */
+    protected String validateTerminationProcess(Optional<String> completionProcess, String taskId) {
+        if (!updateCompletionProcessFlagEnabled || completionProcess.isEmpty()) {
+            return null;
+        }
+        return completionProcess.map(process -> {
+            try {
+                TerminationProcess terminationProcess = TerminationProcess.fromValue(process);
+                log.info("TerminationProcess value: {} was received and updating in database for task with id"
+                             + " {}", process, taskId);
+                return terminationProcess.getValue();
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id"
+                             + " {}", process, taskId);
+                return null;
+            }
+        }).orElse(null);
     }
 }

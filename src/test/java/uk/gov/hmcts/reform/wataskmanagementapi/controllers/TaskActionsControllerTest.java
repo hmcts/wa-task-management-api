@@ -3,10 +3,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -240,13 +243,14 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             null
         );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1))
-            .completeTask(taskId, mockAccessControlResponse);
+            .completeTask(taskId, mockAccessControlResponse, null);
 
     }
 
@@ -265,6 +269,7 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             request
         );
 
@@ -273,7 +278,8 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTaskWithPrivilegeAndCompletionOptions(
             taskId,
             mockAccessControlResponse,
-            request.getCompletionOptions()
+            request.getCompletionOptions(),
+            null
         );
 
     }
@@ -290,6 +296,7 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             request
         );
 
@@ -297,7 +304,8 @@ class TaskActionsControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1)).completeTask(
             taskId,
-            mockAccessControlResponse
+            mockAccessControlResponse,
+            null
         );
 
     }
@@ -318,6 +326,7 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
+            null,
             request
         ))
             .isInstanceOf(GenericForbiddenException.class)
@@ -497,6 +506,74 @@ class TaskActionsControllerTest {
         assertEquals(INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
+    @CsvSource(value = {
+        "EXUI_USER_COMPLETION",
+        "EXUI_CASE-EVENT_COMPLETION",
+        "null",
+        "''",
+        "INVALID_COMPLETION_PROCESS"
+    }, nullValues = "null")
+    @ParameterizedTest(name = "should complete task with null termination process when flag disabled")
+    void should_complete_task_with_null_termination_process_when_flag_disabled(String completionProcess) {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
+                                     false);
+        CompleteTaskRequest request = new CompleteTaskRequest(null);
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            completionProcess,
+            request
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(taskManagementService, times(1)).completeTask(
+            taskId,
+            mockAccessControlResponse,
+            null
+        );
+
+    }
+
+    @CsvSource(value = {
+        "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
+        "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
+        "null, null",
+        ", null",
+        "'',null",
+        "INVALID_COMPLETION_PROCESS, null",
+    }, nullValues = "null", delimiter = ',')
+    @ParameterizedTest(name = "should complete task with valid termination process when flag enabled")
+    void should_complete_task_with_valid_termination_process_when_flag_enabled(String completionProcess,
+                                                                                 String terminationProcess) {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
+                                     true);
+        CompleteTaskRequest request = new CompleteTaskRequest(null);
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            completionProcess,
+            request
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(taskManagementService, times(1)).completeTask(
+            taskId,
+            mockAccessControlResponse,
+            terminationProcess
+        );
+    }
 
     private NotesRequest addNotes() {
         NoteResource noteResource = new NoteResource(
