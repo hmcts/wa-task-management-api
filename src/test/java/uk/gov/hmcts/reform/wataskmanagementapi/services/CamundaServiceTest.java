@@ -25,6 +25,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariab
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
@@ -77,6 +79,13 @@ class CamundaServiceTest extends CamundaHelpers {
         "There was a problem fetching the variables for task with id: %s";
     public static final String EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID =
         "There was a problem fetching the task with id: %s";
+
+    private static final WarningValues expectedWarningValues = new WarningValues(
+        List.of(
+            new Warning("Code1", "Text1"),
+            new Warning("Code2", "Text2")
+        )
+    );
 
     @Mock
     private AuthTokenGenerator authTokenGenerator;
@@ -228,7 +237,8 @@ class CamundaServiceTest extends CamundaHelpers {
 
         @Test
         void should_cancel_task_when_search_history_throw_an_error() {
-            should_cancel_task();
+            camundaService.cancelTask(taskId);
+            verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
         }
 
         @Test

@@ -648,7 +648,25 @@ class PriorityDateIntervalCalculatorTest {
     @CsvSource({"true", "false"})
     void should_not_supports_when_responses_contains_priority_date_origin_and_configurable_priority_date(
         boolean configurable) {
-        should_not_supports_when_responses_contains_priority_date_origin_and_priority_date(configurable);
+        String expectedPriorityDate = GIVEN_DATE.plusDays(0)
+            .format(DATE_TIME_FORMATTER);
+
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        var priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDate"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDate);
+
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+            .isFalse();
     }
 
     @ParameterizedTest
@@ -693,7 +711,25 @@ class PriorityDateIntervalCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_supports_when_responses_only_contains_priority_date_origin_but_not_priority_date(boolean configurable) {
-        should_supports_when_responses_only_contains_priority_date_but_not_origin(configurable);
+        String expectedPriorityDate = GIVEN_DATE.plusDays(0)
+            .format(DATE_TIME_FORMATTER);
+
+        var priorityDateOrigin = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateOrigin"))
+            .value(CamundaValue.stringValue(expectedPriorityDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        var priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("priorityDateTime"))
+            .value(CamundaValue.stringValue("16:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDateOrigin, priorityDateTime);
+
+        assertThat(priorityDateIntervalCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
+            .isTrue();
     }
 
     @ParameterizedTest

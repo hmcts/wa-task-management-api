@@ -139,7 +139,34 @@ class IntermediateDateCalculatorTest {
     })
     void should_consider_only_due_date_when_given_configurable_due_date_and_un_configurable_time(
         boolean configurable, String time) {
-        should_calculate_due_date_when_due_date_and_time_are_given(configurable, time);
+
+        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        ConfigurationDmnEvaluationResponse nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDuration"))
+            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        ConfigurationDmnEvaluationResponse nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
+            .name(CamundaValue.stringValue("nextHearingDurationTime"))
+            .value(CamundaValue.stringValue("20:00"))
+            .canReconfigure(CamundaValue.booleanValue(configurable))
+            .build();
+
+        List<ConfigurationDmnEvaluationResponse> evaluationResponses
+            = List.of(nextHearingDuration, nextHearingDurationTime);
+
+        String dateValue = intermediateDateCalculator
+            .calculateDate(
+                evaluationResponses,
+                INTERMEDIATE_DATE_TYPE,
+                configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            )
+            .getValue().getValue();
+        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
     }
 
     @ParameterizedTest
