@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -184,7 +183,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @Ignore("Ignoring the test as the test is failing in nightly build as mandatory field check is not enabled in AAT.")
     public void should_not_reconfigure_task_when_task_validation_fails_during_reconfiguration()
         throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
