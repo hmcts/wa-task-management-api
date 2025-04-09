@@ -88,13 +88,11 @@ public class SubscriptionCreator {
 
         int passwordLength = replicaPassword.length();
 
+
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
             + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
-
-        String replicaUrlNoPassword = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
-            + AND_USER + replicaUser;
+        String replicaUrlNoPassword = replicaUrl.substring(0, replicaUrl.length() - passwordLength);
         log.info("replicaUrl = " + replicaUrlNoPassword);
-
 
         String subscriptionUrl;
         if (LOCAL_ARM_ARCH.equals(environment)) {
@@ -147,11 +145,10 @@ public class SubscriptionCreator {
     }
 
     private void refreshSubscription(String replicaHost, String replicaPort, String replicaDbName) {
+        int passwordLength = replicaPassword.length();
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
             + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
-
-
-        String replicaUrlNoPassword = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName;
+        String replicaUrlNoPassword = replicaUrl.substring(0, replicaUrl.length() - passwordLength);
         log.info("replicaUrl = " + replicaUrlNoPassword);
 
         try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);
