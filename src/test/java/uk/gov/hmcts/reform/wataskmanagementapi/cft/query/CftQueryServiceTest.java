@@ -322,9 +322,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
-
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -360,9 +357,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
-
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -385,7 +379,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             );
             SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
-            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            PermissionRequirementBuilder.builder()
                 .buildSingleRequirementWithAnd(OWN, READ);
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -398,8 +392,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(any(), any(), any(), eq(true)))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -458,9 +450,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
-
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
@@ -543,8 +532,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, true))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -556,6 +543,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
         @Test
         void shouldReturnRequestContextAvailableTasksAndIgnoreSearchParameterAvailableTasksOnly() {
+
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 RequestContext.AVAILABLE_TASKS,
                 List.of(
@@ -570,7 +558,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            PermissionRequirementBuilder.builder()
                 .buildSingleRequirementWithAnd(OWN, READ);
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -583,8 +571,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(any(), any(), any(), eq(true)))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -592,8 +578,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
             assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
             assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
-        }
 
+        }
 
         @Test
         void shouldReturnRequestContextAllWork() {
@@ -624,8 +610,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -662,8 +646,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 

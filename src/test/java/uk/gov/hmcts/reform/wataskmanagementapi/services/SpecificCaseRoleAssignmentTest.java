@@ -59,7 +59,24 @@ class SpecificCaseRoleAssignmentTest {
         }
     }
 
-    private static Stream<RoleAssignmentForSearchScenario> performanceTestBasedScenarios() {
+    public List<RoleAssignment> createRoleAssignmentData(List<RoleAssignmentExpectations> scenarios) {
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        for (RoleAssignmentExpectations scenario : scenarios) {
+            roleAssignments.addAll(
+                RoleAssignmentCreator.aRoleAssignmentList(
+                    scenario.numberOfRoles,
+                    scenario.roleType,
+                    scenario.grantType,
+                    scenario.roleName,
+                    scenario.classification,
+                    scenario.authorisations
+                ));
+        }
+        return roleAssignments;
+    }
+
+    private static Stream<RoleAssignmentForSearchScenario> performanceTestBasedScenarios() { //NOSONAR paramTests
         return Stream.of(
             RoleAssignmentForSearchScenario.builder()
                 .roleAssignmentExpectations(List.of(
@@ -112,7 +129,7 @@ class SpecificCaseRoleAssignmentTest {
         );
     }
 
-    private static Stream<RoleAssignmentForSearchScenario> mixedRoleTypeBasedScenarios() {
+    private static Stream<RoleAssignmentForSearchScenario> mixedRoleTypeBasedScenarios() { //NOSONAR paramTests
         return Stream.of(
             RoleAssignmentForSearchScenario.builder()
                 .roleAssignmentExpectations(List.of(
@@ -173,7 +190,7 @@ class SpecificCaseRoleAssignmentTest {
         );
     }
 
-    private static Stream<RoleAssignmentForSearchScenario> caseRoleTypeBasedScenarios() {
+    private static Stream<RoleAssignmentForSearchScenario> caseRoleTypeBasedScenarios() { //NOSONAR paramTests
         return Stream.of(
             RoleAssignmentForSearchScenario.builder()
                 .roleAssignmentExpectations(List.of(
@@ -234,7 +251,7 @@ class SpecificCaseRoleAssignmentTest {
         );
     }
 
-    private static Stream<RoleAssignmentForSearchScenario> organisationalRoleTypeBasedScenarios() {
+    private static Stream<RoleAssignmentForSearchScenario> organisationalRoleTypeBasedScenarios() { //NOSONAR paramTests
         return Stream.of(
             RoleAssignmentForSearchScenario.builder()
                 .roleAssignmentExpectations(List.of(
@@ -293,23 +310,6 @@ class SpecificCaseRoleAssignmentTest {
                 .expectedOrganisationRoles(6)
                 .build()
         );
-    }
-
-    public List<RoleAssignment> createRoleAssignmentData(List<RoleAssignmentExpectations> scenarios) {
-
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        for (RoleAssignmentExpectations scenario : scenarios) {
-            roleAssignments.addAll(
-                RoleAssignmentCreator.aRoleAssignmentList(
-                    scenario.numberOfRoles,
-                    scenario.roleType,
-                    scenario.grantType,
-                    scenario.roleName,
-                    scenario.classification,
-                    scenario.authorisations
-                ));
-        }
-        return roleAssignments;
     }
 
     @Builder

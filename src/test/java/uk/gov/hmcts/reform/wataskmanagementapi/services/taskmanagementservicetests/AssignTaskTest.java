@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.taskmanagementservicetests;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,14 +26,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -63,6 +65,9 @@ class AssignTaskTest extends CamundaHelpers {
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     IdamTokenGenerator idamTokenGenerator;
+
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
@@ -87,7 +92,8 @@ class AssignTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();
@@ -128,7 +134,7 @@ class AssignTaskTest extends CamundaHelpers {
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         taskManagementService.assignTask(taskId, assignerAccessControlResponse,
-                                         Optional.of(assigneeAccessControlResponse));
+            Optional.of(assigneeAccessControlResponse));
         verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, false);
     }
 
@@ -150,15 +156,17 @@ class AssignTaskTest extends CamundaHelpers {
         )).thenReturn(Optional.empty());
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
-        assertThatThrownBy(() -> taskManagementService.assignTask(
+        Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+            taskManagementService.assignTask(
                 taskId,
                 assignerAccessControlResponse,
                 Optional.of(assigneeAccessControlResponse)
-        ))
-            .isInstanceOf(RoleAssignmentVerificationException.class)
-            .hasNoCause()
-            .hasMessage("Role Assignment Verification: "
-                        + "The user assigning the Task has failed the Role Assignment checks performed.");
+            ));
+        assertEquals(
+            "Role Assignment Verification: "
+            + "The user assigning the Task has failed the Role Assignment checks performed.",
+            exception.getMessage()
+        );
 
         verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
@@ -196,15 +204,17 @@ class AssignTaskTest extends CamundaHelpers {
         when(cftTaskDatabaseService.findByIdOnly(taskId))
             .thenReturn(Optional.of(taskResource));
 
-        assertThatThrownBy(() -> taskManagementService.assignTask(
-            taskId,
-            assignerAccessControlResponse,
-            Optional.of(assigneeAccessControlResponse)
-        ))
-            .isInstanceOf(RoleAssignmentVerificationException.class)
-            .hasNoCause()
-            .hasMessage("Role Assignment Verification: "
-                        + "The user being assigned the Task has failed the Role Assignment checks performed.");
+        Exception exception = assertThrowsExactly(RoleAssignmentVerificationException.class, () ->
+            taskManagementService.assignTask(
+                taskId,
+                assignerAccessControlResponse,
+                Optional.of(assigneeAccessControlResponse)
+            ));
+        assertEquals(
+            "Role Assignment Verification: "
+            + "The user being assigned the Task has failed the Role Assignment checks performed.",
+            exception.getMessage()
+        );
 
         verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
@@ -216,14 +226,16 @@ class AssignTaskTest extends CamundaHelpers {
 
         AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
 
-        assertThatThrownBy(() -> taskManagementService.assignTask(
-            taskId,
-            assignerAccessControlResponse,
-            Optional.of(assigneeAccessControlResponse)
-        ))
-            .isInstanceOf(NullPointerException.class)
-            .hasNoCause()
-            .hasMessage("Assigner userId cannot be null");
+        Exception exception = assertThrowsExactly(NullPointerException.class, () ->
+            taskManagementService.assignTask(
+                taskId,
+                assignerAccessControlResponse,
+                Optional.of(assigneeAccessControlResponse)
+            ));
+        assertEquals(
+            "Assigner userId cannot be null",
+            exception.getMessage()
+        );
 
         when(assignerAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
@@ -236,17 +248,18 @@ class AssignTaskTest extends CamundaHelpers {
         ).thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASE_ID"));
 
-        assertThatThrownBy(() -> taskManagementService.assignTask(
-            taskId,
-            assignerAccessControlResponse,
-            Optional.of(assigneeAccessControlResponse)
-        ))
-            .isInstanceOf(NullPointerException.class)
-            .hasNoCause()
-            .hasMessage("Assignee userId cannot be null");
+        exception = assertThrowsExactly(NullPointerException.class, () ->
+            taskManagementService.assignTask(
+                taskId,
+                assignerAccessControlResponse,
+                Optional.of(assigneeAccessControlResponse)
+            ));
+        assertEquals(
+            "Assignee userId cannot be null",
+            exception.getMessage()
+        );
 
     }
-
 
 }
 

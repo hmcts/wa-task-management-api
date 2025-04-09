@@ -1,14 +1,27 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -19,16 +32,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+
+import static java.sql.Types.TIMESTAMP;
 
 @ToString
 @Getter
@@ -63,21 +68,22 @@ public class TaskResource implements Serializable {
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "due_date_time")
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "task_state_enum")
     private CFTTaskState state;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "task_system_enum")
     @Schema(name = "task_system")
     private TaskSystem taskSystem;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "security_classification_enum")
     @Schema(name = "security_classification")
     private SecurityClassification securityClassification;
@@ -85,8 +91,9 @@ public class TaskResource implements Serializable {
     private String title;
     private String description;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
+    @JdbcTypeCode(SqlTypes.JSON)
     private List<NoteResource> notes;
 
     @Schema(name = "major_priority")
@@ -128,7 +135,7 @@ public class TaskResource implements Serializable {
     private String locationName;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "business_context_enum")
     @Schema(name = "business_context")
     private BusinessContext businessContext;
@@ -137,6 +144,7 @@ public class TaskResource implements Serializable {
     private String terminationReason;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime created;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -150,7 +158,7 @@ public class TaskResource implements Serializable {
     @Schema(name = "task_role_resources")
     private Set<TaskRoleResource> taskRoleResources;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     @Schema(name = "additional_properties")
     private Map<String, String> additionalProperties;
@@ -176,6 +184,7 @@ public class TaskResource implements Serializable {
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "last_updated_timestamp")
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime lastUpdatedTimestamp;
 
     @Schema(name = "last_updated_user")

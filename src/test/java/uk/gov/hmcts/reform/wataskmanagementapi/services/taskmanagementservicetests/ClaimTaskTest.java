@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.taskmanagementservicetests;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,11 +23,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,7 +62,8 @@ class ClaimTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
-
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @Mock
     private List<TaskOperationPerformService> taskOperationPerformServices;
 
@@ -134,7 +136,8 @@ class ClaimTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();

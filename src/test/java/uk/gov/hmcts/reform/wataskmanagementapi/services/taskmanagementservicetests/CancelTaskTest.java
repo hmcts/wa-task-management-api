@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.taskmanagementservicetests;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -32,7 +34,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -66,6 +67,8 @@ class CancelTaskTest extends CamundaHelpers {
     IdamTokenGenerator idamTokenGenerator;
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     String taskId;
     @Mock
     private EntityManager entityManager;
@@ -190,7 +193,8 @@ class CancelTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,11 +17,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import javax.servlet.http.HttpServletRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -78,6 +79,24 @@ class CallbackControllerAdviceTest {
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
         assertEquals(HttpStatus.NOT_FOUND.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
+    }
+
+    @Test
+    void should_handle_service_mandatory_field_validation_exception_with_502_response() {
+
+        final String exceptionMessage = "Some exception message";
+        final ServiceMandatoryFieldValidationException exception =
+            new ServiceMandatoryFieldValidationException(exceptionMessage, new Exception());
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleServiceMandatoryFieldValidationException(exception);
+
+        assertEquals(HttpStatus.BAD_GATEWAY.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.BAD_GATEWAY.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.BAD_GATEWAY.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
     }
 

@@ -41,118 +41,6 @@ class IntermediateDateIntervalCalculatorTest {
 
     private IntermediateDateIntervalCalculator intermediateDateIntervalCalculator;
 
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWithoutDueDate() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesSkipNonWorkingDaysFalse() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
-            )
-        );
-    }
-
-    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() {
-        return Stream.of(
-            new ConfigurableScenario(
-                true,
-                GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
-            ),
-            new ConfigurableScenario(
-                false,
-                GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
-            )
-        );
-    }
-
-    @BeforeEach
-    public void before() {
-        intermediateDateIntervalCalculator = new IntermediateDateIntervalCalculator(new WorkingDayIndicator(
-            publicHolidaysCollection));
-
-        Set<LocalDate> localDates = Set.of(
-            LocalDate.of(2022, 1, 3),
-            LocalDate.of(2022, 4, 15),
-            LocalDate.of(2022, 4, 18),
-            LocalDate.of(2022, 5, 2),
-            LocalDate.of(2022, 6, 2),
-            LocalDate.of(2022, 6, 3),
-            LocalDate.of(2022, 8, 29),
-            LocalDate.of(2022, 9, 19),
-            LocalDate.of(2022, 12, 26),
-            LocalDate.of(2022, 12, 27)
-        );
-
-        lenient().when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI))).thenReturn(localDates);
-    }
-
     @ParameterizedTest
     @CsvSource({
         "true", "false"
@@ -200,21 +88,21 @@ class IntermediateDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(intermediateDateIntervalCalculator
-                                                           .calculateDate(
-                                                               List.of(
-                                                                   nextHearingDurationIntervalDays,
-                                                                   nextHearingDurationNonWorkingCalendar,
-                                                                   nextHearingDurationMustBeWorkingDay,
-                                                                   nextHearingDurationNonWorkingDaysOfWeek,
-                                                                   nextHearingDurationSkipNonWorkingDays,
-                                                                   nextHearingDurationOrigin,
-                                                                   nextHearingDurationTime
-                                                               ),
-                                                               INTERMEDIATE_DATE_TYPE,
-                                                               configurable,
-                                                               new HashMap<>(),
-                                                               new ArrayList<>()
-                                                           ).getValue().getValue());
+            .calculateDate(
+                List.of(
+                    nextHearingDurationIntervalDays,
+                    nextHearingDurationNonWorkingCalendar,
+                    nextHearingDurationMustBeWorkingDay,
+                    nextHearingDurationNonWorkingDaysOfWeek,
+                    nextHearingDurationSkipNonWorkingDays,
+                    nextHearingDurationOrigin,
+                    nextHearingDurationTime
+                ),
+                INTERMEDIATE_DATE_TYPE,
+                configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue());
 
         String expectedDueDate = GIVEN_DATE.plusDays(0).format(DATE_TIME_FORMATTER);
 
@@ -268,8 +156,8 @@ class IntermediateDateIntervalCalculatorTest {
         String nextHearingDurationValue = intermediateDateIntervalCalculator
             .calculateDate(
                 List.of(nextHearingDurationIntervalDays, nextHearingDurationNonWorkingCalendar,
-                        nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
-                        nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
+                    nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
+                    nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
@@ -386,8 +274,8 @@ class IntermediateDateIntervalCalculatorTest {
         String nextHearingDurationValue = intermediateDateIntervalCalculator
             .calculateDate(
                 List.of(nextHearingDurationIntervalDays, nextHearingDurationNonWorkingCalendar,
-                        nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
-                        nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
+                    nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
+                    nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
@@ -507,8 +395,8 @@ class IntermediateDateIntervalCalculatorTest {
         String nextHearingDurationValue = intermediateDateIntervalCalculator
             .calculateDate(
                 List.of(nextHearingDurationIntervalDays, nextHearingDurationNonWorkingCalendar,
-                        nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
-                        nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
+                    nextHearingDurationMustBeWorkingDay, nextHearingDurationNonWorkingDaysOfWeek,
+                    nextHearingDurationSkipNonWorkingDays, nextHearingDurationOrigin, nextHearingDurationTime
                 ),
                 INTERMEDIATE_DATE_TYPE,
                 scenario.configurable,
@@ -518,7 +406,6 @@ class IntermediateDateIntervalCalculatorTest {
 
         assertThat(LocalDateTime.parse(nextHearingDurationValue)).isEqualTo(scenario.expectedDate);
     }
-
 
     @Test
     void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessNext() {
@@ -683,20 +570,20 @@ class IntermediateDateIntervalCalculatorTest {
             .build();
 
         LocalDateTime resultDate = LocalDateTime.parse(intermediateDateIntervalCalculator
-                                                           .calculateDate(
-                                                               List.of(
-                                                                   nextHearingDurationIntervalDays,
-                                                                   nextHearingDurationNonWorkingCalendar,
-                                                                   nextHearingDurationMustBeWorkingDay,
-                                                                   nextHearingDurationNonWorkingDaysOfWeek,
-                                                                   nextHearingDurationSkipNonWorkingDays,
-                                                                   nextHearingDurationOrigin
-                                                               ),
-                                                               INTERMEDIATE_DATE_TYPE,
-                                                               scenario.configurable,
-                                                               new HashMap<>(),
-                                                               new ArrayList<>()
-                                                           ).getValue().getValue());
+            .calculateDate(
+                List.of(
+                    nextHearingDurationIntervalDays,
+                    nextHearingDurationNonWorkingCalendar,
+                    nextHearingDurationMustBeWorkingDay,
+                    nextHearingDurationNonWorkingDaysOfWeek,
+                    nextHearingDurationSkipNonWorkingDays,
+                    nextHearingDurationOrigin
+                ),
+                INTERMEDIATE_DATE_TYPE,
+                scenario.configurable,
+                new HashMap<>(),
+                new ArrayList<>()
+            ).getValue().getValue());
 
         assertThat(resultDate).isEqualTo(scenario.expectedDate);
     }
@@ -766,31 +653,7 @@ class IntermediateDateIntervalCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_not_supports_when_responses_contains_due_date_origin_and_configurable_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DATE_TIME_FORMATTER);
-
-        var nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDuration"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
-            nextHearingDurationOrigin,
-            nextHearingDuration
-        );
-
-        assertThat(intermediateDateIntervalCalculator.supports(
-            evaluationResponses,
-            INTERMEDIATE_DATE_TYPE,
-            configurable
-        )).isFalse();
+        should_not_supports_when_responses_contains_due_date_origin_and_due_date(configurable);
     }
 
     @ParameterizedTest
@@ -845,31 +708,7 @@ class IntermediateDateIntervalCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_supports_when_responses_only_contains_due_date_origin_but_not_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DATE_TIME_FORMATTER);
-
-        var nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDurationTime"))
-            .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
-            nextHearingDurationOrigin,
-            nextHearingDurationTime
-        );
-
-        assertThat(intermediateDateIntervalCalculator.supports(
-            evaluationResponses,
-            INTERMEDIATE_DATE_TYPE,
-            configurable
-        )).isTrue();
+        should_supports_when_responses_only_contains_due_date_but_not_origin(configurable);
     }
 
     @ParameterizedTest
@@ -901,6 +740,119 @@ class IntermediateDateIntervalCalculatorTest {
             configurable
         ))
             .isTrue();
+    }
+
+    @BeforeEach
+    public void before() {
+        intermediateDateIntervalCalculator = new IntermediateDateIntervalCalculator(new WorkingDayIndicator(
+            publicHolidaysCollection));
+
+        Set<LocalDate> localDates = Set.of(
+            LocalDate.of(2022, 1, 3),
+            LocalDate.of(2022, 4, 15),
+            LocalDate.of(2022, 4, 18),
+            LocalDate.of(2022, 5, 2),
+            LocalDate.of(2022, 6, 2),
+            LocalDate.of(2022, 6, 3),
+            LocalDate.of(2022, 8, 29),
+            LocalDate.of(2022, 9, 19),
+            LocalDate.of(2022, 12, 26),
+            LocalDate.of(2022, 12, 27)
+        );
+
+        lenient().when(publicHolidaysCollection.getPublicHolidays(List.of(CALENDAR_URI))).thenReturn(localDates);
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.plusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0() {  //NOSONAR paramTests
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.minusDays(3).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWithoutDueDate() {  //NOSONAR paramTests
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.plusDays(5).format(DATE_TIME_FORMATTER) + "T20:00"
+            )
+        );
+    }
+
+    @SuppressWarnings("java:S1144")
+    private static Stream<ConfigurableScenario> getConfigurablesWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.plusDays(1).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesSkipNonWorkingDaysFalse() {  //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.plusDays(6).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsGreaterThan0AndGivenHolidays() { //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.plusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
+    }
+
+    private static Stream<ConfigurableScenario> getConfigurablesWhenIntervalIsLessThan0AndGivenHolidays() {  //NOSONAR
+        return Stream.of(
+            new ConfigurableScenario(
+                true,
+                GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
+            ),
+            new ConfigurableScenario(
+                false,
+                GIVEN_DATE.minusDays(7).format(DATE_TIME_FORMATTER) + "T18:00"
+            )
+        );
     }
 
     static class ConfigurableScenario {

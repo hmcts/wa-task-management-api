@@ -1,8 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.Builder;
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +33,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -42,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
@@ -64,12 +63,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @ExtendWith(MockitoExtension.class)
 class TaskResourceSpecificationTest {
 
+    private static final PermissionRequirements readPermissionsRequired = PermissionRequirementBuilder.builder()
+        .buildSingleType(READ);
+    private static final PermissionRequirements readOwnPermissionsRequired = PermissionRequirementBuilder.builder()
+        .buildSingleRequirementWithAnd(READ, OWN);
     @Mock(extraInterfaces = Serializable.class)
     Root<TaskResource> root;
     @Mock(extraInterfaces = Serializable.class)
     CriteriaQuery<?> query;
     @Mock(extraInterfaces = Serializable.class)
-    CriteriaBuilderImpl criteriaBuilder;
+    CriteriaBuilder criteriaBuilder;
     @Mock
     Join<Object, Object> taskRoleResources;
     @Mock
@@ -83,11 +86,6 @@ class TaskResourceSpecificationTest {
     @Mock
     Predicate mockPredicate;
 
-    private static final PermissionRequirements readPermissionsRequired = PermissionRequirementBuilder.builder()
-        .buildSingleType(READ);
-    private static final PermissionRequirements readOwnPermissionsRequired = PermissionRequirementBuilder.builder()
-        .buildSingleRequirementWithAnd(READ, OWN);
-
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
@@ -96,14 +94,12 @@ class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or()).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any(), any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
-            criteriaBuilder,
-            null,
-            Boolean.TRUE
-        );
-        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+        Predicate predicate = mock(Predicate.class);
+
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(predicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.equal(any(), anyString())).thenReturn(mockPredicate);
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
@@ -234,7 +230,7 @@ class TaskResourceSpecificationTest {
         ));
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
             criteriaBuilder, root
         );
@@ -259,7 +255,7 @@ class TaskResourceSpecificationTest {
             ));
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readPermissionsRequired, false,
             criteriaBuilder, root
         );
@@ -287,7 +283,7 @@ class TaskResourceSpecificationTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(READ);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
+        TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchRequest, roleAssignmentWithSpecificGrantTypeOnly(PUBLIC), readOwnPermissionsRequired, true,
             criteriaBuilder, root
         );
@@ -363,7 +359,7 @@ class TaskResourceSpecificationTest {
         verify(criteriaBuilder, times(2)).equal(any(), anyString());
     }
 
-    private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
+    private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() { //NOSONAR paramTests
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -467,7 +463,7 @@ class TaskResourceSpecificationTest {
 
     }
 
-    private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
+    private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() { //NOSONAR paramTests
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "IA", "caseType");
         SearchTaskRequestScenario withCaseId =
@@ -478,6 +474,7 @@ class TaskResourceSpecificationTest {
 
     @Builder
     private static class SearchTaskRequestScenario {
+        public Boolean availableTaskOnly;
         String name;
         SearchTaskRequest searchTaskRequest;
         SearchEventAndCase searchEventAndCase;
@@ -486,7 +483,6 @@ class TaskResourceSpecificationTest {
         int expectedInPredicate;
         int expectedEqualPredicate;
         int expectedConjunctions;
-        public Boolean availableTaskOnly;
 
         @Override
         public String toString() {

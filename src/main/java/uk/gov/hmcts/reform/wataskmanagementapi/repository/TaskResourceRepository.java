@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -17,8 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
 
 @SuppressWarnings({
     "PMD.UseVarargs", "PMD.TooManyMethods"})
@@ -76,8 +76,11 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     List<TaskResource> findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
         List<String> caseIds, List<CFTTaskState> states);
 
-    List<TaskResource> findByStateInAndReconfigureRequestTimeGreaterThan(
-        List<CFTTaskState> states, OffsetDateTime reconfigureRequestTime);
+    @Query("select t.taskId FROM tasks t where t.state in (:states)"
+        + " and t.reconfigureRequestTime > :reconfigureRequestTime")
+    @Transactional
+    List<String> findTaskIdsByStateInAndReconfigureRequestTimeGreaterThan(List<CFTTaskState> states,
+                                                                          OffsetDateTime reconfigureRequestTime);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = LOCK_TIMEOUT_STR, value = "5000")})
