@@ -108,7 +108,7 @@ withPipeline(type, product, component) {
         enableFortifyScan()
     }
 
-    after('fortify-scan') {
+    afterSuccess('fortify-scan') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
     }
 
