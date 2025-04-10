@@ -19,7 +19,6 @@ import lombok.ToString;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
@@ -39,21 +38,12 @@ import static java.sql.Types.TIMESTAMP;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "tasks")
-@TypeDef(
-    name = "pgsql_enum",
-    typeClass = PostgreSQLEnumType.class
-)
-@TypeDef(
-    name = TaskResource.JSONB,
-    typeClass = JsonType.class
-)
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
     "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 

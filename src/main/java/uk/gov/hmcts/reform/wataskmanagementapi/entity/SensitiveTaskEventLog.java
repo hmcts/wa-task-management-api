@@ -11,7 +11,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -23,16 +22,11 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "sensitive_task_event_logs")
-@TypeDef(
-    name = TaskResource.JSONB,
-    typeClass = JsonType.class
-)
 @SuppressWarnings("PMD.ExcessiveParameterList")
 public class SensitiveTaskEventLog implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 

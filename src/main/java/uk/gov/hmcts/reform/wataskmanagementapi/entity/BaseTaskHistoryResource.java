@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -23,10 +22,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 @ToString
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@TypeDef(
-    name = JSONB,
-    typeClass = JsonType.class
-)
 @SuppressWarnings({"PMD.TooManyFields"})
 @MappedSuperclass
 public abstract class BaseTaskHistoryResource {
