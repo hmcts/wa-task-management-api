@@ -29,17 +29,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
 public class TaskManagementTimeZoneTest extends ReplicaBaseTest {
-    private TimeZone originalTimeZone;
-
-    @BeforeAll
-    void beforeAll() {
-        originalTimeZone = TimeZone.getDefault();
-    }
-
-    @AfterAll
-    void afterAll() {
-        TimeZone.setDefault(originalTimeZone);
-    }
 
     @ParameterizedTest
     @ValueSource(strings = {"UTC", "GMT+01:00"})
