@@ -44,7 +44,7 @@ public class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
-            .atMost(20, SECONDS)
+            .atMost(10, SECONDS)
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
