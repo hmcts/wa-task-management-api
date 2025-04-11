@@ -51,6 +51,8 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                         = miReportingServiceForTest.findByTaskId(taskResource.getTaskId());
 
                     assertFalse(taskHistoryResourceList.isEmpty());
+                    log.info("Updated: {}", taskResource.getLastUpdatedTimestamp());
+                    log.info("Updated: {}", taskHistoryResourceList.get(0).getUpdated());
                     assertTrue(taskResource.getLastUpdatedTimestamp()
                                    .isEqual(taskHistoryResourceList.get(0).getUpdated()));
                     assertTrue(taskResource.getCreated().isEqual(taskHistoryResourceList.get(0).getCreated()));
