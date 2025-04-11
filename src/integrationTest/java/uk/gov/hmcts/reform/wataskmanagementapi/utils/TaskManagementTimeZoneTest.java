@@ -35,7 +35,7 @@ public class TaskManagementTimeZoneTest extends ReplicaBaseTest {
         TaskResource taskResource;
         log.info("TimeZone ({})", timeZone);
 
-        if("UTC".equals(timeZone)) {
+        if ("UTC".equals(timeZone)) {
             taskResource = createAndSaveTask(OffsetDateTime.now(ZoneOffset.UTC));
         } else {
             taskResource = createAndSaveTask(OffsetDateTime.now(ZoneOffset.of("+01:00")));
