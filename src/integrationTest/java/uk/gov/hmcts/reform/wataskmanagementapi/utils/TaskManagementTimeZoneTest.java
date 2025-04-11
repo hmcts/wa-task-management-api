@@ -26,7 +26,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
-public class TaskManagementTimeZoneTest extends ReplicaBaseTest {
+class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"UTC", "BST"})
