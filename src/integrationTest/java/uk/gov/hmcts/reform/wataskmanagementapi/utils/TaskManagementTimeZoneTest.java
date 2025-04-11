@@ -12,8 +12,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -29,12 +29,18 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 public class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"UTC", "GMT+01:00"})
+    @ValueSource(strings = {"UTC", "BST"})
     void when_timezone_changes_all_timestamp_attributes_should_behave_consistently(String timeZone) {
-        //TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
 
-        log.info("TimeZone ({}): {}", timeZone, OffsetDateTime.now());
-        TaskResource taskResource = createAndSaveTask();
+        TaskResource taskResource;
+        log.info("TimeZone ({})", timeZone);
+
+        if("UTC".equals(timeZone)) {
+            taskResource = createAndSaveTask(OffsetDateTime.now(ZoneOffset.UTC));
+        } else {
+            taskResource = createAndSaveTask(OffsetDateTime.now(ZoneOffset.of("+01:00")));
+        }
+
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
@@ -83,25 +89,28 @@ public class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     }
 
-    private TaskResource createAndSaveTask() {
+    private TaskResource createAndSaveTask(OffsetDateTime now) {
+
+        log.info("Current time: {}", now);
+
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
             "someTaskName",
             "someTaskType",
             UNASSIGNED,
             "987654",
-            OffsetDateTime.now()
+                now
         );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setPriorityDate(OffsetDateTime.now());
-        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        taskResource.setCreated(now);
+        taskResource.setPriorityDate(now);
+        taskResource.setLastUpdatedTimestamp(now);
         taskResource.setLastUpdatedAction("Configure");
         taskResource.setLastUpdatedUser("System");
-        taskResource.setDueDateTime(OffsetDateTime.now().plusDays(7));
-        taskResource.setAssignmentExpiry(OffsetDateTime.now().plusDays(7));
-        taskResource.setNextHearingDate(OffsetDateTime.now().plusDays(30));
-        taskResource.setReconfigureRequestTime(OffsetDateTime.now().minusDays(1));
-        taskResource.setLastReconfigurationTime(OffsetDateTime.now().minusDays(2));
+        taskResource.setDueDateTime(now.plusDays(7));
+        taskResource.setAssignmentExpiry(now.plusDays(7));
+        taskResource.setNextHearingDate(now.plusDays(30));
+        taskResource.setReconfigureRequestTime(now.minusDays(1));
+        taskResource.setLastReconfigurationTime(now.minusDays(2));
         return taskResourceRepository.save(taskResource);
     }
 }
