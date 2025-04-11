@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,16 +56,14 @@ public class ExclusiveTaskActionsController extends BaseController {
     }
 
     @Operation(description = "Exclusive access only: Initiate a Task identified by an id.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Task has been initiated", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = TaskResource.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR),
-        @ApiResponse(responseCode = "502", description = BAD_GATEWAY)
-    })
+
+    @ApiResponse(responseCode = "201", description = "Task has been initiated", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = TaskResource.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/{task-id}/initiation")
     public ResponseEntity<TaskResource> initiate(@Parameter(hidden = true)
@@ -105,15 +102,13 @@ public class ExclusiveTaskActionsController extends BaseController {
     }
 
     @Operation(description = "Exclusive access only: Terminate a Task identified by an id.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task has been terminated", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = "Task has been terminated", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(path = "/{task-id}")
     public ResponseEntity<Void> terminateTask(@Parameter(hidden = true)
