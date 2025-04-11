@@ -30,7 +30,7 @@ public class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"UTC", "GMT+01:00"})
-    void for_all_timezone_all_timestamp_attributes_should_behave_consistently(String timeZone) {
+    void when_timezone_changes_all_timestamp_attributes_should_behave_consistently(String timeZone) {
         TimeZone.setDefault(TimeZone.getTimeZone(timeZone));
 
         log.info("TimeZone ({}): {}", timeZone, OffsetDateTime.now());
