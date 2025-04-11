@@ -34,7 +34,7 @@ class IntermediateDateOriginRefCalculatorTest {
     private IntermediateDateOriginRefCalculator intermediateDateOriginRefCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         calculatedConfigurations = new ArrayList<>();
         intermediateDateOriginRefCalculator = new IntermediateDateOriginRefCalculator(new WorkingDayIndicator(
             publicHolidaysCollection));
