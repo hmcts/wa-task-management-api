@@ -493,7 +493,7 @@ pact {
     pactDirectory = 'build/pacts'
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     version = project.pacticipantVersion
-    consumerVersion = System.getProperty('pact.publish.consumer.version')
+    consumerVersion = project.pacticipantVersion
   }
 }
 
