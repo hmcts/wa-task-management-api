@@ -30,7 +30,7 @@ class TaskMapperTest {
     private TaskMapper taskMapper;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         camundaObjectMapper = new CamundaObjectMapper();
         taskMapper = new TaskMapper(camundaObjectMapper);
     }
