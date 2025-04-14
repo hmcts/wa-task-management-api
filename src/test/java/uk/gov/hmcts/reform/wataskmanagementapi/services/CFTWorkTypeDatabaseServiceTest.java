@@ -73,7 +73,12 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkTypeResource("evidence", "Evidence"),
             new WorkTypeResource("follow-up", "Follow Up"),
             new WorkTypeResource("pre-hearing", "Pre-Hearing"),
-            new WorkTypeResource("post-hearing", "Post-Hearing")
+            new WorkTypeResource("post-hearing", "Post-Hearing"),
+            new WorkTypeResource("intermediate-track-hearing-work", "Intermediate track hearing work"),
+            new WorkTypeResource("multi-track-hearing-work", "Multi track hearing work"),
+            new WorkTypeResource("intermediate-track-decision-making-work", "Intermediate track decision making work"),
+            new WorkTypeResource("multi-track-decision-making-work", "Multi track decision making work"),
+            new WorkTypeResource("query_work", "Query work")
         );
 
         when(workTypeResourceRepository.findAll()).thenReturn(workTypeResources);
@@ -104,7 +109,12 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkType("evidence", "Evidence"),
             new WorkType("follow-up", "Follow Up"),
             new WorkType("pre_hearing", "Pre-Hearing"),
-            new WorkType("post_hearing", "Post-Hearing")
+            new WorkType("post_hearing", "Post-Hearing"),
+            new WorkType("intermediate_track_hearing_work", "Intermediate track hearing work"),
+            new WorkType("multi_track_hearing_work", "Multi track hearing work"),
+            new WorkType("intermediate_track_decision_making_work", "Intermediate track decision making work"),
+            new WorkType("multi_track_decision_making_work", "Multi track decision making work"),
+            new WorkType("query_work", "Query work")
         );
     }
 }

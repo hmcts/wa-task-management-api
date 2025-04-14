@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.taskmanagementservicetests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -38,7 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,7 +95,8 @@ class InitiateTaskTest extends CamundaHelpers {
     private InitiateTaskRequestMap initiateTaskRequest;
     @Mock
     private EntityManager entityManager;
-
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @Mock
     private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
@@ -115,7 +117,8 @@ class InitiateTaskTest extends CamundaHelpers {
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
 
         taskId = UUID.randomUUID().toString();
@@ -322,7 +325,7 @@ class InitiateTaskTest extends CamundaHelpers {
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
             .hasMessage("Database Conflict Error: "
-                        + "The action could not be completed because there was a conflict in the database.");
+                            + "The action could not be completed because there was a conflict in the database.");
     }
 
     @Test

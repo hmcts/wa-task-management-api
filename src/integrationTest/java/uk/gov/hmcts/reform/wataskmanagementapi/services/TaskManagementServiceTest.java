@@ -1,16 +1,21 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -41,6 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -54,7 +60,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.persistence.EntityManager;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -64,6 +69,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
@@ -74,6 +81,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
+@ExtendWith(OutputCaptureExtension.class)
 class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -82,9 +90,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private EntityManager entityManager;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @Autowired
+    @SpyBean
     private CamundaService camundaService;
-    @Autowired
+    @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
@@ -120,6 +128,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
+    @MockBean
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach
     void setUp() {
@@ -144,7 +154,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentVerification,
             entityManager,
             systemUserIdamToken,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
         mockServices.mockServiceAPIs();
     }
@@ -363,7 +374,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
             when(camundaService.isCftTaskStateExistInCamunda(taskId))
-                .thenReturn(null);
+                .thenReturn(false);
 
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
@@ -568,6 +579,46 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Nested
     @DisplayName("terminateTask()")
     class TerminateTask {
+
+        @Test
+        @DisplayName("should_log_error_and_throw_exception_when_task_save_fails_after_camunda_update")
+        void should_log_error_and_throw_exception_when_task_save_fails_after_camunda_update(CapturedOutput output) {
+            String taskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(taskId);
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            TaskResource taskResource = savedTaskResource.orElse(null);
+            assertNotNull(taskResource);
+            doThrow(new RuntimeException("Database error")).when(cftTaskDatabaseService).saveTask(taskResource);
+            TerminateInfo terminateInfo = new TerminateInfo("deleted");
+            assertThatThrownBy(() -> taskManagementService.terminateTask(
+                    taskId,
+                    terminateInfo
+                ))
+                .isInstanceOf(RuntimeException.class);
+
+            verify(camundaService, times(1)).deleteCftTaskState(taskId);
+            verify(cftTaskDatabaseService).saveTask(taskResource);
+            assertTrue(output.getOut().contains("Error saving task with id " + taskId
+                                                    + " after successfully deleting Camunda task state:"));
+        }
+
+        @Test
+        @DisplayName("should_log_error_and_not_update_camunda_state_on_task_attribute_update_failure")
+        void should_log_error_and_not_update_camunda_state_on_task_attribute_update_failure(CapturedOutput output) {
+            String taskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(taskId);
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            TaskResource taskResource = savedTaskResource.orElse(null);
+            assertNotNull(taskResource);
+            TerminateInfo terminateInfo = new TerminateInfo(null);
+            assertThatThrownBy(() -> taskManagementService.terminateTask(
+                taskId,
+                terminateInfo
+            )).isInstanceOf(NullPointerException.class);
+            verify(camundaService, never()).deleteCftTaskState(taskId);
+            verify(cftTaskDatabaseService, never()).saveTask(taskResource);
+            assertTrue(output.getOut().contains("Error occurred while terminating task with id: " + taskId));
+        }
 
         @Nested
         @DisplayName("when terminate reason is completed")
