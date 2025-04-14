@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
@@ -27,10 +26,7 @@ import static org.mockito.Mockito.when;
 
 class MIReportingServiceTest {
 
-    @Autowired
     MIReportingService miReportingService;
-    @Autowired
-    ReportableTaskRepository reportableTaskRepository;
 
     TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);
 

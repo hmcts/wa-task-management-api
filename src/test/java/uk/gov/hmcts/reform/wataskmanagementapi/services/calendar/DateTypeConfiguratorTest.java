@@ -285,7 +285,7 @@ class DateTypeConfiguratorTest {
                 .canReconfigure(CamundaValue.booleanValue(true))
                 .build();
 
-            ConfigurationDmnEvaluationResponse mockPriorityDate = ConfigurationDmnEvaluationResponse.builder()
+            ConfigurationDmnEvaluationResponse priorityDate9Pm = ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDate"))
                 .value(CamundaValue.stringValue(dueDateValue + "T21:00"))
                 .canReconfigure(CamundaValue.booleanValue(false))
@@ -300,7 +300,7 @@ class DateTypeConfiguratorTest {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
                 calculatedDates,
                 nextHearingDate,
-                mockPriorityDate,
+                priorityDate9Pm,
                 dueDateOriginEarliest
             );
             List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
