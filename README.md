@@ -12,6 +12,7 @@ Provides API endpoints that enable clients manage Tasks in the Camunda Task Data
     See: https://plantuml.com/ docs for reference
 -->
 
+
 ![task-management](task-management-api.png)
 
 #### Access Management Process
