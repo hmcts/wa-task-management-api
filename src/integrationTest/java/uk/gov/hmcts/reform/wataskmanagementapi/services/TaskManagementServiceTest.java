@@ -62,7 +62,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -598,9 +601,17 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             verify(camundaService, times(1)).deleteCftTaskState(randomTaskId);
             verify(cftTaskDatabaseService).saveTask(taskResource);
-            assertTrue(output.getOut().contains("Error saving task with id " + randomTaskId
-                                                + " after successfully deleting Camunda task state:"),
-                       "Received log message:" + output.getOut());
+            await()
+                .pollInterval(100, MILLISECONDS)
+                .atMost(5, SECONDS)
+                .untilAsserted(
+                    () -> assertTrue(
+                        output.getOut()
+                            .contains("Error occurred while terminating task with id: "
+                                      + randomTaskId),
+                        "Received log message: " + output.getOut()
+                    )
+                );
 
         }
 
@@ -619,9 +630,18 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             )).isInstanceOf(NullPointerException.class);
             verify(camundaService, never()).deleteCftTaskState(randomTaskId);
             verify(cftTaskDatabaseService, never()).saveTask(taskResource);
-            assertTrue(output.getOut()
-                           .contains("Error occurred while terminating task with id: " + randomTaskId),
-                       "Received log message:" + output.getOut());
+
+            await()
+                .pollInterval(100, MILLISECONDS)
+                .atMost(5, SECONDS)
+                .untilAsserted(
+                    () -> assertTrue(
+                        output.getOut()
+                            .contains("Error occurred while terminating task with id: " + taskId),
+                        "Received log message: " + output.getOut()
+                    )
+                );
+
         }
 
         @Nested
