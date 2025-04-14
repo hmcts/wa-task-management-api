@@ -32,7 +32,7 @@ class MIReportingServiceTest {
     @Autowired
     ReportableTaskRepository reportableTaskRepository;
 
-    TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);;
+    TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);
 
     @Test
     void given_unknown_task_id_get_empty_list() {
