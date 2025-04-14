@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,8 +31,8 @@ class MIReportingServiceTest {
     MIReportingService miReportingService;
     @Autowired
     ReportableTaskRepository reportableTaskRepository;
-    @Autowired
-    TaskAssignmentsRepository taskAssignmentsRepository;
+
+    TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);;
 
     @Test
     void given_unknown_task_id_get_empty_list() {
@@ -105,6 +106,7 @@ class MIReportingServiceTest {
 
         verify(taskResourceRepository, times(1)).addWorkTypesToPublication();
         verify(subscriptionCreator, times(1)).refreshSubscription();
+        verify(taskAssignmentsRepository, never()).findAllByTaskIdOrderByAssignmentIdAsc("123");
     }
 
     @Test
@@ -252,16 +254,17 @@ class MIReportingServiceTest {
 
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
-        TaskAssignmentsRepository taskAssignmentsRepository = mock(TaskAssignmentsRepository.class);
 
         when(taskAssignmentsRepository.findAllByTaskIdOrderByAssignmentIdAsc(anyString()))
             .thenReturn(newArrayList());
 
-        miReportingService = new MIReportingService(null,
+        miReportingService = new MIReportingService(
+            null,
             taskResourceRepositoryMock,
             reportableTaskMock,
             taskAssignmentsRepository,
-            mock(SubscriptionCreator.class));
+            mock(SubscriptionCreator.class)
+        );
 
         miReportingService.findByAssignmentsTaskId("123");
 
@@ -274,13 +277,12 @@ class MIReportingServiceTest {
     void should_return_true_if_replication_has_started() {
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
-        TaskAssignmentsRepository taskAssignmentsRepositoryMock = mock(TaskAssignmentsRepository.class);
         TaskHistoryResourceRepository taskHistoryResourceRepositoryMock = mock(TaskHistoryResourceRepository.class);
 
         miReportingService = new MIReportingService(taskHistoryResourceRepositoryMock,
             taskResourceRepositoryMock,
             reportableTaskMock,
-            taskAssignmentsRepositoryMock,
+            taskAssignmentsRepository,
             mock(SubscriptionCreator.class));
 
         when(taskResourceRepositoryMock.countReplicationSlots()).thenReturn(1);
@@ -302,14 +304,13 @@ class MIReportingServiceTest {
                                                    int subscriptions, boolean expectedResult) {
         ReportableTaskRepository reportableTaskMock = mock(ReportableTaskRepository.class);
         TaskResourceRepository taskResourceRepositoryMock = mock(TaskResourceRepository.class);
-        TaskAssignmentsRepository taskAssignmentsRepositoryMock = mock(TaskAssignmentsRepository.class);
         TaskHistoryResourceRepository taskHistoryResourceRepositoryMock = mock(TaskHistoryResourceRepository.class);
 
         miReportingService = new MIReportingService(
             taskHistoryResourceRepositoryMock,
             taskResourceRepositoryMock,
             reportableTaskMock,
-            taskAssignmentsRepositoryMock,
+            taskAssignmentsRepository,
             mock(SubscriptionCreator.class)
         );
 

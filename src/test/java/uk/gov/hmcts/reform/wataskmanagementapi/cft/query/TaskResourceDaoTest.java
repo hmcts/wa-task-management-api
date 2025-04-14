@@ -144,7 +144,6 @@ class TaskResourceDaoTest {
         lenient().when(builder.or(any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
-        Predicate predicate = mock(Predicate.class);
         lenient().when(builder.conjunction()).thenReturn(predicate);
         lenient().when(builder.equal(any(), any())).thenReturn(predicate);
         lenient().when(inObject.value(any())).thenReturn(values);
