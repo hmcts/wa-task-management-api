@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.config;
+package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
