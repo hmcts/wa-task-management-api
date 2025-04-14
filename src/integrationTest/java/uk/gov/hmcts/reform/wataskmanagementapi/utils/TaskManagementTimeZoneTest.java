@@ -18,10 +18,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 
 @ActiveProfiles("replica")
@@ -53,56 +53,58 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
                     assertFalse(taskHistoryResourceList.isEmpty());
 
-                    assertThat(taskResource.getLastUpdatedTimestamp())
-                        .isCloseTo(taskHistoryResourceList.get(0).getUpdated(), within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getCreated())
-                        .isCloseTo(taskHistoryResourceList.get(0).getCreated(), within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getPriorityDate())
-                        .isCloseTo(taskHistoryResourceList.get(0).getPriorityDate(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getAssignmentExpiry())
-                        .isCloseTo(taskHistoryResourceList.get(0).getAssignmentExpiry(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getNextHearingDate())
-                        .isCloseTo(taskHistoryResourceList.get(0).getNextHearingDate(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getReconfigureRequestTime())
-                        .isCloseTo(taskHistoryResourceList.get(0).getReconfigureRequestTime(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getLastReconfigurationTime())
-                        .isCloseTo(taskHistoryResourceList.get(0).getLastReconfigurationTime(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getDueDateTime())
-                        .isCloseTo(taskHistoryResourceList.get(0).getDueDateTime(),
-                                   within(100, ChronoUnit.MILLIS));
+                    assertTrue(taskResource.getLastUpdatedTimestamp().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getUpdated()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getCreated().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getCreated()
+                                               .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getPriorityDate().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getPriorityDate()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getAssignmentExpiry().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getAssignmentExpiry()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getNextHearingDate().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getNextHearingDate()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getReconfigureRequestTime().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getReconfigureRequestTime()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getLastReconfigurationTime().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getLastReconfigurationTime()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getDueDateTime().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(taskHistoryResourceList.get(0).getDueDateTime()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
 
                     List<ReportableTaskResource> reportableTaskList
                         = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
-                    assertThat(taskResource.getLastUpdatedTimestamp())
-                        .isCloseTo(reportableTaskList.get(0).getUpdated(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getCreated())
-                        .isCloseTo(reportableTaskList.get(0).getCreated(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getPriorityDate())
-                        .isCloseTo(reportableTaskList.get(0).getPriorityDate(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getAssignmentExpiry())
-                        .isCloseTo(reportableTaskList.get(0).getAssignmentExpiry(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getNextHearingDate())
-                        .isCloseTo(reportableTaskList.get(0).getNextHearingDate(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getReconfigureRequestTime())
-                        .isCloseTo(reportableTaskList.get(0).getReconfigureRequestTime(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getLastReconfigurationTime())
-                        .isCloseTo(reportableTaskList.get(0).getLastReconfigurationTime(),
-                                   within(100, ChronoUnit.MILLIS));
-                    assertThat(taskResource.getDueDateTime())
-                        .isCloseTo(reportableTaskList.get(0).getDueDateTime(), within(100, ChronoUnit.MILLIS));
+                    assertEquals(1, reportableTaskList.size());
+                    assertTrue(taskResource.getLastUpdatedTimestamp().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getUpdated().truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getCreated().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getCreated().truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getPriorityDate().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getPriorityDate()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getAssignmentExpiry().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getAssignmentExpiry()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getNextHearingDate().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getNextHearingDate()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getReconfigureRequestTime().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getReconfigureRequestTime()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getLastReconfigurationTime().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getLastReconfigurationTime()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
+                    assertTrue(taskResource.getDueDateTime().truncatedTo(ChronoUnit.SECONDS)
+                                   .isEqual(reportableTaskList.get(0).getDueDateTime()
+                                                .truncatedTo(ChronoUnit.SECONDS)));
 
                     return true;
                 });
