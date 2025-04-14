@@ -1,5 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import jakarta.persistence.ColumnResult;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.SqlResultSetMapping;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -8,13 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskSearchSortProvider;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.ColumnResult;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.persistence.SqlResultSetMapping;
 
 @Slf4j
 public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepository {
@@ -22,12 +22,14 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         "%sFROM {h-schema}tasks t "
         + "WHERE indexed "
         + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, t.region, "
-        + "t.location) && :filterSignature "
+        + "t.location) && CAST(:filterSignature AS text[]) "
         + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-        + "t.security_classification) && :roleSignature "
+        + "t.security_classification) && CAST(:roleSignature AS text[]) "
         + "%s%s%s";
 
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";
+
+    private static final String DB_COL_ASSIGNEE = "assignee";
     private static final String COUNT_CLAUSE = "SELECT count(*) ";
     private static final String PAGINATION_CLAUSE = "OFFSET :firstResult LIMIT :maxResults";
 
@@ -44,7 +46,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     )
     @Entity
     class TaskSearchResult {
-        @Id int id;
+        @Id
+        int id;
     }
 
     @Override
@@ -103,7 +106,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         if (searchRequest.isAvailableTasksOnly()) {
             extraConstraints.append("AND assignee IS NULL ");
         } else {
-            extraConstraints.append(buildListConstraint(searchRequest.getUsers(), "assignee", "assignee", true));
+            extraConstraints.append(buildListConstraint(searchRequest.getUsers(),
+                                                        DB_COL_ASSIGNEE, DB_COL_ASSIGNEE, true));
         }
         if (CollectionUtils.isEmpty(searchRequest.getCftTaskStates())) {
             extraConstraints.append("AND state IN ('ASSIGNED', 'UNASSIGNED') ");
@@ -154,7 +158,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         query.setParameter("roleSignature", roleSignature.toArray(new String[0]));
         List<String> users = searchRequest.getUsers();
         if (!searchRequest.isAvailableTasksOnly() && !CollectionUtils.isEmpty(users)) {
-            setParameter(query, "assignee", users);
+            setParameter(query, DB_COL_ASSIGNEE, users);
         }
         List<String> caseIds = searchRequest.getCaseIds();
         if (!CollectionUtils.isEmpty(searchRequest.getCaseIds())) {

@@ -1,6 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -43,6 +49,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -53,12 +61,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -85,6 +87,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNI
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE_EXCEPTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.buildTaskActionAttributeForAssign;
@@ -114,7 +117,7 @@ public class TaskManagementService {
     private final RoleAssignmentVerificationService roleAssignmentVerification;
     private final IdamTokenGenerator idamTokenGenerator;
     private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-
+    private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -127,7 +130,8 @@ public class TaskManagementService {
                                  RoleAssignmentVerificationService roleAssignmentVerification,
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
-                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService) {
+                                 CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
+                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -137,6 +141,16 @@ public class TaskManagementService {
         this.entityManager = entityManager;
         this.idamTokenGenerator = idamTokenGenerator;
         this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
+        this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
+    }
+
+    protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
+                                                       Optional<String> newAssignee,
+                                                       Optional<String> oldAssignee) {
+        TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
+        if (taskAction != null) {
+            setTaskActionAttributes(taskResource, assigner, taskAction);
+        }
     }
 
     /**
@@ -164,7 +178,6 @@ public class TaskManagementService {
 
         return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
-
 
     /**
      * Claims a task in camunda also performs role assignment verifications.
@@ -197,7 +210,7 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         if (task.getState() == CFTTaskState.ASSIGNED && !task.getAssignee().equals(userId)) {
             throw new ConflictException("Task '" + task.getTaskId()
-                                        + "' is already claimed by someone else.", null);
+                                            + "' is already claimed by someone else.", null);
         }
         task.setState(CFTTaskState.ASSIGNED);
         task.setAssignee(userId);
@@ -207,12 +220,6 @@ public class TaskManagementService {
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
-    }
-
-    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
-        task.setLastUpdatedTimestamp(OffsetDateTime.now());
-        task.setLastUpdatedUser(userId);
-        task.setLastUpdatedAction(action.getValue());
     }
 
     /**
@@ -267,20 +274,6 @@ public class TaskManagementService {
         cftTaskDatabaseService.saveTask(task);
     }
 
-    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
-                                                   Set<TaskRoleResource> taskRoleResources) {
-        for (RoleAssignment roleAssignment : roleAssignments) {
-            String roleName = roleAssignment.getRoleName();
-            for (TaskRoleResource taskRoleResource : taskRoleResources) {
-                if (roleName.equals(taskRoleResource.getRoleName())
-                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     /**
      * Assigns the task to another user in Camunda.
      * Also performs role assignment verifications for both assignee and assigner.
@@ -322,7 +315,7 @@ public class TaskManagementService {
                 String taskState = taskResource.getState().getValue();
                 boolean taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
                 TaskAction taskAction = buildTaskActionAttributeForAssign(assigner.getUid(), Optional.empty(),
-                    currentAssignee);
+                                                                          currentAssignee);
                 unclaimTask(taskId, assigner.getUid(), taskHasUnassigned, taskAction);
             } else {
                 requireNonNull(assignee.get().getUid(), "Assignee userId cannot be null");
@@ -344,7 +337,7 @@ public class TaskManagementService {
                 task.setState(CFTTaskState.ASSIGNED);
                 task.setAssignee(assignee.get().getUid());
                 updateTaskActionAttributesForAssign(task, assigner.getUid(),
-                    Optional.of(assignee.get().getUid()), currentAssignee);
+                                                    Optional.of(assignee.get().getUid()), currentAssignee);
                 //Perform Camunda updates
                 camundaService.assignTask(
                     taskId,
@@ -358,13 +351,346 @@ public class TaskManagementService {
         }
     }
 
-    protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
-                                                    Optional<String> newAssignee,
-                                                    Optional<String> oldAssignee) {
-        TaskAction taskAction = buildTaskActionAttributeForAssign(assigner, newAssignee, oldAssignee);
-        if (taskAction != null) {
-            setTaskActionAttributes(taskResource, assigner, taskAction);
+    /**
+     * Cancels a task in camunda also performs role assignment verifications.
+     * This method requires {@link PermissionTypes#CANCEL} permission.
+     *
+     * @param taskId                the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     */
+    @Transactional
+    public void cancelTask(String taskId,
+                           AccessControlResponse accessControlResponse) {
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        PermissionRequirements permissionsRequired;
+
+        String userId = accessControlResponse.getUserInfo().getUid();
+
+        permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(CANCEL, CANCEL_OWN);
+
+        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
+
+        if (!taskResource.getTaskRoleResources().stream().anyMatch(permission -> permission.getCancel().equals(true))
+            && (taskResource.getAssignee() == null
+            || !userId.equals(taskResource.getAssignee()))) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+                taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED
+            );
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
+
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        CFTTaskState previousTaskState = task.getState();
+        task.setState(CFTTaskState.CANCELLED);
+
+        boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
+
+        log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
+                 taskId, previousTaskState, isCftTaskStateExist
+        );
+
+        try {
+            //Perform Camunda updates
+            camundaService.cancelTask(taskId);
+            log.info("{} cancelled in camunda", taskId);
+
+            //set task action attributes
+            setTaskActionAttributes(task, userId, TaskAction.CANCEL);
+
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+            log.info("{} cancelled in CFT", taskId);
+        } catch (TaskCancelException ex) {
+            if (isCftTaskStateExist) {
+                log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
+                         taskId, ex.getMessage()
+                );
+                throw ex;
+            }
+
+            if (!CFTTaskState.TERMINATED.equals(previousTaskState)) {
+                task.setState(CFTTaskState.TERMINATED);
+                cftTaskDatabaseService.saveTask(task);
+                log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
+                         taskId, previousTaskState
+                );
+                return;
+            }
+
+            log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
+                         + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
+            throw ex;
+        }
+    }
+
+    /**
+     * Completes a task in camunda also performs role assignment verifications.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
+     *
+     * @param taskId                the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     */
+    @Transactional
+    public void completeTask(String taskId, AccessControlResponse accessControlResponse) {
+
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        final String userId = accessControlResponse.getUserInfo().getUid();
+
+        boolean taskHasCompleted;
+
+        checkCompletePermissions(taskId, accessControlResponse, userId);
+
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        CFTTaskState state = task.getState();
+        taskHasCompleted = state != null
+            && (state.equals(CFTTaskState.COMPLETED)
+            || state.equals(CFTTaskState.TERMINATED)
+            && task.getTerminationReason().equals("completed"));
+
+        if (!taskHasCompleted) {
+            //scenario, task not completed anywhere
+            //check the state, if not complete, complete
+            completeCamundaTask(taskId, taskHasCompleted);
+            //Commit transaction
+            if (task.isActive(state)) {
+                task.setState(CFTTaskState.COMPLETED);
+                setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
+                cftTaskDatabaseService.saveTask(task);
+            }
+        }
+    }
+
+    /**
+     * This method is only used by privileged clients allowing them to set a predefined options for completion.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
+     *
+     * @param taskId                The task id to complete.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     * @param completionOptions     The completion options to orchestrate how this completion should be handled.
+     */
+    @Transactional
+    public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
+                                                              AccessControlResponse accessControlResponse,
+                                                              CompletionOptions completionOptions) {
+        String userId = accessControlResponse.getUserInfo().getUid();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+        boolean taskStateIsAssignedAlready;
+        if (completionOptions.isAssignAndComplete()) {
+
+            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
+                taskId,
+                accessControlResponse.getRoleAssignments(),
+                permissionsRequired
+            );
+
+            final CFTTaskState state = taskResource.getState();
+            taskStateIsAssignedAlready = state.getValue().equals(CFTTaskState.ASSIGNED.getValue());
+
+            //Lock & update Task
+            TaskResource task = findByIdAndObtainLock(taskId);
+            task.setState(CFTTaskState.COMPLETED);
+            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
+            //Perform Camunda updates
+            camundaService.assignAndCompleteTask(
+                taskId,
+                userId,
+                taskStateIsAssignedAlready
+            );
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+
+        } else {
+            completeTask(taskId, accessControlResponse);
+        }
+    }
+
+    /**
+     * Exclusive client access only.
+     * This method terminates a task and orchestrates the logic between CFT Task db and camunda.
+     * This method is transactional so if any exception occurs when calling camunda the transaction will be reverted.
+     *
+     * @param taskId        the task id.
+     * @param terminateInfo Additional data to define how a task should be terminated.
+     */
+    @Transactional
+    public void terminateTask(String taskId, TerminateInfo terminateInfo) {
+        TaskResource task = null;
+        try {
+            //Find and Lock Task
+            task = findByIdAndObtainLock(taskId);
+        } catch (ResourceNotFoundException e) {
+            //Perform Camunda updates
+            log.warn("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
+            camundaService.deleteCftTaskState(taskId);
+            return;
+        }
+        //Terminate the task if found in the database
+        if (task != null) {
+            //Update cft task and terminate reason
+            task.setState(CFTTaskState.TERMINATED);
+            task.setTerminationReason(terminateInfo.getTerminateReason());
+            boolean isCamundaStateUpdated = false;
+            try {
+                TaskAction taskAction = switch (terminateInfo.getTerminateReason()) {
+                    case "cancelled" -> AUTO_CANCEL;
+                    case "completed" -> TERMINATE;
+                    default -> TERMINATE_EXCEPTION;
+                };
+                setSystemUserTaskActionAttributes(task, taskAction);
+                //Perform Camunda updates
+                camundaService.deleteCftTaskState(taskId);
+                isCamundaStateUpdated = true;
+                // Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+            } catch (Exception ex) {
+                if (isCamundaStateUpdated) {
+                    log.error("Error saving task with id {} after successfully deleting Camunda task state: {}",
+                              taskId, ex.getMessage(), ex);
+                }
+                log.error("Error occurred while terminating task with id: {}", taskId, ex);
+                throw ex;
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateTaskIndex(String taskId) {
+        try {
+            Optional<TaskResource> findTaskResponse = cftTaskDatabaseService
+                .findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
+
+            if (findTaskResponse.isPresent()) {
+                TaskResource taskResource = findTaskResponse.get();
+                taskResource.setIndexed(true);
+
+                cftTaskDatabaseService.saveTask(taskResource);
+            } else {
+                throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
+            }
+        } catch (PersistenceException ex) {
+            log.error("PersistenceException occurred in updating indexed field of taskId:{}", taskId);
+        }
+    }
+
+    /**
+     * Exclusive client access only.
+     * This method initiates a task and orchestrates the logic between CFT Task db, camunda and role assignment.
+     *
+     * @param taskId              the task id.
+     * @param initiateTaskRequest Additional data to define how a task should be initiated.
+     * @return The updated entity {@link TaskResource}
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
+        //Get DueDatetime or throw exception
+        Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
+        taskAttributes.put("taskId", taskId);
+
+        OffsetDateTime dueDate = extractDueDate(taskAttributes);
+
+        lockTaskId(taskId, dueDate);
+        return initiateTaskProcess(taskId, taskAttributes);
+    }
+
+    @Transactional
+    public TaskResource updateNotes(String taskId, NotesRequest notesRequest) {
+        validateNoteRequest(notesRequest);
+
+        final TaskResource taskResource = findByIdAndObtainLock(taskId);
+
+        final List<NoteResource> noteResources = notesRequest.getNoteResource();
+
+        if (taskResource.getNotes() == null) {
+            taskResource.setNotes(noteResources);
+        } else {
+            noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
+        }
+        taskResource.setHasWarnings(true);
+        setSystemUserTaskActionAttributes(taskResource, ADD_WARNING);
+        return cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    public Optional<TaskResource> getTaskById(String taskId) {
+        return cftTaskDatabaseService.findByIdOnly(taskId);
+    }
+
+    /**
+     * Retrieve task role information.
+     * This method retrieves role permission information for a given task.
+     * The task should have a read permission to retrieve role permission information.
+     *
+     * @param taskId                the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     * @return collection of roles
+     */
+    public List<TaskRolePermissions> getTaskRolePermissions(String taskId,
+                                                            AccessControlResponse accessControlResponse) {
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        final Optional<TaskResource> taskResource = getTaskById(taskId);
+        if (taskResource.isEmpty()) {
+            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
+        }
+
+        if (taskResource.get().getTaskRoleResources().isEmpty()) {
+            return emptyList();
+        }
+
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+        CriteriaBuilder builder = selectQueryBuilder.builder;
+        Root<TaskResource> root = selectQueryBuilder.root;
+
+        final Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskRolePermissionsQuery(
+            taskResource.get().getTaskId(), accessControlResponse.getRoleAssignments(), builder, root);
+
+        final Optional<TaskResource> taskResourceQueryResult = selectQueryBuilder
+            .where(selectPredicate)
+            .build()
+            .getResultList()
+            .stream()
+            .findFirst();
+
+        if (taskResourceQueryResult.isEmpty()) {
+            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
+                taskId,
+                accessControlResponse.getRoleAssignments(),
+                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED
+            );
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
+
+        return taskResourceQueryResult.get().getTaskRoleResources().stream()
+            .map(r -> cftTaskMapper.mapToTaskRolePermissions(r))
+            .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
+            .toList();
+    }
+
+    private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
+        task.setLastUpdatedTimestamp(OffsetDateTime.now());
+        task.setLastUpdatedUser(userId);
+        task.setLastUpdatedAction(action.getValue());
+    }
+
+    private boolean checkUserHasUnassignPermission(List<RoleAssignment> roleAssignments,
+                                                   Set<TaskRoleResource> taskRoleResources) {
+        for (RoleAssignment roleAssignment : roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            for (TaskRoleResource taskRoleResource : taskRoleResources) {
+                if (roleName.equals(taskRoleResource.getRoleName())
+                    && Boolean.TRUE.equals(taskRoleResource.getUnassign())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean verifyActionRequired(Optional<String> currentAssignee,
@@ -444,122 +770,6 @@ public class TaskManagementService {
         return builder.build();
     }
 
-    /**
-     * Cancels a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes#CANCEL} permission.
-     *
-     * @param taskId                the task id.
-     * @param accessControlResponse the access control response containing user id and role assignments.
-     */
-    @Transactional
-    public void cancelTask(String taskId,
-                           AccessControlResponse accessControlResponse) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired;
-
-        String userId = accessControlResponse.getUserInfo().getUid();
-
-        permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(CANCEL, CANCEL_OWN);
-
-        TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
-        );
-
-        if (!taskResource.getTaskRoleResources().stream().anyMatch(permission -> permission.getCancel().equals(true))
-            && (taskResource.getAssignee() == null
-            || !userId.equals(taskResource.getAssignee()))) {
-            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
-                taskId,
-                accessControlResponse.getRoleAssignments(),
-                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED
-            );
-            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
-        }
-
-        //Lock & update Task
-        TaskResource task = findByIdAndObtainLock(taskId);
-        CFTTaskState previousTaskState = task.getState();
-        task.setState(CFTTaskState.CANCELLED);
-
-        boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
-
-        log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
-                 taskId, previousTaskState, isCftTaskStateExist
-        );
-
-        try {
-            //Perform Camunda updates
-            camundaService.cancelTask(taskId);
-            log.info("{} cancelled in camunda", taskId);
-
-            //set task action attributes
-            setTaskActionAttributes(task, userId, TaskAction.CANCEL);
-
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
-            log.info("{} cancelled in CFT", taskId);
-        } catch (TaskCancelException ex) {
-            if (isCftTaskStateExist) {
-                log.info("{} TaskCancelException occurred due to cftTaskState exists in Camunda.Exception: {}",
-                         taskId, ex.getMessage()
-                );
-                throw ex;
-            }
-
-            if (!CFTTaskState.TERMINATED.equals(previousTaskState)) {
-                task.setState(CFTTaskState.TERMINATED);
-                cftTaskDatabaseService.saveTask(task);
-                log.info("{} setting CFTTaskState to TERMINATED. previousTaskState : {} ",
-                         taskId, previousTaskState
-                );
-                return;
-            }
-
-            log.info("{} Camunda Task appears to be Terminated but could not update the CFT Task state. "
-                     + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
-            throw ex;
-        }
-    }
-
-    /**
-     * Completes a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
-     *
-     * @param taskId                the task id.
-     * @param accessControlResponse the access control response containing user id and role assignments.
-     */
-    @Transactional
-    public void completeTask(String taskId, AccessControlResponse accessControlResponse) {
-
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        final String userId = accessControlResponse.getUserInfo().getUid();
-
-        boolean taskHasCompleted;
-
-        checkCompletePermissions(taskId, accessControlResponse, userId);
-
-        //Lock & update Task
-        TaskResource task = findByIdAndObtainLock(taskId);
-        CFTTaskState state = task.getState();
-        taskHasCompleted = state != null
-            && (state.equals(CFTTaskState.COMPLETED)
-                   || state.equals(CFTTaskState.TERMINATED)
-                           && task.getTerminationReason().equals("completed"));
-
-        if (!taskHasCompleted) {
-            //scenario, task not completed anywhere
-            //check the state, if not complete, complete
-            completeCamundaTask(taskId, taskHasCompleted);
-            //Commit transaction
-            if (task.isActive(state)) {
-                task.setState(CFTTaskState.COMPLETED);
-                setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
-                cftTaskDatabaseService.saveTask(task);
-            }
-        }
-    }
-
     private void completeCamundaTask(String taskId, boolean taskHasCompleted) {
         try {
             //Perform Camunda updates
@@ -580,9 +790,9 @@ public class TaskManagementService {
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .initPermissionRequirement(asList(OWN, EXECUTE), OR)
             .joinPermissionRequirement(OR)
-            .nextPermissionRequirement(asList(COMPLETE), OR)
+            .nextPermissionRequirement(List.of(COMPLETE), OR)
             .joinPermissionRequirement(OR)
-            .nextPermissionRequirement(asList(COMPLETE_OWN), OR)
+            .nextPermissionRequirement(List.of(COMPLETE_OWN), OR)
             .build();
 
         TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
@@ -591,7 +801,7 @@ public class TaskManagementService {
 
         //Safe-guard
         checkAssignee(taskResource, userId, taskId,
-            accessControlResponse.getRoleAssignments());
+                      accessControlResponse.getRoleAssignments());
 
     }
 
@@ -605,238 +815,41 @@ public class TaskManagementService {
             } else if (!userId.equals(taskResource.getAssignee())) {
                 throw new TaskStateIncorrectException(
                     String.format("Could not complete task with id: %s as task was assigned to other user %s",
-                        taskId, taskResource.getAssignee()
+                                  taskId, taskResource.getAssignee()
                     )
                 );
             }
         }
     }
 
-    private boolean checkUserHasCompletePermission(List<RoleAssignment> roleAssignments,
-                                                   Set<TaskRoleResource> taskRoleResources) {
-        if (roleAssignments != null) {
-            for (RoleAssignment roleAssignment : roleAssignments) {
-                String roleName = roleAssignment.getRoleName();
-                if (taskRoleResources != null) {
-                    for (TaskRoleResource taskRoleResource : taskRoleResources) {
-                        if (roleName.equals(taskRoleResource.getRoleName())
-                            && Boolean.TRUE.equals(taskRoleResource.getComplete())) {
-                            return true;
-                        }
-                    }
-                }
+    private boolean checkUserHasCompletePermission(
+        List<RoleAssignment> roleAssignments,
+        Set<TaskRoleResource> taskRoleResources
+    ) {
+        if (roleAssignments == null || taskRoleResources == null) {
+            return false;
+        }
+
+        for (RoleAssignment roleAssignment : roleAssignments) {
+            String roleName = roleAssignment.getRoleName();
+            if (hasCompletePermissionForRole(taskRoleResources, roleName)) {
+                return true;
             }
         }
+
         return false;
     }
 
-    /**
-     * This method is only used by privileged clients allowing them to set a predefined options for completion.
-     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
-     *
-     * @param taskId                The task id to complete.
-     * @param accessControlResponse the access control response containing user id and role assignments.
-     * @param completionOptions     The completion options to orchestrate how this completion should be handled.
-     */
-    @Transactional
-    public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
-                                                              AccessControlResponse accessControlResponse,
-                                                              CompletionOptions completionOptions) {
-        String userId = accessControlResponse.getUserInfo().getUid();
-        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
-        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
-            .buildSingleRequirementWithOr(OWN, EXECUTE);
-        boolean taskStateIsAssignedAlready;
-        if (completionOptions.isAssignAndComplete()) {
-
-            TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
-                taskId,
-                accessControlResponse.getRoleAssignments(),
-                permissionsRequired
-            );
-
-            final CFTTaskState state = taskResource.getState();
-            taskStateIsAssignedAlready = state.getValue().equals(CFTTaskState.ASSIGNED.getValue());
-
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.COMPLETED);
-            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
-            //Perform Camunda updates
-            camundaService.assignAndCompleteTask(
-                taskId,
-                userId,
-                taskStateIsAssignedAlready
-            );
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
-
-        } else {
-            completeTask(taskId, accessControlResponse);
-        }
-    }
-
-    /**
-     * Exclusive client access only.
-     * This method terminates a task and orchestrates the logic between CFT Task db and camunda.
-     * This method is transactional so if any exception occurs when calling camunda the transaction will be reverted.
-     *
-     * @param taskId        the task id.
-     * @param terminateInfo Additional data to define how a task should be terminated.
-     */
-    @Transactional
-    public void terminateTask(String taskId, TerminateInfo terminateInfo) {
-        TaskResource task = null;
-        try {
-            //Find and Lock Task
-            task = findByIdAndObtainLock(taskId);
-        } catch (ResourceNotFoundException e) {
-            //Perform Camunda updates
-            log.warn("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
-            camundaService.deleteCftTaskState(taskId);
-            return;
-        }
-
-        //Terminate the task if found in the database
-        if (task != null) {
-            //Update cft task and terminate reason
-            task.setState(CFTTaskState.TERMINATED);
-            task.setTerminationReason(terminateInfo.getTerminateReason());
-            //Perform Camunda updates
-            camundaService.deleteCftTaskState(taskId);
-
-            switch (terminateInfo.getTerminateReason()) {
-                case "cancelled":
-                    setSystemUserTaskActionAttributes(task, AUTO_CANCEL);
-                    break;
-                case "completed":
-                    setSystemUserTaskActionAttributes(task, TERMINATE);
-                    break;
-                default:
-                    setSystemUserTaskActionAttributes(task, TERMINATE_EXCEPTION);
-                    break;
-            }
-
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
-        }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateTaskIndex(String taskId) {
-        try {
-            Optional<TaskResource> findTaskResponse = cftTaskDatabaseService
-                .findByIdAndWaitAndObtainPessimisticWriteLock(taskId);
-
-            if (findTaskResponse.isPresent()) {
-                TaskResource taskResource = findTaskResponse.get();
-                taskResource.setIndexed(true);
-
-                cftTaskDatabaseService.saveTask(taskResource);
-            } else {
-                throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
-            }
-        } catch (PersistenceException ex) {
-            log.error("PersistenceException occurred in updating indexed field of taskId:{}", taskId);
-        }
-    }
-
-    /**
-     * Exclusive client access only.
-     * This method initiates a task and orchestrates the logic between CFT Task db, camunda and role assignment.
-     *
-     * @param taskId              the task id.
-     * @param initiateTaskRequest Additional data to define how a task should be initiated.
-     * @return The updated entity {@link TaskResource}
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask(String taskId, InitiateTaskRequestMap initiateTaskRequest) {
-        //Get DueDatetime or throw exception
-        Map<String, Object> taskAttributes = new ConcurrentHashMap<>(initiateTaskRequest.getTaskAttributes());
-        taskAttributes.put("taskId", taskId);
-
-        OffsetDateTime dueDate = extractDueDate(taskAttributes);
-
-        lockTaskId(taskId, dueDate);
-        return initiateTaskProcess(taskId, taskAttributes);
-    }
-
-    @Transactional
-    public TaskResource updateNotes(String taskId, NotesRequest notesRequest) {
-        validateNoteRequest(notesRequest);
-
-        final TaskResource taskResource = findByIdAndObtainLock(taskId);
-
-        final List<NoteResource> noteResources = notesRequest.getNoteResource();
-
-        if (taskResource.getNotes() == null) {
-            taskResource.setNotes(noteResources);
-        } else {
-            noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
-        }
-        taskResource.setHasWarnings(true);
-        setSystemUserTaskActionAttributes(taskResource, ADD_WARNING);
-        return cftTaskDatabaseService.saveTask(taskResource);
+    private boolean hasCompletePermissionForRole(Set<TaskRoleResource> taskRoleResources, String roleName) {
+        return taskRoleResources.stream()
+            .anyMatch(taskRoleResource -> roleName.equals(taskRoleResource.getRoleName())
+                && Boolean.TRUE.equals(taskRoleResource.getComplete()));
     }
 
     private void setSystemUserTaskActionAttributes(TaskResource taskResource, TaskAction taskAction) {
         String systemUserToken = idamTokenGenerator.generate();
         String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
         setTaskActionAttributes(taskResource, systemUserId, taskAction);
-    }
-
-    public Optional<TaskResource> getTaskById(String taskId) {
-        return cftTaskDatabaseService.findByIdOnly(taskId);
-    }
-
-    /**
-     * Retrieve task role information.
-     * This method retrieves role permission information for a given task.
-     * The task should have a read permission to retrieve role permission information.
-     *
-     * @param taskId                the task id.
-     * @param accessControlResponse the access control response containing user id and role assignments.
-     * @return collection of roles
-     */
-    public List<TaskRolePermissions> getTaskRolePermissions(String taskId,
-                                                            AccessControlResponse accessControlResponse) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        final Optional<TaskResource> taskResource = getTaskById(taskId);
-        if (taskResource.isEmpty()) {
-            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
-        }
-
-        if (taskResource.get().getTaskRoleResources().isEmpty()) {
-            return emptyList();
-        }
-
-        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
-        CriteriaBuilder builder = selectQueryBuilder.builder;
-        Root<TaskResource> root = selectQueryBuilder.root;
-
-        final Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskRolePermissionsQuery(
-            taskResource.get().getTaskId(), accessControlResponse.getRoleAssignments(), builder, root);
-
-        final Optional<TaskResource> taskResourceQueryResult = selectQueryBuilder
-            .where(selectPredicate)
-            .build()
-            .getResultList()
-            .stream()
-            .findFirst();
-
-        if (taskResourceQueryResult.isEmpty()) {
-            cftSensitiveTaskEventLogsDatabaseService.processSensitiveTaskEventLog(
-                taskId,
-                accessControlResponse.getRoleAssignments(),
-                ROLE_ASSIGNMENT_VERIFICATIONS_FAILED
-            );
-            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
-        }
-
-        return taskResourceQueryResult.get().getTaskRoleResources().stream()
-            .map(r -> cftTaskMapper.mapToTaskRolePermissions(r))
-            .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
-            .toList();
     }
 
     /**
@@ -876,13 +889,17 @@ public class TaskManagementService {
             taskAttributes.put(DUE_DATE.value(), taskResource.getDueDateTime());
 
             taskResource = configureTask(taskResource, taskAttributes);
+            taskMandatoryFieldsValidator.validate(taskResource);
             taskResource = taskAutoAssignmentService.performAutoAssignment(taskId, taskResource);
-
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (FeignException e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw e;
+        } catch (ServiceMandatoryFieldValidationException e) {
+            log.error("Error when initiating task(id={})", taskId, e);
+            throw new ServiceMandatoryFieldValidationException(MANDATORY_FIELD_MISSING_ERROR.getDetail()
+                                                                   + taskId + e.getMessage(), e);
         } catch (Exception e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);

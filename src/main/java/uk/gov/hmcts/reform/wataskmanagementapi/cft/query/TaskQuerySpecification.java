@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -7,11 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -133,7 +132,7 @@ public final class TaskQuerySpecification {
                                                  Root<TaskResource> root) {
         List<String> roleCategoryTexts = Stream.ofNullable(roleCategories)
             .flatMap(Collection::stream)
-            .map(Objects::toString).collect(Collectors.toList());
+            .map(Objects::toString).toList();
         if (isEmpty(roleCategoryTexts)) {
             return builder.conjunction();
         } else if (hasSingleElement(roleCategoryTexts)) {

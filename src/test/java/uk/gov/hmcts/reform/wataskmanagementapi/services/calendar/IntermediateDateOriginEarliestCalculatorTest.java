@@ -27,7 +27,7 @@ class IntermediateDateOriginEarliestCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
-    public static final String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    public static final String LOCAL_DATE_TIME = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     public List<ConfigurationDmnEvaluationResponse> calculatedConfigurations;
 
     @Mock
@@ -36,7 +36,7 @@ class IntermediateDateOriginEarliestCalculatorTest {
     private IntermediateDateOriginEarliestCalculator intermediateDateOriginEarliestCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         intermediateDateOriginEarliestCalculator
             = new IntermediateDateOriginEarliestCalculator(new WorkingDayIndicator(publicHolidaysCollection));
         calculatedConfigurations = new ArrayList<>();
@@ -64,7 +64,7 @@ class IntermediateDateOriginEarliestCalculatorTest {
 
         var nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
-            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .value(CamundaValue.stringValue(LOCAL_DATE_TIME + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 

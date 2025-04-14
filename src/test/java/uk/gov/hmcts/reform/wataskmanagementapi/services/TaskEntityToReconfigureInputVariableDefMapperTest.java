@@ -99,7 +99,7 @@ class TaskEntityToReconfigureInputVariableDefMapperTest {
     }
 
     @Test
-    public void should_map_fields_when_mapper_invoked_between_task_entity_and_reconfigure_input_variable_definition() {
+    void should_map_fields_when_mapper_invoked_between_task_entity_and_reconfigure_input_variable_definition() {
         // Mapping
         reconfigureInputVarDef = mapper.map(taskResource);
         // Then

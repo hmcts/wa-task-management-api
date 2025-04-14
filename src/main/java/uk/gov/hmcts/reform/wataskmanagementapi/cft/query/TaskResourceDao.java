@@ -1,5 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,13 +23,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
 
 import static java.util.Arrays.stream;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder.ASCENDANT;
@@ -102,7 +102,7 @@ public class TaskResourceDao {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .map(Object::toString)
-            .collect(Collectors.toList());
+            .toList();
         List<Order> orders = getSortOrders(searchRequest, builder, root);
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskQuery(taskIds, builder, root);
 
@@ -117,6 +117,8 @@ public class TaskResourceDao {
                               List<RoleAssignment> roleAssignments,
                               PermissionRequirements permissionsRequired,
                               boolean availableTasksOnly) {
+
+        log.info("Search number of tasks using Hibernate Query");
 
         CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager)
             .createSubQuery()
@@ -208,6 +210,6 @@ public class TaskResourceDao {
                     return criteriaBuilder.desc(root.get(sortingParameter.getSortBy().getCftVariableName()));
                 }
             })
-            .filter(Objects::nonNull).collect(Collectors.toList());
+            .filter(Objects::nonNull).toList();
     }
 }

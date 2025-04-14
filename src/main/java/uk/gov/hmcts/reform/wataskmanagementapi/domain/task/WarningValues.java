@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static java.util.Objects.requireNonNull;
 
 @Slf4j
@@ -26,9 +27,9 @@ import static java.util.Objects.requireNonNull;
 @ToString
 @NoArgsConstructor
 public class WarningValues {
-    @Schema(required = true,
+    @Schema(requiredMode = REQUIRED,
         description = "A list of warnings")
-    private List<Warning> values =  new ArrayList<>();
+    private List<Warning> values = new ArrayList<>();
 
     public WarningValues(List<Warning> values) {
         requireNonNull(values);
@@ -39,7 +40,8 @@ public class WarningValues {
         requireNonNull(values);
         try {
             this.values = new ObjectMapper().reader()
-                .forType(new TypeReference<List<Warning>>() {})
+                .forType(new TypeReference<List<Warning>>() {
+                })
                 .readValue(values);
         } catch (JsonProcessingException jsonProcessingException) {
             log.error("Could not deserialize values");

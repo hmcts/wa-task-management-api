@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 import static java.util.Collections.emptyList;
@@ -81,10 +80,13 @@ public class CftQueryService {
         final List<TaskResource> taskResources
             = taskResourceDao.getTaskResources(searchRequest, taskResourcesSummary);
 
-        Long count = taskResourceDao.getTotalCount(searchRequest,
-            roleAssignments,
-            permissionsRequired,
-            availableTasksOnly);
+        //There is an issue with the query involving count with Hibernate.
+        //Hibernate search is not being used in prod. There is a plan to remove the unused code, in the future.
+        //PDT's are using test controller for verifying the tasks.
+        //The test controller is still invoking the hibernate search queries.
+        //To progress with the springboot upgrade,
+        // the hibernate query was bypassed and acquiring the count from the taskResources.
+        long count = taskResources.stream().count();
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
@@ -93,7 +95,7 @@ public class CftQueryService {
                     roleAssignments
                 )
             )
-            .collect(Collectors.toList());
+            .toList();
 
         return new GetTasksResponse<>(tasks, count);
     }
@@ -110,6 +112,8 @@ public class CftQueryService {
             || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
             .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
         ) {
+            log.info("Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
+                searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -121,6 +125,8 @@ public class CftQueryService {
         List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
 
         if (taskTypes.isEmpty()) {
+            log.info("No taskTypes were found from Completion DMN using eventId: \"{}\" and caseId: \"{}\"",
+                searchEventAndCase.getEventId(), searchEventAndCase.getCaseId());
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -189,7 +195,7 @@ public class CftQueryService {
                      roleAssignments
                  )
             )
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private List<String> extractTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {
@@ -197,7 +203,7 @@ public class CftQueryService {
             .filter(result -> result.containsKey(TASK_TYPE.value()))
             .map(result -> camundaService.getVariableValue(result.get(TASK_TYPE.value()), String.class))
             .filter(StringUtils::hasText)
-            .collect(Collectors.toList());
+            .toList();
 
     }
 

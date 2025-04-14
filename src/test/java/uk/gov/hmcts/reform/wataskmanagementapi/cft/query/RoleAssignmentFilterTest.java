@@ -1,5 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,11 +31,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +54,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTe
 
 
 @ExtendWith(MockitoExtension.class)
-public class RoleAssignmentFilterTest {
+class RoleAssignmentFilterTest {
 
     @Mock
     private Root<TaskResource> root;
@@ -78,10 +78,11 @@ public class RoleAssignmentFilterTest {
     private Path<Object> classificationPath;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         lenient().when(root.join("taskRoleResources")).thenReturn(taskRoleResources);
         lenient().when(taskRoleResources.get("read")).thenReturn(pathObject);
         lenient().when(builder.or(any())).thenReturn(inObject);
+        lenient().when(builder.or()).thenReturn(inObject);
         lenient().when(builder.or(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
@@ -128,7 +129,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(5)).get(anyString());
         verify(pathObject, times(2)).isNull();
         verify(builder, times(5)).equal(any(), anyString());
-        verify(builder, times(3)).or(any());
+        verify(builder, times(3)).or(any(Predicate[].class));
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(2)).and(
@@ -257,7 +258,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(7)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(3)).or(any());
+        verify(builder, times(3)).or(any(Predicate[].class));
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
@@ -296,7 +297,8 @@ public class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(root, times(6)).get(anyString());
-        verify(builder, times(3)).or(any());
+        verify(builder, times(2)).or(any());
+        verify(builder, times(1)).or();
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
@@ -353,7 +355,8 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(1)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(3)).or(any());
+        verify(builder, times(1)).or(any());
+        verify(builder, times(2)).or();
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(3)).and(any(), any());
         verify(builder, times(1)).and(
@@ -392,7 +395,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).get(anyString());
         verify(pathObject, times(1)).isNull();
         verify(builder, times(1)).in(any());
-        verify(builder, times(3)).or(any());
+        verify(builder, times(3)).or(any(Predicate[].class));
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(3)).and(any(), any());
         verify(builder, times(1)).and(
@@ -412,7 +415,7 @@ public class RoleAssignmentFilterTest {
         verify(builder, times(1)).or(any(), any());
         verify(builder, times(0)).and(
             any(), any(), any(), any(), any(), any(), any());
-        verify(builder, times(3)).or(any());
+        verify(builder, times(3)).or();
     }
 
     @Test
@@ -425,7 +428,7 @@ public class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(builder, times(0)).equal(any(), any());
-        verify(builder, times(1)).or(any());
+        verify(builder, times(1)).or(any(Predicate[].class));
         verify(builder, times(2)).and(any(), any());
     }
 
@@ -435,7 +438,7 @@ public class RoleAssignmentFilterTest {
             Collections.emptyList(), builder, root);
 
         verify(root, times(1)).join("taskRoleResources");
-        verify(builder, times(1)).or(any());
+        verify(builder, times(1)).or(any(Predicate[].class));
         verify(builder, never()).equal(any(), any());
         verify(builder, never()).and(any(), any());
     }
@@ -446,7 +449,7 @@ public class RoleAssignmentFilterTest {
             inActiveRoles(), builder, root);
 
         verify(root, times(1)).join("taskRoleResources");
-        verify(builder, times(1)).or(any());
+        verify(builder, times(1)).or();
         verify(builder, never()).equal(any(), any());
         verify(builder, never()).and(any(), any());
     }

@@ -4,14 +4,16 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @Schema(
     name = "TaskOperationRequest",
@@ -21,11 +23,11 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 public class TaskOperationRequest {
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     private TaskOperation operation;
 
     @Schema(
-        required = true,
+        requiredMode = REQUIRED,
         name = "task_filter",
         description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one task_filter element is required.")

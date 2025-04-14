@@ -322,9 +322,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
-
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -360,9 +357,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
-
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -385,7 +379,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             );
             SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
-            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            PermissionRequirementBuilder.builder()
                 .buildSingleRequirementWithAnd(OWN, READ);
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -398,8 +392,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(any(), any(), any(), eq(true)))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -458,9 +450,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 .thenReturn(taskResourceSummary);
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
-
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
@@ -543,8 +532,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, true))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -556,6 +543,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
         @Test
         void shouldReturnRequestContextAvailableTasksAndIgnoreSearchParameterAvailableTasksOnly() {
+
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 RequestContext.AVAILABLE_TASKS,
                 List.of(
@@ -570,7 +558,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
             List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
 
-            PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            PermissionRequirementBuilder.builder()
                 .buildSingleRequirementWithAnd(OWN, READ);
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -583,8 +571,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(any(), any(), any(), eq(true)))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -592,8 +578,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
             assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
             assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
-        }
 
+        }
 
         @Test
         void shouldReturnRequestContextAllWork() {
@@ -624,8 +610,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -662,8 +646,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceDao.getTaskResources(searchRequest, taskResourceSummary))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(taskResourceDao.getTotalCount(searchRequest, roleAssignments, permissionsRequired, false))
-                .thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchRequest, accessControlResponse);
 
@@ -720,7 +702,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         private PermissionRequirements permissionsRequired;
 
         @BeforeEach
-        public void setup() {
+        void setup() {
             permissionsRequired = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(OWN, EXECUTE);
         }
 
@@ -925,6 +907,45 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
         }
+
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
+        void should_return_empty_tasks_list_when_taskTypes_empty(String jurisdiction, String caseType) {
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "someCaseId",
+                "someEventId",
+                jurisdiction,
+                caseType
+            );
+
+            List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
+                .thenReturn(mockTaskCompletionDMNResponses());
+
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+                .thenReturn(Arrays.asList(jurisdiction.toLowerCase()));
+
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+                .thenReturn(Arrays.asList(caseType.toLowerCase()));
+
+            GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
+                searchEventAndCase,
+                roleAssignments,
+                permissionsRequired
+            );
+            assertNotNull(response);
+            assertTrue(response.getTasks().isEmpty());
+            assertFalse(response.isTaskRequiredForEvent());
+
+            verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
+        }
+
 
         @ParameterizedTest
         @CsvSource(

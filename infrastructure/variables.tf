@@ -49,6 +49,27 @@ variable "business_area" {
   default = "cft"
 }
 
-variable jenkins_AAD_objectId {}
+variable "pgsql_storage_mb" {
+  default = 65536
+}
 
-variable aks_subscription_id {}
+variable "pgsql_sku" {
+  description = "The PGSql flexible server instance sku"
+  default     = "GP_Standard_D2s_v3"
+}
+
+variable "jenkins_AAD_objectId" {}
+
+variable "aks_subscription_id" {}
+
+variable "action_group_name" {
+  description = "The name of the Action Group to create."
+  type        = string
+  default     = "wa-support"
+}
+
+variable "email_address_key" {
+  description = "Email address key in azure Key Vault."
+  type        = string
+  default     = "db-alert-monitoring-email-address"
+}

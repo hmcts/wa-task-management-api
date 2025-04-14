@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
@@ -8,8 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameter;
 
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @Schema(
     name = "SearchTaskRequest",
@@ -21,7 +23,7 @@ import javax.validation.constraints.NotEmpty;
 public class SearchTaskRequest {
 
     @Schema(
-        required = true,
+        requiredMode = REQUIRED,
         name = "search_parameters",
         description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one search_parameter element is required.")

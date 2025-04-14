@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.MARK_FOR_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
@@ -49,11 +49,11 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
             .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
             .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter) filter).getValues().stream())
             .map(Object::toString)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> reconfigurableCaseIds = caseIds.stream()
             .filter(this::isReconfigurable)
-            .collect(Collectors.toList());
+            .toList();
 
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
@@ -62,7 +62,7 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
         List<TaskResource> successfulTaskResources = new ArrayList<>();
         List<String> taskIds = taskResources.stream()
             .map(TaskResource::getTaskId)
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> failedTaskIds = updateReconfigureRequestTime(taskIds, successfulTaskResources);
 
@@ -86,9 +86,9 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
         return new TaskOperationResponse();
     }
 
-    private boolean isReconfigurable(String caseId) {
+    public boolean isReconfigurable(String caseId) {
         List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
-            .evaluateConfigurationDmn(caseId, null);
+            .evaluateConfigurationDmn(caseId, emptyMap());
         return results.stream().filter(result -> result.getCanReconfigure() != null)
             .findAny()
             .map(result -> result.getCanReconfigure().getValue())

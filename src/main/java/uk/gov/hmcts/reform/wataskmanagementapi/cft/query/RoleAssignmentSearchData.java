@@ -28,7 +28,7 @@ public class RoleAssignmentSearchData {
     public List<RoleAssignmentForSearch> getRoleAssignmentsForSearch() {
         Map<String, List<RoleAssignmentForSearch>> roleAssignmentsByRoleType = roleAssignments.stream()
             .map(RoleAssignmentForSearch::new)
-            .collect(Collectors.toList()).stream()
+            .toList().stream()
             .collect(Collectors.groupingBy(groupingStrategy));
 
         //Add Org Roles as they are

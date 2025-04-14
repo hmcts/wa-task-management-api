@@ -302,11 +302,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "Review Specific Access Request LegalOps");
+        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "Review Specific Access Request LegalOps");
+        taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
@@ -534,7 +534,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            ENDPOINT_BEING_TESTED
+                + "?first_result=0&max_results=10",
             searchTaskRequest,
             ginIndexCaseworkerCredentials.getHeaders()
         );

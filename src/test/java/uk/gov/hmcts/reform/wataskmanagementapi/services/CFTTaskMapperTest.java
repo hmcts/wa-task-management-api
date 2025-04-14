@@ -854,7 +854,7 @@ class CFTTaskMapperTest {
         );
 
         assertNotNull(taskResource.getAdditionalProperties());
-        assertEquals(taskResource.getAdditionalProperties().get("roleAssignmentId"), "1234567890");
+        assertEquals("1234567890", taskResource.getAdditionalProperties().get("roleAssignmentId"));
     }
 
     @Test

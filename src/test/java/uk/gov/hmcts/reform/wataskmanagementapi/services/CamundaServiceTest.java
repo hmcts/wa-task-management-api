@@ -25,8 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariab
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Warning;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAlreadyClaimedException;
@@ -45,7 +43,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -80,13 +77,6 @@ class CamundaServiceTest extends CamundaHelpers {
         "There was a problem fetching the variables for task with id: %s";
     public static final String EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID =
         "There was a problem fetching the task with id: %s";
-
-    private static final WarningValues expectedWarningValues = new WarningValues(
-        List.of(
-            new Warning("Code1", "Text1"),
-            new Warning("Code2", "Text2")
-        )
-    );
 
     @Mock
     private AuthTokenGenerator authTokenGenerator;
@@ -180,8 +170,6 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
 
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
             when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenThrow(FeignException.NotFound.class);
 
             assertThatThrownBy(() -> camundaService.getUnmappedCamundaTask(taskId))
@@ -240,8 +228,7 @@ class CamundaServiceTest extends CamundaHelpers {
 
         @Test
         void should_cancel_task_when_search_history_throw_an_error() {
-            camundaService.cancelTask(taskId);
-            verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
+            should_cancel_task();
         }
 
         @Test
@@ -306,10 +293,13 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void claimTask_should_throw_task_already_claimed_exception_when_camunda_throws_feign_exception() {
 
-            String camundaException = "{\n"
-                                      + "    \"type\": \"TaskAlreadyClaimedException\",\n"
-                                      + "    \"message\": \"Task Already Claimed Exception\"\n"
-                                      + "}";
+            String camundaException = """
+                {
+                    "type": "TaskAlreadyClaimedException",
+                    "message": "Task Already Claimed Exception"
+                }
+                """;
+
             Request request = Request.create(Request.HttpMethod.POST, "url",
                 new HashMap<>(), null, new RequestTemplate());
 
@@ -796,7 +786,7 @@ class CamundaServiceTest extends CamundaHelpers {
                 caseType
             );
 
-            List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            List<Map<String, CamundaVariable>> mockedResponse = List.of(Map.of(
                 "taskType", new CamundaVariable("reviewTheAppeal", "String"),
                 "completionMode", new CamundaVariable("Auto", "String")
             ));
@@ -855,12 +845,12 @@ class CamundaServiceTest extends CamundaHelpers {
                 "wacasetype"
             );
 
-            List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            List<Map<String, CamundaVariable>> mockedResponse = List.of(Map.of(
                 "key1", new CamundaVariable("value1, value2", "String"),
                 "key2", new CamundaVariable("value1, value2,value3, value4 ", "String")
             ));
 
-            List<Map<String, CamundaVariable>> expectedResponse = asList(Map.of(
+            List<Map<String, CamundaVariable>> expectedResponse = List.of(Map.of(
                 "key1", new CamundaVariable("value1,value2", "String"),
                 "key2", new CamundaVariable("value1,value2,value3,value4", "String")
             ));

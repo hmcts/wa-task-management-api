@@ -3,11 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 
-import javax.validation.constraints.NotNull;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @Schema(
     name = "SearchParameterBoolean",
@@ -18,7 +19,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
-    @Schema(required = true)
+    @Schema(requiredMode = REQUIRED)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
@@ -30,7 +31,7 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     )
     private final SearchOperator operator;
 
-    @Schema(required = true, example = "true")
+    @Schema(requiredMode = REQUIRED, example = "true")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )

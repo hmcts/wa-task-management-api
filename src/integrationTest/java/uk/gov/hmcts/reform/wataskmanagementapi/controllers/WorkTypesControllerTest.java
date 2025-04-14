@@ -106,7 +106,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(13)
+            jsonPath("$.work_types.length()").value(18)
         ).andReturn();
 
 
@@ -130,7 +130,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(13)
+            jsonPath("$.work_types.length()").value(18)
         );
     }
 
@@ -336,12 +336,22 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         WorkType expectedWorkType11 = new WorkType("follow_up", "Follow Up");
         WorkType expectedWorkType12 = new WorkType("pre_hearing", "Pre-Hearing");
         WorkType expectedWorkType13 = new WorkType("post_hearing", "Post-Hearing");
-
+        WorkType expectedWorkType14 =
+            new WorkType("intermediate_track_hearing_work", "Intermediate track hearing work");
+        WorkType expectedWorkType15 = new WorkType("multi_track_hearing_work", "Multi track hearing work");
+        WorkType expectedWorkType16 = new WorkType("intermediate_track_decision_making_work",
+                                                   "Intermediate track decision making work");
+        WorkType expectedWorkType17 = new WorkType("multi_track_decision_making_work",
+                                                   "Multi track decision making work");
+        WorkType expectedWorkType18 = new WorkType("query_work",
+                                                   "Query work");
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
             expectedWorkType7, expectedWorkType8, expectedWorkType9,
-            expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13
+            expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13,
+            expectedWorkType14, expectedWorkType15, expectedWorkType16, expectedWorkType17,
+            expectedWorkType18
         ));
     }
 

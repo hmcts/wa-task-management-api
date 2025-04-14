@@ -6,13 +6,13 @@ public enum SecurityClassification {
     RESTRICTED("RESTRICTED");
 
 
-    private final String securityClassification;
+    private final String classificationLevel;
 
-    SecurityClassification(String securityClassification) {
-        this.securityClassification = securityClassification;
+    SecurityClassification(String classificationLevel) {
+        this.classificationLevel = classificationLevel;
     }
 
-    public String  getSecurityClassification() {
-        return this.securityClassification;
+    public String getSecurityClassification() {
+        return this.classificationLevel;
     }
 }

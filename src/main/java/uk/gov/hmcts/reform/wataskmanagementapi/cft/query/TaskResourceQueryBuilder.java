@@ -1,16 +1,16 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
 
 public abstract class TaskResourceQueryBuilder<T> {
     public final EntityManager entityManager;
@@ -21,7 +21,7 @@ public abstract class TaskResourceQueryBuilder<T> {
     public List<Order> orders;
     List<Selection<?>> selections;
 
-    public TaskResourceQueryBuilder(EntityManager entityManager) {
+    protected TaskResourceQueryBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
         this.builder = entityManager.getCriteriaBuilder();
         this.query = createQuery();

@@ -1,35 +1,27 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
 
+import static java.sql.Types.TIMESTAMP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@TypeDefs(
-    {
-        @TypeDef(
-            name = JSONB,
-            typeClass = JsonType.class
-        )
-    }
-)
 @SuppressWarnings({"PMD.TooManyFields"})
 @MappedSuperclass
 public abstract class BaseTaskHistoryResource {
@@ -79,19 +71,20 @@ public abstract class BaseTaskHistoryResource {
     protected String updatedBy;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     protected OffsetDateTime updated;
     protected String updateAction;
 
     private String description;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     private List<NoteResource> notes;
 
     private String regionName;
     private String locationName;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     private Map<String, String> additionalProperties;
 

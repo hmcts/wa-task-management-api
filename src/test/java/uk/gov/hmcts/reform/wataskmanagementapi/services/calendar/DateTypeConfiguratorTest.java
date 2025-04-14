@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @ExtendWith(MockitoExtension.class)
-public class DateTypeConfiguratorTest {
+class DateTypeConfiguratorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
     private final Map<String, Object> taskAttributes = new HashMap<>();
     ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
@@ -43,7 +43,7 @@ public class DateTypeConfiguratorTest {
 
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             dateTypeConfigurator = new DateTypeConfigurator(List.of());
         }
 
@@ -101,7 +101,7 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
+        void should_not_calculate_when_there_are_no_dmn_responses_and_initiation_due_date_found() {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of();
             List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
                 evaluationResponses,
@@ -113,7 +113,7 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
+        void should_set_default_for_due_date_and_priority_date_when_only_due_date_given() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate);
             var output = dateTypeConfigurator.configureDates(input, false, false, taskAttributes);
             assertThat(output)
@@ -132,7 +132,7 @@ public class DateTypeConfiguratorTest {
         }
 
         @Test
-        public void should_set_default_for_due_date_and_priority_date_if_both_due_date_and_priority_dates_are_given() {
+        void should_set_default_for_due_date_and_priority_date_if_both_due_date_and_priority_dates_are_given() {
             List<ConfigurationDmnEvaluationResponse> input = List.of(dueDate, priorityDate);
             List<ConfigurationDmnEvaluationResponse> output = dateTypeConfigurator.configureDates(
                 input,
@@ -161,7 +161,7 @@ public class DateTypeConfiguratorTest {
     class DefaultWithDateCalculators {
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             dateTypeConfigurator = new DateTypeConfigurator(List.of(
                 new DueDateCalculator(),
                 new PriorityDateCalculator(),
@@ -262,7 +262,7 @@ public class DateTypeConfiguratorTest {
         WorkingDayIndicator workingDayIndicator;
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             dateTypeConfigurator = new DateTypeConfigurator(List.of(
                 new DueDateCalculator(),
                 new NextHearingDateCalculator(),

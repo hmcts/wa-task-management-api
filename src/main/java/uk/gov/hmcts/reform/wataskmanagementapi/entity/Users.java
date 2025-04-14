@@ -12,6 +12,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +27,11 @@ import static java.util.Objects.requireNonNull;
 @EqualsAndHashCode
 @ToString
 @NoArgsConstructor
-public class Users {
-    @Schema(required = true,
+public class Users implements Serializable {
+
+    private static final long serialVersionUID = -4550112481797873963L;
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED,
         description = "A list of users")
     private List<RoleAssignment> values =  new ArrayList<>();
 

@@ -8,6 +8,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder.ALREADY_INITIATED_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder.EMPTY_PERMISSION_TYPES_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder.NOT_INITIATED_ERROR;
@@ -20,86 +21,80 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 
-public class PermissionRequirementBuilderTest {
+class PermissionRequirementBuilderTest {
 
     @Test
-    public void permission_requirement_should_initiated_first() {
-        PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            builder.joinPermissionRequirement(PermissionJoin.AND);
-        });
-        assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
-
-        exception = assertThrows(IllegalStateException.class, () -> {
-            builder.nextPermissionRequirement(List.of(), PermissionJoin.AND);
-        });
-        assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
-
-        exception = assertThrows(IllegalStateException.class, () -> {
-            builder.nextPermissionRequirement(OWN);
-        });
-        assertEquals(exception.getMessage(), NOT_INITIATED_ERROR);
-    }
-
-    @Test
-    public void permission_requirement_should_initiated_only_once() {
+    void permission_requirement_should_initiated_only_once() {
         PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
         builder.initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND);
 
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
+        Exception exception = assertThrowsExactly(IllegalStateException.class, () -> {
             builder.initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND);
         });
-        assertEquals(exception.getMessage(), ALREADY_INITIATED_ERROR);
+        assertEquals(ALREADY_INITIATED_ERROR, exception.getMessage());
     }
 
     @Test
-    public void permission_requirement_should_join_before_adding_next() {
+    void permission_requirement_should_join_before_adding_next() {
         PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
         builder.initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND);
 
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
+        Exception exception = assertThrowsExactly(IllegalStateException.class, () -> {
             builder.nextPermissionRequirement(List.of(MANAGE), PermissionJoin.AND);
         });
-        assertEquals(exception.getMessage(), NOT_JOINED_ERROR);
+        assertEquals(NOT_JOINED_ERROR, exception.getMessage());
 
-        exception = assertThrows(IllegalStateException.class, () -> {
+        exception = assertThrowsExactly(IllegalStateException.class, () -> {
             builder.nextPermissionRequirement(MANAGE);
         });
-        assertEquals(exception.getMessage(), NOT_JOINED_ERROR);
+        assertEquals(NOT_JOINED_ERROR, exception.getMessage());
     }
 
     @Test
-    public void should_initiate_with_valid_permission_requirement() {
-        PermissionRequirementBuilder builder =  new PermissionRequirementBuilder();
+    void permission_requirement_should_initiated_first() {
+        PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
+
+        IllegalStateException exception = assertThrowsExactly(IllegalStateException.class, () -> {
+            builder.joinPermissionRequirement(PermissionJoin.AND);
+            builder.nextPermissionRequirement(List.of(), PermissionJoin.AND);
+            builder.nextPermissionRequirement(OWN);
+        });
+
+        assertEquals(NOT_INITIATED_ERROR, exception.getMessage());
+    }
+
+    @Test
+    void should_initiate_with_valid_permission_requirement() {
+        PermissionRequirementBuilder builder = new PermissionRequirementBuilder();
 
         Exception exception = assertThrows(NullPointerException.class, () -> {
             builder.initPermissionRequirement(null, PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_TYPES_ERROR);
+        assertEquals(NULL_PERMISSION_TYPES_ERROR, exception.getMessage());
 
-        exception = assertThrows(IllegalArgumentException.class, () -> {
+        exception = assertThrowsExactly(IllegalArgumentException.class, () -> {
             builder.initPermissionRequirement(List.of(), PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), EMPTY_PERMISSION_TYPES_ERROR);
+        assertEquals(EMPTY_PERMISSION_TYPES_ERROR, exception.getMessage());
 
-        exception = assertThrows(NullPointerException.class, () -> {
+        exception = assertThrowsExactly(NullPointerException.class, () -> {
             builder.initPermissionRequirement(List.of(MANAGE), null);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_JOIN_ERROR);
+        assertEquals(NULL_PERMISSION_JOIN_ERROR, exception.getMessage());
     }
 
     @Test
-    public void should_initiate_with_valid_single_permission_requirement() {
+    void should_initiate_with_valid_single_permission_requirement() {
         PermissionRequirementBuilder builder =  new PermissionRequirementBuilder();
 
         Exception exception = assertThrows(NullPointerException.class, () -> {
             builder.initPermissionRequirement(null);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_TYPES_ERROR);
+        assertEquals(NULL_PERMISSION_TYPES_ERROR, exception.getMessage());
 
         PermissionRequirements requirements = builder.initPermissionRequirement(MANAGE).build();
         assertEquals(List.of(MANAGE), requirements.getPermissionRequirement().getPermissionTypes());
@@ -109,7 +104,7 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_add_valid_next_permission_requirement() {
+    void should_add_valid_next_permission_requirement() {
         PermissionRequirementBuilder builder =  new PermissionRequirementBuilder()
             .initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND)
             .joinPermissionRequirement(PermissionJoin.AND);
@@ -118,23 +113,23 @@ public class PermissionRequirementBuilderTest {
             builder.nextPermissionRequirement(null, PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_TYPES_ERROR);
+        assertEquals(NULL_PERMISSION_TYPES_ERROR, exception.getMessage());
 
-        exception = assertThrows(IllegalArgumentException.class, () -> {
+        exception = assertThrowsExactly(IllegalArgumentException.class, () -> {
             builder.nextPermissionRequirement(List.of(), PermissionJoin.AND);
         });
 
-        assertEquals(exception.getMessage(), EMPTY_PERMISSION_TYPES_ERROR);
+        assertEquals(EMPTY_PERMISSION_TYPES_ERROR, exception.getMessage());
 
-        exception = assertThrows(NullPointerException.class, () -> {
+        exception = assertThrowsExactly(NullPointerException.class, () -> {
             builder.nextPermissionRequirement(List.of(MANAGE), null);
         });
 
-        assertEquals(exception.getMessage(), NULL_PERMISSION_JOIN_ERROR);
+        assertEquals(NULL_PERMISSION_JOIN_ERROR, exception.getMessage());
     }
 
     @Test
-    public void should_add_valid_next_single_permission_requirement() {
+    void should_add_valid_next_single_permission_requirement() {
         PermissionRequirementBuilder builder =  new PermissionRequirementBuilder()
             .initPermissionRequirement(List.of(OWN, EXECUTE), PermissionJoin.AND)
             .joinPermissionRequirement(PermissionJoin.AND);
@@ -153,7 +148,7 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_permission_requirement_collection() {
+    void should_build_permission_requirement_collection() {
         PermissionRequirements requirements = new PermissionRequirementBuilder()
             .initPermissionRequirement(List.of(CLAIM, OWN), PermissionJoin.AND)
             .joinPermissionRequirement(PermissionJoin.OR)
@@ -186,7 +181,7 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_permission_requirement_for_single_type() {
+    void should_build_permission_requirement_for_single_type() {
         PermissionRequirements requirements = new PermissionRequirementBuilder().buildSingleType(CLAIM);
         assertEquals(List.of(CLAIM), requirements.getPermissionRequirement().getPermissionTypes());
         assertEquals(PermissionJoin.NONE, requirements.getPermissionRequirement().getPermissionJoin());
@@ -195,7 +190,7 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_single_permission_requirement_with_and() {
+    void should_build_single_permission_requirement_with_and() {
         PermissionRequirements requirements = new PermissionRequirementBuilder()
             .buildSingleRequirementWithAnd(CLAIM, EXECUTE);
         assertEquals(List.of(CLAIM, EXECUTE), requirements.getPermissionRequirement().getPermissionTypes());
@@ -205,7 +200,7 @@ public class PermissionRequirementBuilderTest {
     }
 
     @Test
-    public void should_build_single_permission_requirement_with_or() {
+    void should_build_single_permission_requirement_with_or() {
         PermissionRequirements requirements = new PermissionRequirementBuilder()
             .buildSingleRequirementWithOr(CLAIM, EXECUTE);
         assertEquals(List.of(CLAIM, EXECUTE), requirements.getPermissionRequirement().getPermissionTypes());

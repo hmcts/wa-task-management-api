@@ -2,13 +2,15 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 
 import java.util.List;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @Schema(
     name = "SearchParameterList",
@@ -20,7 +22,7 @@ import javax.validation.constraints.NotNull;
 public class SearchParameterList implements SearchParameter<List<String>> {
 
     @Schema(
-        required = true,
+        requiredMode = REQUIRED,
         allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, work_type, role_category",
         example = "user")
     @NotNull(
@@ -31,7 +33,9 @@ public class SearchParameterList implements SearchParameter<List<String>> {
     @Schema(allowableValues = "IN", example = "IN")
     private final SearchOperator operator;
 
-    @Schema(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", nullable = true)
+    @Schema(
+        requiredMode = REQUIRED,
+        example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", nullable = true)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )

@@ -27,7 +27,7 @@ class DueDateOriginEarliestCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
-    public static final String localDateTime = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    public static final String LOCAL_DATE_TIME = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     private List<ConfigurationDmnEvaluationResponse> calculatedConfigurations;
 
     @Mock
@@ -36,7 +36,7 @@ class DueDateOriginEarliestCalculatorTest {
     private DueDateOriginEarliestCalculator dueDateOriginEarliestCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         calculatedConfigurations = new ArrayList<>();
         dueDateOriginEarliestCalculator
             = new DueDateOriginEarliestCalculator(new WorkingDayIndicator(publicHolidaysCollection));
@@ -65,7 +65,7 @@ class DueDateOriginEarliestCalculatorTest {
 
         ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(localDateTime + "T20:00"))
+            .value(CamundaValue.stringValue(LOCAL_DATE_TIME + "T20:00"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
 

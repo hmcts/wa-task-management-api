@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCustomRepositoryImpl.RESULT_MAPPER;
 
 @ExtendWith(MockitoExtension.class)
-public class TaskResourceCustomRepositoryImplTest {
+class TaskResourceCustomRepositoryImplTest {
     @Mock
     EntityManager entityManager;
 
@@ -58,11 +58,11 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -82,12 +82,12 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY case_id ASC, case_name ASC, "
-                          + "major_priority ASC, priority_date ASC, minor_priority ASC "
+                          + "major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -104,9 +104,9 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
@@ -124,12 +124,12 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IS NULL "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -149,9 +149,9 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IS NULL "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
         verify(entityManager).createNativeQuery(queryStr);
@@ -172,14 +172,14 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee = :assignee "
                        + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
                        + "AND task_type = :taskType "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -205,9 +205,9 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee = :assignee "
                        + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
@@ -233,14 +233,14 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -266,9 +266,9 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -294,15 +294,15 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND case_id <> :excludedCaseId "
                        + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -329,9 +329,9 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-                          + "t.security_classification) && :roleSignature "
+                          + "t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -359,15 +359,15 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, "
-                          + "t.location, t.case_id, t.security_classification) && :roleSignature "
+                          + "t.location, t.case_id, t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
                        + "AND case_id NOT IN (:excludedCaseId) "
                        + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC "
+                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
         verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
         InOrder inOrder = inOrder(query);
@@ -394,9 +394,9 @@ public class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, "
-                          + "t.work_type, t.region, t.location) && :filterSignature "
+                          + "t.work_type, t.region, t.location) && CAST(:filterSignature AS text[]) "
                        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, "
-                          + "t.case_id, t.security_classification) && :roleSignature "
+                          + "t.case_id, t.security_classification) && CAST(:roleSignature AS text[]) "
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
