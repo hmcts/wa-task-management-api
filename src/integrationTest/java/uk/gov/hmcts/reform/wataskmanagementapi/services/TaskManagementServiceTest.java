@@ -600,8 +600,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             verify(camundaService, times(1)).deleteCftTaskState(taskId);
             verify(cftTaskDatabaseService).saveTask(taskResource);
-            assertTrue(output.getOut().contains("Error saving task with id " + taskId
-                                                    + " after successfully deleting Camunda task state:"));
+            assertTrue(output.getOut()
+                           .contains("Error occurred while terminating task with id: " + taskId),
+                       "Received log message:" + output.getOut());
         }
 
         @Test

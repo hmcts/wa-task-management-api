@@ -14,7 +14,7 @@ public abstract class BaseController {
     protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     protected static final String BAD_GATEWAY = "Bad Gateway";
     protected static final String TASK_ID = "task-id";
-    protected static final String COMPLETION_PROCESS = "completion_process";
+    public static final String COMPLETION_PROCESS = "completion_process";
 
 
     protected BaseController() {

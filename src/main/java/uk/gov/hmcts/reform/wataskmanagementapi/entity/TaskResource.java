@@ -24,6 +24,7 @@ import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 
 import java.io.Serializable;
@@ -44,7 +45,6 @@ public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
@@ -187,7 +187,10 @@ public class TaskResource implements Serializable {
     private Boolean indexed = false;
 
     @Schema(name = "termination_process")
-    private String terminationProcess;
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(columnDefinition = "termination_process_enum")
+    private TerminationProcess terminationProcess;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -559,7 +562,7 @@ public class TaskResource implements Serializable {
         this.indexed = indexed;
     }
 
-    public void setTerminationProcess(String terminationProcess) {
+    public void setTerminationProcess(TerminationProcess terminationProcess) {
         this.terminationProcess = terminationProcess;
     }
 
