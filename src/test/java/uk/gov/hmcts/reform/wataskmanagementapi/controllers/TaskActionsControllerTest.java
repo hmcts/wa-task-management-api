@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
@@ -38,7 +39,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -60,6 +64,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
@@ -88,7 +93,11 @@ class TaskActionsControllerTest {
     private TaskDeletionService taskDeletionService;
 
     private TaskActionsController taskActionsController;
+    @Mock
+    private CompletionProcessValidator completionProcessValidator;
     private String taskId;
+
+    private Map<String, Object> requestParamMap;
 
     @BeforeEach
     void setUp() {
@@ -98,9 +107,10 @@ class TaskActionsControllerTest {
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService
+            taskDeletionService,
+            completionProcessValidator
         );
-
+        requestParamMap = new HashMap<>();
     }
 
     @Test
@@ -238,6 +248,7 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+        doReturn(Optional.empty()).when(completionProcessValidator).validate(any(), anyString());
 
         ResponseEntity response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
@@ -250,7 +261,7 @@ class TaskActionsControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1))
-            .completeTask(taskId, mockAccessControlResponse, null);
+            .completeTask(taskId, mockAccessControlResponse, requestParamMap);
 
     }
 
@@ -262,10 +273,12 @@ class TaskActionsControllerTest {
 
         when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
             .thenReturn(true);
+        doReturn(Optional.empty()).when(completionProcessValidator).validate(any(), anyString());
+
 
         CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
 
-        ResponseEntity response = taskActionsController.completeTask(
+        ResponseEntity<Void> response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
@@ -279,7 +292,7 @@ class TaskActionsControllerTest {
             taskId,
             mockAccessControlResponse,
             request.getCompletionOptions(),
-            null
+            requestParamMap
         );
 
     }
@@ -289,10 +302,10 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-
+        doReturn(Optional.empty()).when(completionProcessValidator).validate(any(), anyString());
         CompleteTaskRequest request = new CompleteTaskRequest(null);
 
-        ResponseEntity response = taskActionsController.completeTask(
+        ResponseEntity<Void> response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
@@ -305,7 +318,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            null
+            requestParamMap
         );
 
     }
@@ -514,7 +527,7 @@ class TaskActionsControllerTest {
         "INVALID_COMPLETION_PROCESS"
     }, nullValues = "null")
     @ParameterizedTest(name = "should complete task with null termination process when flag disabled")
-    void should_complete_task_with_null_termination_process_when_flag_disabled(String completionProcess) {
+    void should_call_complete_task_without_completion_process_in_map_when_flag_disabled(String completionProcess) {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
@@ -535,30 +548,29 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            null
+            requestParamMap
         );
 
     }
 
     @CsvSource(value = {
-        "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
-        "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
-        "null, null",
-        ", null",
-        "'',null",
-        "INVALID_COMPLETION_PROCESS, null",
-    }, nullValues = "null", delimiter = ',')
+        "EXUI_USER_COMPLETION",
+        "EXUI_CASE-EVENT_COMPLETION"
+    }, nullValues = "null")
     @ParameterizedTest(name = "should complete task with valid termination process when flag enabled")
-    void should_complete_task_with_valid_termination_process_when_flag_enabled(String completionProcess,
-                                                                                 String terminationProcess) {
+    void should_call_complete_task_with_valid_completion_process_in_map_when_flag_enabled(String completionProcess) {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
         ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
                                      true);
         CompleteTaskRequest request = new CompleteTaskRequest(null);
+        doReturn(Optional.of(completionProcess)).when(completionProcessValidator).validate(anyString(), anyString());
 
-        ResponseEntity response = taskActionsController.completeTask(
+        Map<String, Object> requestParamMap = Map.of(
+            COMPLETION_PROCESS, completionProcess
+        );
+        ResponseEntity<Void> response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
@@ -571,7 +583,37 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            terminationProcess
+            requestParamMap
+        );
+    }
+
+    @CsvSource(value = {
+        "null",
+        "INVALID_COMPLETION_PROCESS",
+        "''"
+    }, nullValues = "null")
+    @ParameterizedTest(name = "should complete task with valid termination process when flag enabled")
+    void should_call_complete_task_with_empty_completion_process_in_map_when_flag_enabled(String completionProcess) {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
+                                     true);
+        CompleteTaskRequest request = new CompleteTaskRequest(null);
+        ResponseEntity<Void> response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            completionProcess,
+            request
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(taskManagementService, times(1)).completeTask(
+            taskId,
+            mockAccessControlResponse,
+            requestParamMap
         );
     }
 

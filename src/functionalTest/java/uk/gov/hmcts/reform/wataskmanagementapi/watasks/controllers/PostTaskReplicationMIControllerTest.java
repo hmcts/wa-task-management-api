@@ -1212,7 +1212,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
             .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
             .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
-            .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"));
+            .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
 
         common.cleanUpTask(taskId);
     }

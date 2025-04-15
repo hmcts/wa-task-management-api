@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
@@ -36,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,6 +60,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
 
 @ExtendWith(MockitoExtension.class)
 class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
@@ -153,19 +156,22 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+                HashMap<String, Object> requestParamMap = new HashMap<>();
+                requestParamMap.put(COMPLETION_PROCESS, "EXUI_USER_COMPLETION");
+
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(true),
-                    "EXUI_USER_COMPLETION"
+                    requestParamMap
                 );
-                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
-                assertEquals("EXUI_USER_COMPLETION", taskResource.getTerminationProcess());
-
-                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
-                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
                     .equals(mockedVariables.get("taskState"));
+                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                assertEquals(TerminationProcess.EXUI_USER_COMPLETION, taskResource.getTerminationProcess());
+
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
                 verify(camundaService, times(1))
                     .assignAndCompleteTask(taskId, IDAM_USER_ID, taskStateIsAssignededAlready);
             }
@@ -187,7 +193,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        null
+                        new HashMap<>()
                     ));
                 assertEquals(
                     "Role Assignment Verification: "
@@ -232,7 +238,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false),
-                    null
+                    new HashMap<>()
                 );
                 boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -259,7 +265,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        null
+                        new HashMap<>()
                     ));
                 assertEquals(
                     "Role Assignment Verification: "
@@ -295,7 +301,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        null
+                        new HashMap<>()
                     ));
                 assertEquals(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
@@ -320,7 +326,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        null
+                        new HashMap<>()
                     ));
                 assertEquals(
                     "Task Not Found Error: The task could not be found.",

@@ -24,15 +24,15 @@ import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 
 import java.io.Serializable;
+import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static java.sql.Types.TIMESTAMP;
 
 @ToString
 @Getter
@@ -46,7 +46,7 @@ public class TaskResource implements Serializable {
 
     private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
-    public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
+    public static final String TIMESTAMP = "TIMESTAMP";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -57,9 +57,9 @@ public class TaskResource implements Serializable {
     @Schema(name = "task_type")
     private String taskType;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
     @Schema(name = "due_date_time")
-    @JdbcTypeCode(TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
@@ -105,7 +105,8 @@ public class TaskResource implements Serializable {
     @Schema(name = "has_warnings")
     private Boolean hasWarnings = false;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "assignment_expiry")
     private OffsetDateTime assignmentExpiry;
     @EqualsAndHashCode.Include()
@@ -134,8 +135,8 @@ public class TaskResource implements Serializable {
     @Schema(name = "termination_reason")
     private String terminationReason;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
-    @JdbcTypeCode(TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     private OffsetDateTime created;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -154,28 +155,32 @@ public class TaskResource implements Serializable {
     @Schema(name = "additional_properties")
     private Map<String, String> additionalProperties;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "reconfigure_request_time")
     private OffsetDateTime reconfigureRequestTime;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "last_reconfiguration_time")
     private OffsetDateTime lastReconfigurationTime;
 
     @Schema(name = "next_hearing_id")
     private String nextHearingId;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "next_hearing_date")
     private OffsetDateTime nextHearingDate;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "priority_date")
     private OffsetDateTime priorityDate;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "last_updated_timestamp")
-    @JdbcTypeCode(TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     private OffsetDateTime lastUpdatedTimestamp;
 
     @Schema(name = "last_updated_user")
@@ -187,7 +192,10 @@ public class TaskResource implements Serializable {
     private Boolean indexed = false;
 
     @Schema(name = "termination_process")
-    private String terminationProcess;
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(columnDefinition = "termination_process_enum")
+    private TerminationProcess terminationProcess;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -559,7 +567,7 @@ public class TaskResource implements Serializable {
         this.indexed = indexed;
     }
 
-    public void setTerminationProcess(String terminationProcess) {
+    public void setTerminationProcess(TerminationProcess terminationProcess) {
         this.terminationProcess = terminationProcess;
     }
 

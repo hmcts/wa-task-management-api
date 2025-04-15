@@ -22,7 +22,7 @@ config:
   search:
     defaultMaxResults: 50
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
-  updateCompletionProcessFlagEnabled: ${UPDATE_COMPLETION_PROCESS_FLAG_ENABLED:false}
+  updateCompletionProcessFlagEnabled: ${UPDATE_COMPLETION_PROCESS_FLAG_ENABLED:true}
 
 core_case_data:
   api:

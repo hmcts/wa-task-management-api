@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRe
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -48,7 +49,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -76,6 +79,8 @@ public class TaskActionsController extends BaseController {
 
     private final TaskDeletionService taskDeletionService;
 
+    private final CompletionProcessValidator completionProcessValidator;
+
     @Value("${config.updateCompletionProcessFlagEnabled}")
     private boolean updateCompletionProcessFlagEnabled;
 
@@ -84,13 +89,15 @@ public class TaskActionsController extends BaseController {
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService,
-                                 TaskDeletionService taskDeletionService) {
+                                 TaskDeletionService taskDeletionService,
+                                 CompletionProcessValidator completionProcessValidator) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
+        this.completionProcessValidator = completionProcessValidator;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -238,13 +245,16 @@ public class TaskActionsController extends BaseController {
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-        Optional<String> completionProcessOptional = Optional.ofNullable(completionProcess);
+        Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
-        String terminationProcess = validateTerminationProcess(completionProcessOptional, taskId);
-
+        Optional<String> validatedCompletionProcess = completionProcessValidator.validate(completionProcess, taskId);
+        if (validatedCompletionProcess.isPresent() && updateCompletionProcessFlagEnabled
+            && !validatedCompletionProcess.get().isBlank()) {
+            requestParamMap.put(COMPLETION_PROCESS, validatedCompletionProcess.get());
+        }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse, terminationProcess);
+            taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -254,7 +264,7 @@ public class TaskActionsController extends BaseController {
                     taskId,
                     accessControlResponse,
                     completeTaskRequest.getCompletionOptions(),
-                    terminationProcess
+                    requestParamMap
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -420,30 +430,5 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
-    }
-
-    /**
-     * Validates the termination process value and returns it if valid.
-     *
-     * @param completionProcess the completion process value
-     * @param taskId the task ID
-     * @return the validated termination process value or null if not valid
-     */
-    protected String validateTerminationProcess(Optional<String> completionProcess, String taskId) {
-        if (!updateCompletionProcessFlagEnabled || completionProcess.isEmpty()) {
-            return null;
-        }
-        return completionProcess.map(process -> {
-            try {
-                TerminationProcess terminationProcess = TerminationProcess.fromValue(process);
-                log.info("TerminationProcess value: {} was received and updating in database for task with id"
-                             + " {}", process, taskId);
-                return terminationProcess.getValue();
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id"
-                             + " {}", process, taskId);
-                return null;
-            }
-        }).orElse(null);
     }
 }

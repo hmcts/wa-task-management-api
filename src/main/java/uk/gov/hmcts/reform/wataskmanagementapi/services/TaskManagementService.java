@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
@@ -82,6 +83,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
@@ -435,14 +437,18 @@ public class TaskManagementService {
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
-     * @param terminationProcess    the termination process using which task is completed
+     * @param requestParamMap       the termination process using which task is completed
      */
     @Transactional
     public void completeTask(String taskId, AccessControlResponse accessControlResponse,
-                             String terminationProcess) {
-
+                             Map<String, Object> requestParamMap) {
+        TerminationProcess terminationProcess = null;
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
+        if (requestParamMap != null && requestParamMap.get(COMPLETION_PROCESS) != null) {
+            final String completionProcess = requestParamMap.get(COMPLETION_PROCESS).toString();
+            terminationProcess = TerminationProcess.fromValue(completionProcess);
+        }
         boolean taskHasCompleted;
 
         checkCompletePermissions(taskId, accessControlResponse, userId);
@@ -476,20 +482,24 @@ public class TaskManagementService {
      * @param taskId                The task id to complete.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @param completionOptions     The completion options to orchestrate how this completion should be handled.
-     * @param terminationProcess    the termination process using which task is completed
+     * @param requestParamMap       the termination process using which task is completed
      */
     @Transactional
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions,
-                                                              String terminationProcess) {
+                                                              Map<String, Object> requestParamMap) {
         String userId = accessControlResponse.getUserInfo().getUid();
+        TerminationProcess terminationProcess = null;
+        if (requestParamMap != null && requestParamMap.get(COMPLETION_PROCESS) != null) {
+            final String completionProcess = requestParamMap.get(COMPLETION_PROCESS).toString();
+            terminationProcess = TerminationProcess.fromValue(completionProcess);
+        }
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
         if (completionOptions.isAssignAndComplete()) {
-
             TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
                 taskId,
                 accessControlResponse.getRoleAssignments(),
@@ -516,7 +526,7 @@ public class TaskManagementService {
             cftTaskDatabaseService.saveTask(task);
 
         } else {
-            completeTask(taskId, accessControlResponse, terminationProcess);
+            completeTask(taskId, accessControlResponse, requestParamMap);
         }
     }
 

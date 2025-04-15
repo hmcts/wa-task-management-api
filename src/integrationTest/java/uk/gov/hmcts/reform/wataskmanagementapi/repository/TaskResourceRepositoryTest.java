@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -254,7 +255,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
+        "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE_EVENT_COMPLETION",
         "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
         "NULL,NULL"
     }, nullValues = "NULL")
@@ -264,12 +265,19 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         log.info("Termination Process: {}", terminationProcess);
         log.info("Expected Termination Process: {}", expectedTerminationProcess);
         String taskId = UUID.randomUUID().toString();
+        TerminationProcess terminationProcessEnum;
+        if (terminationProcess != null)
+        {
+            terminationProcessEnum = TerminationProcess.fromValue(terminationProcess);
+        } else {
+            terminationProcessEnum = null;
+        }
 
         TaskResource taskResource = createTask(taskId, "tribunal-caseofficer", "IA",
                                                "startAppeal", "someAssignee", "1623278362430412",
                                                CFTTaskState.ASSIGNED);
 
-        taskResource.setTerminationProcess(terminationProcess);
+        taskResource.setTerminationProcess(terminationProcessEnum);
 
         taskResourceRepository.save(taskResource);
 
@@ -278,7 +286,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertAll(
             () -> assertTrue(taskResourceInDb.isPresent()),
             () -> assertEquals(taskId, taskResourceInDb.get().getTaskId()),
-            () -> assertEquals(terminationProcess, taskResourceInDb.get().getTerminationProcess())
+            () -> assertEquals(terminationProcessEnum, taskResourceInDb.get().getTerminationProcess())
         );
 
     }

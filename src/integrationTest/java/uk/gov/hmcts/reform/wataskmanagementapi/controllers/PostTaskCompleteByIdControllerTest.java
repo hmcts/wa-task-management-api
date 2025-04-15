@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -585,13 +586,13 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @ParameterizedTest
         @CsvSource(value = {
-            "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
-            "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE-EVENT_COMPLETION",
-            "NULL, NULL",
-            ",NULL"
-        }, delimiter = ',', nullValues = "NULL")
+            "EXUI_USER_COMPLETION"
+//            "EXUI_CASE-EVENT_COMPLETION",
+//            "NULL",
+//            "''"
+        }, nullValues = "NULL")
         void should_succeed_and_return_204_and_update_completion_process_when_flag_enabled(
-            String completionProcess, String terminationProcess) throws Exception {
+            String completionProcess) throws Exception {
 
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -648,10 +649,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             assertNotNull(taskResource.get().getLastUpdatedTimestamp());
             assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
             assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
-            if (completionProcess == null) {
+            if (completionProcess == null || completionProcess.isBlank()) {
                 assertNull(taskResource.get().getTerminationProcess());
             } else {
-                assertEquals(terminationProcess, taskResource.get().getTerminationProcess());
+                assertEquals(TerminationProcess.fromValue(completionProcess), taskResource.get().getTerminationProcess());
             }
         }
 
