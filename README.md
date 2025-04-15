@@ -1,17 +1,11 @@
 # Task Management API
 
-<<<<<<< Updated upstream
-Last reviewed on: **08/04/2025**
-
-[![Build Status](https://travis-ci.org/hmcts/wa-workflow-api.svg?branch=master)](https://travis-ci.org/hmcts/wa-task-management-api)
-=======
 [![GitHub branch status](https://img.shields.io/github/checks-status/hmcts/wa-task-management-api/master?label=Build%20Status)](https://github.com/hmcts/wa-task-management-api)
 ![Codecov](https://img.shields.io/codecov/c/github/hmcts/wa-task-management-api)
 
 [![License: MIT](https://img.shields.io/github/license/hmcts/wa-task-management-api)](https://opensource.org/licenses/MIT)
 
 Last reviewed on: **15/04/2025**
->>>>>>> Stashed changes
 
 #### What does this app do?
 
