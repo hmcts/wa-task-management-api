@@ -669,7 +669,7 @@ class NextHearingDateIntervalCalculatorTest {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         nextHearingDateIntervalCalculator
             = new NextHearingDateIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection));
 

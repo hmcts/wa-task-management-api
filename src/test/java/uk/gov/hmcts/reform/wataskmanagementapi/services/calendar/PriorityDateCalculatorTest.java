@@ -30,7 +30,7 @@ class PriorityDateCalculatorTest {
     private PriorityDateCalculator priorityDateCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         calculatedConfigurations = new ArrayList<>();
         priorityDateCalculator = new PriorityDateCalculator();
     }
