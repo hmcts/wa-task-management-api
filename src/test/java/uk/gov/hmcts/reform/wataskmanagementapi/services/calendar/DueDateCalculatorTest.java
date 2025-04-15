@@ -59,6 +59,11 @@ class DueDateCalculatorTest {
         );
     }
 
+    @BeforeEach
+    void before() {
+        dueDateCalculator = new DueDateCalculator();
+    }
+
     @ParameterizedTest
     @CsvSource({
         "true", "false"
@@ -241,11 +246,6 @@ class DueDateCalculatorTest {
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);
-    }
-
-    @BeforeEach
-    public void before() {
-        dueDateCalculator = new DueDateCalculator();
     }
 
     static class ConfigurableScenario {

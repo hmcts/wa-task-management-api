@@ -78,7 +78,7 @@ class AssignTaskTest extends CamundaHelpers {
     private List<TaskOperationPerformService> taskOperationPerformServices;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
             cftQueryService,

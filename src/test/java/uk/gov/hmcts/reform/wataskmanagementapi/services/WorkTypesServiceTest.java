@@ -41,7 +41,7 @@ class WorkTypesServiceTest {
     private WorkTypesService workTypesService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         workTypesService = new WorkTypesService(
             cftWorkTypeDatabaseService
         );
