@@ -27,7 +27,7 @@ class DueDateTimeCalculatorTest {
 
 
     @BeforeEach
-    public void before() {
+    void before() {
         dueDateTimeCalculator = new DueDateTimeCalculator();
     }
 
