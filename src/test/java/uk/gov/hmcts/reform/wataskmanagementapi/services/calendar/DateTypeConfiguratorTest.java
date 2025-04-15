@@ -31,10 +31,6 @@ class DateTypeConfiguratorTest {
         .name(CamundaValue.stringValue("priorityDate"))
         .value(CamundaValue.stringValue("2023-01-12T16:00"))
         .build();
-    ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
-        .name(CamundaValue.stringValue("nextHearingDate"))
-        .value(CamundaValue.stringValue(""))
-        .build();
     String defaultDate = DEFAULT_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "T16:00";
     private DateTypeConfigurator dateTypeConfigurator;
 
@@ -56,9 +52,8 @@ class DateTypeConfiguratorTest {
                 .build();
             //create a list of dmn responses including nextHearingDate which is set to null
             // e.g. when camunda value is empty for nextHearingDate it should set the value to empty
-            List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(nextHearingDate, dueDate,
-                                                                                   priorityDate
-            );
+            List<ConfigurationDmnEvaluationResponse> evaluationResponses =
+                List.of(nextHearingDate, dueDate, priorityDate);
 
             //call the configureDates method using the list of dmn responses
             List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(
@@ -290,7 +285,7 @@ class DateTypeConfiguratorTest {
                 .canReconfigure(CamundaValue.booleanValue(true))
                 .build();
 
-            ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
+            ConfigurationDmnEvaluationResponse priorityDate9Pm = ConfigurationDmnEvaluationResponse.builder()
                 .name(CamundaValue.stringValue("priorityDate"))
                 .value(CamundaValue.stringValue(dueDateValue + "T21:00"))
                 .canReconfigure(CamundaValue.booleanValue(false))
@@ -305,7 +300,7 @@ class DateTypeConfiguratorTest {
             List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
                 calculatedDates,
                 nextHearingDate,
-                priorityDate,
+                priorityDate9Pm,
                 dueDateOriginEarliest
             );
             List<ConfigurationDmnEvaluationResponse> dmnEvaluationResponses = dateTypeConfigurator.configureDates(

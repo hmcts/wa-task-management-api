@@ -336,8 +336,6 @@ class DmnEvaluationServiceTest {
             )
         );
 
-        DmnRequest<DecisionTableRequest> dmnRequest = new DmnRequest<>();
-
         doReturn(mockedResponse)
             .when(camundaServiceApi)
             .evaluateTaskTypesDmnTable(

@@ -210,12 +210,12 @@ class InitiateTaskTest extends CamundaHelpers {
         when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
             .thenReturn(taskWithAssignee);
 
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        TaskResource initiatedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(taskAutoAssignmentService, never()).autoAssignCFTTask(any());
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         verify(configureTaskService).configureCFTTask(
-            eq(taskResource),
+            eq(initiatedTask),
             ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
                 taskId,
                 A_TASK_TYPE,
@@ -230,7 +230,7 @@ class InitiateTaskTest extends CamundaHelpers {
             TaskState.ASSIGNED
         );
 
-        verify(cftTaskDatabaseService).saveTask(taskResource);
+        verify(cftTaskDatabaseService).saveTask(initiatedTask);
     }
 
     @NotNull
@@ -276,13 +276,13 @@ class InitiateTaskTest extends CamundaHelpers {
 
         lenient().when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
 
-        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        TaskResource initiatedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
         Map<String, Object> taskAttributes = getTaskAttributesWithDueDateUpdate(dueDate);
         verify(configureTaskService).configureCFTTask(
-            eq(taskResource),
+            eq(initiatedTask),
             ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
                 taskId,
                 A_TASK_TYPE,
@@ -292,14 +292,14 @@ class InitiateTaskTest extends CamundaHelpers {
             )))
         );
 
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+        verify(taskAutoAssignmentService).autoAssignCFTTask(initiatedTask);
 
         verify(camundaService).updateCftTaskState(
             taskId,
             TaskState.ASSIGNED
         );
 
-        verify(cftTaskDatabaseService).saveTask(taskResource);
+        verify(cftTaskDatabaseService).saveTask(initiatedTask);
     }
 
     @Test
