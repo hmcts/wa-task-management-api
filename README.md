@@ -1,10 +1,15 @@
-# wa-task-management-api
+# Task Management API
 
-[![Build Status](https://travis-ci.org/hmcts/wa-workflow-api.svg?branch=master)](https://travis-ci.org/hmcts/wa-task-management-api)
+[![GitHub branch status](https://img.shields.io/github/checks-status/hmcts/wa-task-management-api/master?label=Build%20Status)](https://github.com/hmcts/wa-task-management-api)
+![Codecov](https://img.shields.io/codecov/c/github/hmcts/wa-task-management-api)
+
+[![License: MIT](https://img.shields.io/github/license/hmcts/wa-task-management-api)](https://opensource.org/licenses/MIT)
+
+Last reviewed on: **15/04/2025**
 
 #### What does this app do?
 
-Provides API endpoints that enable clients manage Tasks in the Camunda Task Database.
+Provides API endpoints that enable clients to create and manage Tasks in the CFT Task Database.
 
 <!--
     Sequence Diagram Source:
@@ -16,8 +21,8 @@ Provides API endpoints that enable clients manage Tasks in the Camunda Task Data
 
 #### Access Management Process
 
-The general approach and interaction with Access Management is depicted below. The search endpoints has some slight
-differences but are similar.
+All requests to Task Management will check the requester has the appropriate permissions to access the Task resource they are interacting with.
+If the required permissions are not present then the request will not be fulfilled.
 
 <!--
     Sequence Diagram Source:
@@ -26,11 +31,6 @@ differences but are similar.
 -->
 
 ![task-management](access-management-process.png)
-
-Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to
-set `spring.main.allow-bean-definition-overriding` to `true`.
-
-JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4 and use the next generation
 
 ## Building and deploying the application
 
@@ -45,34 +45,44 @@ To build the project execute the following command:
   ./gradlew build
 ```
 
-This will do compilation, checkstyle, PMD checks , run tests , but not integration or functional tests.
+To perform appropriate checks with the build:
+
+```bash
+  ./gradlew check
+```
 
 ### Running the application
 
-- Prerequisite:
-    - Check if services are running in minikube, if not follow the README in
-      https://github.com/hmcts/wa-kube-environment
-    - Check if minikube IP is set as environment variable.
-        ```
-        echo $OPEN_ID_IDAM_URL
-        ```
-      You should see the ip and port as output, eg: http://192.168.64.14:30196.
-      If you do not see, then from your wa-kube-enviroment map environment variables
-        ```
-        source .env
-        ```
-- You can either run as Java Application from run configurations or
-    ```bash
-      ./gradlew clean bootRun
+#### Prerequisites:
+- The Task Management minikube local environment will be required to run the application fully.
+- If minikube is running follow the README in https://github.com/hmcts/wa-kube-environment
+- If you are running minikube with Apple silicone with ARM Architecture e.g. m1-4 make sure to set the environment with the below command
+   ```
+   export environment=local-arm-arch
+   ```
+- Check if minikube IP is set as environment variable.
     ```
-   - Before running the wa-task-management-application with the above command, If you want to run the application with profile replication make sure to set the spring-profile with the below command
+    echo $OPEN_ID_IDAM_URL
+    ```
+  You should see the ip and port as output, eg: http://192.168.64.14:30196.
+  If you do not see, then from your wa-kube-environment map environment variables
+    ```
+    source .env
+    ```
+
+#### Logical Replication:
+- Switch on logical replication running with the following environment variable:
      ```
      export SPRING_PROFILES_ACTIVE=replica;
      ```
-     And if you are running minikube with mac m1, m2 chips with ARM Architecture make sure to set the environment with the below command
-     ```
-     export environment=local-arm-arch
-     ```
+
+#### Run:
+
+- You can either run as Java Application from your IDE or use gradle:
+
+    ```bash
+      ./gradlew clean bootRun
+    ```
 
 - In order to test if the application is up, you can call its health endpoint:
 
@@ -99,23 +109,31 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
        ```
         ./idam-user-token.sh "${TEST_CASEOFFICER_USERNAME}" "${TEST_CASEOFFICER_PASSWORD}"
        ```
-      The command should generate a long token, copy the whole token and set in Authoirization header
+      The command should generate a long token, copy the whole token and set in Authorization header
       Authorization: Bearer 'your token'
       Note: if the command returns null, then make sure the environment variable is set and
       you have sourced the environment variables.
+
+
+#### Run tests
+- To run integration tests you must have Docker running on your machine.
+- To run integration tests, you can run the command:
+  ```bash
+       ./gradlew integration
+  ```
 
 - To run all functional tests or single test you can run as Junit, make sure the env is set
     ```
         OPEN_ID_IDAM_URL=http://'minikubeIP:port'
         Using simulator: OPEN_ID_IDAM_URL=http://sidam-simulator
     ```
-  Note: Make sure the BPMN and DMN are deployed onto Camunda locally.
--
-      BPMN project is wa-standalone-task-bpmn
-      DMN project is wa-task-configuration-template
-      Services wa_workflow_api should be running.
-      And WA Case Type CCD definition from wa-ccd-definitions is uploaded as well.
-- To run integration tests docker should be running.
+  - Your minikube environment should be running correctly.
+  - WA CCD definition should be uploaded into your CCD environment: https://github.com/hmcts/wa-ccd-definitions
+  - Ensure wa_workflow_api is running: https://github.com/hmcts/wa-workflow-api
+  - Make sure the BPMN and DMN are deployed onto Camunda locally which should have been completed with the minikube setup steps.
+    - WA BPMN project is wa-standalone-task-bpmn: https://github.com/hmcts/wa-standalone-task-bpmn
+    - WA DMN project is wa-task-configuration-template: https://github.com/hmcts/wa-task-configuration-template
+
 - To run all tests including junit, integration and functional. You can run the command
    ```
        ./gradlew test integration functional
@@ -144,13 +162,6 @@ and then using it to publish your tests:
 
 ```
 ./gradlew pactPublish
-```
-
-### Database replication
-To trigger the replication code you will have to run the code with the following env var
-
-```
-export SPRING_PROFILES_ACTIVE=replica
 ```
 
 ## License
