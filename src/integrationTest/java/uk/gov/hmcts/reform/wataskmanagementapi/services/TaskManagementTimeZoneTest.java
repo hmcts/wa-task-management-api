@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.utils;
+package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
