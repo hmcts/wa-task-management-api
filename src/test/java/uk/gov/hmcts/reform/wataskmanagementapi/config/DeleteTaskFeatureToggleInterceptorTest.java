@@ -40,7 +40,7 @@ class DeleteTaskFeatureToggleInterceptorTest {
         final boolean isValidRequest = deleteTaskFeatureToggleInterceptor
                 .preHandle(httpServletRequest, httpServletResponse, object);
 
-        assertThat(isValidRequest).isEqualTo(true);
+        assertThat(isValidRequest).isTrue();
     }
 
     @Test
@@ -57,6 +57,6 @@ class DeleteTaskFeatureToggleInterceptorTest {
                 .preHandle(httpServletRequest, httpServletResponse, object);
 
         assertThat(httpServletResponse.getStatus()).isEqualTo(SC_SERVICE_UNAVAILABLE);
-        assertThat(isValidRequest).isEqualTo(false);
+        assertThat(isValidRequest).isFalse();
     }
 }
