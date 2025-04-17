@@ -518,7 +518,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                                + "error_management, review_case, evidence, follow_up, pre_hearing, post_hearing, "
                                + "intermediate_track_hearing_work, multi_track_hearing_work, "
                                + "intermediate_track_decision_making_work, multi_track_decision_making_work, "
-                               + "query_work]")
+                               + "query_work, welsh_translation_work]")
                 ));
     }
 
@@ -1153,7 +1153,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         "intermediate_track_hearing_work",
         "multi_track_hearing_work",
         "intermediate_track_decision_making_work",
-        "multi_track_decision_making_work"
+        "multi_track_decision_making_work",
+        "welsh_translation_work"
     })
     void should_return_200_and_filter_by_each_work_type(String workType) throws Exception {
 
