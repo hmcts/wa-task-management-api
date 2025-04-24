@@ -298,7 +298,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
         reconfigTaskId = UUID.randomUUID().toString();
-        String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        String caseIdToday = "caseId2-" + OffsetDateTime.now();
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
@@ -312,34 +312,36 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             status().is(HttpStatus.OK.value())
         );
 
-        Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);
-        assertTrue(optionalTaskResource.isPresent());
+        Optional<TaskResource> optionalMarkReconfigTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);
 
-        assertNotNull(optionalTaskResource.get().getReconfigureRequestTime());
+        optionalMarkReconfigTaskResource.ifPresentOrElse(
+            task -> {
+                assertNotNull(task.getReconfigureRequestTime());
 
-        TaskResource taskResource = null;
+                List<TaskHistoryResource> taskHistoryResourceList
+                    = miReportingServiceForTest.findByTaskId(task.getTaskId());
 
-        taskResource = optionalTaskResource.get();
+                assertFalse(taskHistoryResourceList.isEmpty());
 
-        List<TaskHistoryResource> taskHistoryResourceList
-            = miReportingServiceForTest.findByTaskId(taskResource.getTaskId());
+                taskHistoryResourceList = taskHistoryResourceList.stream()
+                    .sorted(Comparator.comparing(TaskHistoryResource::getUpdateId))
+                    .toList().reversed();
 
-        assertFalse(taskHistoryResourceList.isEmpty());
+                TaskHistoryResource taskHistoryResource = null;
 
-        taskHistoryResourceList = taskHistoryResourceList.stream()
-            .sorted(Comparator.comparing(TaskHistoryResource::getUpdateId))
-            .toList().reversed();
-
-        TaskHistoryResource taskHistoryResource = null;
-
-        assertNotNull(taskHistoryResourceList.get(0).getReconfigureRequestTime());
-        taskHistoryResource = taskHistoryResourceList.get(0);
+                assertNotNull(taskHistoryResourceList.get(0).getReconfigureRequestTime());
+                taskHistoryResource = taskHistoryResourceList.get(0);
 
 
-        Assertions.assertThat(taskResource.getReconfigureRequestTime())
-            .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
-        Assertions.assertThat(taskHistoryResource.getReconfigureRequestTime())
-            .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
+                Assertions.assertThat(task.getReconfigureRequestTime())
+                    .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
+                Assertions.assertThat(taskHistoryResource.getReconfigureRequestTime())
+                    .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
+            },
+            () -> {
+                throw new AssertionFailedError("Task not found");
+            }
+        );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
@@ -366,31 +368,42 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
 
-        optionalTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);
-        assertTrue(optionalTaskResource.isPresent());
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);
 
-        assertNotNull(optionalTaskResource.get().getLastReconfigurationTime());
+                    optionalTaskResource.ifPresentOrElse(
+                        task -> {
+                            assertNotNull(task.getLastReconfigurationTime());
 
-        taskResource = optionalTaskResource.get();
+                            List<TaskHistoryResource> taskHistoryResourceList
+                                = miReportingServiceForTest.findByTaskId(task.getTaskId());
 
-        taskHistoryResourceList
-            = miReportingServiceForTest.findByTaskId(taskResource.getTaskId());
+                            assertFalse(taskHistoryResourceList.isEmpty());
 
-        assertFalse(taskHistoryResourceList.isEmpty());
+                            taskHistoryResourceList = taskHistoryResourceList.stream()
+                                .sorted(Comparator.comparing(TaskHistoryResource::getUpdateId))
+                                .toList().reversed();
 
-        taskHistoryResourceList = taskHistoryResourceList.stream()
-            .sorted(Comparator.comparing(TaskHistoryResource::getUpdateId))
-            .toList().reversed();
+                            assertNotNull(taskHistoryResourceList.get(0).getLastReconfigurationTime());
+                            TaskHistoryResource taskHistoryResource = taskHistoryResourceList.get(0);
 
-        assertNotNull(taskHistoryResourceList.get(0).getLastReconfigurationTime());
-        taskHistoryResource = taskHistoryResourceList.get(0);
+                            Assertions.assertThat(task.getLastReconfigurationTime())
+                                .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
+                            Assertions.assertThat(taskHistoryResource.getLastReconfigurationTime())
+                                .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
+                        },
+                        () -> {
+                            throw new AssertionFailedError("Task not found");
+                        }
+                    );
 
-        Assertions.assertThat(taskResource.getLastReconfigurationTime())
-            .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
-        Assertions.assertThat(taskHistoryResource.getLastReconfigurationTime())
-            .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
+                    return true;
+                });
 
     }
 
@@ -487,10 +500,6 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         String formattedAssignmentExpiry = CAMUNDA_DATA_TIME_FORMATTER.format(assignmentExpery);
         String formattedNextHearingDate = CAMUNDA_DATA_TIME_FORMATTER.format(nextHearingDate);
-
-
-        //taskResource.setReconfigureRequestTime(now.minusDays(1));
-        //taskResource.setLastReconfigurationTime(now.minusDays(2));
 
 
         Map<String, Object> taskAttributes = Map.of(
