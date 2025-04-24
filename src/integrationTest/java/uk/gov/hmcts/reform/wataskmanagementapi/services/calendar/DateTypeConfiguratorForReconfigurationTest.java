@@ -780,7 +780,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
     public void should_reconfigure_dates_based_task_attributes() {
         ZoneId systemDefault = ZoneId.systemDefault();
         taskAttributes.put(
-            "dueDateTime",
+            "dueDate",
             ZonedDateTime.of(2022, 12, 3, 16, 0, 0, 0, systemDefault)
                 .toOffsetDateTime()
         );

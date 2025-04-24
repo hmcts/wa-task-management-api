@@ -246,12 +246,7 @@ public interface DateCalculator {
     }
 
     private LocalDateTime getTaskAttributeDate(Map<String, Object> taskAttributes, String keyName) {
-        Object dateObject;
-        if (keyName.equals("dueDate")) {
-            dateObject = taskAttributes.get("dueDateTime");
-        } else {
-            dateObject = taskAttributes.get(keyName);
-        }
+        Object dateObject = taskAttributes.get(keyName);
         return Optional.ofNullable(dateObject).map(d -> parseDateTime(d.toString())).orElse(null);
     }
 }

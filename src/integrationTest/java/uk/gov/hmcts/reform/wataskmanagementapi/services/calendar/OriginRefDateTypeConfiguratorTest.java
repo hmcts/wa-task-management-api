@@ -952,7 +952,7 @@ public class OriginRefDateTypeConfiguratorTest {
         String nextHearingDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String dueDateValue = GIVEN_DATE.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         LocalDateTime taskResourceDueDate = GIVEN_DATE.minusDays(4);
-        taskAttributes.put("dueDateTime", taskResourceDueDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        taskAttributes.put("dueDate", taskResourceDueDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDate"))
