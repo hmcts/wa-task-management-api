@@ -26,7 +26,7 @@ class PriorityDateTimeCalculatorTest {
     private PriorityDateTimeCalculator priorityDateTimeCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         priorityDateTimeCalculator = new PriorityDateTimeCalculator();
     }
 
@@ -57,25 +57,7 @@ class PriorityDateTimeCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_supports_when_responses_contains_unconfigurable_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        ConfigurationDmnEvaluationResponse priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateTime"))
-            .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDateTime);
-
-        assertThat(priorityDateTimeCalculator.supports(evaluationResponses, PRIORITY_DATE_TYPE, configurable))
-            .isFalse();
+        should_not_supports_when_responses_contains_due_date(configurable);
     }
 
     @ParameterizedTest

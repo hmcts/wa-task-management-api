@@ -26,7 +26,7 @@ class GetTasksResponseTest {
 
         final GetTasksResponse<Task> camundaTasksGetTaskResponse = new GetTasksResponse<>(camundaTasks, 1);
 
-        assertThat(camundaTasksGetTaskResponse.getTasks().size()).isEqualTo(1);
+        assertThat(camundaTasksGetTaskResponse.getTasks()).hasSize(1);
         assertThat(camundaTasksGetTaskResponse.getTasks().get(0)).isEqualTo(camundaTask);
 
     }

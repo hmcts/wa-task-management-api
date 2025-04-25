@@ -27,7 +27,7 @@ class DueDateTimeCalculatorTest {
 
 
     @BeforeEach
-    public void before() {
+    void before() {
         dueDateTimeCalculator = new DueDateTimeCalculator();
     }
 
@@ -57,24 +57,7 @@ class DueDateTimeCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_supports_when_responses_contains_unconfigurable_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
-            .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
-
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isFalse();
+        should_not_supports_when_responses_contains_due_date(configurable);
     }
 
     @ParameterizedTest
@@ -103,24 +86,7 @@ class DueDateTimeCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_supports_when_responses_contains_unconfigurable_due_date_origin(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
-            .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T22:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime, dueDateOrigin);
-
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isFalse();
+        should_not_supports_when_responses_contains_due_date_origin(configurable);
     }
 
     @ParameterizedTest
@@ -140,15 +106,7 @@ class DueDateTimeCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_not_supports_when_responses_only_contains_unconfigurable_due_date_time(boolean configurable) {
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
-            .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDateTime);
-
-        assertThat(dueDateTimeCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isTrue();
+        should_supports_when_responses_only_contains_due_date_time(configurable);
     }
 
     @ParameterizedTest
