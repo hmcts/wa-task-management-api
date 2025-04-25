@@ -20,6 +20,19 @@ public class CompletionProcessValidator {
         "EXUI_CASE-EVENT_COMPLETION"
     );
 
+    /**
+     * Validates the completion process value.
+     *
+     * @param completionProcess the completion process value to validate
+     * @param taskId the task ID for logging purposes
+     * @return an Optional containing the valid completion process value, or empty if invalid
+     * Validation logic:
+     * If the updateCompletionProcessFlagEnabled flag is disabled, the method logs an info message
+     * and returns an empty {@link Optional}.
+     * If the completion process is null, blank, or not in the list of valid completion processes,
+     * the method logs a warning and returns an empty {@link Optional}.
+     * If the completion process is valid, the method logs an info message and returns the completion process
+     */
     public Optional<String> validate(String completionProcess, String taskId) {
         if (!updateCompletionProcessFlagEnabled) {
             log.info("Update completion process flag is disabled. No action taken for task with id {}", taskId);
