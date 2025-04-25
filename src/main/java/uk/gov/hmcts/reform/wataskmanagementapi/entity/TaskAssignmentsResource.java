@@ -9,8 +9,9 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 
-import java.sql.Types;
 import java.time.OffsetDateTime;
+
+import static java.sql.Types.TIMESTAMP;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
@@ -19,18 +20,18 @@ import java.time.OffsetDateTime;
 @Entity(name = "taskAssignments")
 @SuppressWarnings({"PMD.TooManyFields"})
 public class TaskAssignmentsResource {
-    public static final String TIMESTAMP = "TIMESTAMP";
+    public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
     @Id
     @EqualsAndHashCode.Include()
     private String assignmentId;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime assignmentStart;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime assignmentEnd;
 
     private String assignee;
@@ -43,7 +44,7 @@ public class TaskAssignmentsResource {
     private String taskName;
     private String assignmentEndReason;
 
-    @Column(columnDefinition = TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime reportRefreshTime;
 
 }

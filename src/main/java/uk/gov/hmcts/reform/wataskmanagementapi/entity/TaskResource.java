@@ -28,11 +28,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 
 import java.io.Serializable;
-import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static java.sql.Types.TIMESTAMP;
 
 @ToString
 @Getter
@@ -44,9 +45,8 @@ public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
-    public static final String TIMESTAMP = "TIMESTAMP";
+    public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -57,9 +57,9 @@ public class TaskResource implements Serializable {
     @Schema(name = "task_type")
     private String taskType;
 
-    @Column(columnDefinition = TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "due_date_time")
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
@@ -105,8 +105,7 @@ public class TaskResource implements Serializable {
     @Schema(name = "has_warnings")
     private Boolean hasWarnings = false;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "assignment_expiry")
     private OffsetDateTime assignmentExpiry;
     @EqualsAndHashCode.Include()
@@ -135,8 +134,8 @@ public class TaskResource implements Serializable {
     @Schema(name = "termination_reason")
     private String terminationReason;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime created;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -155,32 +154,28 @@ public class TaskResource implements Serializable {
     @Schema(name = "additional_properties")
     private Map<String, String> additionalProperties;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "reconfigure_request_time")
     private OffsetDateTime reconfigureRequestTime;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "last_reconfiguration_time")
     private OffsetDateTime lastReconfigurationTime;
 
     @Schema(name = "next_hearing_id")
     private String nextHearingId;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "next_hearing_date")
     private OffsetDateTime nextHearingDate;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "priority_date")
     private OffsetDateTime priorityDate;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     @Schema(name = "last_updated_timestamp")
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @JdbcTypeCode(TIMESTAMP)
     private OffsetDateTime lastUpdatedTimestamp;
 
     @Schema(name = "last_updated_user")

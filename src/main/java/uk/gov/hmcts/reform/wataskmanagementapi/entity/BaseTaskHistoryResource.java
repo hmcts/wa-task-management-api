@@ -11,11 +11,11 @@ import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 
-import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static java.sql.Types.TIMESTAMP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,7 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource.JSONB;
 @SuppressWarnings({"PMD.TooManyFields"})
 @MappedSuperclass
 public abstract class BaseTaskHistoryResource {
-    public static final String TIMESTAMP = "TIMESTAMP";
+    public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -36,8 +36,7 @@ public abstract class BaseTaskHistoryResource {
     protected String taskName;
     protected String taskType;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     protected OffsetDateTime dueDateTime;
 
     protected String state;
@@ -64,17 +63,15 @@ public abstract class BaseTaskHistoryResource {
     protected String businessContext;
     protected String terminationReason;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     protected OffsetDateTime assignmentExpiry;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     protected OffsetDateTime created;
     protected String updatedBy;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @JdbcTypeCode(TIMESTAMP)
     protected OffsetDateTime updated;
     protected String updateAction;
 
@@ -91,22 +88,18 @@ public abstract class BaseTaskHistoryResource {
     @Column(columnDefinition = JSONB)
     private Map<String, String> additionalProperties;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime reconfigureRequestTime;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime lastReconfigurationTime;
 
     private String nextHearingId;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime nextHearingDate;
 
-    @Column(columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime priorityDate;
 
     private String terminationProcess;
