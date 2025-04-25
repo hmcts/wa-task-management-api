@@ -266,8 +266,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         log.info("Expected Termination Process: {}", expectedTerminationProcess);
         String taskId = UUID.randomUUID().toString();
         TerminationProcess terminationProcessEnum;
-        if (terminationProcess != null)
-        {
+        if (terminationProcess != null) {
             terminationProcessEnum = TerminationProcess.fromValue(terminationProcess);
         } else {
             terminationProcessEnum = null;
