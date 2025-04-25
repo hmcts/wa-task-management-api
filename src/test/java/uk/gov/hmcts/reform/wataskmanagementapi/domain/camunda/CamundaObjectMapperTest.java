@@ -117,7 +117,7 @@ class CamundaObjectMapperTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         camundaObjectMapper = new CamundaObjectMapper();
     }
 }

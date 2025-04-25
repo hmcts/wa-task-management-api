@@ -372,7 +372,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
             cftTaskDatabaseService,
             cftQueryService,
@@ -816,23 +816,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
         @Test
         void unclaimTask_succeed_when_task_assignee_differs_from_user_and_role_is_senior_tribunal_caseworker() {
-            userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of(caseId));
-            when(cftQueryService.getTask(anyString(), anyList(), any(PermissionRequirements.class)))
-                .thenReturn(Optional.of(taskResource));
-            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
-
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-
-
-            boolean taskHasUnassigned = taskResource.getState().getValue().equals(CFTTaskState.UNASSIGNED.getValue());
-            taskManagementService.unclaimTask(taskId, accessControlResponse);
-            verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
+            unclaimTask_should_succeed();
         }
 
     }
@@ -2836,8 +2820,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThat(exception).isInstanceOf(InvalidRequestException.class);
             assertThat(exception.getTitle()).isEqualTo("Bad Request");
-            assertThat(exception.getType().toString())
-                .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/bad-request");
+            assertThat(exception.getType())
+                .hasToString("https://github.com/hmcts/wa-task-management-api/problem/bad-request");
 
             verifyNoInteractions(cftTaskDatabaseService);
         }
@@ -2918,11 +2902,11 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
             assertNotNull(exception.getViolations());
-            assertThat(exception.getViolations().size()).isEqualTo(1);
+            assertThat(exception.getViolations()).hasSize(1);
             assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
             assertThat(exception.getViolations().get(0).getField()).isEqualTo(field);
-            assertThat(exception.getType().toString())
-                .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
+            assertThat(exception.getType())
+                .hasToString("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
 
         }
     }
