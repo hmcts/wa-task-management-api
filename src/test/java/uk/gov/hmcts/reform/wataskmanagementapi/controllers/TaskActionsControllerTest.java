@@ -534,7 +534,7 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
+        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled",
                                      false);
         CompleteTaskRequest request = new CompleteTaskRequest(null);
 
@@ -565,7 +565,7 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
+        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled",
                                      true);
         CompleteTaskRequest request = new CompleteTaskRequest(null);
         doReturn(Optional.of(completionProcess)).when(completionProcessValidator)
@@ -601,7 +601,7 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
+        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled",
                                      true);
         CompleteTaskRequest request = new CompleteTaskRequest(null);
         ResponseEntity<Void> response = taskActionsController.completeTask(
