@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -68,6 +67,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEnt
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @Slf4j
 @RestController
+@RefreshScope
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
@@ -80,9 +80,6 @@ public class TaskActionsController extends BaseController {
     private final TaskDeletionService taskDeletionService;
 
     private final CompletionProcessValidator completionProcessValidator;
-
-    @Value("${config.updateCompletionProcessFlagEnabled}")
-    private boolean updateCompletionProcessFlagEnabled;
 
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
@@ -249,8 +246,7 @@ public class TaskActionsController extends BaseController {
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
         Optional<String> validatedCompletionProcess = completionProcessValidator.validate(completionProcess, taskId);
-        if (validatedCompletionProcess.isPresent() && updateCompletionProcessFlagEnabled
-            && !validatedCompletionProcess.get().isBlank()) {
+        if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
             requestParamMap.put(COMPLETION_PROCESS, validatedCompletionProcess.get());
         }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {

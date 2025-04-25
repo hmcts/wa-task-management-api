@@ -6,14 +6,15 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.boot.env.YamlPropertySourceLoader;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.context.refresh.ContextRefresher;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.PropertyPlaceholderHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("checkstyle:LineLength")
+@SpringBootTest
 public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
@@ -46,6 +48,15 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
     private TestAuthenticationCredentials caseworkerCredentials;
     private TestAuthenticationCredentials caseworkerCredentials2;
+
+    @Autowired
+    ContextRefresher refresher;
+
+    @Autowired
+    ConfigurableEnvironment env;
+
+    @Autowired
+    CompletionProcessValidator completionProcessValidator;
 
     @Before
     public void setUp() {
@@ -1153,7 +1164,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
         String propertyValue = getPropertyValue("config.updateCompletionProcessFlagEnabled",
                                                 "UPDATE_COMPLETION_PROCESS_FLAG_ENABLED");
+
+        // This test is skipped if the property value is set to false
         assumeTrue("Skipping test as flag is set to false", Boolean.parseBoolean(propertyValue));
+
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         initiateTask(taskVariables);
@@ -1185,6 +1199,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             caseworkerCredentials.getHeaders()
         );
 
+
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
@@ -1197,7 +1212,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultHistory.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("task_history_list.size()", equalTo(4))
-            .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"));
+            .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
 
         Response resultCompleteReport = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1375,42 +1390,5 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).wait_time", notNullValue());
 
         common.cleanUpTask(taskId);
-    }
-
-    /**
-     * Retrieves the value of a property from a YAML file and resolves any placeholders using environment variables.
-     *
-     * @param propertyName the name of the property to retrieve
-     * @param envVariable the name of the environment variable to use for placeholder resolution
-     * @return the resolved property value
-     * @throws IOException if an I/O error occurs
-     */
-    private String getPropertyValue(String propertyName, String envVariable) throws IOException {
-        // Load the YAML properties from the application.yaml file
-        YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
-        PropertySource<?> yamlTestProperties = loader.load(
-            "defaultApplicationYaml", new ClassPathResource("application.yaml")
-        ).get(0);
-
-        // Retrieve the original value of the specified property
-        String originalValue = (String) yamlTestProperties.getProperty(propertyName);
-
-        // Manually resolve placeholders using environment variables
-        PropertyPlaceholderHelper placeholderHelper = new PropertyPlaceholderHelper("${", "}", ":", true);
-
-        // Ensure the original value is not null
-        assert originalValue != null;
-
-        // Replace placeholders in the original value with environment variable values
-        String resolvedValue = placeholderHelper.replacePlaceholders(
-            originalValue,
-            placeholderName -> {
-                if (envVariable.equals(placeholderName)) {
-                    return System.getenv(envVariable);
-                }
-                return null; // explicitly returns null if another placeholder is found
-            }
-        );
-        return resolvedValue;
     }
 }

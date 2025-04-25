@@ -586,10 +586,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @ParameterizedTest
         @CsvSource(value = {
-            "EXUI_USER_COMPLETION"
-//            "EXUI_CASE-EVENT_COMPLETION",
-//            "NULL",
-//            "''"
+            "EXUI_USER_COMPLETION",
+            "EXUI_CASE-EVENT_COMPLETION",
+            "NULL",
+            "''"
         }, nullValues = "NULL")
         void should_succeed_and_return_204_and_update_completion_process_when_flag_enabled(
             String completionProcess) throws Exception {

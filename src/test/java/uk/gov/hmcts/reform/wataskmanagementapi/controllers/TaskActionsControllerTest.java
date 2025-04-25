@@ -248,7 +248,8 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        doReturn(Optional.empty()).when(completionProcessValidator).validate(any(), anyString());
+        doReturn(Optional.empty()).when(completionProcessValidator)
+            .validate(any(), anyString());
 
         ResponseEntity response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
@@ -273,7 +274,8 @@ class TaskActionsControllerTest {
 
         when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
             .thenReturn(true);
-        doReturn(Optional.empty()).when(completionProcessValidator).validate(any(), anyString());
+        doReturn(Optional.empty()).when(completionProcessValidator)
+            .validate(any(), anyString());
 
 
         CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
@@ -302,7 +304,8 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        doReturn(Optional.empty()).when(completionProcessValidator).validate(any(), anyString());
+        doReturn(Optional.empty()).when(completionProcessValidator)
+            .validate(any(), anyString());
         CompleteTaskRequest request = new CompleteTaskRequest(null);
 
         ResponseEntity<Void> response = taskActionsController.completeTask(
@@ -565,9 +568,10 @@ class TaskActionsControllerTest {
         ReflectionTestUtils.setField(taskActionsController, "updateCompletionProcessFlagEnabled",
                                      true);
         CompleteTaskRequest request = new CompleteTaskRequest(null);
-        doReturn(Optional.of(completionProcess)).when(completionProcessValidator).validate(anyString(), anyString());
+        doReturn(Optional.of(completionProcess)).when(completionProcessValidator)
+            .validate(anyString(), anyString());
 
-        Map<String, Object> requestParamMap = Map.of(
+        requestParamMap = Map.of(
             COMPLETION_PROCESS, completionProcess
         );
         ResponseEntity<Void> response = taskActionsController.completeTask(
