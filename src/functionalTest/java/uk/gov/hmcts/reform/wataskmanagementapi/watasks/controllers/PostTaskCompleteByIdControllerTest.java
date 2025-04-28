@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assume.assumeTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -98,6 +100,63 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         common.cleanUpTask(taskId);
 
+    }
+
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id_and_termination_process() throws IOException {
+        String propertyValue = getPropertyValue("config.updateCompletionProcessFlagEnabled",
+                                                "UPDATE_COMPLETION_PROCESS_FLAG_ENABLED");
+
+        // This test is skipped if the property value is set to false
+        assumeTrue("Skipping test as flag is set to false", Boolean.parseBoolean(propertyValue));
+
+        String[][] testData = {
+            {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
+            {"EXUI_CASE-EVENT_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"},
+            {"INVALID_VALUE", null},
+            {null, null},
+            {"", null}
+        };
+
+        for (String[] data : testData) {
+
+            TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+            taskId = taskVariables.getTaskId();
+            common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+
+            initiateTask(taskVariables);
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, waCaseworkerCredentials.getHeaders()
+            );
+            Response result = restApiActions.post(
+                CLAIM_ENDPOINT,
+                taskId,
+                waCaseworkerCredentials.getHeaders()
+            );
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, waCaseworkerCredentials.getHeaders()
+            );
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            String completionProcess = data[0];
+            String terminationProcess = data[1];
+            result = restApiActions.post(
+                ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
+                taskId,
+                waCaseworkerCredentials.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", terminationProcess, waCaseworkerCredentials.getHeaders()
+            );
+            assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+            assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
+
+            common.cleanUpTask(taskId);
+        }
     }
 
     @Test

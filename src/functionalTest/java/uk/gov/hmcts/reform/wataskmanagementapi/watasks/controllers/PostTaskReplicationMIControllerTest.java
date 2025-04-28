@@ -1203,6 +1203,16 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+        result.prettyPrint();
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task.termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"))
+            .body("task.id", equalTo(taskId));
         Response resultHistory = restApiActions.get(
             ENDPOINT_BEING_TESTED_HISTORY,
             taskId,

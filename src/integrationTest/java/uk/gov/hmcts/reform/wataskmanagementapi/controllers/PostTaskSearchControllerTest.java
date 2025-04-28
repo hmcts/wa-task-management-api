@@ -74,6 +74,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator.IN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION;
@@ -466,6 +467,49 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     status().isOk(),
                     jsonPath("total_records").value(0),
                     jsonPath("$.tasks").isEmpty()
+                ));
+    }
+
+    @Test
+    void should_return_200_list_with_termination_process_for_matching_search_criteria() throws Exception {
+
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "WA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "query_work");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("WA")),
+            new SearchParameterList(WORK_TYPE, IN, singletonList("query_work")),
+            new SearchParameterList(STATE, IN, singletonList("COMPLETED"))
+        ));
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchTaskRequest))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isOk(),
+                    jsonPath("total_records").value(1),
+                    jsonPath("$.tasks").isArray(),
+                    jsonPath("$.tasks[0].termination_process").value("EXUI_CASE-EVENT_COMPLETION")
                 ));
     }
 

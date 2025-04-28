@@ -281,6 +281,76 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     }
 
     @Test
+    void should_return_a_200_and_task_list_with_empty_termination_process() throws Exception {
+        String caseId = "searchForCompletableCaseId1";
+        searchEventAndCase = new SearchEventAndCase(
+            caseId,
+            "decideAnApplication",
+            "ia",
+            "asylum"
+        );
+        mockServices.mockUserInfo();
+
+        // Role attribute is IA
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+        // Task created is IA
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
+        );
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(accessControlResponse);
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "workType", new CamundaVariable("decision_making_work", "String"),
+            "description", new CamundaVariable("aDescription", "String")
+        ));
+        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
+            .thenReturn(mockedResponse);
+
+        when(camundaServiceApi.getAllVariables(any(), any()))
+            .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", taskId));
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(1))
+            .andExpect(jsonPath("tasks[0].assignee").value("IDAM_USER_ID"))
+            .andExpect(jsonPath("tasks[0].description").value("aDescription"))
+            .andExpect(jsonPath("tasks[0].termination_process").isEmpty());
+
+    }
+
+    @Test
     void should_return_task_with_granular_permissions_when_granular_permission_flag_on() throws Exception {
         String caseId = "searchForCompletableCaseId2";
         searchEventAndCase = new SearchEventAndCase(
