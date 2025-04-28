@@ -297,7 +297,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
         reconfigTaskId = UUID.randomUUID().toString();
-        String caseIdToday = "caseId2-" + OffsetDateTime.now();
+        String caseIdToday = UUID.randomUUID().toString();
         OffsetDateTime dueDateTime = OffsetDateTime.now(ZoneOffset.UTC);
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
