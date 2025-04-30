@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.LDValueType;
 import lombok.extern.slf4j.Slf4j;
@@ -27,19 +26,31 @@ public class CompletionProcessValidator {
     @Value("${environment}")
     private String environment;
 
-
     public CompletionProcessValidator(LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.featureFlagProvider = featureFlagProvider;
     }
 
-    private boolean isUpdateCompletionProcessFlagEnabled() {
+    /**
+     Checks if the "update completion process" feature flag is enabled for the current environment.
+
+     The method retrieves the value of the feature flag from LaunchDarkly using the
+     LaunchDarklyFeatureFlagProvider. It evaluates the flag value for the current environment
+     (e.g., "local", "demo", "production") and ensures it is a valid boolean.
+
+     If the flag value is not a valid boolean or is missing for the current environment,
+     the method logs a warning and defaults to false.
+
+     @return true if the feature flag is enabled for the current environment, false otherwise. */
+    public boolean isUpdateCompletionProcessFlagEnabled() {
         LDValue flagValue = featureFlagProvider.getJsonValue(
             FeatureFlag.WA_UPDATE_COMPLETION_PROCESS,
             LDValue.ofNull()
         );
-        if (flagValue != null && flagValue.get(environment) != null && flagValue.get(environment).getType() == LDValueType.BOOLEAN) {
+        if (flagValue != null && flagValue.get(environment) != null
+            && flagValue.get(environment).getType() == LDValueType.BOOLEAN) {
             boolean result = flagValue.get(environment).booleanValue();
-            log.info("Flag '{}' for environment '{}' evaluated to '{}'", FeatureFlag.WA_UPDATE_COMPLETION_PROCESS, environment, result);
+            log.info("Flag '{}' for environment '{}' evaluated to '{}'",
+                     FeatureFlag.WA_UPDATE_COMPLETION_PROCESS, environment, result);
             return result;
         } else {
             log.warn("Flag '{}' does not contain a valid boolean for environment '{}', defaulting to '{}'",
@@ -48,6 +59,7 @@ public class CompletionProcessValidator {
         }
 
     }
+
     /**
      * Validates the completion process value.
      * Validation logic:

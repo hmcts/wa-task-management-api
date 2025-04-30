@@ -1,25 +1,38 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
+import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 
+@ExtendWith(MockitoExtension.class)
 class CompletionProcessValidatorTest {
 
     private CompletionProcessValidator completionProcessValidator;
+    @Mock
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @BeforeEach
     void setUp() {
-        completionProcessValidator = new CompletionProcessValidator();
-        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled", true);
+        String jsonString = "{\"local\":true,\"demo\":false,\"production\":false}";
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(LDValue.parse(jsonString));
+        completionProcessValidator = new CompletionProcessValidator(launchDarklyFeatureFlagProvider);
+        ReflectionTestUtils.setField(completionProcessValidator, "environment", "local");
     }
 
     @ParameterizedTest
@@ -41,7 +54,10 @@ class CompletionProcessValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {"EXUI_USER_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"})
     void validate_returns_empty_when_update_completion_process_flag_is_disabled(String validCompletionProcess) {
-        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled", false);
+        String jsonString = "{\"local\":false,\"demo\":false,\"production\":false}";
+
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(LDValue.parse(jsonString));
         Optional<String> result = completionProcessValidator.validate(validCompletionProcess, "taskId123");
         assertTrue(result.isEmpty());
     }

@@ -9,13 +9,9 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.PropertyPlaceholderHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -116,12 +112,13 @@ public abstract class SpringBootFunctionalBaseTest {
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
+
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.workflow}")
     private String workflowUrl;
     @Value("${targets.instance}")
-    protected String testUrl;
+    private String testUrl;
     @Value("${launch_darkly.url}")
     private String launchDarklyUrl;
     @Value("${initiation_job_running}")
@@ -393,39 +390,4 @@ public abstract class SpringBootFunctionalBaseTest {
         return this.initiationJobRunning;
     }
 
-    /**
-     * Retrieves the value of a property from a YAML file and resolves any placeholders using environment variables.
-     *
-     * @param propertyName the name of the property to retrieve
-     * @param envVariable the name of the environment variable to use for placeholder resolution
-     * @return the resolved property value
-     * @throws IOException if an I/O error occurs
-     */
-    protected String getPropertyValue(String propertyName, String envVariable) throws IOException {
-        // Load the YAML properties from the application.yaml file
-        YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
-        PropertySource<?> yamlTestProperties = loader.load(
-            "defaultApplicationYaml", new ClassPathResource("application.yaml")
-        ).get(0);
-
-        // Retrieve the original value of the specified property
-        String originalValue = (String) yamlTestProperties.getProperty(propertyName);
-
-        // Manually resolve placeholders using environment variables
-        PropertyPlaceholderHelper placeholderHelper = new PropertyPlaceholderHelper("${", "}", ":", true);
-
-        // Ensure the original value is not null
-        assert originalValue != null;
-
-        // Replace placeholders in the original value with environment variable values
-        return placeholderHelper.replacePlaceholders(
-            originalValue,
-            placeholderName -> {
-                if (envVariable.equals(placeholderName)) {
-                    return System.getenv(envVariable);
-                }
-                return null; // explicitly returns null if another placeholder is found
-            }
-        );
-    }
 }

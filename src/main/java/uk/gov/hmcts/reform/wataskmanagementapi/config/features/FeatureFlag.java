@@ -8,7 +8,7 @@ public enum FeatureFlag {
 
     WA_MANDATORY_FIELD_CHECK("wa-mandatory-field-check"),
 
-    WA_UPDATE_COMPLETION_PROCESS("wa-update_completion-process"),
+    WA_UPDATE_COMPLETION_PROCESS("wa-update-completion-process"),
 
 
     //The following keys are used for testing purposes only.
