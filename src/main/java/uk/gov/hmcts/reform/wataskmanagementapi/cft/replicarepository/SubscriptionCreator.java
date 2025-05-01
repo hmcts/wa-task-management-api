@@ -86,9 +86,13 @@ public class SubscriptionCreator {
     void createSubscription(String host, String port, String dbName,
                             String replicaHost, String replicaPort, String replicaDbName) {
 
+        int passwordLength = replicaPassword.length();
+
+
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
             + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
-        log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
+        String replicaUrlNoPassword = replicaUrl.substring(0, replicaUrl.length() - passwordLength);
+        log.info("replicaUrl = " + replicaUrlNoPassword);
 
         String subscriptionUrl;
         if (LOCAL_ARM_ARCH.equals(environment)) {
@@ -99,9 +103,9 @@ public class SubscriptionCreator {
             subscriptionUrl = "postgresql://" + host + ":" + port + "/" + dbName
                 + AND_USER + primaryUser + AND_PASSWORD + primaryPassword;
         }
+        String truncatedSubscriptionUrl = subscriptionUrl.substring(0, subscriptionUrl.length() - passwordLength);
 
-        log.info("subscriptionUrl = " + subscriptionUrl
-            .substring(0, subscriptionUrl.length() - primaryPassword.length()));
+        log.info("subscriptionUrl = " + truncatedSubscriptionUrl);
 
         String sql = "CREATE SUBSCRIPTION task_subscription CONNECTION '" + subscriptionUrl
             + "' PUBLICATION task_publication WITH (slot_name = main_slot_v1, create_slot = FALSE);";
@@ -141,9 +145,11 @@ public class SubscriptionCreator {
     }
 
     private void refreshSubscription(String replicaHost, String replicaPort, String replicaDbName) {
+        int passwordLength = replicaPassword.length();
         String replicaUrl = "jdbc:postgresql://" + replicaHost + ":" + replicaPort + "/" + replicaDbName
             + AND_USER + replicaUser + AND_PASSWORD + replicaPassword;
-        log.info("replicaUrl = " + replicaUrl.substring(0, replicaUrl.length() - replicaPassword.length()));
+        String replicaUrlNoPassword = replicaUrl.substring(0, replicaUrl.length() - passwordLength);
+        log.info("replicaUrl = " + replicaUrlNoPassword);
 
         try (Connection subscriptionConn = DriverManager.getConnection(replicaUrl);
              Statement subscriptionStatement = subscriptionConn.createStatement();) {

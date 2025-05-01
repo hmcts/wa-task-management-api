@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -56,6 +58,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -93,8 +96,11 @@ class TaskActionsControllerTest {
     private TaskDeletionService taskDeletionService;
 
     private TaskActionsController taskActionsController;
+
     @Mock
     private CompletionProcessValidator completionProcessValidator;
+    @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private String taskId;
 
     private Map<String, Object> requestParamMap;
@@ -102,6 +108,10 @@ class TaskActionsControllerTest {
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
+        String jsonString = "{\"local\":false,\"demo\":false,\"production\":false, \"aat\":false,"
+            + "\"preview\":false,\"staging\":false,\"ithc\":false,\"local-arm-arch\":false}";
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(LDValue.parse(jsonString));
         taskActionsController = new TaskActionsController(
             taskManagementService,
             accessControlService,
@@ -534,8 +544,8 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled",
-                                     false);
+        ReflectionTestUtils.setField(completionProcessValidator, "environment", "local");
+
         CompleteTaskRequest request = new CompleteTaskRequest(null);
 
         ResponseEntity response = taskActionsController.completeTask(
@@ -565,8 +575,12 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled",
-                                     true);
+        String jsonString = "{\"local\":true,\"demo\":true,\"production\":true, \"aat\":true,"
+            + "\"preview\":true,\"staging\":true,\"ithc\":true,\"local-arm-arch\":true}";
+
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(LDValue.parse(jsonString));
+        ReflectionTestUtils.setField(completionProcessValidator, "environment", "local");
         CompleteTaskRequest request = new CompleteTaskRequest(null);
         doReturn(Optional.of(completionProcess)).when(completionProcessValidator)
             .validate(anyString(), anyString());
@@ -601,8 +615,13 @@ class TaskActionsControllerTest {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-        ReflectionTestUtils.setField(completionProcessValidator, "updateCompletionProcessFlagEnabled",
-                                     true);
+        String jsonString = "{\"local\":true,\"demo\":true,\"production\":true, \"aat\":true,"
+            + "\"preview\":true,\"staging\":true,\"ithc\":true}";
+
+        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
+            .thenReturn(LDValue.parse(jsonString));
+        ReflectionTestUtils.setField(completionProcessValidator, "environment", "local");
+
         CompleteTaskRequest request = new CompleteTaskRequest(null);
         ResponseEntity<Void> response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,

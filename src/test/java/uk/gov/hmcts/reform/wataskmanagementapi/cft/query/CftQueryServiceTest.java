@@ -543,6 +543,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
         @Test
         void shouldReturnRequestContextAvailableTasksAndIgnoreSearchParameterAvailableTasksOnly() {
+
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
                 RequestContext.AVAILABLE_TASKS,
                 List.of(
@@ -577,8 +578,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
             assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
             assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
-        }
 
+        }
 
         @Test
         void shouldReturnRequestContextAllWork() {
@@ -701,7 +702,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         private PermissionRequirements permissionsRequired;
 
         @BeforeEach
-        public void setup() {
+        void setup() {
             permissionsRequired = PermissionRequirementBuilder.builder().buildSingleRequirementWithOr(OWN, EXECUTE);
         }
 

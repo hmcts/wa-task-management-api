@@ -73,6 +73,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private TaskRoleResourceRepository taskRoleResourceRepository;
 
+
     @AfterEach
     void tearDown() {
         taskRoleResourceRepository.deleteAll();

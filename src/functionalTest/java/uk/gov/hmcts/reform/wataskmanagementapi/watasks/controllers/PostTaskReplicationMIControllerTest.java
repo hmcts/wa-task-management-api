@@ -1162,11 +1162,9 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     @Test
     public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() throws IOException {
 
-        String propertyValue = getPropertyValue("config.updateCompletionProcessFlagEnabled",
-                                                "UPDATE_COMPLETION_PROCESS_FLAG_ENABLED");
-
+        Boolean isFlagEnabled = completionProcessValidator.isUpdateCompletionProcessFlagEnabled();
         // This test is skipped if the property value is set to false
-        assumeTrue("Skipping test as flag is set to false", Boolean.parseBoolean(propertyValue));
+        assumeTrue("Skipping test as flag is set to false", isFlagEnabled);
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
