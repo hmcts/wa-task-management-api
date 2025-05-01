@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.utils;
+package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.replica.ReplicaTaskResourc
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskRoleResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
