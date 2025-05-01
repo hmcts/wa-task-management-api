@@ -119,7 +119,7 @@ public class CFTTaskMapper {
             workTypeResource,
             read(attributes, CamundaVariableDefinition.ROLE_CATEGORY, null),
             read(attributes, CamundaVariableDefinition.HAS_WARNINGS, false),
-            read(attributes, CamundaVariableDefinition.ASSIGNMENT_EXPIRY, null),
+            readDate(attributes, CamundaVariableDefinition.ASSIGNMENT_EXPIRY, null),
             read(attributes, CamundaVariableDefinition.CASE_ID, null),
             read(attributes, CamundaVariableDefinition.CASE_TYPE_ID, null),
             read(attributes, CamundaVariableDefinition.CASE_NAME, null),
