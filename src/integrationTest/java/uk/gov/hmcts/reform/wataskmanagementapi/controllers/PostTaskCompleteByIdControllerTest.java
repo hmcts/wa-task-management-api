@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
@@ -64,7 +65,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_OTHER_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
@@ -108,10 +109,9 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     void setUp() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-        String jsonString = "{\"local\":false,\"demo\":false,\"production\":false, \"aat\":false,"
-            + "\"preview\":false,\"staging\":false,\"ithc\":false,\"local-arm-arch\":false}";
-        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
-            .thenReturn(LDValue.parse(jsonString));
+
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
+                                                                       anyString(), anyString())).thenReturn(false);
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         lenient().when(mockedUserInfo.getUid())
@@ -602,11 +602,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         void should_succeed_and_return_204_and_update_completion_process_when_flag_enabled(
             String completionProcess) throws Exception {
             mockServices.mockUserInfo();
-            String jsonString = "{\"local\":true,\"demo\":true,\"production\":true, \"aat\":true,"
-                + "\"preview\":true,\"staging\":true,\"ithc\":true,\"local-arm-arch\":true}";
 
-            lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
-                .thenReturn(LDValue.parse(jsonString));
+            lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
+                                                                           anyString(), anyString())).thenReturn(true);
+
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
             RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -646,7 +645,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
-                        .param(COMPLETION_PROCESS, completionProcess)
+                        .param(REQ_PARAM_COMPLETION_PROCESS, completionProcess)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
@@ -676,11 +675,10 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         void should_succeed_and_return_204_and_not_update_completion_process_when_flag_disabled(
             String completionProcess) throws Exception {
             mockServices.mockUserInfo();
-            String jsonString = "{\"local\":false,\"demo\":false,\"production\":false, \"aat\":false,"
-                + "\"preview\":false,\"staging\":false,\"ithc\":false,\"local-arm-arch\":false}";
 
-            lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
-                .thenReturn(LDValue.parse(jsonString));
+            lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
+                                                                           anyString(), anyString())).thenReturn(false);
+
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
             RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -720,7 +718,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
-                        .param(COMPLETION_PROCESS, completionProcess)
+                        .param(REQ_PARAM_COMPLETION_PROCESS, completionProcess)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)

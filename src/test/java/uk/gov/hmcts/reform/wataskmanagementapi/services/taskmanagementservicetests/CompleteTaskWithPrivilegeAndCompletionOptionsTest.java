@@ -60,7 +60,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 
 @ExtendWith(MockitoExtension.class)
 class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
@@ -157,7 +157,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .thenReturn(Optional.of(taskResource));
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
                 HashMap<String, Object> requestParamMap = new HashMap<>();
-                requestParamMap.put(COMPLETION_PROCESS, "EXUI_USER_COMPLETION");
+                requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, "EXUI_USER_COMPLETION");
 
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,

@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
@@ -108,8 +107,6 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     protected TaskMandatoryFieldsValidator  taskMandatoryFieldsValidator;
-    @Autowired
-    protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
 

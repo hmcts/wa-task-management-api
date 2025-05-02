@@ -1,17 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.launchdarkly.sdk.LDValue;
-import com.launchdarkly.sdk.LDValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.MANDATORY_FIELDS_KEY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.NON_EXISTENT_KEY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.TEST_KEY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.WA_UPDATE_COMPLETION_PROCESS;
 
 
 public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
@@ -20,7 +20,7 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     public static final String SOME_USER_EMAIL = "test@test.com";
 
     @Autowired
-    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Test
     public void should_hit_launch_darkly_and_return_true() {
@@ -43,17 +43,10 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     }
 
     @Test
-    public void should_hit_launch_darkly_and_return_jsonvalue_update_completion_process_flag() {
-        boolean result = false;
+    public void should_hit_launch_darkly_and_return_booleanvalue_update_completion_process_flag() {
+        boolean flagValue = featureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE, SOME_USER_ID, SOME_USER_EMAIL);
 
-        LDValue flagValue = featureFlagProvider.getJsonValue(
-            WA_UPDATE_COMPLETION_PROCESS,
-            LDValue.ofNull()
-        );
-        if (flagValue != null && flagValue.get("local") != null
-            && flagValue.get("local").getType() == LDValueType.BOOLEAN) {
-            result = flagValue.get("local").booleanValue();
-        }
-        assertThat(result, is(true));
+        assertTrue(flagValue);
     }
 }

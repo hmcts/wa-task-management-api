@@ -27,6 +27,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -69,6 +71,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEnt
 @RefreshScope
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
+    public static final String REQ_PARAM_COMPLETION_PROCESS = "completion_process";
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private final TaskManagementService taskManagementService;
@@ -80,13 +83,16 @@ public class TaskActionsController extends BaseController {
 
     private final CompletionProcessValidator completionProcessValidator;
 
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService,
                                  TaskDeletionService taskDeletionService,
-                                 CompletionProcessValidator completionProcessValidator) {
+                                 CompletionProcessValidator completionProcessValidator,
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
@@ -94,6 +100,7 @@ public class TaskActionsController extends BaseController {
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
         this.completionProcessValidator = completionProcessValidator;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -226,7 +233,7 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
-                                             @RequestParam(name = COMPLETION_PROCESS, required = false)
+                                             @RequestParam(name = REQ_PARAM_COMPLETION_PROCESS, required = false)
                                              String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
@@ -234,9 +241,15 @@ public class TaskActionsController extends BaseController {
         Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
-        Optional<String> validatedCompletionProcess = completionProcessValidator.validate(completionProcess, taskId);
+        boolean isUpdateCompletionProcessFlagEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+        Optional<String> validatedCompletionProcess =
+            completionProcessValidator.validate(completionProcess, taskId, isUpdateCompletionProcessFlagEnabled);
         if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
-            requestParamMap.put(COMPLETION_PROCESS, validatedCompletionProcess.get());
+            requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
         }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);

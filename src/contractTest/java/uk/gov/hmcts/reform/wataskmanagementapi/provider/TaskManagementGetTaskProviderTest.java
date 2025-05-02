@@ -67,7 +67,8 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             systemDateProvider,
             clientAccessControlService,
             taskDeletionService,
-            completionProcessValidator
+            completionProcessValidator,
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {
