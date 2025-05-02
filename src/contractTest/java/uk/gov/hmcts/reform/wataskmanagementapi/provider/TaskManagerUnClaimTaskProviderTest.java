@@ -39,7 +39,8 @@ public class TaskManagerUnClaimTaskProviderTest extends SpringBootContractProvid
             systemDateProvider,
             clientAccessControlService,
             taskDeletionService,
-            completionProcessValidator
+            completionProcessValidator,
+            launchDarklyFeatureFlagProvider
         ));
         if (context != null) {
             context.setTarget(testTarget);
