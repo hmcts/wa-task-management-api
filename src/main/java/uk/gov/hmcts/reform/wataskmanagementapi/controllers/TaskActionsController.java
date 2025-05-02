@@ -27,6 +27,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -80,13 +82,16 @@ public class TaskActionsController extends BaseController {
 
     private final CompletionProcessValidator completionProcessValidator;
 
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService,
                                  TaskDeletionService taskDeletionService,
-                                 CompletionProcessValidator completionProcessValidator) {
+                                 CompletionProcessValidator completionProcessValidator,
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
@@ -94,6 +99,7 @@ public class TaskActionsController extends BaseController {
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
         this.completionProcessValidator = completionProcessValidator;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -234,7 +240,13 @@ public class TaskActionsController extends BaseController {
         Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
-        Optional<String> validatedCompletionProcess = completionProcessValidator.validate(completionProcess, taskId);
+        boolean isUpdateCompletionProcessFlagEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+        Optional<String> validatedCompletionProcess =
+            completionProcessValidator.validate(completionProcess, taskId, isUpdateCompletionProcessFlagEnabled);
         if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
             requestParamMap.put(COMPLETION_PROCESS, validatedCompletionProcess.get());
         }

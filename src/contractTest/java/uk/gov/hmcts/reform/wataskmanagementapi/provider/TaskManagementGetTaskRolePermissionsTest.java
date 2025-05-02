@@ -48,7 +48,8 @@ public class TaskManagementGetTaskRolePermissionsTest extends SpringBootContract
             systemDateProvider,
             clientAccessControlService,
             taskDeletionService,
-            completionProcessValidator
+            completionProcessValidator,
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {

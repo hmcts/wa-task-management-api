@@ -14,11 +14,9 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
-import java.io.IOException;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,7 +26,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,7 +44,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     private static final String ENDPOINT_BEING_TESTED_CANCEL = "task/{task-id}/cancel";
 
     private TestAuthenticationCredentials caseworkerCredentials;
-    private TestAuthenticationCredentials caseworkerCredentials2;
 
     @Autowired
     ContextRefresher refresher;
@@ -55,13 +51,9 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     @Autowired
     ConfigurableEnvironment env;
 
-    @Autowired
-    CompletionProcessValidator completionProcessValidator;
-
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        caseworkerCredentials2 = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r3-");
     }
 
     @After
@@ -1160,29 +1152,28 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     }
 
     @Test
-    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() throws IOException {
+    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
+        TestAuthenticationCredentials caseworkerCredentials3 = authorizationProvider.getNewTribunalCaseworker(
+            "wa-ft-test-completion-process-enabled-");
 
-        Boolean isFlagEnabled = completionProcessValidator.isUpdateCompletionProcessFlagEnabled();
         // This test is skipped if the property value is set to false
-        assumeTrue("Skipping test as flag is set to false", isFlagEnabled);
-
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         initiateTask(taskVariables);
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials3.getHeaders(), "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseworkerCredentials3.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         Response resultReportable = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials3.getHeaders()
         );
 
         resultReportable.prettyPrint();
@@ -1194,7 +1185,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials3.getHeaders()
         );
 
 
@@ -1204,7 +1195,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         Response resultHistory = restApiActions.get(
             ENDPOINT_BEING_TESTED_HISTORY,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials3.getHeaders()
         );
         resultHistory.prettyPrint();
         resultHistory.then().assertThat()
@@ -1215,7 +1206,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         Response resultCompleteReport = restApiActions.get(
             ENDPOINT_BEING_TESTED_REPORTABLE,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseworkerCredentials3.getHeaders()
         );
 
         resultCompleteReport.prettyPrint();
@@ -1228,12 +1219,86 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
 
         common.cleanUpTask(taskId);
+        authorizationProvider.deleteAccount(caseworkerCredentials3.getAccount().getUsername());
+    }
+
+    @Test
+    public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
+
+        // This test is skipped if the property value is set to false
+        TestAuthenticationCredentials caseworkerCredentials4 = authorizationProvider.getNewTribunalCaseworker(
+            "wa-ft-test-completion-process-disabled-");
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
+                                                                       "Process Application");
+        initiateTask(taskVariables);
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials4.getHeaders(), "tribunal-caseworker");
+
+        String taskId = taskVariables.getTaskId();
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials4.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        Response resultReportable = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials4.getHeaders()
+        );
+
+        resultReportable.prettyPrint();
+        resultReportable.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1));
+
+
+        Response resultComplete = restApiActions.post(
+            ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
+            taskId,
+            caseworkerCredentials4.getHeaders()
+        );
+
+
+        resultComplete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        Response resultHistory = restApiActions.get(
+            ENDPOINT_BEING_TESTED_HISTORY,
+            taskId,
+            caseworkerCredentials4.getHeaders()
+        );
+        resultHistory.prettyPrint();
+        resultHistory.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task_history_list.size()", equalTo(4))
+            .body("task_history_list.get(3).termination_process", nullValue());
+
+        Response resultCompleteReport = restApiActions.get(
+            ENDPOINT_BEING_TESTED_REPORTABLE,
+            taskId,
+            caseworkerCredentials4.getHeaders()
+        );
+
+        resultCompleteReport.prettyPrint();
+        resultCompleteReport.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("reportable_task_list.size()", equalTo(1))
+            .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+            .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+            .body("reportable_task_list.get(0).termination_process", nullValue());
+
+        common.cleanUpTask(taskId);
+        authorizationProvider.deleteAccount(caseworkerCredentials4.getAccount().getUsername());
     }
 
 
     @Test
     public void user_should_cancel_task_when_role_assignment_verification_passed() {
-
+        TestAuthenticationCredentials caseworkerCredentials2 = authorizationProvider.getNewTribunalCaseworker(
+            "wa-ft-test-r3-");
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
             "Review Specific Access Request Judiciary");
 
@@ -1279,6 +1344,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).first_assigned_date_time", nullValue());
 
         common.cleanUpTask(taskId);
+        authorizationProvider.deleteAccount(caseworkerCredentials2.getAccount().getUsername());
     }
 
     @Test
