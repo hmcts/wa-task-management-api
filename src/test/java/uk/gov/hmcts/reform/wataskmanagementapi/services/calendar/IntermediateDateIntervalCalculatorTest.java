@@ -653,31 +653,7 @@ class IntermediateDateIntervalCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_not_supports_when_responses_contains_due_date_origin_and_configurable_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DATE_TIME_FORMATTER);
-
-        var nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDuration = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDuration"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
-            nextHearingDurationOrigin,
-            nextHearingDuration
-        );
-
-        assertThat(intermediateDateIntervalCalculator.supports(
-            evaluationResponses,
-            INTERMEDIATE_DATE_TYPE,
-            configurable
-        )).isFalse();
+        should_not_supports_when_responses_contains_due_date_origin_and_due_date(configurable);
     }
 
     @ParameterizedTest
@@ -732,31 +708,7 @@ class IntermediateDateIntervalCalculatorTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_supports_when_responses_only_contains_due_date_origin_but_not_due_date(boolean configurable) {
-        String expectedDueDate = GIVEN_DATE.plusDays(0)
-            .format(DATE_TIME_FORMATTER);
-
-        var nextHearingDurationOrigin = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDurationOrigin"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        var nextHearingDurationTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("nextHearingDurationTime"))
-            .value(CamundaValue.stringValue("16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
-            nextHearingDurationOrigin,
-            nextHearingDurationTime
-        );
-
-        assertThat(intermediateDateIntervalCalculator.supports(
-            evaluationResponses,
-            INTERMEDIATE_DATE_TYPE,
-            configurable
-        )).isTrue();
+        should_supports_when_responses_only_contains_due_date_but_not_origin(configurable);
     }
 
     @ParameterizedTest
@@ -791,7 +743,7 @@ class IntermediateDateIntervalCalculatorTest {
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         intermediateDateIntervalCalculator = new IntermediateDateIntervalCalculator(new WorkingDayIndicator(
             publicHolidaysCollection));
 
