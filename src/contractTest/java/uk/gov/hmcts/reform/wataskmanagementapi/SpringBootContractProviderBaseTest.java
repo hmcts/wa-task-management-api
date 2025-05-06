@@ -55,7 +55,6 @@ public class SpringBootContractProviderBaseTest {
     @Mock
     protected CompletionProcessValidator completionProcessValidator;
 
-
     @Mock
     protected TaskOperationService taskOperationService;
 

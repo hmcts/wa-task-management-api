@@ -20,7 +20,7 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     public static final String SOME_USER_EMAIL = "test@test.com";
 
     @Autowired
-    protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Test
     public void should_hit_launch_darkly_and_return_true() {
