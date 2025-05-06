@@ -10,11 +10,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Mark
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -22,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.util.Collections.emptyMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.MARK_FOR_RECONFIGURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttributesBuilder.setTaskActionAttributes;
@@ -33,14 +30,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
 public class MarkTaskReconfigurationService implements TaskOperationPerformService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final CaseConfigurationProviderService caseConfigurationProviderService;
     private final IdamTokenGenerator idamTokenGenerator;
 
     public MarkTaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
-                                          CaseConfigurationProviderService caseConfigurationProviderService,
                                           IdamTokenGenerator idamTokenGenerator) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.caseConfigurationProviderService = caseConfigurationProviderService;
         this.idamTokenGenerator = idamTokenGenerator;
     }
 
@@ -51,13 +45,9 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
             .map(Object::toString)
             .toList();
 
-        List<String> reconfigurableCaseIds = caseIds.stream()
-            .filter(this::isReconfigurable)
-            .toList();
-
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-                reconfigurableCaseIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+                caseIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
         List<TaskResource> successfulTaskResources = new ArrayList<>();
         List<String> taskIds = taskResources.stream()
@@ -85,16 +75,6 @@ public class MarkTaskReconfigurationService implements TaskOperationPerformServi
         }
         return new TaskOperationResponse();
     }
-
-    public boolean isReconfigurable(String caseId) {
-        List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
-            .evaluateConfigurationDmn(caseId, emptyMap());
-        return results.stream().filter(result -> result.getCanReconfigure() != null)
-            .findAny()
-            .map(result -> result.getCanReconfigure().getValue())
-            .orElseGet(() -> false);
-    }
-
 
     private List<String> updateReconfigureRequestTime(List<String> taskIds,
                                                       List<TaskResource> successfulTaskResources) {
