@@ -521,9 +521,7 @@ public class TaskManagementService {
                 userId,
                 taskStateIsAssignedAlready
             );
-            task.setState(CFTTaskState.COMPLETED);
             task.setTerminationProcess(terminationProcess);
-            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
