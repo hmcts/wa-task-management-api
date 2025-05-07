@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.task;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -231,7 +230,6 @@ public class Task {
     private ZonedDateTime lastReconfigurationTime;
 
     @Schema(name = "termination_process", description = "Termination Process")
-    @JsonInclude(JsonInclude.Include.ALWAYS)
     private String terminationProcess;
 
     public Task(String id,

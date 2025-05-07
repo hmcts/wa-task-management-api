@@ -12,9 +12,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -103,12 +103,9 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_204_when_completing_a_task_by_id_and_termination_process() throws IOException {
-        String propertyValue = getPropertyValue("config.updateCompletionProcessFlagEnabled",
-                                                "UPDATE_COMPLETION_PROCESS_FLAG_ENABLED");
-
-        // This test is skipped if the property value is set to false
-        assumeTrue("Skipping test as flag is set to false", Boolean.parseBoolean(propertyValue));
+    public void should_return_a_204_when_completing_a_task_by_id_and_termination_process() {
+        TestAuthenticationCredentials userWithCompletionProcessEnabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
 
         String[][] testData = {
             {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
@@ -122,19 +119,19 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
             TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
             taskId = taskVariables.getTaskId();
-            common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+            common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessEnabled.getHeaders());
 
             initiateTask(taskVariables);
             assertions.taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", null, waCaseworkerCredentials.getHeaders()
+                taskId, "termination_process", null, userWithCompletionProcessEnabled.getHeaders()
             );
             Response result = restApiActions.post(
                 CLAIM_ENDPOINT,
                 taskId,
-                waCaseworkerCredentials.getHeaders()
+                userWithCompletionProcessEnabled.getHeaders()
             );
             assertions.taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", null, waCaseworkerCredentials.getHeaders()
+                taskId, "termination_process", null, userWithCompletionProcessEnabled.getHeaders()
             );
             result.then().assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
@@ -143,19 +140,77 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             result = restApiActions.post(
                 ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
                 taskId,
-                waCaseworkerCredentials.getHeaders()
+                userWithCompletionProcessEnabled.getHeaders()
             );
 
             result.then().assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
 
             assertions.taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", terminationProcess, waCaseworkerCredentials.getHeaders()
+                taskId, "termination_process", terminationProcess, userWithCompletionProcessEnabled.getHeaders()
             );
             assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-            assertions.taskStateWasUpdatedInDatabase(taskId, "completed", waCaseworkerCredentials.getHeaders());
+            assertions.taskStateWasUpdatedInDatabase(taskId, "completed",
+                                                     userWithCompletionProcessEnabled.getHeaders());
 
             common.cleanUpTask(taskId);
+            authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
+        }
+    }
+
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id_and_null_termination_process_when_flag_disabled() {
+        TestAuthenticationCredentials userWithCompletionProcessDisabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
+
+        String[][] testData = {
+            {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
+            {"EXUI_CASE-EVENT_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"},
+            {"INVALID_VALUE", null},
+            {null, null},
+            {"", null}
+        };
+
+        for (String[] data : testData) {
+
+            TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+            taskId = taskVariables.getTaskId();
+            common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessDisabled.getHeaders());
+
+            initiateTask(taskVariables);
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessDisabled.getHeaders()
+            );
+            Response result = restApiActions.post(
+                CLAIM_ENDPOINT,
+                taskId,
+                userWithCompletionProcessDisabled.getHeaders()
+            );
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessDisabled.getHeaders()
+            );
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            String completionProcess = data[0];
+            String terminationProcess = data[1];
+            result = restApiActions.post(
+                ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
+                taskId,
+                userWithCompletionProcessDisabled.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessDisabled.getHeaders()
+            );
+            assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+            assertions.taskStateWasUpdatedInDatabase(taskId, "completed",
+                                                     userWithCompletionProcessDisabled.getHeaders());
+
+            common.cleanUpTask(taskId);
+            authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
         }
     }
 

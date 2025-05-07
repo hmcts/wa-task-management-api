@@ -220,8 +220,10 @@ public class CFTTaskMapper {
             taskResource.getLastReconfigurationTime() == null ? null
                 : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
-        task.setTerminationProcess(
-            taskResource.getTerminationProcess() != null ? taskResource.getTerminationProcess().getValue() : null);
+
+        if (taskResource.getTerminationProcess() != null) {
+            task.setTerminationProcess(taskResource.getTerminationProcess().getValue());
+        }
         return task;
 
     }
