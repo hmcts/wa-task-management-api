@@ -155,7 +155,7 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
-        if (!isCompletionProcessUpdateEnabled && response!= null && response.getTasks() != null) {
+        if (!isCompletionProcessUpdateEnabled && response != null && response.getTasks() != null) {
             response.getTasks().forEach(task -> task.setTerminationProcess(null));
         }
 
