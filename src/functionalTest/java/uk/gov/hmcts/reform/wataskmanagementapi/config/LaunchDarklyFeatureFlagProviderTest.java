@@ -50,7 +50,7 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     @Test
     public void should_hit_launch_darkly_and_return_as_true_when_update_completion_process_flag_enabled_for_user() {
         boolean flagValue = featureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE, USER_WITH_COMPLETION_FLAG_ENABLED, SOME_USER_EMAIL);
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE, SOME_USER_EMAIL, USER_WITH_COMPLETION_FLAG_ENABLED);
 
         assertTrue(flagValue);
     }
@@ -58,7 +58,7 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     @Test
     public void should_hit_launch_darkly_and_return_as_true_when_update_completion_process_flag_disabled_for_user() {
         boolean flagValue = featureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE, USER_WITH_COMPLETION_FLAG_DISABLED, SOME_USER_EMAIL);
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE, SOME_USER_EMAIL, USER_WITH_COMPLETION_FLAG_DISABLED);
 
         assertFalse(flagValue);
     }
