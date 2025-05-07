@@ -60,7 +60,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.COMPLETE_OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 
 @ExtendWith(MockitoExtension.class)
 class CompleteTaskTest extends CamundaHelpers {
@@ -135,7 +135,7 @@ class CompleteTaskTest extends CamundaHelpers {
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         Map<String,Object> requestMap = new HashMap<>();
-        requestMap.put(COMPLETION_PROCESS, "EXUI_CASE-EVENT_COMPLETION");
+        requestMap.put(REQ_PARAM_COMPLETION_PROCESS, "EXUI_CASE-EVENT_COMPLETION");
 
         taskManagementService.completeTask(taskId, accessControlResponse, requestMap);
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));

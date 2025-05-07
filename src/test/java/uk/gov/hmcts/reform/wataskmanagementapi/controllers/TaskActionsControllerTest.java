@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +67,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
@@ -110,8 +109,6 @@ class TaskActionsControllerTest {
     void setUp() {
         taskId = UUID.randomUUID().toString();
 
-        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
-            .thenReturn(LDValue.of(false));
         taskActionsController = new TaskActionsController(
             taskManagementService,
             accessControlService,
@@ -585,7 +582,7 @@ class TaskActionsControllerTest {
             .validate(anyString(), anyString(), anyBoolean());
 
         requestParamMap = Map.of(
-            COMPLETION_PROCESS, completionProcess
+            REQ_PARAM_COMPLETION_PROCESS, completionProcess
         );
         ResponseEntity<Void> response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
@@ -609,8 +606,8 @@ class TaskActionsControllerTest {
         "INVALID_COMPLETION_PROCESS",
         "''"
     }, nullValues = "null")
-    @ParameterizedTest(name = "should complete task with valid termination process when flag enabled")
-    void should_call_complete_task_with_empty_completion_process_in_map_when_flag_enabled(String completionProcess) {
+    @ParameterizedTest(name = "should complete task with null termination process for invalid values when flag enabled")
+    void should_complete_with_null_completion_process_when_flag_enabled_for_invalid_values(String completionProcess) {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);

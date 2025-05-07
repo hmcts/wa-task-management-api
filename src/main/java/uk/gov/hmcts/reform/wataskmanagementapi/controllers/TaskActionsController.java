@@ -71,6 +71,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEnt
 @RefreshScope
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
+    public static final String REQ_PARAM_COMPLETION_PROCESS = "completion_process";
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private final TaskManagementService taskManagementService;
@@ -232,7 +233,7 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
-                                             @RequestParam(name = COMPLETION_PROCESS, required = false)
+                                             @RequestParam(name = REQ_PARAM_COMPLETION_PROCESS, required = false)
                                              String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
@@ -248,7 +249,7 @@ public class TaskActionsController extends BaseController {
         Optional<String> validatedCompletionProcess =
             completionProcessValidator.validate(completionProcess, taskId, isUpdateCompletionProcessFlagEnabled);
         if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
-            requestParamMap.put(COMPLETION_PROCESS, validatedCompletionProcess.get());
+            requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
         }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);

@@ -65,7 +65,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASS
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_OTHER_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
@@ -645,7 +645,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
-                        .param(COMPLETION_PROCESS, completionProcess)
+                        .param(REQ_PARAM_COMPLETION_PROCESS, completionProcess)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
@@ -718,7 +718,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
-                        .param(COMPLETION_PROCESS, completionProcess)
+                        .param(REQ_PARAM_COMPLETION_PROCESS, completionProcess)
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)

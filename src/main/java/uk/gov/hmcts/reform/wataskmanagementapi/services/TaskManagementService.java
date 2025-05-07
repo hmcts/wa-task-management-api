@@ -83,7 +83,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController.COMPLETION_PROCESS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
@@ -110,7 +110,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
     "PMD.CognitiveComplexity"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
-
+    public static final String REQUEST_PARAM_MAP_CANNOT_BE_NULL = "Request param map cannot be null";
     private final CamundaService camundaService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
@@ -444,9 +444,10 @@ public class TaskManagementService {
                              Map<String, Object> requestParamMap) {
         TerminationProcess terminationProcess = null;
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
-        if (requestParamMap != null && requestParamMap.get(COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(COMPLETION_PROCESS).toString();
+        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
+            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
             terminationProcess = TerminationProcess.fromValue(completionProcess);
         }
         boolean taskHasCompleted;
@@ -491,11 +492,12 @@ public class TaskManagementService {
                                                               Map<String, Object> requestParamMap) {
         String userId = accessControlResponse.getUserInfo().getUid();
         TerminationProcess terminationProcess = null;
-        if (requestParamMap != null && requestParamMap.get(COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(COMPLETION_PROCESS).toString();
+        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
+        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
+        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
+            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
             terminationProcess = TerminationProcess.fromValue(completionProcess);
         }
-        requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
@@ -519,9 +521,7 @@ public class TaskManagementService {
                 userId,
                 taskStateIsAssignedAlready
             );
-            task.setState(CFTTaskState.COMPLETED);
             task.setTerminationProcess(terminationProcess);
-            setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 

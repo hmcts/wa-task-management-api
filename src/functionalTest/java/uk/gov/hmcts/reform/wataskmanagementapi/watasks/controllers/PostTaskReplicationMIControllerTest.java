@@ -22,6 +22,8 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
@@ -1153,44 +1155,51 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
     @Test
     public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
-        TestAuthenticationCredentials caseworkerCredentials3 = authorizationProvider.getNewTribunalCaseworker(
-            "wa-ft-test-completion-process-enabled-");
+        TestAuthenticationCredentials userWithCompletionProcessEnabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
 
-        // This test is skipped if the property value is set to false
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         initiateTask(taskVariables);
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials3.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessEnabled.getHeaders(), "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials3.getHeaders(),
+            userWithCompletionProcessEnabled.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
-        Response resultReportable = restApiActions.get(
-            ENDPOINT_BEING_TESTED_REPORTABLE,
-            taskId,
-            caseworkerCredentials3.getHeaders()
-        );
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+                Response resultReportable = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    userWithCompletionProcessEnabled.getHeaders()
+                );
 
-        resultReportable.prettyPrint();
-        resultReportable.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("reportable_task_list.size()", equalTo(1));
+
+                resultReportable.prettyPrint();
+                resultReportable.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1));
+            });
 
 
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
-            caseworkerCredentials3.getHeaders()
+            userWithCompletionProcessEnabled.getHeaders()
         );
 
 
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED_TASK,
@@ -1202,106 +1211,137 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.OK.value())
             .body("task.termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"))
             .body("task.id", equalTo(taskId));
-        Response resultHistory = restApiActions.get(
-            ENDPOINT_BEING_TESTED_HISTORY,
-            taskId,
-            caseworkerCredentials3.getHeaders()
-        );
-        resultHistory.prettyPrint();
-        resultHistory.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_history_list.size()", equalTo(4))
-            .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+                Response resultHistory = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_HISTORY,
+                    taskId,
+                    userWithCompletionProcessEnabled.getHeaders()
+                );
 
-        Response resultCompleteReport = restApiActions.get(
-            ENDPOINT_BEING_TESTED_REPORTABLE,
-            taskId,
-            caseworkerCredentials3.getHeaders()
-        );
+                resultHistory.prettyPrint();
+                resultHistory.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_history_list.size()", equalTo(4))
+                    .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
+            });
 
-        resultCompleteReport.prettyPrint();
-        resultCompleteReport.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("reportable_task_list.size()", equalTo(1))
-            .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
-            .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
-            .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
-            .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
+
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+                Response resultCompleteReport = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    userWithCompletionProcessEnabled.getHeaders()
+                );
+
+
+                resultCompleteReport.prettyPrint();
+                resultCompleteReport.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1))
+                    .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+                    .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
+            });
 
         common.cleanUpTask(taskId);
-        authorizationProvider.deleteAccount(caseworkerCredentials3.getAccount().getUsername());
+        authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
     }
 
     @Test
     public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
 
-        // This test is skipped if the property value is set to false
-        TestAuthenticationCredentials caseworkerCredentials4 = authorizationProvider.getNewTribunalCaseworker(
-            "wa-ft-test-completion-process-disabled-");
+        TestAuthenticationCredentials userWithCompletionProcessDisabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         initiateTask(taskVariables);
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials4.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessDisabled.getHeaders(),
+                                                   "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials4.getHeaders(),
+            userWithCompletionProcessDisabled.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
-        Response resultReportable = restApiActions.get(
-            ENDPOINT_BEING_TESTED_REPORTABLE,
-            taskId,
-            caseworkerCredentials4.getHeaders()
-        );
-
-        resultReportable.prettyPrint();
-        resultReportable.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("reportable_task_list.size()", equalTo(1));
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+                Response resultReportable = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    userWithCompletionProcessDisabled.getHeaders()
+                );
+                resultReportable.prettyPrint();
+                resultReportable.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1));
+            });
 
 
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
-            caseworkerCredentials4.getHeaders()
+            userWithCompletionProcessDisabled.getHeaders()
         );
 
 
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        Response resultHistory = restApiActions.get(
-            ENDPOINT_BEING_TESTED_HISTORY,
-            taskId,
-            caseworkerCredentials4.getHeaders()
-        );
-        resultHistory.prettyPrint();
-        resultHistory.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_history_list.size()", equalTo(4))
-            .body("task_history_list.get(3).termination_process", nullValue());
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+                Response resultHistory = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_HISTORY,
+                    taskId,
+                    userWithCompletionProcessDisabled.getHeaders()
+                );
+                resultHistory.prettyPrint();
+                resultHistory.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_history_list.size()", equalTo(4))
+                    .body("task_history_list.get(3).termination_process", nullValue());
+            });
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+                Response resultCompleteReport = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    userWithCompletionProcessDisabled.getHeaders()
+                );
 
-        Response resultCompleteReport = restApiActions.get(
-            ENDPOINT_BEING_TESTED_REPORTABLE,
-            taskId,
-            caseworkerCredentials4.getHeaders()
-        );
-
-        resultCompleteReport.prettyPrint();
-        resultCompleteReport.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("reportable_task_list.size()", equalTo(1))
-            .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
-            .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
-            .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
-            .body("reportable_task_list.get(0).termination_process", nullValue());
+                resultCompleteReport.prettyPrint();
+                resultCompleteReport.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1))
+                    .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+                    .body("reportable_task_list.get(0).termination_process", nullValue());
+            });
 
         common.cleanUpTask(taskId);
-        authorizationProvider.deleteAccount(caseworkerCredentials4.getAccount().getUsername());
+        authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
     }
 
 
