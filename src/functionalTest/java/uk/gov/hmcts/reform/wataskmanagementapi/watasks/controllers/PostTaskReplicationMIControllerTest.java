@@ -1155,19 +1155,19 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
     @Test
     public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
-        TestAuthenticationCredentials caseworkerCredentials3 = authorizationProvider.getNewTribunalCaseworker(
-            "user-with-completion-process-enabled-");
+        TestAuthenticationCredentials userWithCompletionProcessEnabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         initiateTask(taskVariables);
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials3.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessEnabled.getHeaders(), "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials3.getHeaders(),
+            userWithCompletionProcessEnabled.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
@@ -1179,7 +1179,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 Response resultReportable = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials3.getHeaders()
+                    userWithCompletionProcessEnabled.getHeaders()
                 );
 
 
@@ -1193,7 +1193,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
-            caseworkerCredentials3.getHeaders()
+            userWithCompletionProcessEnabled.getHeaders()
         );
 
 
@@ -1208,7 +1208,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials3.getHeaders()
+                    userWithCompletionProcessEnabled.getHeaders()
                 );
 
                 resultHistory.prettyPrint();
@@ -1227,7 +1227,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials3.getHeaders()
+                    userWithCompletionProcessEnabled.getHeaders()
                 );
 
 
@@ -1241,25 +1241,26 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
             });
         common.cleanUpTask(taskId);
-        authorizationProvider.deleteAccount(caseworkerCredentials3.getAccount().getUsername());
+        authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
     }
 
     @Test
     public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
 
-        TestAuthenticationCredentials caseworkerCredentials4 = authorizationProvider.getNewTribunalCaseworker(
-            "user-with-completion-process-disabled-");
+        TestAuthenticationCredentials userWithCompletionProcessDisabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
                                                                        "Process Application");
         initiateTask(taskVariables);
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials4.getHeaders(), "tribunal-caseworker");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessDisabled.getHeaders(),
+                                                   "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials4.getHeaders(),
+            userWithCompletionProcessDisabled.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
@@ -1271,7 +1272,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 Response resultReportable = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials4.getHeaders()
+                    userWithCompletionProcessDisabled.getHeaders()
                 );
                 resultReportable.prettyPrint();
                 resultReportable.then().assertThat()
@@ -1283,7 +1284,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
-            caseworkerCredentials4.getHeaders()
+            userWithCompletionProcessDisabled.getHeaders()
         );
 
 
@@ -1298,7 +1299,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials4.getHeaders()
+                    userWithCompletionProcessDisabled.getHeaders()
                 );
                 resultHistory.prettyPrint();
                 resultHistory.then().assertThat()
@@ -1314,7 +1315,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials4.getHeaders()
+                    userWithCompletionProcessDisabled.getHeaders()
                 );
 
                 resultCompleteReport.prettyPrint();
@@ -1328,7 +1329,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         common.cleanUpTask(taskId);
-        authorizationProvider.deleteAccount(caseworkerCredentials4.getAccount().getUsername());
+        authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
     }
 
 
