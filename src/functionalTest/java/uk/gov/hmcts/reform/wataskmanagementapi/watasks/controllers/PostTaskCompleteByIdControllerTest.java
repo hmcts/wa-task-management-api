@@ -105,6 +105,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_204_when_completing_a_task_by_id_and_termination_process() {
         TestAuthenticationCredentials userWithCompletionProcessEnabled =
             authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessEnabled.getHeaders());
 
         String[][] testData = {
             {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
@@ -118,8 +119,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
             TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
             taskId = taskVariables.getTaskId();
-            common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessEnabled.getHeaders());
-
             initiateTask(taskVariables);
             assertions.taskFieldWasUpdatedInDatabase(
                 taskId, "termination_process", null, userWithCompletionProcessEnabled.getHeaders()
@@ -153,15 +152,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                                                      userWithCompletionProcessEnabled.getHeaders());
 
             common.cleanUpTask(taskId);
-            common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
-            authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
         }
+        common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
+        authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_204_when_completing_a_task_by_id_and_null_termination_process_when_flag_disabled() {
         TestAuthenticationCredentials userWithCompletionProcessDisabled =
             authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessDisabled.getHeaders());
 
         String[][] testData = {
             {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
@@ -175,7 +175,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
             TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
             taskId = taskVariables.getTaskId();
-            common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessDisabled.getHeaders());
 
             initiateTask(taskVariables);
             assertions.taskFieldWasUpdatedInDatabase(
@@ -210,9 +209,9 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                                                      userWithCompletionProcessDisabled.getHeaders());
 
             common.cleanUpTask(taskId);
-            common.clearAllRoleAssignments(userWithCompletionProcessDisabled.getHeaders());
-            authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
         }
+        common.clearAllRoleAssignments(userWithCompletionProcessDisabled.getHeaders());
+        authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
     }
 
     @Test
