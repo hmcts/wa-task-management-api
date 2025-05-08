@@ -126,6 +126,10 @@ public class TaskActionsController extends BaseController {
             accessControlResponse
         );
 
+        if (!isUpdateCompletionProcessFlagEnabled(accessControlResponse)) {
+            task.setTerminationProcess(null);
+        }
+
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -241,13 +245,10 @@ public class TaskActionsController extends BaseController {
         Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
-        boolean isUpdateCompletionProcessFlagEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
+
         Optional<String> validatedCompletionProcess =
-            completionProcessValidator.validate(completionProcess, taskId, isUpdateCompletionProcessFlagEnabled);
+            completionProcessValidator.validate(completionProcess, taskId,
+                                                isUpdateCompletionProcessFlagEnabled(accessControlResponse));
         if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
             requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
         }
@@ -420,5 +421,18 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
+    }
+
+    /**
+     Checks if the "WA_COMPLETION_PROCESS_UPDATE" feature flag is enabled for the given user.
+
+     @param accessControlResponse The access control response containing user information.
+     @return true if the feature flag is enabled, false otherwise. */
+    private boolean isUpdateCompletionProcessFlagEnabled(AccessControlResponse accessControlResponse) {
+        return  launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
     }
 }
