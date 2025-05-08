@@ -153,6 +153,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                                                      userWithCompletionProcessEnabled.getHeaders());
 
             common.cleanUpTask(taskId);
+            common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
             authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
         }
     }
@@ -209,6 +210,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                                                      userWithCompletionProcessDisabled.getHeaders());
 
             common.cleanUpTask(taskId);
+            common.clearAllRoleAssignments(userWithCompletionProcessDisabled.getHeaders());
             authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
         }
     }
