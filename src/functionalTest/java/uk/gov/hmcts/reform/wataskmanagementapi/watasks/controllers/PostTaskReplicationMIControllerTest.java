@@ -1204,7 +1204,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED_TASK,
             taskId,
-            caseworkerCredentials.getHeaders()
+            userWithCompletionProcessEnabled.getHeaders()
         );
         result.prettyPrint();
         result.then().assertThat()
