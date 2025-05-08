@@ -1209,7 +1209,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         result.prettyPrint();
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("task.termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"))
+            .body("task.termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"))
             .body("task.id", equalTo(taskId));
         await()
             .atLeast(3, TimeUnit.SECONDS)
