@@ -1253,6 +1253,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
         authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
     }
 
@@ -1341,6 +1342,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(userWithCompletionProcessDisabled.getHeaders());
         authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
     }
 
@@ -1394,6 +1396,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("reportable_task_list.get(0).first_assigned_date_time", nullValue());
 
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(caseworkerCredentials2.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials2.getAccount().getUsername());
     }
 
