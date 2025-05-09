@@ -1,43 +1,32 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 
 @ToString
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "sensitive_task_event_logs")
-@TypeDefs(
-    {
-        @TypeDef(
-            name = TaskResource.JSONB,
-            typeClass = JsonType.class
-        )
-    }
-)
 @SuppressWarnings("PMD.ExcessiveParameterList")
 public class SensitiveTaskEventLog implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
@@ -56,11 +45,11 @@ public class SensitiveTaskEventLog implements Serializable {
     private String message;
 
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     private List<TaskResource> taskData;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     private Users userData;
 

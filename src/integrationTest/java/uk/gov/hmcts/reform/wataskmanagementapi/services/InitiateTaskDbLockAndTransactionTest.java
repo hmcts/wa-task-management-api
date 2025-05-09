@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfig
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -41,7 +43,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -121,7 +122,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private RoleAssignmentVerificationService roleAssignmentVerification;
     @Mock
     private EntityManager entityManager;
-
+    @Mock
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
@@ -146,7 +148,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             roleAssignmentVerification,
             entityManager,
             idamTokenGenerator,
-            cftSensitiveTaskEventLogsDatabaseService);
+            cftSensitiveTaskEventLogsDatabaseService,
+            taskMandatoryFieldsValidator);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());

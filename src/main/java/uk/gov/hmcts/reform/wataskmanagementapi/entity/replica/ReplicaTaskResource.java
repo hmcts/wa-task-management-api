@@ -1,16 +1,28 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity.replica;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.context.annotation.Profile;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -23,21 +35,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 @ToString
 @Getter
@@ -47,8 +49,6 @@ import javax.persistence.Table;
 @Profile("replica | preview")
 @Entity(name = "replica_tasks")
 @Table(name = "tasks")
-@TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-@TypeDef(name = ReplicaTaskResource.JSONB, typeClass = JsonType.class)
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
     "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class ReplicaTaskResource implements Serializable {
@@ -59,6 +59,7 @@ public class ReplicaTaskResource implements Serializable {
     private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
+    public static final String TIMESTAMP = "TIMESTAMP";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -72,23 +73,24 @@ public class ReplicaTaskResource implements Serializable {
     private String taskName;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "task_system_enum")
     @Schema(name = "task_system")
     private TaskSystem taskSystem;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "due_date_time")
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "security_classification_enum")
     @Schema(name = "security_classification")
     private SecurityClassification securityClassification;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "task_state_enum")
     private CFTTaskState state;
 
@@ -111,10 +113,11 @@ public class ReplicaTaskResource implements Serializable {
 
     private String description;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     private OffsetDateTime created;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     private List<NoteResource> notes;
 
@@ -128,7 +131,8 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "auto_assigned")
     private Boolean autoAssigned = false;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "assignment_expiry")
     private OffsetDateTime assignmentExpiry;
 
@@ -156,7 +160,7 @@ public class ReplicaTaskResource implements Serializable {
     private Boolean indexed = false;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PGSQL_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(columnDefinition = "business_context_enum")
     @Schema(name = "business_context")
     private BusinessContext businessContext;
@@ -175,15 +179,17 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "task_role_resources")
     private Set<TaskRoleResource> taskRoleResources;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "reconfigure_request_time")
     private OffsetDateTime reconfigureRequestTime;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "last_reconfiguration_time")
     private OffsetDateTime lastReconfigurationTime;
 
-    @Type(type = "jsonb")
+    @Type(JsonType.class)
     @Column(columnDefinition = JSONB)
     @Schema(name = "additional_properties")
     private Map<String, String> additionalProperties;
@@ -191,7 +197,8 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "next_hearing_id")
     private String nextHearingId;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "last_updated_timestamp")
     private OffsetDateTime lastUpdatedTimestamp;
 
@@ -201,15 +208,18 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "last_updated_action")
     private String lastUpdatedAction;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "next_hearing_date")
     private OffsetDateTime nextHearingDate;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "priority_date")
     private OffsetDateTime priorityDate;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "report_refresh_request_time")
     private OffsetDateTime reportRefreshRequestTime;
 

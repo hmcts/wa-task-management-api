@@ -1,10 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
 
 public class SelectTaskResourceQueryBuilder extends TaskResourceQueryBuilder<TaskResource> {
 
