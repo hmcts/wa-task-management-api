@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static com.microsoft.applicationinsights.core.dependencies.http.HttpStatus.SC_SERVICE_UNAVAILABLE;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.WA_DELETE_TASK_BY_CASE_ID;
