@@ -22,8 +22,8 @@ BEGIN
         SELECT task_id
         FROM cft_task_db.tasks
         WHERE state IN ('COMPLETED', 'CANCELLED')
-          AND created < NOW() - INTERVAL '90 days'
-        ORDER BY created ASC
+          AND last_updated_timestamp < NOW() - INTERVAL '90 days'
+        ORDER BY last_updated_timestamp ASC
         LIMIT max_limit
     LOOP
         -- Initialize missing_data flag
@@ -34,7 +34,7 @@ BEGIN
             SELECT 1
             FROM cft_task_db.tasks t
             WHERE t.task_id = task_id_var
-              AND (t.last_updated_timestamp IS NULL
+              AND (t.created IS NULL
                 OR t.last_updated_user IS NULL
                 OR t.last_updated_action IS NULL)
         ) THEN
@@ -61,23 +61,28 @@ $function$;
 -- TERMINATED with relevant metadata, and logs the changes.
 -- Tasks must be in COMPLETED or CANCELLED states and created over 90 days ago to qualify.
 --
--- Example for calling the function
--- select cft_task_db.terminate_historic_completed_tasks(ARRAY['task_id1', 'task_id2', 'task_id3'],100);
+-- Example for calling the procedure
+-- call cft_task_db.terminate_historic_completed_tasks(ARRAY['task_id1', 'task_id2', 'task_id3'],100);
 
-CREATE OR REPLACE FUNCTION cft_task_db.terminate_historic_completed_tasks(task_ids TEXT[], max_limit INT DEFAULT 2000)
-RETURNS TABLE(task_count INT)
+CREATE OR REPLACE PROCEDURE cft_task_db.terminate_historic_completed_tasks(
+    task_ids TEXT[],
+    max_limit INT DEFAULT 100
+)
 LANGUAGE plpgsql
-AS $function$
+AS $procedure$
 DECLARE
     task_id_var TEXT;
     task_state TEXT;
-    updated_count INT := 0;
+    updated_count INT;
 BEGIN
+    -- Initialize the updated_count
+    updated_count := 0;
+
     -- Check if the task_ids array is empty or exceeds the max limit
     IF task_ids IS NULL OR array_length(task_ids, 1) = 0 THEN
-            RAISE EXCEPTION 'The task_ids array is empty or null';
-    ELSEIF array_length(task_ids, 1) > max_limit THEN
-            RAISE EXCEPTION 'The number of task_ids exceeds the maximum limit of %', max_limit;
+        RAISE EXCEPTION 'The task_ids array is empty or null';
+    ELSIF array_length(task_ids, 1) > max_limit THEN
+        RAISE EXCEPTION 'The number of task_ids exceeds the maximum limit of %', max_limit;
     END IF;
 
     FOR task_id_var IN
@@ -89,33 +94,32 @@ BEGIN
             FROM cft_task_db.tasks t
             WHERE t.task_id = task_id_var
               AND t.state IN ('COMPLETED', 'CANCELLED')
-              AND t.created < NOW() - INTERVAL '90 days'
+              AND t.last_updated_timestamp < NOW() - INTERVAL '90 days'
         ) THEN
             RAISE INFO 'No record found for task_id: %', task_id_var;
             CONTINUE;
         END IF;
 
         SELECT t.state INTO task_state
-                FROM cft_task_db.tasks t
-                WHERE t.task_id = task_id_var;
+        FROM cft_task_db.tasks t
+        WHERE t.task_id = task_id_var;
 
         -- Update the task state and other fields
         UPDATE cft_task_db.tasks t
         SET state = 'TERMINATED',
             termination_reason = CASE
-                WHEN task_state = 'COMPLETED' THEN 'COMPLETED'
-                WHEN task_state = 'CANCELLED' THEN 'CANCELLED'
+                WHEN task_state = 'COMPLETED' THEN 'cancelled'
+                WHEN task_state = 'CANCELLED' THEN 'completed'
             END,
             last_updated_timestamp = NOW(),
             last_updated_user = 'WA system user token in production',
             last_updated_action = 'TerminateException'
         WHERE task_id = task_id_var;
 
+        COMMIT;
+
         -- Increment the counter for successfully updated tasks
         updated_count := updated_count + 1;
-
-        -- Commit the changes
-        PERFORM pg_sleep(0);
 
         -- Log the successfully updated task_id
         RAISE INFO 'Successfully updated task_id: %, state: %, termination_reason: %, last_updated_timestamp: %, last_updated_user: %, last_updated_action: %',
@@ -124,13 +128,10 @@ BEGIN
             NOW(), 'WA system user token in production', 'TerminateException';
     END LOOP;
 
-    -- Return the count of successfully updated tasks
+    -- Log the total count of successfully updated tasks
     RAISE INFO 'Total successfully updated tasks: %', updated_count;
-
-    RETURN QUERY SELECT updated_count;
-
 END;
-$function$
+$procedure$;
 
 -- The validate_terminated_tasks function validates the termination details of tasks in the cft_task_db.tasks table
 -- for a given array of task IDs. It checks if the termination_reason, last_updated_timestamp, last_updated_user,
@@ -165,7 +166,7 @@ BEGIN
         -- Check the task details
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('COMPLETED', 'CANCELLED')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
             (last_updated_timestamp >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (last_updated_user = 'WA system user token in production') AS user_valid,
             (last_updated_action = 'TerminateException') AS action_valid
@@ -242,7 +243,7 @@ BEGIN
         -- Check the task details in tasks table
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('COMPLETED', 'CANCELLED')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
             (last_updated_timestamp >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (last_updated_user = 'WA system user token in production') AS user_valid,
             (last_updated_action = 'TerminateException') AS action_valid
@@ -280,7 +281,7 @@ BEGIN
         -- Repeat the same checks for reportable_tasks table
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('COMPLETED', 'CANCELLED')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
             (updated >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (updated_by = 'WA system user token in production') AS user_valid,
             (update_action = 'TerminateException') AS action_valid
@@ -318,7 +319,7 @@ BEGIN
         -- Repeat the same checks for task_history table
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('COMPLETED', 'CANCELLED')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
             (updated >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (updated_by = 'WA system user token in production') AS user_valid,
             (update_action = 'TerminateException') AS action_valid
