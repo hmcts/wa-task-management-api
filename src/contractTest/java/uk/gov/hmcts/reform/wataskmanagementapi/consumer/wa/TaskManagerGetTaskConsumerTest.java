@@ -86,6 +86,22 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
             .toPact();
     }
 
+    @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
+    public RequestResponsePact executeGetTaskByIdWithCompletionProcess200(PactDslWithProvider builder) {
+        return builder
+            .given("get a task using taskId with completion process")
+            .uponReceiving("taskId to get a task")
+            .path(WA_GET_TASK_BY_ID)
+            .method(HttpMethod.GET.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithCompletionProcess())
+            .toPact();
+    }
+
     @Test
     @PactTestFor(pactMethod = "executeGetTaskById200", pactVersion = PactSpecVersion.V3)
     void testGetTaskByTaskId200Test(MockServer mockServer) {
@@ -128,6 +144,20 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
 
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeGetTaskByIdWithCompletionProcess200", pactVersion = PactSpecVersion.V3)
+    void testGetTaskByTaskId200WithCompletionProcessTest(MockServer mockServer) {
+
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
+            .then()
+            .statusCode(200);
+
+    }
+
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
@@ -159,6 +189,43 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("work_type_label", "Hearing work")
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .nullValue("completion_process")
+                )).build();
+    }
+
+    private DslPart createResponseForGetTaskWithCompletionProcess() {
+        return newJsonBody(
+            o -> o
+                .object(
+                    "task",
+                    task -> task
+                        .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
+                        .stringType("name", "JakeO")
+                        .stringType("type", "ReviewTheAppeal")
+                        .stringType("task_state", "unconfigured")
+                        .stringType("task_system", "main")
+                        .stringType("security_classification", "PRIVATE")
+                        .stringType("task_title", "review")
+                        .stringType("assignee", "Mark Alistair")
+                        .booleanType("auto_assigned", true)
+                        .stringType("execution_type", "Time extension")
+                        .stringType("jurisdiction", "IA")
+                        .stringType("region", "South")
+                        .stringType("location", "12345")
+                        .stringType("location_name", "Newcastle")
+                        .stringType("case_type_id", "Asylum")
+                        .stringType("case_id", "4d4b3a4e-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("case_category", "processApplication")
+                        .stringType("case_name", "caseName")
+                        .booleanType("warnings", false)
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringMatcher("completion_process", "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                            "EXUI_USER_COMPLETION")
                 )).build();
     }
 

@@ -50,6 +50,11 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
         setInitMockTaskWithWarnings();
     }
 
+    @State({"get a task using taskId with completion process"})
+    public void getTaskByIdWithCompletionProcess() {
+        setInitMockTaskWithCompletionProcess();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -110,6 +115,15 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
         when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithWarnings());
     }
 
+    private void setInitMockTaskWithCompletionProcess() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithCompletionProcess());
+    }
+
     private Task createTask() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
@@ -123,7 +137,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             )
         );
 
-        return new Task(
+        Task task = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -158,6 +172,14 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             500,
             5000,
             ZonedDateTime.now());
+        task.setTerminationProcess(null);
+        return task;
+    }
+
+    private Task createTaskWithCompletionProcess() {
+        Task task = createTask();
+        task.setTerminationProcess("EXUI_USER_COMPLETION");
+        return task;
     }
 
     private Task createTaskWithWarnings() {

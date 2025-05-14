@@ -156,6 +156,23 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithTaskState200(PactDslWithProvider builder) {
+        return builder
+            .given("appropriate tasks are returned by criteria with task state")
+            .uponReceiving("Provider receives a POST /task request from a WA API for task state")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchWithTaskStateRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskForTaskState())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithAvailableTasksContext200Test(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with context available task")
@@ -303,6 +320,20 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchEventCaseWithAllWorkContext())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithTaskState200", pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWithTaskState200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchWithTaskStateRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -580,6 +611,22 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             """;
     }
 
+    private String createSearchWithTaskStateRequest() {
+        return """
+            {
+                "search_parameters": [
+                  {
+                    "key": "state",
+                    "operator": "IN",
+                    "values": [
+                        "completed"
+                   ]
+                  }
+                ]
+              }
+            """;
+    }
+
     private DslPart createResponseForGetTaskForRoleCategory() {
         return newJsonBody(
             o -> o
@@ -649,6 +696,45 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("description", "aDescription")
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                )).build();
+    }
+
+    private DslPart createResponseForGetTaskForTaskState() {
+        return newJsonBody(
+            o -> o
+                .minArrayLike("tasks", 1, 1,
+                              task -> task
+                                  .stringType("id", "b1a13dca-41a5-424f-b101-c67b439549d0")
+                                  .stringType("name", "review appeal skeleton argument")
+                                  .stringType("type", "reviewAppealSkeletonArgument")
+                                  .stringType("task_state", "completed")
+                                  .stringType("task_system", "SELF")
+                                  .stringType("security_classification", "PUBLIC")
+                                  .stringType("task_title", "review appeal skeleton argument")
+                                  .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                                  .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                                  .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
+                                  .booleanType("auto_assigned", true)
+                                  .stringType("execution_type", "Case Management Task")
+                                  .stringType("jurisdiction", "WA")
+                                  .stringType("region", "1")
+                                  .stringType("location", "765324")
+                                  .stringType("location_name", "Taylor House")
+                                  .stringType("case_type_id", "WaCaseType")
+                                  .stringType("case_id", "1617708245335399")
+                                  .stringType("case_category", "Protection")
+                                  .stringType("case_name", "Bob Smith")
+                                  .booleanType("warnings", false)
+                                  .stringType("case_management_category", "Some Case Management Category")
+                                  .stringType("work_type_id", "hearing_work")
+                                  .stringType("work_type_label", "Hearing work")
+                                  .stringValue("role_category", "LEGAL_OPERATIONS")
+                                  .stringType("description", "aDescription")
+                                  .stringType("next_hearing_id", "nextHearingId")
+                                  .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                                  .stringMatcher("completion_process",
+                                                 "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                                                 "EXUI_USER_COMPLETION")
                 )).build();
     }
 }
