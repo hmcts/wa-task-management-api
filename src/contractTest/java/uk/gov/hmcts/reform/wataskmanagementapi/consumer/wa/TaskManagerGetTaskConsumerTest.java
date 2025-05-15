@@ -189,7 +189,6 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("work_type_label", "Hearing work")
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .nullValue("completion_process")
                 )).build();
     }
 
@@ -224,7 +223,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("work_type_label", "Hearing work")
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringMatcher("completion_process", "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                        .stringMatcher("termination_process", "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
                             "EXUI_USER_COMPLETION")
                 )).build();
     }

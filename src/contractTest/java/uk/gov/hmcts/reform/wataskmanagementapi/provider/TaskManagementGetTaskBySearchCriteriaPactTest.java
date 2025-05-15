@@ -13,6 +13,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -29,6 +31,7 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -111,7 +114,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchTaskWithTaskType();
     }
 
-    @State({"appropriate tasks are returned by criteria with state"})
+    @State({"appropriate tasks are returned by criteria with task state"})
     public void getTasksBySearchCriteriaWithState() {
         setInitMockForSearchTaskWithTaskState();
     }
@@ -412,7 +415,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             5000,
             ZonedDateTime.now()
         );
-        task.setTerminationProcess("EXUI_USER_COMPLETION");
+        task.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION.getValue());
         return task;
     }
 
@@ -489,10 +492,13 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
         when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(userInfo.getEmail()).thenReturn("test@test.com");
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
         when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
-            .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskStateSearch(), createTaskForTaskTypeSearch()), 2L));
+            .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskStateSearch()), 1L));
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
+                                                             anyString(), anyString())).thenReturn(true);
     }
 }

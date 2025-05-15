@@ -619,7 +619,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                     "key": "state",
                     "operator": "IN",
                     "values": [
-                        "completed"
+                        "COMPLETED", "completed"
                    ]
                   }
                 ]
@@ -732,7 +732,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                                   .stringType("description", "aDescription")
                                   .stringType("next_hearing_id", "nextHearingId")
                                   .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                                  .stringMatcher("completion_process",
+                                  .stringMatcher("termination_process",
                                                  "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
                                                  "EXUI_USER_COMPLETION")
                 )).build();
