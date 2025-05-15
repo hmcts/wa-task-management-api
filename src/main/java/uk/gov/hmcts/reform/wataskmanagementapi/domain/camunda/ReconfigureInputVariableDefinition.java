@@ -8,6 +8,7 @@ import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
@@ -93,4 +94,6 @@ public class ReconfigureInputVariableDefinition {
     private String lastUpdatedAction;
 
     private Boolean indexed;
+
+    private TerminationProcess terminationProcess;
 }
