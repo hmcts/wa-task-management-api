@@ -88,6 +88,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
     }
+
     @Test
     @PactTestFor(pactMethod = "pactWithCompletionProcessUser", pactVersion = PactSpecVersion.V3)
     void testWithCompletionProcessUser(MockServer mockServer) {
@@ -137,8 +138,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
 
     private void sendPostWithCompletionProcess(MockServer mockServer, String queryParam) {
         String url = mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID;
-            url += "?" + REQ_PARAM_COMPLETION_PROCESS + "=" + queryParam;
-
+        url += "?" + REQ_PARAM_COMPLETION_PROCESS + "=" + queryParam;
         SerenityRest
             .given()
             .headers(getHttpHeaders())
