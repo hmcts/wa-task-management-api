@@ -24,6 +24,7 @@ import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 
 import java.io.Serializable;
@@ -188,6 +189,12 @@ public class TaskResource implements Serializable {
     private String lastUpdatedAction;
 
     private Boolean indexed = false;
+
+    @Schema(name = "termination_process")
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(columnDefinition = "termination_process_enum")
+    private TerminationProcess terminationProcess;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -557,6 +564,10 @@ public class TaskResource implements Serializable {
 
     public void setIndexed(Boolean indexed) {
         this.indexed = indexed;
+    }
+
+    public void setTerminationProcess(TerminationProcess terminationProcess) {
+        this.terminationProcess = terminationProcess;
     }
 
     public TaskResource(String taskId,

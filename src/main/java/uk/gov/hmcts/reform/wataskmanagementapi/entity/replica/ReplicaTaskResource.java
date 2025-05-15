@@ -223,4 +223,7 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "report_refresh_request_time")
     private OffsetDateTime reportRefreshRequestTime;
 
+    @Schema(name = "termination_process")
+    private String terminationProcess;
+
 }
