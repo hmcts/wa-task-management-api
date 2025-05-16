@@ -229,6 +229,9 @@ public class Task {
     )
     private ZonedDateTime lastReconfigurationTime;
 
+    @Schema(name = "termination_process", description = "Termination Process")
+    private String terminationProcess;
+
     public Task(String id,
                 String name,
                 String type,
@@ -518,6 +521,14 @@ public class Task {
 
     public ZonedDateTime getLastReconfigurationTime() {
         return lastReconfigurationTime;
+    }
+
+    public String getTerminationProcess() {
+        return terminationProcess;
+    }
+
+    public void setTerminationProcess(String terminationProcess) {
+        this.terminationProcess = terminationProcess;
     }
 }
 

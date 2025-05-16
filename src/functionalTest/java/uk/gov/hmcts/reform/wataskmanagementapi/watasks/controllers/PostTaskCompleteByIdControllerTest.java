@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -98,6 +99,119 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         common.cleanUpTask(taskId);
 
+    }
+
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id_and_termination_process() {
+        TestAuthenticationCredentials userWithCompletionProcessEnabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessEnabled.getHeaders());
+
+        String[][] testData = {
+            {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
+            {"EXUI_CASE-EVENT_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"},
+            {"INVALID_VALUE", null},
+            {null, null},
+            {"", null}
+        };
+
+        for (String[] data : testData) {
+
+            TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+            taskId = taskVariables.getTaskId();
+            initiateTask(taskVariables);
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessEnabled.getHeaders()
+            );
+            Response result = restApiActions.post(
+                CLAIM_ENDPOINT,
+                taskId,
+                userWithCompletionProcessEnabled.getHeaders()
+            );
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessEnabled.getHeaders()
+            );
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            String completionProcess = data[0];
+            String terminationProcess = data[1];
+            result = restApiActions.post(
+                ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
+                taskId,
+                userWithCompletionProcessEnabled.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", terminationProcess, userWithCompletionProcessEnabled.getHeaders()
+            );
+            assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+            assertions.taskStateWasUpdatedInDatabase(taskId, "completed",
+                                                     userWithCompletionProcessEnabled.getHeaders());
+
+            common.cleanUpTask(taskId);
+        }
+        common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
+        authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
+    }
+
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id_and_null_termination_process_when_flag_disabled() {
+        TestAuthenticationCredentials userWithCompletionProcessDisabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
+        common.setupWAOrganisationalRoleAssignment(userWithCompletionProcessDisabled.getHeaders());
+
+        String[][] testData = {
+            {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
+            {"EXUI_CASE-EVENT_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"},
+            {"INVALID_VALUE", null},
+            {null, null},
+            {"", null}
+        };
+
+        for (String[] data : testData) {
+
+            TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "Process Application");
+            taskId = taskVariables.getTaskId();
+
+            initiateTask(taskVariables);
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessDisabled.getHeaders()
+            );
+            Response result = restApiActions.post(
+                CLAIM_ENDPOINT,
+                taskId,
+                userWithCompletionProcessDisabled.getHeaders()
+            );
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessDisabled.getHeaders()
+            );
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            String completionProcess = data[0];
+            String terminationProcess = data[1];
+            result = restApiActions.post(
+                ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
+                taskId,
+                userWithCompletionProcessDisabled.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", null, userWithCompletionProcessDisabled.getHeaders()
+            );
+            assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+            assertions.taskStateWasUpdatedInDatabase(taskId, "completed",
+                                                     userWithCompletionProcessDisabled.getHeaders());
+
+            common.cleanUpTask(taskId);
+        }
+        common.clearAllRoleAssignments(userWithCompletionProcessDisabled.getHeaders());
+        authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
     }
 
     @Test
