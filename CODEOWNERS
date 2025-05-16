@@ -1,0 +1,5 @@
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+CODEOWNERS @hmcts/work-allocation
+
+# https://github.com/orgs/hmcts/teams/work-allocation
