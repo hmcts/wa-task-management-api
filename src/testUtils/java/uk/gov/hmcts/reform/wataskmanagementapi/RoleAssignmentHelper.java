@@ -24,8 +24,8 @@ public abstract class RoleAssignmentHelper {
     protected static final String SSCS_JURISDICTION = "SSCS";
     protected static final String PRIMARY_LOCATION = "765324";
 
-    protected static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
-        RoleAssignmentRequest roleAssignmentRequest) {
+    public static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
+                                                            RoleAssignmentRequest roleAssignmentRequest) {
 
         Map<String, String> attributes = createAttributes(roleAssignmentRequest.getRoleAssignmentAttribute());
 
@@ -89,7 +89,7 @@ public abstract class RoleAssignmentHelper {
 
     @Builder
     @Getter
-    protected static class RoleAssignmentRequest {
+    public static class RoleAssignmentRequest {
 
         private TestRolesWithGrantType testRolesWithGrantType;
         private RoleAssignmentAttribute roleAssignmentAttribute;
@@ -100,7 +100,7 @@ public abstract class RoleAssignmentHelper {
 
     @Builder
     @Getter
-    protected static class RoleAssignmentAttribute {
+    public static class RoleAssignmentAttribute {
 
         private String jurisdiction;
         private String caseType;

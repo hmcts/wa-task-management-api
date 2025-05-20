@@ -55,6 +55,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -161,7 +162,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
     @MockBean
     private RoleAssignmentService roleAssignmentService;
 
-    private String reconfigTaskId;
+    TaskTestUtils taskTestUtils;
 
     private String bearerAccessToken1;
 
@@ -260,6 +261,8 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
     @Test
     void when_timezone_changes_reconfig_attributes_should_behave_consistently() throws Exception {
 
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
+
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
@@ -285,7 +288,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             Map.of("caseAccessCategory", "categoryA,categoryC")
         );
         lenient().when(ccdDataService.getCaseData(anyString())).thenReturn(caseDetails);
-        RoleAssignment roleAssignmentResource = buildRoleAssignment(
+        RoleAssignment roleAssignmentResource = taskTestUtils.buildRoleAssignment(
             ASSIGNEE_USER,
             "tribunalCaseworker",
             singletonList("IA")
@@ -296,17 +299,16 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
-        reconfigTaskId = UUID.randomUUID().toString();
         String caseIdToday = UUID.randomUUID().toString();
         OffsetDateTime dueDateTime = OffsetDateTime.now(ZoneOffset.UTC);
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        String reconfigTaskId = taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime, ASSIGNEE_USER);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+                .content(asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -348,21 +350,21 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            anyString())).thenReturn(taskTestUtils.configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            anyString())).thenReturn(taskTestUtils.permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(
+                .content(asJsonString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                    taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -528,181 +530,4 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
         return taskId;
     }
 
-    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String assignee, String caseId,
-                                              OffsetDateTime dueDateTime) {
-
-        //assigner permission : manage, own, cancel
-        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, true, true, false,
-            new String[]{"IA"}, 1, true,
-            TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleCategory().name()
-        );
-        String jurisdiction = "IA";
-        String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, caseId, reconfigTaskId, cftTaskState, assignee, dueDateTime,
-                            assignerTaskRoleResource
-        );
-
-        List<RoleAssignment> assignerRoles = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId(caseId)
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
-    }
-
-    private void insertDummyTaskInDb(String jurisdiction,
-                                     String caseType,
-                                     String caseId,
-                                     String taskId,
-                                     CFTTaskState cftTaskState,
-                                     String assignee,
-                                     OffsetDateTime dueDateTime,
-                                     TaskRoleResource taskRoleResource) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            cftTaskState
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(dueDateTime);
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId(caseId);
-        taskResource.setAssignee(assignee);
-        taskResource.setTitle("title");
-        taskRoleResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
-    }
-
-    private TaskOperationRequest taskOperationRequest(
-        TaskOperationType operationName, List<TaskFilter<?>> taskFilters) {
-        TaskOperation operation = TaskOperation
-            .builder()
-            .type(operationName)
-            .runId(UUID.randomUUID().toString())
-            .maxTimeLimit(60)
-            .retryWindowHours(0)
-            .build();
-        return new TaskOperationRequest(operation, taskFilters);
-    }
-
-    private List<TaskFilter<?>> markTaskFilters(String caseId) {
-        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter(
-            "case_id", List.of(caseId), TaskFilterOperator.IN
-        );
-        return List.of(filter);
-    }
-
-    private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
-        return asList(
-            new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                                                   booleanValue(false)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(
-                stringValue("priorityDate"),
-                stringValue("2021-05-09T20:15"),
-                booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(
-                stringValue("nextHearingDate"),
-                stringValue("2021-05-09T20:15"),
-                booleanValue(canReconfigure)
-            )
-        );
-    }
-
-    private List<PermissionsDmnEvaluationResponse> permissionsResponse() {
-        return asList(
-            new PermissionsDmnEvaluationResponse(
-                stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Execute,Manage,Cancel"),
-                stringValue("IA"),
-                integerValue(1),
-                booleanValue(true),
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryA,categoryC")
-            ),
-            new PermissionsDmnEvaluationResponse(
-                stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Execute,Manage,Cancel"),
-                stringValue("IA"),
-                integerValue(2),
-                booleanValue(true),
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryB,categoryD")
-            )
-        );
-    }
-
-    private List<TaskFilter<?>> executeTaskFilters(OffsetDateTime reconfigureRequestTime) {
-        TaskFilter<?> filter = new ExecuteReconfigureTaskFilter("reconfigure_request_time",
-                                                                reconfigureRequestTime, TaskFilterOperator.AFTER
-        );
-        return List.of(filter);
-    }
-
-    private RoleAssignment buildRoleAssignment(String actorId, String roleName, List<String> authorisations) {
-        return RoleAssignment.builder()
-            .id(UUID.randomUUID().toString())
-            .actorIdType(ActorIdType.IDAM)
-            .actorId(actorId)
-            .roleName(roleName)
-            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-            .roleType(RoleType.ORGANISATION)
-            .classification(Classification.PUBLIC)
-            .authorisations(authorisations)
-            .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-    }
 }
