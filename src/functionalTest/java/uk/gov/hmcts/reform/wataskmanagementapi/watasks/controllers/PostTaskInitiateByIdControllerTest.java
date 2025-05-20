@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -878,7 +877,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore("Ignoring the test as the test is failing in nightly build as mandatory field check is not enabled in AAT.")
     public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringInitiation",
