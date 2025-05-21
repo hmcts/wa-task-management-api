@@ -1191,6 +1191,18 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskId,
+            userWithCompletionProcessEnabled.getHeaders()
+        );
+        result.prettyPrint();
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("task.termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"))
+            .body("task.id", equalTo(taskId));
         await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
@@ -1231,10 +1243,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
                     .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
             });
+
         common.cleanUpTask(taskId);
         common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
         authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
     }
+
 
     @Test
     public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
