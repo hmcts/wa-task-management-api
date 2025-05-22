@@ -114,11 +114,6 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         setInitMockForSearchTaskWithTaskType();
     }
 
-    @State({"appropriate tasks are returned by criteria with task state"})
-    public void getTasksBySearchCriteriaWithState() {
-        setInitMockForSearchTaskWithTaskState();
-    }
-
     public Task createTaskWithNoWarnings() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
@@ -166,6 +161,57 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             5000,
             ZonedDateTime.now()
         );
+    }
+
+    public Task createTaskWithTerminationProcess() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE
+            )
+        );
+
+        Task task = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "completed",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
+            "hearing_work",
+            "Hearing work",
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description",
+            getAdditionalProperties(),
+            "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
+        task.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION.getValue());
+        return task;
     }
 
     public Task createTaskWithWarnings() {
@@ -368,57 +414,6 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         );
     }
 
-    public Task createTaskForTaskStateSearch() {
-        final TaskPermissions permissions = new TaskPermissions(
-            Set.of(
-                PermissionTypes.READ,
-                PermissionTypes.OWN,
-                PermissionTypes.EXECUTE,
-                PermissionTypes.CANCEL,
-                PermissionTypes.MANAGE
-            )
-        );
-
-        Task task = new Task(
-            "b1a13dca-41a5-424f-b101-c67b439549d0",
-            "review appeal skeleton argument",
-            "reviewAppealSkeletonArgument",
-            "completed",
-            "SELF",
-            "PUBLIC",
-            "review appeal skeleton argument",
-            ZonedDateTime.now(),
-            ZonedDateTime.now(),
-            "10bac6bf-80a7-4c81-b2db-516aba826be6",
-            true,
-            "Case Management Task",
-            "WA",
-            "1",
-            "765324",
-            "Taylor House",
-            "WaCaseType",
-            "1617708245335399",
-            "Protection",
-            "Bob Smith",
-            false,
-            new WarningValues(Collections.emptyList()),
-            "Some Case Management Category",
-            "hearing_work",
-            "Hearing work",
-            permissions,
-            RoleCategory.LEGAL_OPERATIONS.name(),
-            "aDescription",
-            getAdditionalProperties(),
-            "nextHearingId",
-            ZonedDateTime.now(),
-            500,
-            5000,
-            ZonedDateTime.now()
-        );
-        task.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION.getValue());
-        return task;
-    }
-
     private void setInitMockForSearchTask() {
         Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
@@ -427,8 +422,12 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
+                                                             anyString(), anyString())).thenReturn(true);
         when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
-            .thenReturn(new GetTasksResponse<>(List.of(createTaskWithNoWarnings(), createTaskWithNoWarnings()), 2L));
+            .thenReturn(new GetTasksResponse<>(
+                List.of(createTaskWithNoWarnings(),
+                        createTaskWithTerminationProcess()), 2L));
     }
 
     private void setInitMockForSearchWaTask() {
@@ -486,19 +485,5 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             .thenReturn(accessControlResponse);
         when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskTypeSearch()), 1L));
-    }
-
-    private void setInitMockForSearchTaskWithTaskState() {
-        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
-        UserInfo userInfo = mock(UserInfo.class);
-        when(userInfo.getUid()).thenReturn("dummyUserId");
-        when(userInfo.getEmail()).thenReturn("test@test.com");
-        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getAccessControlResponse(anyString()))
-            .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
-            .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskStateSearch()), 1L));
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                             anyString(), anyString())).thenReturn(true);
     }
 }

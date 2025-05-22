@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.wa;
 
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.DslPart;
+import au.com.dius.pact.consumer.dsl.LambdaDsl;
+import au.com.dius.pact.consumer.dsl.LambdaDslObject;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
@@ -23,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerA
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -159,73 +162,52 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
     }
 
     private DslPart createResponseForGetTask() {
-        return newJsonBody(
-            o -> o
-                .object(
-                    "task",
-                    task -> task
-                        .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
-                        .stringType("name", "JakeO")
-                        .stringType("type", "ReviewTheAppeal")
-                        .stringType("task_state", "unconfigured")
-                        .stringType("task_system", "main")
-                        .stringType("security_classification", "PRIVATE")
-                        .stringType("task_title", "review")
-                        .stringType("assignee", "Mark Alistair")
-                        .booleanType("auto_assigned", true)
-                        .stringType("execution_type", "Time extension")
-                        .stringType("jurisdiction", "IA")
-                        .stringType("region", "South")
-                        .stringType("location", "12345")
-                        .stringType("location_name", "Newcastle")
-                        .stringType("case_type_id", "Asylum")
-                        .stringType("case_id", "4d4b3a4e-c91f-433f-92ac-e456ae34f72a")
-                        .stringType("case_category", "processApplication")
-                        .stringType("case_name", "caseName")
-                        .booleanType("warnings", false)
-                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("work_type_id", "hearing_work")
-                        .stringType("work_type_label", "Hearing work")
-                        .stringType("next_hearing_id", "nextHearingId")
-                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                )).build();
+        return newJsonBody(o -> o.object("task", baseTaskFields())
+        ).build();
     }
 
+
     private DslPart createResponseForGetTaskWithCompletionProcess() {
-        return newJsonBody(
-            o -> o
-                .object(
-                    "task",
-                    task -> task
-                        .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
-                        .stringType("name", "JakeO")
-                        .stringType("type", "ReviewTheAppeal")
-                        .stringType("task_state", "unconfigured")
-                        .stringType("task_system", "main")
-                        .stringType("security_classification", "PRIVATE")
-                        .stringType("task_title", "review")
-                        .stringType("assignee", "Mark Alistair")
-                        .booleanType("auto_assigned", true)
-                        .stringType("execution_type", "Time extension")
-                        .stringType("jurisdiction", "IA")
-                        .stringType("region", "South")
-                        .stringType("location", "12345")
-                        .stringType("location_name", "Newcastle")
-                        .stringType("case_type_id", "Asylum")
-                        .stringType("case_id", "4d4b3a4e-c91f-433f-92ac-e456ae34f72a")
-                        .stringType("case_category", "processApplication")
-                        .stringType("case_name", "caseName")
-                        .booleanType("warnings", false)
-                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("work_type_id", "hearing_work")
-                        .stringType("work_type_label", "Hearing work")
-                        .stringType("next_hearing_id", "nextHearingId")
-                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringMatcher("termination_process", "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
-                            "EXUI_USER_COMPLETION")
-                )).build();
+        return LambdaDsl.newJsonBody(o -> o.object("task", task -> {
+            baseTaskFields().accept(task);  // add base fields
+            task.stringMatcher(
+                "termination_process",
+                "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                "EXUI_USER_COMPLETION"
+            );
+        })
+        ).build();
+    }
+
+    private static Consumer<LambdaDslObject> baseTaskFields() {
+        return task -> {
+            task.stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136");
+            task.stringType("name", "JakeO");
+            task.stringType("type", "ReviewTheAppeal");
+            task.stringType("task_state", "unconfigured");
+            task.stringType("task_system", "main");
+            task.stringType("security_classification", "PRIVATE");
+            task.stringType("task_title", "review");
+            task.stringType("assignee", "Mark Alistair");
+            task.booleanType("auto_assigned", true);
+            task.stringType("execution_type", "Time extension");
+            task.stringType("jurisdiction", "IA");
+            task.stringType("region", "South");
+            task.stringType("location", "12345");
+            task.stringType("location_name", "Newcastle");
+            task.stringType("case_type_id", "Asylum");
+            task.stringType("case_id", "4d4b3a4e-c91f-433f-92ac-e456ae34f72a");
+            task.stringType("case_category", "processApplication");
+            task.stringType("case_name", "caseName");
+            task.booleanType("warnings", false);
+            task.datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ");
+            task.datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ");
+            task.stringType("work_type_id", "hearing_work");
+            task.stringType("work_type_label", "Hearing work");
+            task.stringType("next_hearing_id", "nextHearingId");
+            task.datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ");
+        };
+
     }
 
     private DslPart createResponseForGetTaskWithWarnings() {
