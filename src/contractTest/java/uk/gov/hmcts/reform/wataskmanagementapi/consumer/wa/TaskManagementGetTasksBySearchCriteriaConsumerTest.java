@@ -156,6 +156,23 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeGetTasksWithCompletionProcessBySearchCriteria200(PactDslWithProvider builder) {
+        return builder
+            .given("appropriate tasks with completion process are returned by criteria")
+            .uponReceiving("Provider receives a POST /task request from a WA API for task with completion process")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithCompletionProcess())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithAvailableTasksContext200Test(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with context available task")
@@ -308,6 +325,20 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .statusCode(HttpStatus.OK.value());
     }
 
+
+    @Test
+    @PactTestFor(pactMethod = "executeGetTasksWithCompletionProcessBySearchCriteria200", pactVersion = PactSpecVersion.V3)
+    void testGetTasksWithCompletionProcessBySearchCriteria200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
@@ -342,7 +373,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                              //Can have termination process optional field for completed tasks
                 )).build();
     }
 
@@ -651,5 +681,17 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
+    }
+
+    private DslPart createResponseForGetTaskWithCompletionProcess() {
+        return newJsonBody(
+            o -> o
+                .minArrayLike("tasks", 1, 1,
+                              task -> {
+                    createResponseForGetTask();
+                    task.stringMatcher("termination_process",
+                                       "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                                       "EXUI_USER_COMPLETION");
+                })).build();
     }
 }

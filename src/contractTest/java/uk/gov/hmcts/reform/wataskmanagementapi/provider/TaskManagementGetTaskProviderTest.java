@@ -181,7 +181,53 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
     }
 
     private Task createTaskWithCompletionProcess() {
-        Task task = createTask();
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.CANCEL,
+                PermissionTypes.EXECUTE
+            )
+        );
+
+        Task task = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
+            "hearing_work",
+            "Hearing work",
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description",
+            getAdditionalProperties(),
+            "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now());
         task.setTerminationProcess("EXUI_USER_COMPLETION");
         return task;
     }
