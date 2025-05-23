@@ -327,7 +327,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
 
 
     @Test
-    @PactTestFor(pactMethod = "executeGetTasksWithCompletionProcessBySearchCriteria200", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "executeGetTasksWithCompletionProcessBySearchCriteria200",
+        pactVersion = PactSpecVersion.V3)
     void testGetTasksWithCompletionProcessBySearchCriteria200Test(MockServer mockServer) {
         SerenityRest
             .given()
@@ -686,8 +687,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     private DslPart createResponseForGetTaskWithCompletionProcess() {
         return newJsonBody(
             o -> o
-                .minArrayLike("tasks", 1, 1,
-                              task -> {
+                .minArrayLike("tasks", 1, 1, task -> {
                     createResponseForGetTask();
                     task.stringMatcher("termination_process",
                                        "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
