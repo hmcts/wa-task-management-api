@@ -245,7 +245,7 @@ configurations.all {
 
 dependencyManagement {
   dependencies {
-    dependency group: 'commons-io', name: 'commons-io', version: '2.17.0'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.19.0'
 
     dependencySet( group: 'org.springframework.security', version: '6.0.8'){
       entry 'spring-security-core'
@@ -297,7 +297,7 @@ repositories {
 def versions = [
   junit         : '5.11.3',
   junitPlatform : '1.11.3',
-  reformLogging : '6.1.7',
+  reformLogging : '6.1.9',
   springDoc     : '2.2.0',
   serenity      : '3.4.2',
   gradlePitest  : '1.15.0',
