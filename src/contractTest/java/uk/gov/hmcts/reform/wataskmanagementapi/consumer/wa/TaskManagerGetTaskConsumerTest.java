@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.wa;
 
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.DslPart;
+import au.com.dius.pact.consumer.dsl.LambdaDsl;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
@@ -86,6 +87,22 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
             .toPact();
     }
 
+    @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
+    public RequestResponsePact executeGetTaskByIdWithCompletionProcess200(PactDslWithProvider builder) {
+        return builder
+            .given("get a task using taskId with completion process")
+            .uponReceiving("taskId to get a task")
+            .path(WA_GET_TASK_BY_ID)
+            .method(HttpMethod.GET.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithCompletionProcess())
+            .toPact();
+    }
+
     @Test
     @PactTestFor(pactMethod = "executeGetTaskById200", pactVersion = PactSpecVersion.V3)
     void testGetTaskByTaskId200Test(MockServer mockServer) {
@@ -128,6 +145,19 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
 
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeGetTaskByIdWithCompletionProcess200", pactVersion = PactSpecVersion.V3)
+    void testGetTaskByTaskId200WithCompletionProcessTest(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
+            .then()
+            .statusCode(200);
+
+    }
+
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
@@ -160,6 +190,19 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
+    }
+
+
+    private DslPart createResponseForGetTaskWithCompletionProcess() {
+        return LambdaDsl.newJsonBody(o -> o.object("task", task -> {
+            createResponseForGetTask();
+            task.stringMatcher(
+                "termination_process",
+                "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                "EXUI_USER_COMPLETION"
+            );
+        })
+        ).build();
     }
 
     private DslPart createResponseForGetTaskWithWarnings() {
