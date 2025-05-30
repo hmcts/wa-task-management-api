@@ -68,6 +68,7 @@ idam:
   system:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
+  test-account-pw: ${IDAM_TEST_ACCOUNT_PW:password}
 
 springdoc:
   swagger-ui:

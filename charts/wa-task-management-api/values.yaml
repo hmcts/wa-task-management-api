@@ -40,6 +40,8 @@ java:
           alias: POSTGRES_PORT
         - name: cft-task-POSTGRES-DATABASE-FLEXIBLE-REPLICA
           alias: POSTGRES_NAME
+        - name: idam-test-account-pw
+          alias: IDAM_TEST_ACCOUNT_PW
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
