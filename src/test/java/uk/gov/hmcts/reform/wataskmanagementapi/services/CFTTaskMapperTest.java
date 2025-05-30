@@ -1410,7 +1410,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(43);
+        assertThat(taskAttributes).size().isEqualTo(28);
     }
 
     @Test
@@ -1425,11 +1425,27 @@ class CFTTaskMapperTest {
             objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
         Map<String, Object> camundaTaskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertEquals(dbTaskAttributes.size(), camundaTaskAttributes.size());
+        assertEquals(dbTaskAttributes.size() - 15, camundaTaskAttributes.size());
         assertEquals(dbTaskAttributes.get("taskName"), camundaTaskAttributes.get("name"));
         assertEquals(dbTaskAttributes.get("state"), camundaTaskAttributes.get("taskState"));
         assertEquals(dbTaskAttributes.get("caseCategory"), camundaTaskAttributes.get("caseManagementCategory"));
         assertEquals(dbTaskAttributes.get("dueDateTime"), camundaTaskAttributes.get("dueDate"));
+        assertEquals("someWorkType", camundaTaskAttributes.get("workType"));
+
+        Set<String> expectedOnlyInDbTaskAttributes =
+            Set.of("lastUpdatedUser", "taskName", "dueDateTime", "caseCategory", "securityClassification",
+                   "lastReconfigurationTime", "reconfigureRequestTime", "autoAssigned", "state", "taskSystem",
+                   "indexed", "lastUpdatedTimestamp", "lastUpdatedAction", "taskRoleResources", "executionTypeCode",
+                   "businessContext", "terminationReason", "notes", "assignmentExpiry", "workTypeResource");
+        expectedOnlyInDbTaskAttributes.forEach(s -> {
+            assertTrue(dbTaskAttributes.containsKey(s));
+        }
+        );
+        expectedOnlyInDbTaskAttributes.forEach(s -> {
+            assertFalse(camundaTaskAttributes.containsKey(s));
+        }
+        );
+
     }
 
     @Test

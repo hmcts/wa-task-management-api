@@ -6,10 +6,7 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.context.refresh.ContextRefresher;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
@@ -46,12 +43,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     private static final String ENDPOINT_BEING_TESTED_CANCEL = "task/{task-id}/cancel";
 
     private TestAuthenticationCredentials caseworkerCredentials;
-
-    @Autowired
-    ContextRefresher refresher;
-
-    @Autowired
-    ConfigurableEnvironment env;
 
     @Before
     public void setUp() {
@@ -1201,6 +1192,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
 
+
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED_TASK,
             taskId,
@@ -1256,6 +1248,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
         authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
     }
+
 
     @Test
     public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
