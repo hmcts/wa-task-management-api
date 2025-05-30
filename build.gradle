@@ -245,7 +245,7 @@ configurations.all {
 
 dependencyManagement {
   dependencies {
-    dependency group: 'commons-io', name: 'commons-io', version: '2.17.0'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.19.0'
 
     dependencySet( group: 'org.springframework.security', version: '6.0.8'){
       entry 'spring-security-core'
@@ -297,7 +297,7 @@ repositories {
 def versions = [
   junit         : '5.11.3',
   junitPlatform : '1.11.3',
-  reformLogging : '6.1.7',
+  reformLogging : '6.1.9',
   springDoc     : '2.2.0',
   serenity      : '3.4.2',
   gradlePitest  : '1.15.0',
@@ -375,9 +375,9 @@ dependencies {
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '6.6.1.Final'
   implementation group: 'org.hibernate', name: 'hibernate-validator', version: '8.0.1.Final'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.24.2'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.24.2'
-  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.16'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.24.3'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.24.3'
+  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
