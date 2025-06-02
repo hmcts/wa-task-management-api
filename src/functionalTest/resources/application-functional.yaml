@@ -1,14 +1,14 @@
 targets:
-  instance: ${TEST_URL:http://localhost:8087}
-  camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
-  workflow: ${WA_WORKFLOW_API_URL:http://localhost:8099}
+  instance: http://wa-task-management-api-perftest.service.core-compute-perftest.internal/
+  camunda: http://camunda-api-perftest.service.core-compute-perftest.internal/engine-rest
+  workflow: http://wa-workflow-api-perftest.service.core-compute-perftest.internal/
 
 launch_darkly:
   url: ${LAUNCH_DARKLY_URL:https://app.launchdarkly.com/api/v2/flags/Work-Allocation/}
   accessToken: ${LAUNCH_DARKLY_ACCESS_TOKEN:token}
 core_case_data:
   api:
-    url: ${CCD_URL:http://ccd-data-store-api}
+    url: http://ccd-data-store-api-perftest.service.core-compute-perftest.internal
 
 document_management:
   url: ${DM_STORE_URL:http://local-dm-store}
