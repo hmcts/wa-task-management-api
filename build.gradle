@@ -367,7 +367,7 @@ dependencies {
   implementation group: 'org.zalando', name: 'logbook-httpclient5', version: versions.logbook
   implementation group: 'org.zalando', name: 'problem-spring-web-starter', version: '0.29.1'
 
-  implementation group: 'net.minidev', name: 'json-smart', version: '2.5.1'
+  implementation group: 'net.minidev', name: 'json-smart', version: '2.5.2'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.3.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
