@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.opentest4j.AssertionFailedError;
@@ -53,119 +52,6 @@ public class DBCleanupTest extends ReplicaBaseTest {
 
     @Autowired
     SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
-
-    public static final String PRIMARY_CLEANUP_FUNCTION =
-        "CREATE OR REPLACE FUNCTION "
-            + "cft_task_db.task_cleanup_between_dates_primary(created_time_from TIMESTAMP,created_time_to TIMESTAMP)\n"
-            + "RETURNS VOID\n"
-            + "LANGUAGE plpgsql\n"
-            + "AS $function$\n"
-            + "DECLARE\n"
-            + "    task_id_var TEXT;\n"
-            + "BEGIN\n"
-            + "    -- Loop through the rows of the tasks table\n"
-            + "    FOR task_id_var IN "
-            + "SELECT task_id FROM cft_task_db.tasks WHERE created >= created_time_from "
-            + "AND created <= created_time_to order by created limit 2000 LOOP\n"
-            + "\n"
-            + "        -- delete from sensitive_task_event_logs\n"
-            + "        DELETE FROM cft_task_db.sensitive_task_event_logs WHERE task_id = task_id_var;\n"
-            + "\n"
-            + "      IF EXISTS (SELECT 1 FROM cft_task_db.sensitive_task_event_logs WHERE task_id = task_id_var) THEN\n"
-            + "            RAISE NOTICE 'Issue with the taskId: % in sensitive_task_event_logs table. "
-            + "Skipping next steps', task_id_var;\n"
-            + "            CONTINUE;\n"
-            + "        END IF;\n"
-            + "\n"
-            + "        -- delete from task_roles\n"
-            + "        DELETE FROM cft_task_db.task_roles WHERE task_id = task_id_var;\n"
-            + "\n"
-            + "        IF EXISTS (SELECT 1 FROM cft_task_db.task_roles WHERE task_id = task_id_var) THEN\n"
-            + "       RAISE NOTICE 'Issue with the taskId: % in task_roles table. Skipping next steps', task_id_var;\n"
-            + "            CONTINUE;\n"
-            + "        END IF;\n"
-            + "\n"
-            + "        -- delete from tasks\n"
-            + "        DELETE FROM cft_task_db.tasks WHERE task_id = task_id_var;\n"
-            + "\n"
-            + "        IF EXISTS (SELECT 1 FROM cft_task_db.tasks WHERE task_id = task_id_var) THEN\n"
-            + "            RAISE NOTICE 'Issue with the taskId: % in tasks table', task_id_var;\n"
-            + "        END IF;\n"
-            + "\n"
-            + "    END LOOP;\n"
-            + "\n"
-            + "    RETURN;\n"
-            + "\n"
-            + "END;\n"
-            + "$function$";
-
-    public static final String REPLICA_CLEANUP_FUNCTION =
-        "CREATE OR REPLACE FUNCTION "
-            + "cft_task_db.task_cleanup_between_dates_replica(created_time_from TIMESTAMP,created_time_to TIMESTAMP)\n"
-            + "RETURNS VOID\n"
-            + "LANGUAGE plpgsql\n"
-            + "AS $function$\n"
-            + "DECLARE\n"
-            + "    task_id_var TEXT;\n"
-            + "    created_date timestamp;\n"
-            + "BEGIN\n"
-            + "\n"
-            + "    -- Loop through the rows of the tasks table\n"
-            + "    FOR task_id_var,created_date IN "
-            + "SELECT DISTINCT task_id,created FROM cft_task_db.task_history WHERE created >= created_time_from "
-            + "AND created <= created_time_to order by created limit 10000 LOOP\n"
-            + "\n"
-            + "        -- Check if any more rows exist in tasks\n"
-            + "        IF EXISTS (SELECT 1 FROM cft_task_db.tasks WHERE task_id = task_id_var) THEN\n"
-            + "            RAISE NOTICE 'Issue with the taskId: % in tasks table. Skipping next steps', task_id_var;\n"
-            + "            CONTINUE;\n"
-            + "        END IF;\n"
-            + "\n"
-            + "        -- delete from reportable_task\n"
-            + "        DELETE FROM cft_task_db.reportable_task WHERE task_id = task_id_var;\n"
-            + "\n"
-            + "        IF EXISTS (SELECT 1 FROM cft_task_db.reportable_task WHERE task_id = task_id_var) THEN\n"
-            + "            RAISE NOTICE 'Issue with the taskId: % in reportable_task table', task_id_var;\n"
-            + "            CONTINUE;\n"
-            + "        END IF;\n"
-            + "\n"
-            + "        -- delete from task_assignments\n"
-            + "        DELETE FROM cft_task_db.task_assignments WHERE task_id = task_id_var;\n"
-            + "\n"
-            + "        IF EXISTS (SELECT 1 FROM cft_task_db.task_assignments WHERE task_id = task_id_var) THEN\n"
-            + "          RAISE NOTICE 'Issue with the taskId: % in task_assignments table', task_id_var;\n"
-            + "          CONTINUE;\n"
-            + "        END IF;\n"
-            + "\n"
-            + "        -- delete from task_history\n"
-            + "        DELETE FROM cft_task_db.task_history WHERE task_id = task_id_var;\n"
-            + "\n"
-            + "        IF EXISTS (SELECT 1 FROM cft_task_db.task_history WHERE task_id = task_id_var) THEN\n"
-            + "            RAISE NOTICE 'Issue with the taskId: % in task_history table', task_id_var;\n"
-            + "        END IF;\n"
-            + "\n"
-            + "    END LOOP;\n"
-            + "\n"
-            + "    RETURN;\n"
-            + "\n"
-            + "END;\n"
-            + "$function$";
-
-
-    @BeforeEach
-    public void setup() {
-        PrimaryDBDao primaryDBDao = new PrimaryDBDao(container.getJdbcUrl(),
-                                                     container.getUsername(),
-                                                     container.getPassword());
-
-        primaryDBDao.insertPrimaryCleanupFunction(PRIMARY_CLEANUP_FUNCTION);
-
-        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
-                                                           containerReplica.getUsername(),
-                                                           containerReplica.getPassword());
-
-        miReplicaDBDao.inserReplicaCleanUpFunction(REPLICA_CLEANUP_FUNCTION);
-    }
 
     @Test
     public void when_cleanup_scripts_invoked_should_clear_old_tasks_from_primary_and_replica() {
