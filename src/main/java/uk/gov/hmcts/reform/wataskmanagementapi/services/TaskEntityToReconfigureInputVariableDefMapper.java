@@ -16,5 +16,6 @@ public interface TaskEntityToReconfigureInputVariableDefMapper {
     @Mapping(source = "taskEntity.dueDateTime", target = "dueDate")
     @Mapping(source = "taskEntity.state", target = "taskState")
     @Mapping(source = "taskEntity.caseCategory", target = "caseManagementCategory")
+    @Mapping(source = "taskEntity.workTypeResource.id", target = "workType")
     ReconfigureInputVariableDefinition map(TaskResource taskEntity);
 }
