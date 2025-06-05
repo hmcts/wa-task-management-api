@@ -21,6 +21,7 @@ idam:
     userCleanupEnabled: ${ENABLE_TEST_USER_DELETION:false}
     username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
     password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
+    test-account-pw: ${IDAM_TEST_ACCOUNT_PW:password}
 
 #Point to in memory database which enables spring context to start and run ft tests against TEST_URL
 spring.flyway.enabled: false

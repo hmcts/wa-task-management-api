@@ -40,6 +40,7 @@ public class AuthorizationProvider {
     @Value("${idam.scope}") protected String userScope;
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}") protected String idamClientId;
     @Value("${spring.security.oauth2.client.registration.oidc.client-secret}") protected String idamClientSecret;
+    @Value("${idam.test.test-account-pw:default}") protected String idamTestAccountPassword;
     @Autowired
     private IdamWebApi idamWebApi;
     @Autowired
@@ -284,11 +285,10 @@ public class AuthorizationProvider {
     }
 
     private TestAccount generateIdamTestAccount(String emailPrefix, List<RoleCode> requiredRoles) {
-        String password = "London01";
         RoleCode userGroup = new RoleCode("caseworker");
 
         Map<String, Object> body = new ConcurrentHashMap<>();
-        body.put("password", password);
+        body.put("password", idamTestAccountPassword);
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
         body.put("roles", requiredRoles);
@@ -313,6 +313,6 @@ public class AuthorizationProvider {
             });
 
         log.info("Test account created successfully");
-        return new TestAccount(email.get(), password);
+        return new TestAccount(email.get(), idamTestAccountPassword);
     }
 }
