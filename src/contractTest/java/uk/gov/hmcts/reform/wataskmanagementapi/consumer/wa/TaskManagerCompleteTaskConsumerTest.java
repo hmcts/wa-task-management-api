@@ -60,12 +60,13 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
     }
 
     @Pact(provider = "wa_task_management_api_complete_task_by_id", consumer = "wa_task_management_api")
-    public RequestResponsePact pactWithCompletionProcessUser(PactDslWithProvider builder) {
+    public RequestResponsePact executeCompleteTaskForGivenIdWithCompletionProcessUser(PactDslWithProvider builder) {
         return buildPactWithQueryParam(builder, "EXUI_USER_COMPLETION");
     }
 
     @Pact(provider = "wa_task_management_api_complete_task_by_id", consumer = "wa_task_management_api")
-    public RequestResponsePact pactWithCompletionProcessCaseEvent(PactDslWithProvider builder) {
+    public RequestResponsePact executeCompleteTaskForGivenIdWithCompletionProcessCaseEvent(
+        PactDslWithProvider builder) {
         return buildPactWithQueryParam(builder, "EXUI_CASE-EVENT_COMPLETION");
     }
 
@@ -79,7 +80,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN);
 
-            pactBuilder = pactBuilder.query(REQ_PARAM_COMPLETION_PROCESS + "=" + completionProcessValue);
+        pactBuilder = pactBuilder.query(REQ_PARAM_COMPLETION_PROCESS + "=" + completionProcessValue);
 
         return pactBuilder
             .willRespondWith()
@@ -88,15 +89,17 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
     }
 
     @Test
-    @PactTestFor(pactMethod = "pactWithCompletionProcessUser", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "executeCompleteTaskForGivenIdWithCompletionProcessUser",
+        pactVersion = PactSpecVersion.V3)
     void testWithCompletionProcessUser(MockServer mockServer) {
-        sendPostWithCompletionProcess(mockServer, "EXUI_USER_COMPLETION");
+        testCompleteTaskByCompletionProcess(mockServer, "EXUI_USER_COMPLETION");
     }
 
     @Test
-    @PactTestFor(pactMethod = "pactWithCompletionProcessCaseEvent", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "executeCompleteTaskForGivenIdWithCompletionProcessCaseEvent",
+        pactVersion = PactSpecVersion.V3)
     void testWithCompletionProcessCaseEvent(MockServer mockServer) {
-        sendPostWithCompletionProcess(mockServer, "EXUI_CASE-EVENT_COMPLETION");
+        testCompleteTaskByCompletionProcess(mockServer, "EXUI_CASE-EVENT_COMPLETION");
     }
 
     @Test
@@ -134,7 +137,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
 
     }
 
-    private void sendPostWithCompletionProcess(MockServer mockServer, String queryParam) {
+    private void testCompleteTaskByCompletionProcess(MockServer mockServer, String queryParam) {
         String url = mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID;
         url += "?" + REQ_PARAM_COMPLETION_PROCESS + "=" + queryParam;
         SerenityRest
