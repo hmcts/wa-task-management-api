@@ -79,9 +79,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN);
 
-        if (completionProcessValue != null) {
             pactBuilder = pactBuilder.query(REQ_PARAM_COMPLETION_PROCESS + "=" + completionProcessValue);
-        }
 
         return pactBuilder
             .willRespondWith()
