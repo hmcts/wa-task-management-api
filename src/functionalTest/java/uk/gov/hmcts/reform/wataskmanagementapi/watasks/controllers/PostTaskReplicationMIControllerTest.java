@@ -1204,7 +1204,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task.termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"))
             .body("task.id", equalTo(taskId));
 
-      await()
+        await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
             .atMost(120, SECONDS)
