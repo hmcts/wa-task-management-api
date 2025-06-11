@@ -109,6 +109,8 @@ public abstract class BaseTaskHistoryResource {
     @JdbcTypeCode(Types.TIMESTAMP)
     private OffsetDateTime priorityDate;
 
+    private String terminationProcess;
+
     //abstract class must have abstract method
     protected abstract String getTaskTitle();
 }

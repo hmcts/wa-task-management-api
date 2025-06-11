@@ -49,7 +49,9 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService
+            taskDeletionService,
+            completionProcessValidator,
+            launchDarklyFeatureFlagProvider
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -63,7 +65,7 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
     }
 
     private void setInitMockWithoutPrivilegedAccess() {
-        doNothing().when(taskManagementService).completeTask(any(), any());
+        doNothing().when(taskManagementService).completeTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         UserInfo userInfo = mock((UserInfo.class));
         when(userInfo.getUid()).thenReturn("someUserId");
@@ -77,7 +79,8 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
         UserInfo userInfo = mock((UserInfo.class));
         when(userInfo.getUid()).thenReturn("someUserId");
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any());
+        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(
+            any(), any(), any(), any());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
 

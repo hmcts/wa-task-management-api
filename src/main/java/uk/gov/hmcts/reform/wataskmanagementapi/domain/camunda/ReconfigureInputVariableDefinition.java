@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
@@ -52,5 +53,6 @@ public class ReconfigureInputVariableDefinition {
     private OffsetDateTime nextHearingDate;
 
     private OffsetDateTime priorityDate;
-
+    
+    private TerminationProcess terminationProcess;
 }
