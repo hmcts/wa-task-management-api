@@ -6,8 +6,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +20,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -31,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRe
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -43,7 +49,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -58,9 +66,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEntityBuilder.buildErrorResponseEntityAndLogError;
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+@Slf4j
 @RestController
+@RefreshScope
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
+    public static final String REQ_PARAM_COMPLETION_PROCESS = "completion_process";
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private final TaskManagementService taskManagementService;
@@ -70,18 +81,26 @@ public class TaskActionsController extends BaseController {
 
     private final TaskDeletionService taskDeletionService;
 
+    private final CompletionProcessValidator completionProcessValidator;
+
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService,
-                                 TaskDeletionService taskDeletionService) {
+                                 TaskDeletionService taskDeletionService,
+                                 CompletionProcessValidator completionProcessValidator,
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
+        this.completionProcessValidator = completionProcessValidator;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -106,6 +125,10 @@ public class TaskActionsController extends BaseController {
             id,
             accessControlResponse
         );
+
+        if (!isUpdateCompletionProcessFlagEnabled(accessControlResponse)) {
+            task.setTerminationProcess(null);
+        }
 
         return ResponseEntity
             .ok()
@@ -214,14 +237,26 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
+                                             @RequestParam(name = REQ_PARAM_COMPLETION_PROCESS, required = false)
+                                             String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
-            accessControlResponse.getUserInfo().getUid());
+                 accessControlResponse.getUserInfo().getUid());
 
+
+
+        Optional<String> validatedCompletionProcess =
+            completionProcessValidator.validate(completionProcess, taskId,
+                                                isUpdateCompletionProcessFlagEnabled(accessControlResponse));
+
+        if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
+            requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
+        }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse);
+            taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -230,7 +265,8 @@ public class TaskActionsController extends BaseController {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    completeTaskRequest.getCompletionOptions()
+                    completeTaskRequest.getCompletionOptions(),
+                    requestParamMap
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -388,5 +424,18 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
+    }
+
+    /**
+     Checks if the "WA_COMPLETION_PROCESS_UPDATE" feature flag is enabled for the given user.
+
+     @param accessControlResponse The access control response containing user information.
+     @return true if the feature flag is enabled, false otherwise. */
+    private boolean isUpdateCompletionProcessFlagEnabled(AccessControlResponse accessControlResponse) {
+        return  launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
     }
 }
