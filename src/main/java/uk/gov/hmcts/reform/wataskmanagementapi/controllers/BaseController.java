@@ -15,6 +15,7 @@ public abstract class BaseController {
     protected static final String BAD_GATEWAY = "Bad Gateway";
     protected static final String TASK_ID = "task-id";
 
+
     protected BaseController() {
         //Only really want it called from a subclass
     }
