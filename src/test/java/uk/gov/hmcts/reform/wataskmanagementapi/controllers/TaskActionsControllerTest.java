@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
@@ -52,6 +53,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.anyString;
@@ -146,6 +148,34 @@ class TaskActionsControllerTest {
         assertThat(response.getBody(), instanceOf(GetTaskResponse.class));
         assertNotNull(response.getBody());
         assertEquals(mockedTask, response.getBody().getTask());
+    }
+
+    @Test
+    void should_succeed_when_fetching_a_task_and_empty_termination_process_when_flag_disabled() {
+
+        Task mockedTask = mock(Task.class);
+        mockedTask.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION.getValue());
+        AccessControlResponse mockAccessControlResponse = new AccessControlResponse(
+            mockedUserInfo,
+            singletonList(mockedRoleAssignment)
+        );
+
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(mockAccessControlResponse);
+
+        when(taskManagementService.getTask(
+            taskId,
+            mockAccessControlResponse
+        ))
+            .thenReturn(mockedTask);
+
+        ResponseEntity<GetTaskResponse<Task>> response = taskActionsController.getTask(IDAM_AUTH_TOKEN, taskId);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertThat(response.getBody(), instanceOf(GetTaskResponse.class));
+        assertNotNull(response.getBody());
+        assertNull(response.getBody().getTask().getTerminationProcess());
     }
 
     @Test

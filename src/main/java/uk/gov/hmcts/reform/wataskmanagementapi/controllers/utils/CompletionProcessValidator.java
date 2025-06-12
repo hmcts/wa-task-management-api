@@ -37,11 +37,13 @@ public class CompletionProcessValidator {
             return Optional.empty();
         } else if (completionProcess == null || completionProcess.isBlank()
             || !VALID_COMPLETION_PROCESS.contains(completionProcess)) {
-            log.warn("Invalid TerminationProcess value: {} was received and no action was taken for task with id {}",
+
+
+            log.warn("Invalid CompletionProcess value: {} was received and no action was taken for task with id {}",
                      completionProcess, taskId);
             return Optional.empty();
         } else {
-            log.info("TerminationProcess value: {} was received and updating in database for task with id {}",
+            log.info("CompletionProcess value: {} was received and updating in database for task with id {}",
                      completionProcess, taskId);
             return Optional.of(completionProcess);
         }
