@@ -179,7 +179,7 @@ public class CFTTaskMapper {
 
     @SuppressWarnings("PMD.NPathComplexity")
     public Task mapToTaskWithPermissions(TaskResource taskResource, Set<PermissionTypes> permissionsUnionForUser) {
-        return new Task(
+        Task task =  new Task(
             taskResource.getTaskId(),
             taskResource.getTaskName(),
             taskResource.getTaskType(),
@@ -220,6 +220,12 @@ public class CFTTaskMapper {
             taskResource.getLastReconfigurationTime() == null ? null
                 : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
+
+        if (taskResource.getTerminationProcess() != null) {
+            task.setTerminationProcess(taskResource.getTerminationProcess().getValue());
+        }
+        return task;
+
     }
 
 
