@@ -300,16 +300,28 @@ public abstract class SpringBootFunctionalBaseTest {
                                     Headers headers) {
 
         InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(testVariables, additionalProperties);
-        Response response = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            testVariables.getTaskId(),
-            initiateTaskRequest,
-            authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
+        AtomicReference<Response> response = new AtomicReference<>();
+        await()
+            .pollInterval(10, SECONDS)
+            .atMost(30, SECONDS)
+            .until(() -> {
+                response.set(restApiActions.post(
+                    TASK_INITIATION_ENDPOINT,
+                    testVariables.getTaskId(),
+                    initiateTaskRequest,
+                    authorizationProvider.getServiceAuthorizationHeadersOnly()
+                ));
+
+                boolean isTextPlain = response.get().getHeader("Content-Type").equals("text/plain");
+                boolean isStatus503 = response.get().getStatusCode() == 503;
+                boolean isNoAvailableServer = response.get().getBody().asString().contains("no available server");
+
+                return !(isStatus503 && isTextPlain && isNoAvailableServer);
+            });
 
         //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
         // second initiation request, so we are by-passing 503 and 201 response statuses.
-        assertResponse(response,testVariables.getTaskId(),headers);
+        assertResponse(response.get(), testVariables.getTaskId(), headers);
 
     }
 
