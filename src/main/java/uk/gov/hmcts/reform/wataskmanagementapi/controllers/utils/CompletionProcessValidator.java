@@ -37,7 +37,6 @@ public class CompletionProcessValidator {
             return Optional.empty();
         } else if (completionProcess == null || completionProcess.isBlank()
             || !VALID_COMPLETION_PROCESS.contains(completionProcess)) {
-
             log.warn("Invalid CompletionProcess value: {} was received and no action was taken for task with id {}",
                      completionProcess, taskId);
             return Optional.empty();

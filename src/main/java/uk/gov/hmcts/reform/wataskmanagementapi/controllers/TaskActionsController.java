@@ -247,9 +247,11 @@ public class TaskActionsController extends BaseController {
                  accessControlResponse.getUserInfo().getUid());
 
 
+
         Optional<String> validatedCompletionProcess =
             completionProcessValidator.validate(completionProcess, taskId,
                                                 isUpdateCompletionProcessFlagEnabled(accessControlResponse));
+
         if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
             requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
         }

@@ -1203,6 +1203,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.OK.value())
             .body("task.termination_process", equalTo("EXUI_CASE-EVENT_COMPLETION"))
             .body("task.id", equalTo(taskId));
+
         await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
@@ -1285,7 +1286,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1));
             });
-
 
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
