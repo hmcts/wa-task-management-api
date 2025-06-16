@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskPermissions;
@@ -28,6 +29,7 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,11 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
     @State({"get a task using taskId with warnings"})
     public void getTaskByIdWithWarnings() {
         setInitMockTaskWithWarnings();
+    }
+
+    @State({"get a task using taskId with completion process"})
+    public void getTaskByIdWithCompletionProcess() {
+        setInitMockTaskWithCompletionProcess();
     }
 
     @TestTemplate
@@ -110,6 +117,18 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
         when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithWarnings());
     }
 
+    private void setInitMockTaskWithCompletionProcess() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(userInfo.getEmail()).thenReturn("someEmailId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
+                                                             anyString(), anyString())).thenReturn(true);
+        when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithCompletionProcess());
+    }
+
     private Task createTask() {
         final TaskPermissions permissions = new TaskPermissions(
             Set.of(
@@ -123,7 +142,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             )
         );
 
-        return new Task(
+        Task task = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -158,6 +177,59 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             500,
             5000,
             ZonedDateTime.now());
+        return task;
+    }
+
+    private Task createTaskWithCompletionProcess() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.COMPLETE,
+                PermissionTypes.CLAIM,
+                PermissionTypes.UNCLAIM,
+                PermissionTypes.UNASSIGN_CLAIM,
+                PermissionTypes.CANCEL,
+                PermissionTypes.EXECUTE
+            )
+        );
+
+        Task task = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
+            "hearing_work",
+            "Hearing work",
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description",
+            getAdditionalProperties(),
+            "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now());
+        task.setTerminationProcess("EXUI_USER_COMPLETION");
+        return task;
     }
 
     private Task createTaskWithWarnings() {
