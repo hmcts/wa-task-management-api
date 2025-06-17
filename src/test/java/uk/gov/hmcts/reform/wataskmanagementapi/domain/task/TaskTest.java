@@ -91,7 +91,7 @@ class TaskTest {
         Assertions.assertThat(task.getCaseName()).isEqualTo("some-case");
         Assertions.assertThat(task.isAutoAssigned()).isTrue();
         Assertions.assertThat(task.getWarnings()).isFalse();
-        Assertions.assertThat(task.getWarningList().getValues().size()).isEqualTo(2);
+        Assertions.assertThat(task.getWarningList().getValues()).hasSize(2);
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningCode()).isEqualTo("123");
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningText()).isEqualTo("some warning");
         Assertions.assertThat(task.getCaseManagementCategory()).isEqualTo("some-case-management-category");

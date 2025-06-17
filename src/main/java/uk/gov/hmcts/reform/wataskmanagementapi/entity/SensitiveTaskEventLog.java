@@ -27,7 +27,6 @@ public class SensitiveTaskEventLog implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 

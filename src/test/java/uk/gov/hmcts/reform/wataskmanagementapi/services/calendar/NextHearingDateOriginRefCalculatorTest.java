@@ -34,7 +34,7 @@ class NextHearingDateOriginRefCalculatorTest {
     private NextHearingDateOriginRefCalculator nextHearingDateOriginRefCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         calculatedConfigurations = new ArrayList<>();
         nextHearingDateOriginRefCalculator = new NextHearingDateOriginRefCalculator(new WorkingDayIndicator(
             publicHolidaysCollection));

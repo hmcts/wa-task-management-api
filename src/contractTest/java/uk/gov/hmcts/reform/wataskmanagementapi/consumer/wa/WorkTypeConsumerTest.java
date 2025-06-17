@@ -196,6 +196,11 @@ public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
                             .stringType("id", "query_work")
                             .stringType("label", "Query work");
                     })
+                    .object((value) -> {
+                        value
+                            .stringType("id", "welsh_translation_work")
+                            .stringType("label", "Welsh translation work");
+                    })
                 )
         ).build();
     }

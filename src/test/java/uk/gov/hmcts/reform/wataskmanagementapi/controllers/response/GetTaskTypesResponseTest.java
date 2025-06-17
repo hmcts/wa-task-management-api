@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype.TaskTypeResponse;
 
 import java.util.Set;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,8 +26,7 @@ class GetTaskTypesResponseTest {
 
         final GetTaskTypesResponse getTaskTypesResponse = new GetTaskTypesResponse(taskTypeResponses);
 
-        assertThat(getTaskTypesResponse.getTaskTypeResponses().size())
-            .isEqualTo(1);
+        assertThat(getTaskTypesResponse.getTaskTypeResponses()).hasSize(1);
 
         assertThat(getTaskTypesResponse.getTaskTypeResponses())
             .isEqualTo(taskTypeResponses);

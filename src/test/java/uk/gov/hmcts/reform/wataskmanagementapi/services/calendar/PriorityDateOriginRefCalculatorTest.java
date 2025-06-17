@@ -34,7 +34,7 @@ class PriorityDateOriginRefCalculatorTest {
     private PriorityDateOriginRefCalculator priorityDateOriginRefCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         calculatedConfigurations = new ArrayList<>();
         priorityDateOriginRefCalculator
             = new PriorityDateOriginRefCalculator(new WorkingDayIndicator(publicHolidaysCollection));

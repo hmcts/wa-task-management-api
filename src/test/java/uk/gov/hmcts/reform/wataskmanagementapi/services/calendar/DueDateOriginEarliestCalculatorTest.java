@@ -36,7 +36,7 @@ class DueDateOriginEarliestCalculatorTest {
     private DueDateOriginEarliestCalculator dueDateOriginEarliestCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         calculatedConfigurations = new ArrayList<>();
         dueDateOriginEarliestCalculator
             = new DueDateOriginEarliestCalculator(new WorkingDayIndicator(publicHolidaysCollection));

@@ -30,7 +30,7 @@ class PriorityDateCalculatorTest {
     private PriorityDateCalculator priorityDateCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         calculatedConfigurations = new ArrayList<>();
         priorityDateCalculator = new PriorityDateCalculator();
     }
@@ -136,28 +136,7 @@ class PriorityDateCalculatorTest {
     void should_consider_only_priority_date_when_given_configurable_priority_date_and_un_configurable_time(
         boolean configurable, String time) {
 
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        ConfigurationDmnEvaluationResponse priorityDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        ConfigurationDmnEvaluationResponse priorityDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("priorityDateTime"))
-            .value(CamundaValue.stringValue("20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(priorityDate, priorityDateTime);
-
-        String dateValue = priorityDateCalculator.calculateDate(evaluationResponses, PRIORITY_DATE_TYPE, configurable,
-                                                                new HashMap<>(),
-                                                                new ArrayList<>()
-            )
-            .getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
+        should_calculate_priority_date_when_priority_date_and_time_are_given(configurable, time);
     }
 
     @ParameterizedTest

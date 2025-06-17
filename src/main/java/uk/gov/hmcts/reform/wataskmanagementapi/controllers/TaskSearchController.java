@@ -148,6 +148,15 @@ public class TaskSearchController extends BaseController {
                 searchRequest,
                 accessControlResponse
             );
+
+        }
+        boolean isCompletionProcessUpdateEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+        if (!isCompletionProcessUpdateEnabled && response != null && response.getTasks() != null) {
+            response.getTasks().forEach(task -> task.setTerminationProcess(null));
         }
 
         return ResponseEntity
@@ -160,14 +169,12 @@ public class TaskSearchController extends BaseController {
     @Operation(description = "Retrieve a list of Task resources identified by set of search"
         + " criteria that are eligible for automatic completion",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-                schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
+            schema = @Schema(implementation = GetTasksCompletableResponse.class))})
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @PostMapping(path = "/search-for-completable")
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,

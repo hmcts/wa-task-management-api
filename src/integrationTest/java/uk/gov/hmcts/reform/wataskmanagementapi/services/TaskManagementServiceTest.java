@@ -61,7 +61,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -457,13 +460,34 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
 
             verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
+        }
+
+        @Test
+        void completeTask_should_throw_exception_when_request_param_map_is_null() {
+
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+
+            createAndAssignTestTask(taskId);
+
+            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
+                .isInstanceOf(NullPointerException.class)
+                .hasNoCause()
+                .hasMessage("Request param map cannot be null");
         }
 
         @Test
@@ -484,11 +508,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
             verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
@@ -524,7 +548,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        new HashMap<>()
                     )))
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
@@ -563,7 +588,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        new HashMap<>()
                     )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
@@ -582,41 +608,65 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         @Test
         @DisplayName("should_log_error_and_throw_exception_when_task_save_fails_after_camunda_update")
         void should_log_error_and_throw_exception_when_task_save_fails_after_camunda_update(CapturedOutput output) {
-            String taskId = UUID.randomUUID().toString();
-            createAndAssignTestTask(taskId);
-            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            String randomTaskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(randomTaskId);
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(randomTaskId);
             TaskResource taskResource = savedTaskResource.orElse(null);
             assertNotNull(taskResource);
             doThrow(new RuntimeException("Database error")).when(cftTaskDatabaseService).saveTask(taskResource);
             TerminateInfo terminateInfo = new TerminateInfo("deleted");
             assertThatThrownBy(() -> taskManagementService.terminateTask(
-                    taskId,
+                    randomTaskId,
                     terminateInfo
                 ))
                 .isInstanceOf(RuntimeException.class);
 
-            verify(camundaService, times(1)).deleteCftTaskState(taskId);
+            verify(camundaService, times(1)).deleteCftTaskState(randomTaskId);
             verify(cftTaskDatabaseService).saveTask(taskResource);
-            assertTrue(output.getOut().contains("Error saving task with id " + taskId
-                                                    + " after successfully deleting Camunda task state:"));
+
+            await()
+                .pollInterval(100, MILLISECONDS)
+                .atMost(5, SECONDS)
+                .untilAsserted(
+                    () -> assertTrue(
+                        output.getOut()
+                            .contains("Error occurred while terminating task with id: "
+                                      + randomTaskId),
+                        "Received log message: " + output.getOut()
+                    )
+                );
+
         }
 
         @Test
         @DisplayName("should_log_error_and_not_update_camunda_state_on_task_attribute_update_failure")
         void should_log_error_and_not_update_camunda_state_on_task_attribute_update_failure(CapturedOutput output) {
-            String taskId = UUID.randomUUID().toString();
-            createAndAssignTestTask(taskId);
-            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            final String randomTaskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(randomTaskId);
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(randomTaskId);
             TaskResource taskResource = savedTaskResource.orElse(null);
             assertNotNull(taskResource);
             TerminateInfo terminateInfo = new TerminateInfo(null);
             assertThatThrownBy(() -> taskManagementService.terminateTask(
-                taskId,
+                randomTaskId,
                 terminateInfo
             )).isInstanceOf(NullPointerException.class);
-            verify(camundaService, never()).deleteCftTaskState(taskId);
+
+            verify(camundaService, never()).deleteCftTaskState(randomTaskId);
             verify(cftTaskDatabaseService, never()).saveTask(taskResource);
-            assertTrue(output.getOut().contains("Error occurred while terminating task with id: " + taskId));
+
+            await()
+                .pollDelay(100, MILLISECONDS)
+                .pollInterval(500, MILLISECONDS)
+                .atMost(5, SECONDS)
+                .untilAsserted(
+                    () -> assertTrue(
+                        output.getOut()
+                            .contains("Error occurred while terminating task with id: " + randomTaskId),
+                        "Received log message: " + output.getOut()
+                    )
+                );
+
         }
 
         @Nested

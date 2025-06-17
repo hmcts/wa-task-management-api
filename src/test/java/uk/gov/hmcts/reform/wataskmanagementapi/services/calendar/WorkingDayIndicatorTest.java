@@ -46,7 +46,7 @@ class WorkingDayIndicatorTest {
     }
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         service = new WorkingDayIndicator(publicHolidaysCollection);
     }
 

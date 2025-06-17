@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -184,7 +183,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @Ignore("Ignoring the test as the test is failing in nightly build as mandatory field check is not enabled in AAT.")
     public void should_not_reconfigure_task_when_task_validation_fails_during_reconfiguration()
         throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
@@ -1116,6 +1114,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .and().body("task.id", equalTo(taskId))
                     .body("task.task_state", is("assigned"))
                     .body("task.reconfigure_request_time", nullValue())
+                    .body("task.security_classification", is("PUBLIC"))
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.task_title",
                           is("name - " + taskName + " - state - ASSIGNED - category - Protection"))
@@ -1268,6 +1267,102 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .body("tasks.additional_properties",everyItem(is(nullValue())))
             .body("tasks.next_hearing_date", everyItem(is(nullValue())));
 
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_not_send_all_db_attributes_to_reconfigure_camunda_task() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "reconfigTaskAttributesTask2",
+            "reconfigTaskAttributesTask2"
+        );
+        String taskId = taskVariables.getTaskId();
+
+        common.setupWAOrganisationalRoleAssignment(assignerCredentials.getHeaders(), "case-manager");
+
+        initiateTask(taskVariables, assignerCredentials.getHeaders());
+
+        Response result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assignerCredentials.getHeaders()
+        );
+
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId));
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
+                                                     taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.body().prettyPrint();
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+        await().ignoreException(Exception.class)
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .untilAsserted(() -> {
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
+
+                taskResult.prettyPrint();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue())
+                    .body("task.task_title", is("Title"))
+                    .body("task.work_type_id", is("hearing_work"))
+                    .body("task.role_category", is("hearing_work"));
+            });
         common.cleanUpTask(taskId);
     }
 

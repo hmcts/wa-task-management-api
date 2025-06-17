@@ -47,7 +47,7 @@ class WorkTypeResourceSpecificationTest {
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    public void setUp() {
+    void setUp() {
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
         lenient().when(inObject.value(any())).thenReturn(values);
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);

@@ -5,10 +5,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -32,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRe
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -44,7 +49,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -59,9 +66,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEntityBuilder.buildErrorResponseEntityAndLogError;
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+@Slf4j
 @RestController
+@RefreshScope
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
+    public static final String REQ_PARAM_COMPLETION_PROCESS = "completion_process";
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private final TaskManagementService taskManagementService;
@@ -71,31 +81,37 @@ public class TaskActionsController extends BaseController {
 
     private final TaskDeletionService taskDeletionService;
 
+    private final CompletionProcessValidator completionProcessValidator;
+
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService,
-                                 TaskDeletionService taskDeletionService) {
+                                 TaskDeletionService taskDeletionService,
+                                 CompletionProcessValidator completionProcessValidator,
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
+        this.completionProcessValidator = completionProcessValidator;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = OK, content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = GetTaskResponse.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "200", description = OK, content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = GetTaskResponse.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @GetMapping(path = "/{task-id}", consumes = {ALL_VALUE})
     public ResponseEntity<GetTaskResponse<Task>> getTask(@Parameter(hidden = true)
                                                              @RequestHeader(AUTHORIZATION) String authToken,
@@ -110,6 +126,10 @@ public class TaskActionsController extends BaseController {
             accessControlResponse
         );
 
+        if (!isUpdateCompletionProcessFlagEnabled(accessControlResponse)) {
+            task.setTerminationProcess(null);
+        }
+
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -118,15 +138,13 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Claim the identified Task for the currently logged in user.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = NO_CONTENT, content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = NO_CONTENT, content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/claim")
     public ResponseEntity<Void> claimTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
@@ -146,15 +164,13 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Unclaim the identified Task for the currently logged in user.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task unclaimed", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = "Task unclaimed", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/unclaim")
     public ResponseEntity<Void> unclaimTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
@@ -173,15 +189,13 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Assign the identified Task to a specified user.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task assigned", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = "Task assigned", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<Void> assignTask(@Parameter(hidden = true)
@@ -209,15 +223,13 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Completes a Task identified by an id.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task has been completed", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = "Task has been completed", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
@@ -225,14 +237,26 @@ public class TaskActionsController extends BaseController {
                                              @Parameter(hidden = true)
                                                 @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
+                                             @RequestParam(name = REQ_PARAM_COMPLETION_PROCESS, required = false)
+                                             String completionProcess,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
-            accessControlResponse.getUserInfo().getUid());
+                 accessControlResponse.getUserInfo().getUid());
 
+
+
+        Optional<String> validatedCompletionProcess =
+            completionProcessValidator.validate(completionProcess, taskId,
+                                                isUpdateCompletionProcessFlagEnabled(accessControlResponse));
+
+        if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
+            requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
+        }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse);
+            taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -241,7 +265,8 @@ public class TaskActionsController extends BaseController {
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
-                    completeTaskRequest.getCompletionOptions()
+                    completeTaskRequest.getCompletionOptions(),
+                    requestParamMap
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -255,15 +280,13 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Cancel a Task identified by an id.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task has been cancelled", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = "Task has been cancelled", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
     public ResponseEntity<Void> cancelTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
@@ -281,17 +304,15 @@ public class TaskActionsController extends BaseController {
     }
 
     @Operation(description = "Update Task with notes")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Updated Task with notes", content = {
-            @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST, content = {
-            @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "404", description = NOT_FOUND, content = {
-            @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "204", description = "Updated Task with notes", content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST, content = {
+        @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "404", description = NOT_FOUND, content = {
+        @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))})
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/notes")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
@@ -322,15 +343,13 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
-                schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
-        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
+            schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @GetMapping(path = "/{task-id}/roles", consumes = {ALL_VALUE})
     public ResponseEntity<GetTaskRolePermissionsResponse> getTaskRolePermissions(
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
@@ -352,12 +371,10 @@ public class TaskActionsController extends BaseController {
 
 
     @Operation(description = "Deletes all tasks related to a case.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = CREATED),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
-        @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
-    })
+    @ApiResponse(responseCode = "201", description = CREATED)
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     @PostMapping(path = "/delete", consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> deleteTasks(
             @RequestBody final DeleteTasksRequest deleteTasksRequest,
@@ -407,5 +424,18 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
+    }
+
+    /**
+     Checks if the "WA_COMPLETION_PROCESS_UPDATE" feature flag is enabled for the given user.
+
+     @param accessControlResponse The access control response containing user information.
+     @return true if the feature flag is enabled, false otherwise. */
+    private boolean isUpdateCompletionProcessFlagEnabled(AccessControlResponse accessControlResponse) {
+        return  launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
     }
 }

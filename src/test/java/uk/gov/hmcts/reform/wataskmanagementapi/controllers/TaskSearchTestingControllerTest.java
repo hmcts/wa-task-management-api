@@ -200,23 +200,7 @@ class TaskSearchTestingControllerTest {
 
     @Test
     void should_succeed_when_performing_search_with_feature_flag_on_and_return_a_200_ok() {
-        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
-            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
-
-        List<Task> taskList = Lists.newArrayList(mock(Task.class));
-        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any())).thenReturn(tasksResponse);
-
-        ResponseEntity<GetTasksResponse<Task>> response = taskSearchTestingController.searchWithCriteria(
-            IDAM_AUTH_TOKEN, 0, 1,
-            new SearchTaskRequest(
-                singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
-            )
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getTotalRecords());
+        should_succeed_when_performing_search_and_return_a_200_ok();
     }
 
     @Test

@@ -36,7 +36,7 @@ class IntermediateDateOriginEarliestCalculatorTest {
     private IntermediateDateOriginEarliestCalculator intermediateDateOriginEarliestCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         intermediateDateOriginEarliestCalculator
             = new IntermediateDateOriginEarliestCalculator(new WorkingDayIndicator(publicHolidaysCollection));
         calculatedConfigurations = new ArrayList<>();

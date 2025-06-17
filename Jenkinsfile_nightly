@@ -23,6 +23,7 @@ def secrets = [
     secret('idam-secret', 'IA_IDAM_SECRET'),
 
     secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+    secret('idam-test-account-pw', 'IDAM_TEST_ACCOUNT_PW'),
 
     secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
     secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
@@ -35,6 +36,7 @@ def secrets = [
     secret('cft-task-POSTGRES-USER-FLEXIBLE', 'POSTGRES_USERNAME'),
 
     secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
+    secret('generic-docker-pact-broker-password', 'GENERIC_DOCKER_PACT_BROKER_YAML_PASS'),
 
   ],
   's2s-${env}': [
@@ -77,14 +79,13 @@ withNightlyPipeline(type, product, component) {
 
 
   enableSecurityScan()
-//  disabled until we can ignore dirs from being scanned. A false positive is reported about a variable called password in a test class
-//  enableFortifyScan()
+  enableFortifyScan()
   enableMutationTest()
   loadVaultSecrets(secrets)
   enableFullFunctionalTest(60)
   enableSlackNotifications('#wa-build')
 
-//  after('fortify-scan') {
-//    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
-//  }
+  afterSuccess('fortify-scan') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
+  }
 }

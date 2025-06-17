@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
@@ -15,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -69,6 +72,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskRoleResourceRepository taskRoleResourceRepository;
+
 
     @AfterEach
     void tearDown() {
@@ -248,6 +252,43 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 secondTaskId, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
         assertFalse(taskResource2.isPresent());
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE_EVENT_COMPLETION",
+        "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
+        "NULL,NULL"
+    }, nullValues = "NULL")
+    void given_task_is_created_when_find_by_id_and_return_termination_process(String terminationProcess,
+                                                                              String expectedTerminationProcess) {
+
+        log.info("Termination Process: {}", terminationProcess);
+        log.info("Expected Termination Process: {}", expectedTerminationProcess);
+        String taskId = UUID.randomUUID().toString();
+        TerminationProcess terminationProcessEnum;
+        if (terminationProcess != null) {
+            terminationProcessEnum = TerminationProcess.fromValue(terminationProcess);
+        } else {
+            terminationProcessEnum = null;
+        }
+
+        TaskResource taskResource = createTask(taskId, "tribunal-caseofficer", "IA",
+                                               "startAppeal", "someAssignee", "1623278362430412",
+                                               CFTTaskState.ASSIGNED);
+
+        taskResource.setTerminationProcess(terminationProcessEnum);
+
+        taskResourceRepository.save(taskResource);
+
+        Optional<TaskResource> taskResourceInDb = taskResourceRepository
+            .findById(taskId);
+        assertAll(
+            () -> assertTrue(taskResourceInDb.isPresent()),
+            () -> assertEquals(taskId, taskResourceInDb.get().getTaskId()),
+            () -> assertEquals(terminationProcessEnum, taskResourceInDb.get().getTerminationProcess())
+        );
+
     }
 
     @Test

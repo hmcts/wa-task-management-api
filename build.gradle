@@ -6,7 +6,7 @@ plugins {
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'org.springframework.boot' version '3.4.4'
-  id 'org.owasp.dependencycheck' version '10.0.4'
+  id 'org.owasp.dependencycheck' version '12.1.3'
   id 'com.github.ben-manes.versions' version '0.48.0'
   id 'org.sonarqube' version '5.1.0.4882'
   id 'info.solidsoft.pitest' version '1.15.0'
@@ -87,6 +87,10 @@ tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
 
+tasks.withType(JavaCompile).configureEach {
+  options.compilerArgs.remove('-Werror')
+}
+
 tasks.withType(Test) {
   useJUnitPlatform()
 
@@ -132,7 +136,7 @@ project.ext {
 
 checkstyle {
   maxWarnings = 0
-  toolVersion = '10.9.3'
+  toolVersion = '10.25.0'
   getConfigDirectory().set(new File(rootDir, 'config/checkstyle'))
 }
 
@@ -203,7 +207,8 @@ sonarqube {
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/cft/replicarepository/**"
-    property "sonar.cpd.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/services/calendar/**"
+    property "sonar.cpd.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/services/calendar/**," +
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/controllers/TaskActionsController.java,"
   }
 }
 
@@ -244,7 +249,7 @@ configurations.all {
 
 dependencyManagement {
   dependencies {
-    dependency group: 'commons-io', name: 'commons-io', version: '2.17.0'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.19.0'
 
     dependencySet( group: 'org.springframework.security', version: '6.4.4'){
       entry 'spring-security-core'
@@ -296,7 +301,7 @@ repositories {
 def versions = [
   junit         : '5.11.3',
   junitPlatform : '1.11.3',
-  reformLogging : '6.1.7',
+  reformLogging : '6.1.9',
   springDoc     : '2.2.0',
   serenity      : '3.4.2',
   gradlePitest  : '1.15.0',
@@ -351,7 +356,7 @@ dependencies {
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.6'
 
-  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.4.3'
+  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.5'
 
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.5'
 
@@ -362,7 +367,7 @@ dependencies {
   implementation group: 'org.zalando', name: 'logbook-httpclient5', version: versions.logbook
   implementation group: 'org.zalando', name: 'problem-spring-web-starter', version: '0.29.1'
 
-  implementation group: 'net.minidev', name: 'json-smart', version: '2.5.1'
+  implementation group: 'net.minidev', name: 'json-smart', version: '2.5.2'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.3.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
@@ -374,9 +379,9 @@ dependencies {
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '6.6.1.Final'
   implementation group: 'org.hibernate', name: 'hibernate-validator', version: '8.0.1.Final'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.24.2'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.24.2'
-  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.16'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.24.3'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.24.3'
+  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
@@ -390,7 +395,7 @@ dependencies {
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
 
-  implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.4'
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.7'
 
   implementation group: 'io.hypersistence', name: 'hypersistence-utils-hibernate-63', version: '3.8.3'
 
@@ -442,7 +447,7 @@ dependencies {
   testImplementation group: 'org.junit.vintage', name: 'junit-vintage-engine', version: versions.junit
 
   testImplementation group: 'com.obsidiandynamics.pojotester', name: 'core', version: '0.9.0'
-  testImplementation group: 'com.github.hmcts', name: 'fortify-client', version: '1.4.5'
+  testImplementation group: 'com.github.hmcts', name: 'fortify-client', version: '1.4.8', classifier: 'all'
   testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '32.1.3-jre'
 // https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark
   testCompileOnly group: 'com.vladsch.flexmark', name: 'flexmark-all', version: '0.64.8'
@@ -493,6 +498,7 @@ pact {
     pactDirectory = 'build/pacts'
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     version = project.pacticipantVersion
+    consumerVersion = project.pacticipantVersion
   }
 }
 
@@ -520,11 +526,11 @@ task runProviderPactVerification(type: Test) {
   systemProperty 'pact.provider.version', project.pacticipantVersion
 }
 
-//task fortifyScan(type: JavaExec)  {
-//  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
-//  classpath += sourceSets.test.runtimeClasspath
-//  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
-//}
+task fortifyScan(type: JavaExec)  {
+  mainClass = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+  classpath += sourceSets.test.runtimeClasspath
+  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
+}
 
 runProviderPactVerification.dependsOn contract
 

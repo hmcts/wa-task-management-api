@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.google.common.collect.Lists;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -231,23 +233,7 @@ class TaskSearchControllerTest {
 
     @Test
     void should_succeed_when_performing_search_with_feature_flag_on_and_return_a_200_ok() {
-        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
-            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
-
-        List<Task> taskList = Lists.newArrayList(mock(Task.class));
-        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any())).thenReturn(tasksResponse);
-
-        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
-            IDAM_AUTH_TOKEN, 0, 1,
-            new SearchTaskRequest(
-                singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
-            )
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getTotalRecords());
+        should_succeed_when_performing_search_and_return_a_200_ok();
     }
 
     @Test
@@ -340,6 +326,74 @@ class TaskSearchControllerTest {
     }
 
     @Test
+    void should_succeed_when_performing_search_and_return_termination_process_when_completion_process_flag_enabled() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
+
+        Task mockTask = mock(Task.class);
+
+        when(mockTask.getTerminationProcess()).thenReturn(TerminationProcess.EXUI_USER_COMPLETION.getValue());
+        List<Task> taskList = Lists.newArrayList(mockTask);
+        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+            .thenReturn(tasksResponse);
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+                                                                       mockedUserInfo.getUid(),
+                                                                       mockedUserInfo.getEmail())).thenReturn(true);
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, 0, 1,
+            new SearchTaskRequest(
+                singletonList(new SearchParameterList(
+                                  TASK_TYPE,
+                                  SearchOperator.IN,
+                                  singletonList("processApplication")
+                              )
+                )
+            )
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getTotalRecords());
+        assertEquals(TerminationProcess.EXUI_USER_COMPLETION.getValue(),
+                     response.getBody().getTasks().get(0).getTerminationProcess());
+    }
+
+    @Test
+    void should_succeed_when_performing_search_not_return_termination_process_when_completion_process_flag_disabled() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
+
+        Task mockTask = mock(Task.class);
+
+        mockTask.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION.getValue());
+        List<Task> taskList = Lists.newArrayList(mockTask);
+        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+            .thenReturn(tasksResponse);
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+                                                                       mockedUserInfo.getUid(),
+                                                                       mockedUserInfo.getEmail())).thenReturn(false);
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, 0, 1,
+            new SearchTaskRequest(
+                singletonList(new SearchParameterList(
+                                  TASK_TYPE,
+                                  SearchOperator.IN,
+                                  singletonList("processApplication")
+                              )
+                )
+            )
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getTotalRecords());
+        response.getBody().getTasks();
+        Assertions.assertNull(response.getBody().getTasks().get(0).getTerminationProcess());
+    }
+
+    @Test
     void should_search_by_search_index_when_gin_index_feature_flag_is_true() {
         when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
             .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
@@ -380,6 +434,10 @@ class TaskSearchControllerTest {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
             mockedUserInfo.getUid(),
             mockedUserInfo.getEmail())).thenReturn(false);
+
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+                                                                       mockedUserInfo.getUid(),
+                                                                       mockedUserInfo.getEmail())).thenReturn(true);
 
         taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,

@@ -40,7 +40,7 @@ class DueDateOriginLatestCalculatorTest {
     private List<ConfigurationDmnEvaluationResponse> calculatedConfigurations;
 
     @BeforeEach
-    public void before() {
+    void before() {
         dueDateOriginLatestCalculator = new DueDateOriginLatestCalculator(
             new WorkingDayIndicator(publicHolidaysCollection));
         calculatedConfigurations = new ArrayList<>();

@@ -60,7 +60,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
@@ -144,7 +143,6 @@ class TaskResourceDaoTest {
         lenient().when(builder.or(any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
-        Predicate predicate = mock(Predicate.class);
         lenient().when(builder.conjunction()).thenReturn(predicate);
         lenient().when(builder.equal(any(), any())).thenReturn(predicate);
         lenient().when(inObject.value(any())).thenReturn(values);

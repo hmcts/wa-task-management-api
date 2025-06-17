@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.context.annotation.Profile;
@@ -34,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +59,7 @@ public class ReplicaTaskResource implements Serializable {
     private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
     public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
+    public static final String TIMESTAMP = "TIMESTAMP";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -75,7 +78,8 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "task_system")
     private TaskSystem taskSystem;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "due_date_time")
     private OffsetDateTime dueDateTime;
 
@@ -109,7 +113,8 @@ public class ReplicaTaskResource implements Serializable {
 
     private String description;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     private OffsetDateTime created;
 
     @Type(JsonType.class)
@@ -126,7 +131,8 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "auto_assigned")
     private Boolean autoAssigned = false;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "assignment_expiry")
     private OffsetDateTime assignmentExpiry;
 
@@ -173,11 +179,13 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "task_role_resources")
     private Set<TaskRoleResource> taskRoleResources;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "reconfigure_request_time")
     private OffsetDateTime reconfigureRequestTime;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "last_reconfiguration_time")
     private OffsetDateTime lastReconfigurationTime;
 
@@ -189,7 +197,8 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "next_hearing_id")
     private String nextHearingId;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "last_updated_timestamp")
     private OffsetDateTime lastUpdatedTimestamp;
 
@@ -199,16 +208,22 @@ public class ReplicaTaskResource implements Serializable {
     @Schema(name = "last_updated_action")
     private String lastUpdatedAction;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "next_hearing_date")
     private OffsetDateTime nextHearingDate;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "priority_date")
     private OffsetDateTime priorityDate;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "report_refresh_request_time")
     private OffsetDateTime reportRefreshRequestTime;
+
+    @Schema(name = "termination_process")
+    private String terminationProcess;
 
 }

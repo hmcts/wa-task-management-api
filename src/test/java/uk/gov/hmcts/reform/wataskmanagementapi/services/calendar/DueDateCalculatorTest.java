@@ -51,7 +51,7 @@ class DueDateCalculatorTest {
                 LocalDateTime.of(2023, 10, 12, 16, 0, 0).format(DateCalculator.DATE_TIME_FORMATTER)
             ),
             new ConfigurableScenario(
-                ZonedDateTime.of(2023, 10, 12, 16, 12, 16,123, ZoneId.systemDefault())
+                ZonedDateTime.of(2023, 10, 12, 16, 12, 16, 123, ZoneId.systemDefault())
                     .format(DateTimeFormatter.ISO_DATE_TIME),
                 LocalDateTime.of(2023, 10, 12, 16, 12, 0)
                     .format(DateCalculator.DATE_TIME_FORMATTER)
@@ -59,9 +59,8 @@ class DueDateCalculatorTest {
         );
     }
 
-
     @BeforeEach
-    public void before() {
+    void before() {
         dueDateCalculator = new DueDateCalculator();
     }
 
@@ -131,7 +130,6 @@ class DueDateCalculatorTest {
 
         assertThat(dueDateCalculator.supports(evaluationResponses, DUE_DATE_TYPE, configurable)).isTrue();
     }
-
 
     @ParameterizedTest
     @CsvSource({
@@ -205,8 +203,8 @@ class DueDateCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
-                                                           new HashMap<>(),
-                                                           new ArrayList<>()
+                new HashMap<>(),
+                new ArrayList<>()
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
@@ -217,31 +215,8 @@ class DueDateCalculatorTest {
         "true, T20:00", "false, T20:00"
     })
     void should_calculate_due_date_when_due_date_and_time_are_given(boolean configurable, String time) {
-
-        String expectedDueDate = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDate"))
-            .value(CamundaValue.stringValue(expectedDueDate + "T16:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        ConfigurationDmnEvaluationResponse dueDateTime = ConfigurationDmnEvaluationResponse.builder()
-            .name(CamundaValue.stringValue("dueDateTime"))
-            .value(CamundaValue.stringValue("20:00"))
-            .canReconfigure(CamundaValue.booleanValue(configurable))
-            .build();
-
-        List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDateTime);
-
-        String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
-                                                           new HashMap<>(),
-                                                           new ArrayList<>()
-            )
-            .getValue().getValue();
-        assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate + time);
+        should_consider_only_due_date_when_given_configurable_due_date_and_un_configurable_time(configurable, time);
     }
-
 
     @ParameterizedTest
     @CsvSource({
@@ -266,8 +241,8 @@ class DueDateCalculatorTest {
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(dueDate, dueDate2);
 
         String dateValue = dueDateCalculator.calculateDate(evaluationResponses, DUE_DATE_TYPE, configurable,
-                                                           new HashMap<>(),
-                                                           new ArrayList<>()
+                new HashMap<>(),
+                new ArrayList<>()
             )
             .getValue().getValue();
         assertThat(LocalDateTime.parse(dateValue)).isEqualTo(expectedDueDate2 + time);

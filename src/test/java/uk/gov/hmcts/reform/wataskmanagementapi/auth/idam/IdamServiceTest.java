@@ -25,7 +25,7 @@ class IdamServiceTest {
     private IdamService idamService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         idamService = new IdamService(idamWebApi);
     }
 

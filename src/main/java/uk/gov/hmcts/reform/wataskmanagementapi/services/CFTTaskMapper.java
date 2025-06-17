@@ -119,7 +119,7 @@ public class CFTTaskMapper {
             workTypeResource,
             read(attributes, CamundaVariableDefinition.ROLE_CATEGORY, null),
             read(attributes, CamundaVariableDefinition.HAS_WARNINGS, false),
-            read(attributes, CamundaVariableDefinition.ASSIGNMENT_EXPIRY, null),
+            readDate(attributes, CamundaVariableDefinition.ASSIGNMENT_EXPIRY, null),
             read(attributes, CamundaVariableDefinition.CASE_ID, null),
             read(attributes, CamundaVariableDefinition.CASE_TYPE_ID, null),
             read(attributes, CamundaVariableDefinition.CASE_NAME, null),
@@ -179,7 +179,7 @@ public class CFTTaskMapper {
 
     @SuppressWarnings("PMD.NPathComplexity")
     public Task mapToTaskWithPermissions(TaskResource taskResource, Set<PermissionTypes> permissionsUnionForUser) {
-        return new Task(
+        Task task =  new Task(
             taskResource.getTaskId(),
             taskResource.getTaskName(),
             taskResource.getTaskType(),
@@ -220,6 +220,12 @@ public class CFTTaskMapper {
             taskResource.getLastReconfigurationTime() == null ? null
                 : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
+
+        if (taskResource.getTerminationProcess() != null) {
+            task.setTerminationProcess(taskResource.getTerminationProcess().getValue());
+        }
+        return task;
+
     }
 
 
