@@ -539,16 +539,16 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_RESTRICTED.getRoleName(),
-            true, true, true, true, false, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, true, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_RESTRICTED.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
 
         taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, false, false, false, false, false,
+            false, false, false, true, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
