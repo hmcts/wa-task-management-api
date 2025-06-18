@@ -11,8 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
@@ -71,22 +69,22 @@ class InitiateTaskTest extends CamundaHelpers {
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
     public static final String CASE_ID = "aCaseId";
-    @MockitoBean
+    @Mock
     CamundaService camundaService;
-    @MockitoBean
+    @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean
+    @Mock
     CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-    @MockitoBean
+    @Mock
     CftQueryService cftQueryService;
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-    @MockitoBean
+    @Mock
     ConfigureTaskService configureTaskService;
-    @MockitoBean
+    @Mock
     private IdamTokenGenerator idamTokenGenerator;
 
-    @MockitoSpyBean
+    @Spy
     @InjectMocks
     TaskAutoAssignmentService taskAutoAssignmentService;
 
