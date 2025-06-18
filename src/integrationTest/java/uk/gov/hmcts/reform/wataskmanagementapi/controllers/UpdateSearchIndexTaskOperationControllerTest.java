@@ -2,10 +2,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Spy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
@@ -46,7 +46,7 @@ class UpdateSearchIndexTaskOperationControllerTest extends SpringBootIntegration
     @MockitoBean
     private ClientAccessControlService clientAccessControlService;
 
-    @Spy
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     @MockitoBean(name = "systemUserIdamInfo")

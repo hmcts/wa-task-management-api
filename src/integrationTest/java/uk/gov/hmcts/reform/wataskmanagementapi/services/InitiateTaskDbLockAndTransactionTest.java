@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -87,13 +87,13 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private CamundaServiceApi camundaServiceApi;
     @MockitoBean
     private CamundaService camundaService;
-    @Spy
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockitoBean
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-    @Spy
+    @MockitoSpyBean
     private CftQueryService cftQueryService;
-    @Spy
+    @MockitoSpyBean
     private CFTTaskMapper cftTaskMapper;
     @Autowired
     private TaskManagementService taskManagementService;

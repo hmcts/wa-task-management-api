@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -48,19 +49,19 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
     private static final String ENDPOINT_PATH = "/task/%s/notes";
     private static String ENDPOINT_BEING_TESTED;
 
-    @Mock
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @Mock
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @Mock
+    @MockitoBean
     private TaskManagementService taskManagementService;
-    @Mock
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @Mock
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Mock
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
 
     @Mock

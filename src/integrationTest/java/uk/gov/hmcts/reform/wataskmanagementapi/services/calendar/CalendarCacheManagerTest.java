@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -38,7 +39,7 @@ public class CalendarCacheManagerTest {
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
 
-    @Spy
+    @MockitoSpyBean
     private PublicHolidayService publicHolidayService;
 
     @DisplayName("(Access calendars successfully and retrieve results which are also cached)")

@@ -6,6 +6,7 @@ import feign.RequestTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -78,9 +79,9 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoBean
+    @Mock
     private UserInfo mockedUserInfo;
-    @MockitoBean
+    @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private String taskId;
     private ServiceMocks mockServices;
@@ -538,16 +539,16 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, true, false, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_RESTRICTED.getRoleName(),
+            true, true, true, true, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_RESTRICTED.getRoleCategory().name()
         );
         insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
 
         taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, true, false, false,
+            false, false, false, false, false, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
@@ -571,7 +572,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(3));
+            .andExpect(jsonPath("tasks.size()").value(1));
     }
 
     @Test
