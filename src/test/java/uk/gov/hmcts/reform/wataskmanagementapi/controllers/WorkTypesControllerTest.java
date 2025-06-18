@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -45,9 +44,9 @@ import static org.mockito.Mockito.when;
 class WorkTypesControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
-    @MockitoBean
+    @Mock
     private AccessControlService accessControlService;
-    @MockitoBean
+    @Mock
     private WorkTypesService workTypesService;
 
     @Mock
