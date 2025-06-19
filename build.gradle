@@ -285,7 +285,7 @@ dependencyManagement {
       entry 'selenium-support'
     }
 
-    dependencySet(group: 'ch.qos.logback', version: '1.5.8') {
+    dependencySet(group: 'ch.qos.logback', version: '1.5.18') {
       entry 'logback-classic'
       entry 'logback-core'
     }
