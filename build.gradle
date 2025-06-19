@@ -243,6 +243,12 @@ configurations.all {
       if (details.requested.group == 'org.hibernate.orm' && details.requested.name == 'hibernate-core') {
         details.useVersion '6.6.1.Final'
       }
+      if (details.requested.group == 'org.junit.jupiter') {
+        details.useVersion versions.junit
+      }
+      if (details.requested.group == 'org.junit.platform') {
+        details.useVersion versions.junitPlatform
+      }
     }
   }
 }
@@ -320,7 +326,8 @@ ext.libraries = [
     "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
     "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
     "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
-    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
+    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}",
+    "org.junit.platform:junit-platform-launcher:${versions.junitPlatform}"
   ]
 ]
 
@@ -329,7 +336,6 @@ ext['snakeyaml.version'] = '2.0'
 dependencies {
   implementation group: 'org.mapstruct', name: 'mapstruct-jdk8', version: versions.mapStruct
   implementation group: 'org.mapstruct', name: 'mapstruct-processor', version: versions.mapStruct
-  implementation 'org.junit.jupiter:junit-jupiter:5.13.1'
   annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: versions.mapStruct
 
   testImplementation group: 'org.mapstruct', name: 'mapstruct-jdk8', version: versions.mapStruct
