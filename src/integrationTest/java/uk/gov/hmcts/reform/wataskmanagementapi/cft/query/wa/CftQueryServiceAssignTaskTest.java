@@ -5,14 +5,13 @@ import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -56,19 +55,19 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SECONDA
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
 
-    @Mock
+    @MockitoBean
     private UserInfo assignerUserInfo;
-    @Mock
+    @MockitoBean
     private UserInfo assigneeUserInfo;
-    @MockBean
+    @MockitoBean
     private CamundaService camundaService;
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     private EntityManager entityManager;

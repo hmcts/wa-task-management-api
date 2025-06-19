@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -7,10 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -35,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantTy
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -79,30 +80,32 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
     private static String ENDPOINT_BEING_TESTED;
-    @MockBean
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockBean
+    @MockitoBean
     private IdamService idamService;
-    @Mock
+    @MockitoBean
     private UserInfo mockedUserInfo;
-    @MockBean
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
     private ServiceMocks mockServices;
     private String taskId;
-    @MockBean
+    @MockitoBean
     private AccessControlService accessControlService;
 
-    @MockBean
+    @MockitoBean
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @BeforeEach
@@ -125,6 +128,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+    }
+
+    @AfterEach
+    void tearDown() {
+        taskResourceRepository.deleteAll();
     }
 
     @Nested

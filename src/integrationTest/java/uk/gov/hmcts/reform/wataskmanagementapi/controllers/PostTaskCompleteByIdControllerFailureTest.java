@@ -6,11 +6,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -65,23 +64,23 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
     private static String ENDPOINT_BEING_TESTED;
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @MockitoBean
     private IdamService idamService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockitoBean
     private UserInfo mockedUserInfo;
-    @MockBean
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
     private ServiceMocks mockServices;
     private String taskId;

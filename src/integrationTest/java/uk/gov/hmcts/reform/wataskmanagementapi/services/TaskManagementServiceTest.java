@@ -10,12 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -91,13 +90,13 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private TaskResourceRepository taskResourceRepository;
     @Autowired
     private EntityManager entityManager;
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @SpyBean
+    @MockitoSpyBean
     private CamundaService camundaService;
-    @SpyBean
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
+    @MockitoBean
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     @Autowired
     private CFTTaskMapper cftTaskMapper;
@@ -108,30 +107,30 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockBean
+    @MockitoBean
     private ConfigureTaskService configureTaskService;
-    @MockBean
+    @MockitoBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
-    @MockBean
+    @MockitoBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @MockBean(name = "systemUserIdamInfo")
+    @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
-    @MockBean
+    @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach
