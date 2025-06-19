@@ -243,12 +243,6 @@ configurations.all {
       if (details.requested.group == 'org.hibernate.orm' && details.requested.name == 'hibernate-core') {
         details.useVersion '6.6.1.Final'
       }
-      if (details.requested.group == 'org.junit.jupiter') {
-        details.useVersion '1.13.1'
-      }
-      if (details.requested.group == 'org.junit.platform') {
-        details.useVersion '1.13.1'
-      }
     }
   }
 }
@@ -419,7 +413,13 @@ dependencies {
   testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '5.18.0'
 
 
-  testImplementation libraries.junit5
+  testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
+  testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: versions.junit
+  testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: versions.junit
+
+  testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: versions.junitPlatform
+  testImplementation group: 'org.junit.platform', name: 'junit-platform-engine', version: versions.junitPlatform
+  testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
