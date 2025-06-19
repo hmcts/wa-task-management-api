@@ -1250,6 +1250,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
     }
 
+
     @Test
     public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
 
@@ -1285,7 +1286,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1));
             });
-
 
         Response resultComplete = restApiActions.post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",

@@ -12,8 +12,8 @@ plugins {
   id 'info.solidsoft.pitest' version '1.15.0'
   id 'io.freefair.lombok' version '8.10.2'
   // If Pact version is changed, make sure serenity report works.
-  id 'au.com.dius.pact' version '4.6.14'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.1.14'
+  id 'au.com.dius.pact' version '4.6.17'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.33'
   id 'org.flywaydb.flyway' version '9.3.0'
 }
 
@@ -303,11 +303,11 @@ def versions = [
   junitPlatform : '1.13.1',
   reformLogging : '6.1.9',
   springDoc     : '2.2.0',
-  serenity      : '3.4.2',
+  serenity      : '3.9.8',
   gradlePitest  : '1.15.0',
-  pitest        : '1.16.1',
+  pitest        : '1.19.6',
   sonarPitest   : '0.5',
-  pactVersion   : '4.6.14',
+  pactVersion   : '4.6.17',
   logbook       : '3.9.0',
   tomcat        : '10.1.28',
   testcontainers: '1.21.1',
@@ -356,7 +356,7 @@ dependencies {
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.6'
 
-  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.4.3'
+  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.5'
 
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.5'
 
