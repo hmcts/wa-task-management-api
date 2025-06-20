@@ -301,7 +301,7 @@ def versions = [
   springDoc     : '2.2.0',
   serenity      : '3.9.8',
   gradlePitest  : '1.15.0',
-  pitest        : '1.19.6',
+  pitest        : '1.16.3',
   sonarPitest   : '0.5',
   pactVersion   : '4.6.17',
   logbook       : '3.9.0',
