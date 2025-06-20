@@ -87,10 +87,6 @@ tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
 
-tasks.withType(JavaCompile).configureEach {
-  options.compilerArgs.remove('-Werror')
-}
-
 tasks.withType(Test) {
   useJUnitPlatform()
 
