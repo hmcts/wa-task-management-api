@@ -9,7 +9,6 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.ImmutableMap;
 import io.restassured.http.ContentType;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.jupiter.api.Test;
@@ -17,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
@@ -29,9 +29,13 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_search", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
+@ContextConfiguration(classes = {CamundaConsumerApplication.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBootContractBaseTest {
+
+    @MockitoBean
+    EntityManagerFactory entityManagerFactory;
+
 
     public static final String CONTENT_TYPE = "Content-Type";
     private static final String WA_SEARCH_QUERY = "/task";
