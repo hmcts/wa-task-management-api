@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
