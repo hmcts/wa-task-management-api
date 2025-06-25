@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -79,6 +82,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
     @Mock
     private UserInfo mockedUserInfo;
     @Mock
@@ -110,6 +115,11 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+    }
+
+    @AfterEach
+    void tearDown() {
+        taskResourceRepository.deleteAll();
     }
 
     @DisplayName("Invalid DMN table")
