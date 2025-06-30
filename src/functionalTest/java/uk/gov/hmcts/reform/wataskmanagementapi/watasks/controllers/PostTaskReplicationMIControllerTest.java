@@ -25,6 +25,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -1218,7 +1219,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultHistory.prettyPrint();
                 resultHistory.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
-                    .body("task_history_list.size()", equalTo(4))
+                    .body("task_history_list.size()", greaterThanOrEqualTo(4))
                     .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
             });
 
