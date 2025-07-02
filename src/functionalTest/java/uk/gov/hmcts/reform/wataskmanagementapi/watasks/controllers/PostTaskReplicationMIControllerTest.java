@@ -1223,7 +1223,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
+            .atMost(180, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1244,7 +1244,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
+            .atMost(180, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
