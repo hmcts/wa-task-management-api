@@ -42,7 +42,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     private static final String ENDPOINT_BEING_TESTED_ASSIGNMENTS = "/task/{task-id}/assignments";
     private static final String ENDPOINT_BEING_TESTED_UNCLAIM = "task/{task-id}/unclaim";
     private static final String ENDPOINT_BEING_TESTED_CANCEL = "task/{task-id}/cancel";
-    public static final String LOCAL_ARM_ARCH = "local-arm-arch";
 
     @Value("${environment}")
     private String environment;
@@ -1195,19 +1194,19 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        if (LOCAL_ARM_ARCH.equals(environment)) {
-            TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-                new TerminateInfo("completed")
-            );
-            Response resultTerminate = restApiActions.delete(
-                ENDPOINT_BEING_TESTED_TASK,
-                taskId,
-                terminateTaskRequest,
-                userWithCompletionProcessEnabled.getHeaders()
-            );
-            resultTerminate.then().assertThat()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-        }
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("completed")
+        );
+
+        Response resultTerminate = restApiActions.delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskId,
+            terminateTaskRequest,
+            userWithCompletionProcessEnabled.getHeaders()
+        );
+        resultTerminate.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED_TASK,
@@ -1223,7 +1222,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(250, SECONDS)
+            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1244,7 +1243,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(250, SECONDS)
+            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
