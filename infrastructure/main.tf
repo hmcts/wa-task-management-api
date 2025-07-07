@@ -76,7 +76,7 @@ module "wa_task_management_api_database_flexible" {
     },
     {
       name  = "statement_timeout"
-      value = "60000"
+      value = "180000"
     }
   ]
 
