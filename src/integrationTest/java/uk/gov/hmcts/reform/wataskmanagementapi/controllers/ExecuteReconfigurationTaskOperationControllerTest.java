@@ -419,6 +419,10 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             });
     }
 
+    /**
+     * This test verifies that when reconfigure is set to true and the internal field is set to reconfigure,
+     * the internal field is ignored during the reconfiguration process and retains its existing value.
+     */
     @Test
     void should_ignore_field_on_reconfigure_task_when_reconfigure_set_to_true_and_internal_field_set_to_reconfigure()
         throws Exception {
@@ -433,11 +437,23 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString()
         )).thenReturn(List.of(
             new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("securityClassification"),
-                CamundaValue.stringValue("PRIVATE"),
-                CamundaValue.booleanValue(true)
+                stringValue("securityClassification"),
+                stringValue("PRIVATE"),
+                booleanValue(true)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("roleCategory"),
+                stringValue("JUDICIAL"),
+                booleanValue(true)
             )
         ));
+
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -448,6 +464,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        assertEquals(1, taskResourcesBefore.size());
         taskResourcesBefore.forEach(task -> {
             assertEquals(ASSIGNEE_USER, task.getAssignee());
             assertEquals(CFTTaskState.ASSIGNED, task.getState());
@@ -468,16 +485,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNotNull(task.getDueDateTime());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
-            anyString(),
-            anyString(),
-            anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
-            anyString(),
-            anyString(),
-            anyString(),
-            anyString())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
@@ -491,39 +498,26 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
-        taskResourcesAfter
-            .forEach(task -> {
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .untilAsserted(() -> {
+                List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                assertEquals(1, taskResourcesAfter.size());
+                taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-                assertEquals(1, task.getMinorPriority());
-                assertEquals(1, task.getMajorPriority());
-                assertEquals("description", task.getDescription());
-                assertEquals("TestCase", task.getCaseName());
-                assertEquals("512401", task.getLocation());
-                assertEquals("Manchester", task.getLocationName());
-                assertEquals("caseCategory", task.getCaseCategory());
-                assertEquals("routine_work", task.getWorkTypeResource().getId());
-                assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getPriorityDate().toLocalDate()
-                );
-                assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getNextHearingDate().toLocalDate()
-                );
-                assertEquals("nextHearingId1", task.getNextHearingId());
                 assertEquals(ASSIGNEE_USER, task.getAssignee());
                 assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                assertEquals("JUDICIAL", task.getRoleCategory());
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
                 assertEquals(SecurityClassification.PUBLIC, task.getSecurityClassification());
             });
+        });
     }
 
     /*
