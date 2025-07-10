@@ -506,18 +506,18 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
                 assertEquals(1, taskResourcesAfter.size());
                 taskResourcesAfter.forEach(task -> {
-                assertNotNull(task.getLastReconfigurationTime());
-                assertNull(task.getReconfigureRequestTime());
-                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-                assertEquals(ASSIGNEE_USER, task.getAssignee());
-                assertEquals(CFTTaskState.ASSIGNED, task.getState());
-                assertEquals("JUDICIAL", task.getRoleCategory());
-                assertNotNull(task.getLastUpdatedTimestamp());
-                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
-                assertEquals(SecurityClassification.PUBLIC, task.getSecurityClassification());
+                    assertNotNull(task.getLastReconfigurationTime());
+                    assertNull(task.getReconfigureRequestTime());
+                    assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                    assertEquals(ASSIGNEE_USER, task.getAssignee());
+                    assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                    assertEquals("JUDICIAL", task.getRoleCategory());
+                    assertNotNull(task.getLastUpdatedTimestamp());
+                    assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                    assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                    assertEquals(SecurityClassification.PUBLIC, task.getSecurityClassification());
+                });
             });
-        });
     }
 
     /*
