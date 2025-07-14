@@ -82,7 +82,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -109,7 +108,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -173,7 +171,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> configureJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -217,7 +214,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -250,7 +246,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -326,7 +321,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -362,7 +356,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -442,7 +435,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultAssignmentsUnclaim = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -463,7 +455,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -494,7 +485,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -548,7 +538,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(1).assignment_end", nullValue());
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -581,7 +570,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -663,7 +651,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultReportable = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -726,7 +713,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -754,7 +740,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -883,7 +868,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -962,7 +946,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -980,7 +963,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1115,7 +1097,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1187,7 +1168,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1207,7 +1187,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> completeJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1310,7 +1289,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1346,7 +1324,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1748,7 +1725,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1861,7 +1837,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
@@ -1879,7 +1854,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(6, TimeUnit.SECONDS)
             .pollDelay(10, TimeUnit.SECONDS)
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
