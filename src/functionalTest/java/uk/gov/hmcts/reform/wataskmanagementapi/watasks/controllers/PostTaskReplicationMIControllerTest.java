@@ -1265,7 +1265,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).first_assigned_date").toString(),
                     completeJsonPathEvaluator.get().get("reportable_task_list.get(0).first_assigned_date").toString()
 
-                );assertEquals(
+                );
+                assertEquals(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).first_assigned_date_time").toString(),
                     completeJsonPathEvaluator.get()
                         .get("reportable_task_list.get(0).first_assigned_date_time").toString()
@@ -1332,7 +1333,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("task_history_list.get(4).state", equalTo("TERMINATED"))
                     .body("task_history_list.get(4).assignee", notNullValue())
                     .body("task_history_list.get(4).updated_by", notNullValue())
-                    .body("task_history_list.get(4).updated", notNullValue());});
+                    .body("task_history_list.get(4).updated", notNullValue());
+            });
 
 
         await()
@@ -1485,14 +1487,14 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 JsonPath assignmentsJsonPathEvaluator = resultAssignmentsPostTermination.jsonPath();
                 JsonPath resultHistoryJsonPathEvaluator = resultHistory.get().jsonPath();
 
-        assertEquals(
-            resultHistoryJsonPathEvaluator.get("task_history_list.get(2).updated").toString(),
-            assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_start").toString()
-
-                );assertEquals(
-            resultHistoryJsonPathEvaluator.get("task_history_list.get(3).updated").toString(),
-            assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString()
-        );
+                assertEquals(
+                    resultHistoryJsonPathEvaluator.get("task_history_list.get(2).updated").toString(),
+                    assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_start").toString()
+                );
+                assertEquals(
+                    resultHistoryJsonPathEvaluator.get("task_history_list.get(3).updated").toString(),
+                    assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString()
+                );
             });
 
         common.cleanUpTask(taskId);
