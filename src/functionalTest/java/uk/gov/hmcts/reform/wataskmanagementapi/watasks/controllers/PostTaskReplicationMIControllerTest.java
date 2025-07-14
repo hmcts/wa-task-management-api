@@ -1320,8 +1320,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     caseworkerCredentials.getHeaders()
                 ));
 
-                resultHistoryPostTermination.get().prettyPrint();
-                resultHistoryPostTermination.get().then().assertThat()
+                resultHistory.get().prettyPrint();
+                resultHistory.get().then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("task_history_list.size()", equalTo(5))
                     .body("task_history_list.get(0).update_action", equalTo("Configure"))
