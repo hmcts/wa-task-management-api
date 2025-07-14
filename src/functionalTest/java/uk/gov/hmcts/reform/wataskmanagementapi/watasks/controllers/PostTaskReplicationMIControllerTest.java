@@ -1255,6 +1255,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertEquals(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time_days").toString(),
                     completeJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time_days").toString()
+
                 );
                 assertEquals(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time").toString(),
@@ -1263,8 +1264,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertEquals(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).first_assigned_date").toString(),
                     completeJsonPathEvaluator.get().get("reportable_task_list.get(0).first_assigned_date").toString()
-                );
-                assertEquals(
+
+                );assertEquals(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).first_assigned_date_time").toString(),
                     completeJsonPathEvaluator.get()
                         .get("reportable_task_list.get(0).first_assigned_date_time").toString()
@@ -1319,8 +1320,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     caseworkerCredentials.getHeaders()
                 ));
 
-                resultHistory.get().prettyPrint();
-                resultHistory.get().then().assertThat()
+                resultHistoryPostTermination.get().prettyPrint();
+                resultHistoryPostTermination.get().then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("task_history_list.size()", equalTo(5))
                     .body("task_history_list.get(0).update_action", equalTo("Configure"))
@@ -1331,7 +1332,14 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("task_history_list.get(4).state", equalTo("TERMINATED"))
                     .body("task_history_list.get(4).assignee", notNullValue())
                     .body("task_history_list.get(4).updated_by", notNullValue())
-                    .body("task_history_list.get(4).updated", notNullValue());
+                    .body("task_history_list.get(4).updated", notNullValue());});
+
+
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
 
             });
 
@@ -1451,34 +1459,41 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
             });
 
-        resultAssignments = restApiActions.get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-        resultAssignments.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(1))
-            .body("task_assignments_list.get(0).service", equalTo("WA"))
-            .body("task_assignments_list.get(0).location", equalTo("765324"))
-            .body("task_assignments_list.get(0).assignment_start", notNullValue())
-            .body("task_assignments_list.get(0).assignment_end", notNullValue())
-            .body("task_assignments_list.get(0).assignee", notNullValue())
-            .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("task_assignments_list.get(0).task_name", equalTo("Process Application"))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("COMPLETED"));
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
 
-        JsonPath assignmentsJsonPathEvaluator = resultAssignments.jsonPath();
-        JsonPath resultHistoryJsonPathEvaluator = resultHistory.get().jsonPath();
+                Response resultAssignmentsPostTermination = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseworkerCredentials.getHeaders()
+                );
+                resultAssignmentsPostTermination.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(1))
+                    .body("task_assignments_list.get(0).service", equalTo("WA"))
+                    .body("task_assignments_list.get(0).location", equalTo("765324"))
+                    .body("task_assignments_list.get(0).assignment_start", notNullValue())
+                    .body("task_assignments_list.get(0).assignment_end", notNullValue())
+                    .body("task_assignments_list.get(0).assignee", notNullValue())
+                    .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
+                    .body("task_assignments_list.get(0).task_name", equalTo("Process Application"))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("COMPLETED"));
+
+                JsonPath assignmentsJsonPathEvaluator = resultAssignmentsPostTermination.jsonPath();
+                JsonPath resultHistoryJsonPathEvaluator = resultHistory.get().jsonPath();
 
         assertEquals(
             resultHistoryJsonPathEvaluator.get("task_history_list.get(2).updated").toString(),
             assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_start").toString()
-        );
-        assertEquals(
+
+                );assertEquals(
             resultHistoryJsonPathEvaluator.get("task_history_list.get(3).updated").toString(),
             assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString()
         );
+            });
 
         common.cleanUpTask(taskId);
     }
