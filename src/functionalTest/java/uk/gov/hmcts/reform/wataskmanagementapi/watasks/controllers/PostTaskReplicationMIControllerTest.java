@@ -6,6 +6,7 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -41,6 +42,9 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     private static final String ENDPOINT_BEING_TESTED_ASSIGNMENTS = "/task/{task-id}/assignments";
     private static final String ENDPOINT_BEING_TESTED_UNCLAIM = "task/{task-id}/unclaim";
     private static final String ENDPOINT_BEING_TESTED_CANCEL = "task/{task-id}/cancel";
+
+    @Value("${environment}")
+    private String environment;
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -1258,10 +1262,21 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             userWithCompletionProcessEnabled.getHeaders()
         );
 
-
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("completed")
+        );
+
+        Response resultTerminate = restApiActions.delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskId,
+            terminateTaskRequest,
+            userWithCompletionProcessEnabled.getHeaders()
+        );
+        resultTerminate.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
 
         Response result = restApiActions.get(
@@ -1289,8 +1304,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultHistory.prettyPrint();
                 resultHistory.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
-                    .body("task_history_list.size()", equalTo(4))
-                    .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
+                    .body("task_history_list.size()", equalTo(5))
+                    .body("task_history_list.get(3).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"))
+                    .body("task_history_list.get(3).update_action", equalTo("Complete"))
+                    .body("task_history_list.get(4).update_action",equalTo("Terminate"));
             });
 
 
@@ -1310,8 +1327,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultCompleteReport.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
-                    .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
                     .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_COMPLETION"));
             });
