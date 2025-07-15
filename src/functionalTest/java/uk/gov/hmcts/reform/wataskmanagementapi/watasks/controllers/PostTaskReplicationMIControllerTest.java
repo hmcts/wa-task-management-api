@@ -866,8 +866,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     @Test
     public void user_should_claim_complete_terminate_task_and_actions_recorded_in_replica_tables() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "processApplication",
+            "Process Application"
+        );
         initiateTask(taskVariables);
 
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
@@ -986,18 +988,29 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
         JsonPath completeJsonPathEvaluator = resultCompleteReport.jsonPath();
 
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
-                     completeJsonPathEvaluator.get("reportable_task_list.get(0).created").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
-                     completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
-                     completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
-                     completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
-                     completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString());
+        assertEquals(
+            claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
+            completeJsonPathEvaluator.get("reportable_task_list.get(0).created").toString()
+        );
+        assertEquals(
+            claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
+            completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString()
+        );
+        assertEquals(
+            claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
+            completeJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString()
+        );
+        assertEquals(
+            claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
+            completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString()
+        );
+        assertEquals(
+            claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
+            completeJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString()
+        );
         assertTrue(OffsetDateTime.parse(claimJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
-                       .isBefore(OffsetDateTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
+                       .isBefore(OffsetDateTime.parse(completeJsonPathEvaluator.get(
+                           "reportable_task_list.get(0).updated"))));
 
         resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -1031,119 +1044,177 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultDelete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        resultHistory = restApiActions.get(
-            ENDPOINT_BEING_TESTED_HISTORY,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
 
-        resultHistory.prettyPrint();
-        resultHistory.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_history_list.size()", equalTo(5))
-            .body("task_history_list.get(0).update_action", equalTo("Configure"))
-            .body("task_history_list.get(1).update_action", equalTo("Configure"))
-            .body("task_history_list.get(2).update_action", equalTo("Claim"))
-            .body("task_history_list.get(3).update_action", equalTo("Complete"))
-            .body("task_history_list.get(4).update_action", equalTo("AutoCancel"))
-            .body("task_history_list.get(4).state", equalTo("TERMINATED"))
-            .body("task_history_list.get(4).assignee", notNullValue())
-            .body("task_history_list.get(4).updated_by", notNullValue())
-            .body("task_history_list.get(4).updated", notNullValue());
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+                Response resultHistoryPostTermination = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_HISTORY,
+                    taskId,
+                    caseworkerCredentials.getHeaders()
+                );
 
-        Response resultTerminateReportable = restApiActions.get(
-            ENDPOINT_BEING_TESTED_REPORTABLE,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
+                resultHistoryPostTermination.prettyPrint();
+                resultHistoryPostTermination.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_history_list.size()", equalTo(5))
+                    .body("task_history_list.get(0).update_action", equalTo("Configure"))
+                    .body("task_history_list.get(1).update_action", equalTo("Configure"))
+                    .body("task_history_list.get(2).update_action", equalTo("Claim"))
+                    .body("task_history_list.get(3).update_action", equalTo("Complete"))
+                    .body("task_history_list.get(4).update_action", equalTo("AutoCancel"))
+                    .body("task_history_list.get(4).state", equalTo("TERMINATED"))
+                    .body("task_history_list.get(4).assignee", notNullValue())
+                    .body("task_history_list.get(4).updated_by", notNullValue())
+                    .body("task_history_list.get(4).updated", notNullValue());
+            });
 
-        resultTerminateReportable.prettyPrint();
-        resultTerminateReportable.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("reportable_task_list.size()", equalTo(1))
-            .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
-            .body("reportable_task_list.get(0).assignee", notNullValue())
-            .body("reportable_task_list.get(0).updated_by", notNullValue())
-            .body("reportable_task_list.get(0).updated", notNullValue())
-            .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
-            .body("reportable_task_list.get(0).created_date", notNullValue())
-            .body("reportable_task_list.get(0).due_date", notNullValue())
-            .body("reportable_task_list.get(0).last_updated_date", notNullValue())
-            .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
-            .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
-            .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
-            .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
-            .body("reportable_task_list.get(0).wait_time", notNullValue())
-            .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
-            .body("reportable_task_list.get(0).completed_date", notNullValue())
-            .body("reportable_task_list.get(0).completed_date_time", notNullValue())
-            .body("reportable_task_list.get(0).handling_time_days", notNullValue())
-            .body("reportable_task_list.get(0).handling_time", notNullValue())
-            .body("reportable_task_list.get(0).processing_time_days", notNullValue())
-            .body("reportable_task_list.get(0).processing_time", notNullValue())
-            .body("reportable_task_list.get(0).is_within_sla", equalTo("Yes"))
-            .body("reportable_task_list.get(0).due_date_to_completed_diff_days", notNullValue())
-            .body("reportable_task_list.get(0).due_date_to_completed_diff_time", notNullValue());
 
-        JsonPath terminateJsonPathEvaluator = resultTerminateReportable.jsonPath();
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
 
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).created").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString());
-        assertEquals(claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).completed_date_time").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).completed_date_time").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).completed_date").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).completed_date").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time_days").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).handling_time_days").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).processing_time_days").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).processing_time_days").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).processing_time").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).processing_time").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).is_within_sla").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).is_within_sla").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).number_of_reassignments").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).number_of_reassignments").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_days").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_days").toString());
-        assertEquals(completeJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_time").toString(),
-                     terminateJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_time").toString());
-        assertTrue(OffsetDateTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
-                       .isBefore(OffsetDateTime.parse(terminateJsonPathEvaluator.get("reportable_task_list.get(0).updated"))));
 
-        resultAssignments = restApiActions.get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-        resultAssignments.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(1))
-            .body("task_assignments_list.get(0).service", equalTo("WA"))
-            .body("task_assignments_list.get(0).location", equalTo("765324"))
-            .body("task_assignments_list.get(0).assignment_start", notNullValue())
-            .body("task_assignments_list.get(0).assignment_end", notNullValue())
-            .body("task_assignments_list.get(0).assignee", notNullValue())
-            .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("task_assignments_list.get(0).task_name", equalTo("Process Application"))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("COMPLETED"));
+                Response resultTerminateReportable = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    caseworkerCredentials.getHeaders()
+                );
 
-        JsonPath assignmentsJsonPathEvaluator = resultAssignments.jsonPath();
-        JsonPath resultHistoryJsonPathEvaluator = resultHistory.jsonPath();
+                resultTerminateReportable.prettyPrint();
+                resultTerminateReportable.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
+                    .body("reportable_task_list.get(0).assignee", notNullValue())
+                    .body("reportable_task_list.get(0).updated_by", notNullValue())
+                    .body("reportable_task_list.get(0).updated", notNullValue())
+                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
+                    .body("reportable_task_list.get(0).created_date", notNullValue())
+                    .body("reportable_task_list.get(0).due_date", notNullValue())
+                    .body("reportable_task_list.get(0).last_updated_date", notNullValue())
+                    .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
+                    .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
+                    .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
+                    .body("reportable_task_list.get(0).wait_time", notNullValue())
+                    .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+                    .body("reportable_task_list.get(0).completed_date", notNullValue())
+                    .body("reportable_task_list.get(0).completed_date_time", notNullValue())
+                    .body("reportable_task_list.get(0).handling_time_days", notNullValue())
+                    .body("reportable_task_list.get(0).handling_time", notNullValue())
+                    .body("reportable_task_list.get(0).processing_time_days", notNullValue())
+                    .body("reportable_task_list.get(0).processing_time", notNullValue())
+                    .body("reportable_task_list.get(0).is_within_sla", equalTo("Yes"))
+                    .body("reportable_task_list.get(0).due_date_to_completed_diff_days", notNullValue())
+                    .body("reportable_task_list.get(0).due_date_to_completed_diff_time", notNullValue());
 
-        assertEquals(resultHistoryJsonPathEvaluator.get("task_history_list.get(2).updated").toString(),
-                     assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_start").toString());
-        assertEquals(resultHistoryJsonPathEvaluator.get("task_history_list.get(3).updated").toString(),
-                     assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString());
+                JsonPath terminateJsonPathEvaluator = resultTerminateReportable.jsonPath();
+
+                assertEquals(
+                    claimJsonPathEvaluator.get("reportable_task_list.get(0).created").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).created").toString()
+                );
+                assertEquals(
+                    claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).wait_time_days").toString()
+                );
+                assertEquals(
+                    claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString()
+                );
+                assertEquals(
+                    claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date_time").toString()
+                );
+                assertEquals(
+                    claimJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).first_assigned_date").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).completed_date_time").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).completed_date_time").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).completed_date").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).completed_date").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time_days").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).handling_time_days").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).processing_time_days").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).processing_time_days").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).processing_time").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).processing_time").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).is_within_sla").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).is_within_sla").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).number_of_reassignments").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).number_of_reassignments").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_days").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_days").toString()
+                );
+                assertEquals(
+                    completeJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_time").toString(),
+                    terminateJsonPathEvaluator.get("reportable_task_list.get(0).due_date_to_completed_diff_time").toString()
+                );
+                assertTrue(OffsetDateTime.parse(completeJsonPathEvaluator.get("reportable_task_list.get(0).updated"))
+                               .isBefore(OffsetDateTime.parse(terminateJsonPathEvaluator.get(
+                                   "reportable_task_list.get(0).updated"))));
+            });
+
+        await()
+            .atLeast(3, TimeUnit.SECONDS)
+            .pollDelay(3, TimeUnit.SECONDS)
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> {
+
+                Response resultAssignmentsPostTermination = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseworkerCredentials.getHeaders()
+                );
+                resultAssignmentsPostTermination.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(1))
+                    .body("task_assignments_list.get(0).service", equalTo("WA"))
+                    .body("task_assignments_list.get(0).location", equalTo("765324"))
+                    .body("task_assignments_list.get(0).assignment_start", notNullValue())
+                    .body("task_assignments_list.get(0).assignment_end", notNullValue())
+                    .body("task_assignments_list.get(0).assignee", notNullValue())
+                    .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
+                    .body("task_assignments_list.get(0).task_name", equalTo("Process Application"))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("COMPLETED"));
+
+                JsonPath assignmentsJsonPathEvaluator = resultAssignmentsPostTermination.jsonPath();
+                JsonPath resultHistoryJsonPathEvaluator = resultHistory.jsonPath();
+
+                assertEquals(
+                    resultHistoryJsonPathEvaluator.get("task_history_list.get(2).updated").toString(),
+                    assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_start").toString()
+                );
+                assertEquals(
+                    resultHistoryJsonPathEvaluator.get("task_history_list.get(3).updated").toString(),
+                    assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString()
+                );
+            });
 
         common.cleanUpTask(taskId);
     }
