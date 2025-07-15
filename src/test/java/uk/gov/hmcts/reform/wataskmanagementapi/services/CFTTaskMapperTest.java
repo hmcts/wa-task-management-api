@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
@@ -1213,6 +1214,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
+        taskResource.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
             asList(
                 PermissionTypes.READ,
@@ -1279,6 +1281,7 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_ASSIGN));
         assertNull(task.getReconfigureRequestTime());
         assertNull(task.getLastReconfigurationTime());
+        assertEquals("EXUI_USER_COMPLETION", task.getTerminationProcess());
     }
 
     @Test

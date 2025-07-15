@@ -157,6 +157,14 @@ public class GivensBuilder {
                         authorizationProvider.getServiceAuthorizationHeader()
                     );
 
+                    if (result.getStatusCode() != HttpStatus.OK.value()) {
+                        log.info(
+                            "Failed to retrieve tasks from camunda. Filter: {}, Status Code: {}, Response Body: {}",
+                            filter,
+                            result.getStatusCode(),
+                            result.getBody().asString()
+                        );
+                    }
                     result.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
                         .contentType(APPLICATION_JSON_VALUE)

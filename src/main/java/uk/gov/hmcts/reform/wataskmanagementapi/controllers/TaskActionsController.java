@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEnt
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @Slf4j
 @RestController
+@RefreshScope
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
     public static final String REQ_PARAM_COMPLETION_PROCESS = "completion_process";
@@ -123,6 +125,10 @@ public class TaskActionsController extends BaseController {
             id,
             accessControlResponse
         );
+
+        if (!isUpdateCompletionProcessFlagEnabled(accessControlResponse)) {
+            task.setTerminationProcess(null);
+        }
 
         return ResponseEntity
             .ok()
@@ -239,13 +245,13 @@ public class TaskActionsController extends BaseController {
         Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
-        boolean isUpdateCompletionProcessFlagEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
+
+
+
         Optional<String> validatedCompletionProcess =
-            completionProcessValidator.validate(completionProcess, taskId, isUpdateCompletionProcessFlagEnabled);
+            completionProcessValidator.validate(completionProcess, taskId,
+                                                isUpdateCompletionProcessFlagEnabled(accessControlResponse));
+
         if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
             requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
         }
@@ -418,5 +424,18 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
+    }
+
+    /**
+     Checks if the "WA_COMPLETION_PROCESS_UPDATE" feature flag is enabled for the given user.
+
+     @param accessControlResponse The access control response containing user information.
+     @return true if the feature flag is enabled, false otherwise. */
+    private boolean isUpdateCompletionProcessFlagEnabled(AccessControlResponse accessControlResponse) {
+        return  launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
     }
 }
