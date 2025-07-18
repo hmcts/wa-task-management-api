@@ -82,8 +82,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -108,8 +108,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReportable = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -171,8 +171,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> configureJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultTaskReportable = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -214,8 +214,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultHistory = restApiActions.get(
@@ -246,8 +246,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = restApiActions.get(
@@ -321,8 +321,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -356,8 +356,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultReportable.set(restApiActions.get(
@@ -435,8 +435,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultAssignmentsUnclaim = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultAssignmentsUnclaim.set(restApiActions.get(
@@ -455,8 +455,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultUnclaimHistory = restApiActions.get(
@@ -485,8 +485,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 resultReportable.set(restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -538,8 +538,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(1).assignment_end", nullValue());
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response reClaimResultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -570,8 +570,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -651,8 +651,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultReportable = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultReportable.set(restApiActions.get(
@@ -713,8 +713,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -740,8 +740,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultDeleteReportable = restApiActions.get(
@@ -868,8 +868,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = restApiActions.get(
@@ -946,8 +946,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -963,8 +963,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1097,8 +1097,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = restApiActions.get(
@@ -1168,8 +1168,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -1187,8 +1187,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> completeJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultCompleteReport = restApiActions.get(
@@ -1289,8 +1289,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -1324,8 +1324,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultTerminateReportable = restApiActions.get(
@@ -1725,8 +1725,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultCancelReport = restApiActions.get(
@@ -1837,8 +1837,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1854,8 +1854,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(10, TimeUnit.SECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(5, TimeUnit.SECONDS)
+            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
