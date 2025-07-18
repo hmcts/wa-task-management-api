@@ -262,6 +262,24 @@ public class CFTTaskMapper {
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
+        /*
+        Below fields are not required for reconfiguration
+        securityClassification
+        notes
+        autoAssigned
+        assignmentExpiry
+        businessContext
+        executionTypeCode
+        taskRoleResources
+        reconfigureRequestTime
+        lastReconfigurationTime
+        lastUpdatedTimestamp
+        lastUpdatedUser
+        lastUpdatedAction
+        indexed
+        terminationReason
+        taskSystem
+        */
         ReconfigureInputVariableDefinition task =
             TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
         return objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});

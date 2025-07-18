@@ -419,6 +419,107 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             });
     }
 
+    /**
+     * This test verifies that when reconfigure is set to true and the internal field is set to reconfigure,
+     * the internal field is ignored during the reconfiguration process and retains its existing value.
+     */
+    @Test
+    void should_ignore_field_on_reconfigure_task_when_reconfigure_set_to_true_and_internal_field_set_to_reconfigure()
+        throws Exception {
+        String caseIdToday = "caseId4-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("securityClassification"),
+                stringValue("PRIVATE"),
+                booleanValue(true)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("roleCategory"),
+                stringValue("JUDICIAL"),
+                booleanValue(true)
+            )
+        ));
+
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        assertEquals(1, taskResourcesBefore.size());
+        taskResourcesBefore.forEach(task -> {
+            assertEquals(ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
+            assertNull(task.getMinorPriority());
+            assertNull(task.getMajorPriority());
+            assertNull(task.getDescription());
+            assertNull(task.getCaseName());
+            assertEquals("765324", task.getLocation());
+            assertEquals("Taylor House", task.getLocationName());
+            assertNull(task.getCaseCategory());
+            assertNull(task.getWorkTypeResource());
+            assertNull(task.getRoleCategory());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertNull(task.getNextHearingDate());
+            assertNull(task.getNextHearingId());
+            assertNotNull(task.getDueDateTime());
+        });
+
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .untilAsserted(() -> {
+                List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                assertEquals(1, taskResourcesAfter.size());
+                taskResourcesAfter.forEach(task -> {
+                    assertNotNull(task.getLastReconfigurationTime());
+                    assertNull(task.getReconfigureRequestTime());
+                    assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                    assertEquals(ASSIGNEE_USER, task.getAssignee());
+                    assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                    assertEquals("JUDICIAL", task.getRoleCategory());
+                    assertNotNull(task.getLastUpdatedTimestamp());
+                    assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                    assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                    assertEquals(SecurityClassification.PUBLIC, task.getSecurityClassification());
+                });
+            });
+    }
+
     /*
      Scenario: Task reconfiguration with exception handling
      This test verifies that task reconfiguration is successful for the first and third tasks.
