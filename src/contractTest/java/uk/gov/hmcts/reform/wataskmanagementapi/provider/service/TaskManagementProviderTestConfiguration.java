@@ -10,11 +10,11 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.jackson.JsonComponentModule;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.zalando.problem.jackson.ProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
@@ -48,37 +48,37 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 public class TaskManagementProviderTestConfiguration {
 
-    @MockBean
+    @MockitoBean
     private EntityManager entityManager;
-    @MockBean
+    @MockitoBean
     private EntityManagerFactory entityManagerFactory;
-    @MockBean
+    @MockitoBean
     private CamundaService camundaService;
-    @MockBean
+    @MockitoBean
     private CFTTaskMapper cftTaskMapper;
-    @MockBean
+    @MockitoBean
     private CftQueryService cftQueryService;
-    @MockBean
+    @MockitoBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockBean
+    @MockitoBean
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
-    @MockBean
+    @MockitoBean
     private IdamService idamService;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentService roleAssignmentService;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockBean
+    @MockitoBean
     private ConfigureTaskService configureTaskService;
-    @MockBean
+    @MockitoBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @MockBean
+    @MockitoBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @MockBean
+    @MockitoBean
     private IdamTokenGenerator idamTokenGenerator;
-    @MockBean
+    @MockitoBean
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
-    @MockBean
+    @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
