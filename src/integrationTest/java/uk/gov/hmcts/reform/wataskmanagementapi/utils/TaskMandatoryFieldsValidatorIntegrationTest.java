@@ -144,8 +144,8 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
     @DisplayName("should throw ServiceMandatoryFieldValidationException when role category is incorrect")
     void should_throw_service_mandatory_field_validation_exception_when_role_category_is_incorrect(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location,String roleCategory, String workTypeResource) {
         TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
-        ValidationException exception =
-            assertThrows(ValidationException.class, ()
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class, ()
                 -> taskMandatoryFieldsValidator.validate(task));
 
         String message = exception.getMessage();

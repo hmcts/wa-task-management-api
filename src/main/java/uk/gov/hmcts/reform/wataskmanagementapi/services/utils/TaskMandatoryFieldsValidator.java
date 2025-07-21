@@ -173,7 +173,11 @@ public class TaskMandatoryFieldsValidator {
     private void addNotAllowedValuesError(String field, Object fieldValue, List<String> serviceSpecificErrors,
                                           List<String> tmSpecificErrors) {
         String errorMessage = field + " value '" + fieldValue + "' is not one of the allowed values";
-        tmSpecificErrors.add(errorMessage);
+        if (tmSpecificMandatoryFields.contains(field)) {
+            tmSpecificErrors.add(errorMessage);
+        } else {
+            serviceSpecificErrors.add(errorMessage);
+        }
 
     }
 }
