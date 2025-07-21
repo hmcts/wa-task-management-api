@@ -212,11 +212,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             any()
         )).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString()
+            any()
         )).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
@@ -285,11 +285,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse(false));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResources.get(0)));
 
         mockMvc.perform(
@@ -373,11 +373,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
@@ -454,11 +454,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             )
         )));
 
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -578,11 +578,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(eq(taskResourcesBefore.get(0).getTaskId()), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
         String secondTaskId = taskResourcesBefore.get(1).getTaskId();
         //Throwing exception for second task while reassigning the task
@@ -687,11 +687,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
 
         OffsetDateTime reconfigureDateTime = OffsetDateTime.now().minusSeconds(30L);
         when(cftTaskDatabaseService.getActiveTaskIdsAndReconfigureRequestTimeGreaterThan(
@@ -756,11 +756,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                     stringValue("updatedTitle"),
                     booleanValue(true)
                 ))));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
@@ -830,11 +830,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -919,11 +919,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
 
         mockMvc.perform(
@@ -993,12 +993,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             any()
         )).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString()
-        )).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
 
         mockMvc.perform(
@@ -1055,12 +1054,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             any()
         )).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString()
-        )).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
@@ -1134,11 +1132,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(new ArrayList<>(configurationDmnResponse(true)));
-        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        lenient().when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1228,11 +1226,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(List.of());
 
         mockMvc.perform(
@@ -1420,11 +1418,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
 
 
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1506,11 +1504,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             any())).thenReturn(configurationDmnResponse);
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            any())).thenReturn(permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
