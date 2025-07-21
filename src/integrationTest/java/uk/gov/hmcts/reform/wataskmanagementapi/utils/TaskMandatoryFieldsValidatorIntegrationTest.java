@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
-import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
