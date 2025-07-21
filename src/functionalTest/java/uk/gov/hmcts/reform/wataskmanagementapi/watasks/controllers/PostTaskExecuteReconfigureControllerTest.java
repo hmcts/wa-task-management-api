@@ -590,6 +590,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .statusCode(HttpStatus.OK.value())
                 .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                 .and().body("task.id", equalTo(taskId))
+                .body("task.task_title", equalTo("Title"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "key1", "value1",
                     "key2", "value2",
@@ -673,6 +674,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                             .statusCode(HttpStatus.OK.value())
                             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                             .and().body("task.id", equalTo(taskId))
+                            .body("task.task_title", equalTo("Title"))
                             .body("task.role_category", equalTo("ADMIN"))
                             .body("task.task_state", is("assigned"))
                             .body("task.reconfigure_request_time", nullValue())
@@ -1045,6 +1047,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
+            .body("task.task_title", equalTo("A Task")) //Default task name
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value1",
