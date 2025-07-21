@@ -23,7 +23,7 @@ BEGIN
         FROM cft_task_db.tasks
         WHERE state IN ('COMPLETED', 'CANCELLED')
           AND last_updated_timestamp < NOW() - INTERVAL '90 days'
-        ORDER BY last_updated_timestamp ASC
+        ORDER BY created ASC
         LIMIT max_limit
     LOOP
         -- Initialize missing_data flag
