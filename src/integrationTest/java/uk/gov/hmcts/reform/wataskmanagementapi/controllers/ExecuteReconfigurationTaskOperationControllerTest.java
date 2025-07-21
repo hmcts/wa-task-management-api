@@ -230,8 +230,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         //assert nextHearingDate is null after reconfiguration
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
-                                       assertNull(task.getNextHearingDate());
-                                   }
+            assertNull(task.getNextHearingDate());
+        }
         );
     }
 
@@ -745,9 +745,9 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             anyString())).thenReturn(List.of(
-            new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("updatedTitle"),
-                                                   booleanValue(true)
-            )));
+                new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("updatedTitle"),
+                        booleanValue(true)
+                )));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -842,33 +842,33 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
-                                       assertNotNull(task.getLastReconfigurationTime());
-                                       assertNull(task.getReconfigureRequestTime());
-                                       assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-                                       assertEquals(1, task.getMinorPriority());
-                                       assertEquals(1, task.getMajorPriority());
-                                       assertEquals("description", task.getDescription());
-                                       assertEquals("TestCase", task.getCaseName());
-                                       assertEquals("512401", task.getLocation());
-                                       assertEquals("Manchester", task.getLocationName());
-                                       assertEquals("caseCategory", task.getCaseCategory());
-                                       assertEquals("routine_work", task.getWorkTypeResource().getId());
-                                       assertEquals("JUDICIAL", task.getRoleCategory());
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                                           task.getPriorityDate().toLocalDate()
-                                       );
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                                           task.getNextHearingDate().toLocalDate()
-                                       );
-                                       assertEquals("nextHearingId1", task.getNextHearingId());
-                                       assertEquals(ASSIGNEE_USER, task.getAssignee());
-                                       assertEquals(CFTTaskState.ASSIGNED, task.getState());
-                                       assertNotNull(task.getLastUpdatedTimestamp());
-                                       assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-                                       assertEquals(TaskAction.AUTO_ASSIGN.getValue(), task.getLastUpdatedAction());
-                                   }
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertEquals(ASSIGNEE_USER, task.getAssignee());
+                assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.AUTO_ASSIGN.getValue(), task.getLastUpdatedAction());
+            }
         );
     }
 
@@ -932,33 +932,33 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         Thread.sleep(5000);
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
-                                       assertNotNull(task.getLastReconfigurationTime());
-                                       assertNull(task.getReconfigureRequestTime());
-                                       assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-                                       assertEquals(1, task.getMinorPriority());
-                                       assertEquals(1, task.getMajorPriority());
-                                       assertEquals("description", task.getDescription());
-                                       assertEquals("TestCase", task.getCaseName());
-                                       assertEquals("512401", task.getLocation());
-                                       assertEquals("Manchester", task.getLocationName());
-                                       assertEquals("caseCategory", task.getCaseCategory());
-                                       assertEquals("routine_work", task.getWorkTypeResource().getId());
-                                       assertEquals("JUDICIAL", task.getRoleCategory());
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                                           task.getPriorityDate().toLocalDate()
-                                       );
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                                           task.getNextHearingDate().toLocalDate()
-                                       );
-                                       assertEquals("nextHearingId1", task.getNextHearingId());
-                                       assertNull(task.getAssignee());
-                                       assertEquals(CFTTaskState.UNASSIGNED, task.getState());
-                                       assertNotNull(task.getLastUpdatedTimestamp());
-                                       assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-                                       assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
-                                   }
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertNull(task.getAssignee());
+                assertEquals(CFTTaskState.UNASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+            }
         );
     }
 
@@ -1148,33 +1148,33 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
-                                       assertNotNull(task.getLastReconfigurationTime());
-                                       assertNull(task.getReconfigureRequestTime());
-                                       assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-                                       assertEquals(1, task.getMinorPriority());
-                                       assertEquals(1, task.getMajorPriority());
-                                       assertEquals("description", task.getDescription());
-                                       assertEquals("TestCase", task.getCaseName());
-                                       assertEquals("512401", task.getLocation());
-                                       assertEquals("Manchester", task.getLocationName());
-                                       assertEquals("caseCategory", task.getCaseCategory());
-                                       assertEquals("routine_work", task.getWorkTypeResource().getId());
-                                       assertEquals("JUDICIAL", task.getRoleCategory());
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
-                                           task.getPriorityDate().toLocalDate()
-                                       );
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
-                                           task.getNextHearingDate().toLocalDate()
-                                       );
-                                       assertEquals("nextHearingId1", task.getNextHearingId());
-                                       assertEquals(ASSIGNEE_USER, task.getAssignee());
-                                       assertEquals(CFTTaskState.ASSIGNED, task.getState());
-                                       assertNotNull(task.getLastUpdatedTimestamp());
-                                       assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-                                       assertEquals(TaskAction.AUTO_UNASSIGN_ASSIGN.getValue(), task.getLastUpdatedAction());
-                                   }
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15Z").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertEquals(ASSIGNEE_USER, task.getAssignee());
+                assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.AUTO_UNASSIGN_ASSIGN.getValue(), task.getLastUpdatedAction());
+            }
         );
     }
 
@@ -1243,34 +1243,34 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
         List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
         taskResourcesAfter.forEach(task -> {
-                                       assertNotNull(task.getLastReconfigurationTime());
-                                       assertNull(task.getReconfigureRequestTime());
-                                       assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-                                       assertEquals(1, task.getMinorPriority());
-                                       assertEquals(1, task.getMajorPriority());
-                                       assertEquals("description", task.getDescription());
-                                       assertEquals("TestCase", task.getCaseName());
-                                       assertEquals("512401", task.getLocation());
-                                       assertEquals("Manchester", task.getLocationName());
-                                       assertEquals("caseCategory", task.getCaseCategory());
-                                       assertEquals("routine_work", task.getWorkTypeResource().getId());
-                                       assertEquals("JUDICIAL", task.getRoleCategory());
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                                           task.getPriorityDate().toLocalDate()
-                                       );
-                                       assertEquals(
-                                           OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                                           task.getNextHearingDate().toLocalDate()
-                                       );
-                                       assertEquals("nextHearingId1", task.getNextHearingId());
-                                       assertNull(task.getAssignee());
-                                       assertEquals(CFTTaskState.UNASSIGNED, task.getState());
-                                       assertNotNull(task.getLastUpdatedTimestamp());
-                                       assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-                                       assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
-                                       assertCloseTo(dueDateTime, task.getDueDateTime(), 2);
-                                   }
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertEquals(1, task.getMinorPriority());
+                assertEquals(1, task.getMajorPriority());
+                assertEquals("description", task.getDescription());
+                assertEquals("TestCase", task.getCaseName());
+                assertEquals("512401", task.getLocation());
+                assertEquals("Manchester", task.getLocationName());
+                assertEquals("caseCategory", task.getCaseCategory());
+                assertEquals("routine_work", task.getWorkTypeResource().getId());
+                assertEquals("JUDICIAL", task.getRoleCategory());
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getPriorityDate().toLocalDate()
+                );
+                assertEquals(
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                    task.getNextHearingDate().toLocalDate()
+                );
+                assertEquals("nextHearingId1", task.getNextHearingId());
+                assertNull(task.getAssignee());
+                assertEquals(CFTTaskState.UNASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
+                assertCloseTo(dueDateTime, task.getDueDateTime(), 2);
+            }
         );
     }
 
@@ -1464,13 +1464,13 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
         String failureLogMessage = taskResourcesAfter.stream()
             .map(task -> "\n" + task.getTaskId()
-                + ", " + task.getTaskName()
-                + ", " + task.getState()
-                + ", " + task.getReconfigureRequestTime()
-                + ", " + task.getLastReconfigurationTime())
+                         + ", " + task.getTaskName()
+                         + ", " + task.getState()
+                         + ", " + task.getReconfigureRequestTime()
+                         + ", " + task.getLastReconfigurationTime())
             .collect(Collectors.joining());
         assertTrue(output.getOut().contains("Task Execute Reconfiguration Failed for following tasks "
-                                                + failureLogMessage));
+                                            + failureLogMessage));
     }
 
     private List<ConfigurationDmnEvaluationResponse> invalidIntermediateDateCalendarDmnResponse() {
@@ -1602,7 +1602,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
     private List<TaskFilter<?>> executeTaskFilters(OffsetDateTime reconfigureRequestTime) {
         TaskFilter<?> filter = new ExecuteReconfigureTaskFilter("reconfigure_request_time",
-                                                                reconfigureRequestTime, TaskFilterOperator.AFTER
+            reconfigureRequestTime, TaskFilterOperator.AFTER
         );
         return List.of(filter);
     }
@@ -1658,7 +1658,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         String jurisdiction = "IA";
         String caseType = "Asylum";
         insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignee, dueDateTime,
-                            assignerTaskRoleResource
+            assignerTaskRoleResource
         );
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
@@ -1702,31 +1702,31 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
         return asList(
             new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                                                   booleanValue(false)
+                booleanValue(false)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("priorityDate"),
@@ -1734,13 +1734,13 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                                                   booleanValue(canReconfigure)
+                booleanValue(canReconfigure)
             ),
             new ConfigurationDmnEvaluationResponse(
                 stringValue("nextHearingDate"),
