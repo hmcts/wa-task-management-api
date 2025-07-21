@@ -15,7 +15,6 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -52,7 +51,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskReconfigurationTransactionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
@@ -117,8 +115,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     private CftQueryService cftQueryService;
     @MockBean
     private CcdDataService ccdDataService;
-    @SpyBean
-    private DmnEvaluationService dmnEvaluationService;
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
@@ -1384,8 +1380,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     })
     void should_not_update_task_title_from_dmn_when_dmn_evaluates_title_as_null_or_empty_on_task_reconfig(
         String dmnEvaluatedTitleValue, boolean canReconfigure, String expectedTitleValue) throws Exception {
-        ReflectionTestUtils.setField(dmnEvaluationService,
-                                     "fieldsThatCannotBeNull", List.of("title"));
         String caseIdToday = "caseId5-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
