@@ -44,5 +44,6 @@ config:
   taskMandatoryFields: ${MANDATORY_TASK_FIELDS:taskName,taskId,taskType,dueDateTime,state,securityClassification,title,majorPriority,minorPriority,executionTypeCode,caseId,caseTypeId,caseCategory,caseName,jurisdiction,region,location,created,roleCategory,workTypeResource}
   initiationRequestRequiredFields: ${INITIATION_REQUEST_REQUIRED_FIELDS:name,taskType,caseId}
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
+  fieldsThatCannotBeNull: ${FIELDS_CANNOT_BE_NULL:title}
 
 initiation_job_running: ${INITIATION_JOB_RUNNING:false}

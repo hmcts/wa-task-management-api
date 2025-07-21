@@ -149,7 +149,18 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
-
+        lenient().when(camundaServiceApi.evaluateConfigurationDmnTable(
+            anyString(),
+            anyString(),
+            anyString(),
+            any()
+        )).thenReturn(new ArrayList<>(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
+            )
+        )));
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
@@ -195,11 +206,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         });
 
         //call to update nextHearingDate to empty
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString()
+            any()
         )).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
@@ -269,11 +280,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNotNull(task.getDueDateTime());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(false));
+            any())).thenReturn(configurationDmnResponse(false));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -357,11 +368,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNotNull(task.getDueDateTime());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            any())).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -425,12 +436,12 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
-        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        lenient().when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString()
-        )).thenReturn(List.of(
+            any()
+        )).thenReturn(new ArrayList<>(List.of(
             new ConfigurationDmnEvaluationResponse(
                 stringValue("securityClassification"),
                 stringValue("PRIVATE"),
@@ -441,7 +452,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 stringValue("JUDICIAL"),
                 booleanValue(true)
             )
-        ));
+        )));
 
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
@@ -562,11 +573,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNotNull(task.getDueDateTime());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            any())).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -671,11 +682,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         taskResourcesBefore.get(0).setState(CFTTaskState.CANCELLED);
         cftTaskDatabaseService.saveTask(taskResourcesBefore.get(0));
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            any())).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -735,14 +746,16 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         });
 
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(List.of(
-                new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("updatedTitle"),
-                        booleanValue(true)
-                )));
+            any())).thenReturn(new ArrayList<>(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("title"),
+                    stringValue("updatedTitle"),
+                    booleanValue(true)
+                ))));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -812,11 +825,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            any())).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -901,11 +914,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            any())).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -974,11 +987,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString()
+            any()
         )).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
@@ -1036,11 +1049,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString()
+            any()
         )).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
@@ -1116,12 +1129,12 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        lenient().when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            any())).thenReturn(new ArrayList<>(configurationDmnResponse(true)));
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
             anyString(),
@@ -1210,11 +1223,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             assertNull(task.getNextHearingId());
         });
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            any())).thenReturn(configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
@@ -1488,11 +1501,11 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         configurationDmnResponse.addAll(caseDataConfigurationDmnResponse);
         configurationDmnResponse.addAll(calendarConfigurationDmnResponse);
 
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse);
+            any())).thenReturn(configurationDmnResponse);
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
