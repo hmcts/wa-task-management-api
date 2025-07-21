@@ -111,7 +111,7 @@ public class DmnEvaluationService {
             /**
              * Loop through each field in fieldsThatCannotBeNull and check if the field is equal to the name from
              * dmnResponse. If the name is present, then get the value of the field. Check if the value is null or empty
-             * for that field if yes then remove the field from the dmnResponse so that it preserved existing value.
+             * for that field if yes then remove the field from the dmnResponse so that it won't override existing value
              */
 
             fieldsThatCannotBeNull.forEach(
@@ -119,7 +119,7 @@ public class DmnEvaluationService {
                     dmnResponse.removeIf(response -> {
                         String nameValue = response.getName().getValue();
                         String responseValue = response.getValue() != null ? response.getValue().getValue() : null;
-                         return field.equals(nameValue) && (responseValue == null || responseValue.isEmpty());
+                        return field.equals(nameValue) && (responseValue == null || responseValue.isEmpty());
                     })
             );
 
