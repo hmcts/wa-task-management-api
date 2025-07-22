@@ -6,6 +6,8 @@ import feign.RequestTemplate;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,6 +43,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1445,6 +1448,80 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.violations[0].message").value("must not be empty"));
 
 
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        ",follow Up Overdue Reasons For Appeal",
+        "'',follow Up Overdue Reasons For Appeal",
+        "updatedTitle,updatedTitle"
+    })
+    void should_not_update_task_title_from_dmn_when_dmn_evaluates_title_as_null_or_empty_during_task_initiation(
+        String dmnEvaluatedTitleValue, String expectedValue)
+        throws Exception {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(new ArrayList<>(List.of(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName1, someName2")),
+                new ConfigurationDmnEvaluationResponse(stringValue("title"),
+                                                       dmnEvaluatedTitleValue == null ? null
+                                                           : stringValue(dmnEvaluatedTitleValue))
+            )));
+
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA,WA"),
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok()
+                            .header(TOTAL_RECORDS, "0")
+                            .body(new RoleAssignmentResource(emptyList())));
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "follow Up Overdue Reasons For Appeal",
+            CASE_ID.value(), "someCaseId",
+            DUE_DATE.value(), formattedDueDate
+        );
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
+                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                         .contentType(MediaType.APPLICATION_JSON_VALUE)
+                         .content(asJsonString(req)))
+            .andExpectAll(status().isCreated(),
+                          content().contentType(APPLICATION_JSON_VALUE),
+                          jsonPath("$.task_id").value(taskId),
+                          jsonPath("$.task_name").value("follow Up Overdue Reasons For Appeal"),
+                          jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                          jsonPath("$.title").value(expectedValue)
+
+            );
     }
 }
 
