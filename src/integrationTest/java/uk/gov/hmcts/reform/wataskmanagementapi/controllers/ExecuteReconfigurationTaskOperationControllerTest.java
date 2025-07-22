@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.launchdarkly.sdk.LDValue;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,6 +103,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 @ExtendWith(OutputCaptureExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Slf4j
 class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
     public static final String SYSTEM_USER_1 = "system_user1";
@@ -1394,9 +1396,25 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ReflectionTestUtils.setField(dmnEvaluationService, "camundaServiceApi", camundaServiceApi);
         ReflectionTestUtils.setField(dmnEvaluationService,
                                      "fieldsThatCannotBeNull", List.of("title"));
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(new ArrayList<>(List.of(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("updatedCaseName"),
+                                                       booleanValue(true)),
+                new ConfigurationDmnEvaluationResponse(stringValue("title"), dmnEvaluatedTitleValue == null ? null
+                    : stringValue(dmnEvaluatedTitleValue), booleanValue(canReconfigure))
+
+            )));
+
+        doReturn(permissionsResponse()).when(dmnEvaluationService).evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString());
+
         String caseIdToday = "caseId5-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        log.info("Case ID: {}, Due Date Time: {}", caseIdToday, dueDateTime);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
@@ -1409,29 +1427,15 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         );
 
         List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        log.info("After mark to reconfigure Case ID: {}, Task Resources Before: {}", caseIdToday, taskResourcesBefore);
         taskResourcesBefore.forEach(task -> {
             assertEquals(ASSIGNEE_USER, task.getAssignee());
             assertEquals(CFTTaskState.ASSIGNED, task.getState());
             assertEquals("title", task.getTitle());
             assertNotNull(task.getReconfigureRequestTime());
         });
-        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
-            .thenReturn(new ArrayList<>(List.of(
-                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("updatedCaseName"),
-                                                       booleanValue(true)),
-                new ConfigurationDmnEvaluationResponse(stringValue("title"), dmnEvaluatedTitleValue == null ? null
-                    : stringValue(dmnEvaluatedTitleValue), booleanValue(canReconfigure))
-
-            )));
-
-
-
-        doReturn(permissionsResponse()).when(dmnEvaluationService).evaluateTaskPermissionsDmn(
-            anyString(),
-            anyString(),
-            anyString(),
-            anyString());
-
+        Thread.sleep(1000);
+        log.info("Before performing execute reconfigure, Task Resources: {}", taskResourcesBefore);
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -1443,6 +1447,8 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
+
+        log.info("After execute reconfigure, performing await check for task resources");
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
             .atMost(15, SECONDS)
