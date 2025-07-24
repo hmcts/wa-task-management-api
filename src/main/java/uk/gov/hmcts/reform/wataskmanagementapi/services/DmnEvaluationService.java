@@ -38,8 +38,8 @@ public class DmnEvaluationService {
     @Value("${config.fieldsToExcludeFromTrim}")
     private List<String> fieldsToExcludeFromTrim;
 
-    @Value("${config.fieldsThatCannotBeNull}")
-    private List<String> fieldsThatCannotBeNull;
+    @Value("${config.dmnConfigFieldsWithInternalDefaults}")
+    private List<String> dmnConfigFieldsWithInternalDefaults;
 
     public DmnEvaluationService(CamundaServiceApi camundaServiceApi,
                                 AuthTokenGenerator serviceAuthTokenGenerator,
@@ -109,12 +109,13 @@ public class DmnEvaluationService {
             );
 
             /**
-             * Loop through each field in fieldsThatCannotBeNull and check if the field is equal to the name from
-             * dmnResponse. If the name is present, then get the value of the field. Check if the value is null or empty
-             * for that field if yes then remove the field from the dmnResponse so that it won't override existing value
+             * Loop through each field in dmnConfigFieldsWithInternalDefaults and check if the field is equal to the
+             * name from dmnResponse. If the name is present, then get the value of the field. Check if the value is
+             * null or empty for that field if yes then remove the field from the dmnResponse so that it won't override
+             * existing value.
              */
 
-            fieldsThatCannotBeNull.forEach(
+            dmnConfigFieldsWithInternalDefaults.forEach(
                 field ->
                     dmnResponse.removeIf(response -> {
                         String nameValue = response.getName().getValue();

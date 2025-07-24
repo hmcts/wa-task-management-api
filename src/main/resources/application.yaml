@@ -22,7 +22,7 @@ config:
   search:
     defaultMaxResults: 50
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
-  fieldsThatCannotBeNull: ${FIELDS_CANNOT_BE_NULL:title}
+  dmnConfigFieldsWithInternalDefaults: ${DMN_CONFIG_FIELDS_WITH_INTERNAL_DEFAULTS:title}
 
 core_case_data:
   api:

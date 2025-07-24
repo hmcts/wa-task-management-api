@@ -86,7 +86,7 @@ class DmnEvaluationServiceTest {
         ReflectionTestUtils.setField(dmnEvaluationService,
                                      "fieldsToExcludeFromTrim", List.of("description", "title"));
         ReflectionTestUtils.setField(dmnEvaluationService,
-                                     "fieldsThatCannotBeNull", List.of("title"));
+                                     "dmnConfigFieldsWithInternalDefaults", List.of("title"));
     }
 
     @Test
