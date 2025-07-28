@@ -69,6 +69,7 @@ withPipeline(type, product, component) {
 
     afterSuccess('checkout') {
       sh 'date'
+      sh 'printenv'
     }
     afterSuccess('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
