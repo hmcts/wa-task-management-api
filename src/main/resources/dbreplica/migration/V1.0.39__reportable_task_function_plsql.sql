@@ -152,7 +152,6 @@ FETCH NEXT FROM task_history_cursor INTO
         end;
 
     if (l_new_task) then
-
         if ((l_update_action = 'Configure' and l_state = 'UNASSIGNED')
             or (l_update_action = 'AutoAssign' and l_state = 'ASSIGNED')) then
           RAISE INFO 'Insert reportable task record for : %', l_task_id;

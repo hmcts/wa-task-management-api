@@ -160,6 +160,7 @@ logging:
     org.zalando.logbook: INFO
     org.testcontainers: INFO
     com.github.dockerjava: INFO
+    com.launchdarkly: DEBUG
 
 logbook:
   include: /task/**

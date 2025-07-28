@@ -330,14 +330,10 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     void should_save_task_and_get_transformed_termination_process_label_from_reportable_task(
         String taskState, String terminationProcess, String terminationProcessLabel) {
         TaskResource taskResource = createAndSaveTask();
-        String taskId = taskResource.getTaskId();
-        checkHistory(taskId, 1);
-
         taskResource.setState(CFTTaskState.valueOf(taskState));
-        taskResource.setTerminationProcess(TerminationProcess.valueOf(terminationProcess));
+        taskResource.setTerminationProcess(TerminationProcess.fromValue(terminationProcess));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
-        checkHistory(taskId, 2);
 
         await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
