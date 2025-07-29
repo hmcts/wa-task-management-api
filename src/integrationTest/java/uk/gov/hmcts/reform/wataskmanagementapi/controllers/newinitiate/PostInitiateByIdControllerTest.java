@@ -8,11 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -94,24 +94,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s/initiation";
     private static String ENDPOINT_BEING_TESTED;
-    @MockBean
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     private ServiceMocks mockServices;
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @MockitoBean
     private CcdDataServiceApi ccdDataServiceApi;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     private CaseDetails caseDetails;
