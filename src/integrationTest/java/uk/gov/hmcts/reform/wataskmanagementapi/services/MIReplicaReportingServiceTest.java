@@ -325,13 +325,15 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @ParameterizedTest
     @CsvSource(value = {
         "COMPLETED,EXUI_CASE-EVENT_COMPLETION,automated",
-        "COMPLETED,EXUI_USER_COMPLETION,manual"
+        "COMPLETED,EXUI_USER_COMPLETION,manual",
+        "COMPLETED,,"
     })
     void should_save_task_and_get_transformed_termination_process_label_from_reportable_task(
         String taskState, String terminationProcess, String terminationProcessLabel) {
         TaskResource taskResource = createAndSaveTask();
         taskResource.setState(CFTTaskState.valueOf(taskState));
-        taskResource.setTerminationProcess(TerminationProcess.fromValue(terminationProcess));
+        taskResource.setTerminationProcess(
+            terminationProcess != null ? TerminationProcess.fromValue(terminationProcess) : null);
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
 
