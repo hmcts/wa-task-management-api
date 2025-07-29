@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -38,7 +38,7 @@ public class CalendarCacheManagerTest {
     @Autowired
     private DateTypeConfigurator dateTypeConfigurator;
 
-    @SpyBean
+    @MockitoSpyBean
     private PublicHolidayService publicHolidayService;
 
     @DisplayName("(Access calendars successfully and retrieve results which are also cached)")
