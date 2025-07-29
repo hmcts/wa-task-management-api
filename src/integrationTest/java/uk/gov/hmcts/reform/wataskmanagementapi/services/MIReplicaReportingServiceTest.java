@@ -324,8 +324,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "COMPLETED,EXUI_CASE-EVENT_COMPLETION,automated",
-        "COMPLETED,EXUI_USER_COMPLETION,manual",
+        "COMPLETED,EXUI_CASE-EVENT_COMPLETION,Automated",
+        "COMPLETED,EXUI_USER_COMPLETION,Manual",
         "COMPLETED,,"
     })
     void should_save_task_and_get_transformed_termination_process_label_from_reportable_task(

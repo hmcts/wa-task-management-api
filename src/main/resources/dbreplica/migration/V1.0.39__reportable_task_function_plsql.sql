@@ -146,8 +146,8 @@ FETCH NEXT FROM task_history_cursor INTO
         end;
     l_termination_process_label =
         case l_termination_process IS NOT NULL
-            when (l_termination_process='EXUI_USER_COMPLETION')  then 'manual'
-            when (l_termination_process='EXUI_CASE_EVENT_COMPLETION')  then 'automated'
+            when (l_termination_process='EXUI_USER_COMPLETION')  then 'Manual'
+            when (l_termination_process='EXUI_CASE_EVENT_COMPLETION')  then 'Automated'
             else l_termination_process
         end;
 
