@@ -1017,6 +1017,101 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
+    public void should_set_title_to_existing_value_if_dmn_evaluates_to_empty_when_executed_for_reconfigure() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data.json",
+            "taskAttributesWithDefaultValue",
+            "Task Attributes With Default Value"
+        );
+
+        common.setupStandardCaseManager(assignerCredentials.getHeaders(),
+                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        );
+        String taskId = taskVariables.getTaskId();
+        Consumer<Response> assertConsumer = (result) -> {
+            //Note: this is the TaskResource.class
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Task Attributes With Default Value"))
+                .body("task.type", equalTo("taskAttributesWithDefaultValue"));
+        };
+
+        initiateTask(taskVariables, assertConsumer);
+
+        common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "tribunal-caseworker");
+
+        assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+        result = restApiActions.get(
+            "/task/{task-id}",
+            taskId,
+            assigneeCredentials.getHeaders()
+        );
+
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.task_state", is("assigned"))
+            .body("task.task_title", equalTo("Task Title"))
+            .body("task.reconfigure_request_time", notNullValue())
+            .body("task.last_reconfiguration_time", nullValue());
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value());
+
+
+        await().ignoreException(Exception.class)
+            .atLeast(5, TimeUnit.SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .untilAsserted(() -> {
+
+                Response taskResult = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assigneeCredentials.getHeaders()
+                );
+
+                taskResult.prettyPrint();
+
+                taskResult.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", is("assigned"))
+                    .body("task.task_title", equalTo("Task Title"))
+                    .body("task.reconfigure_request_time", nullValue())
+                    .body("task.last_reconfiguration_time", notNullValue());
+            });
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
@@ -1045,6 +1140,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
+            .body("task.task_title", equalTo("A Task")) //Default task name
             .body("task.additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value1",

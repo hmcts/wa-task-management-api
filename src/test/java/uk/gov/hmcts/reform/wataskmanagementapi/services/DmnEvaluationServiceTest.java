@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -83,6 +85,8 @@ class DmnEvaluationServiceTest {
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
         ReflectionTestUtils.setField(dmnEvaluationService,
                                      "fieldsToExcludeFromTrim", List.of("description", "title"));
+        ReflectionTestUtils.setField(dmnEvaluationService,
+                                     "dmnConfigFieldsWithInternalDefaults", List.of("title"));
     }
 
     @Test
@@ -529,6 +533,44 @@ class DmnEvaluationServiceTest {
         assertThat(response.get(1).getName(), is(stringValue("title")));
         assertThat(response.get(1).getValue(), is(stringValue(" title1, title 2")));
         assertThat(response.get(1).getCanReconfigure(), is(booleanValue(true)));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        ", 0",
+        "'', 0",
+        "'updated_title', 1"
+    })
+    void should_remove_value_when_dmn_response_is_null_or_empty_for_title(String title, int expectedSize) {
+        String ccdData = "{}";
+
+        List<ConfigurationDmnEvaluationResponse> mockedResponse = new ArrayList<>(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("title"),
+                title != null ? stringValue(title) : null,
+                booleanValue(true)
+            )
+        ));
+        String jurisdiction = "wa";
+        String caseTypeId = "wacasetype";
+
+        doReturn(mockedResponse)
+            .when(camundaServiceApi)
+            .evaluateConfigurationDmnTable(
+                BEARER_SERVICE_TOKEN,
+                WA_TASK_CONFIGURATION.getTableKey(jurisdiction, caseTypeId),
+                jurisdiction,
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
+            );
+
+        List<ConfigurationDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskConfigurationDmn(
+            jurisdiction,
+            caseTypeId,
+            ccdData,
+            TASK_ATTRIBUTES
+        );
+
+        assertThat(response.size(), is(expectedSize));
     }
 
     @Test
