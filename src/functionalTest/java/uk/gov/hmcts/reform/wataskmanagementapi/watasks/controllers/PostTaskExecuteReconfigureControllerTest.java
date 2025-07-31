@@ -629,7 +629,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                 .and().body("task.id", equalTo(taskId))
                 .body("task.task_state", is("assigned"))
-                .body("task.role_category", equalTo("JUDICIARY"))
+                .body("task.role_category", equalTo("JUDICIAL"))
                 .body("task.reconfigure_request_time", notNullValue())
                 .body("task.last_reconfiguration_time", nullValue())
                 .body("task.additional_properties",
@@ -1361,7 +1361,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.task_title", is("Title"))
                     .body("task.work_type_id", is("hearing_work"))
-                    .body("task.role_category", is("hearing_work"));
+                    .body("task.role_category", is("JUDICIAL"));
             });
         common.cleanUpTask(taskId);
     }
