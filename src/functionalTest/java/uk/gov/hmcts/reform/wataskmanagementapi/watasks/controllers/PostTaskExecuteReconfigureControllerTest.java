@@ -317,33 +317,34 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", equalTo(0)); //Default max results
 
+        Response taskResult = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskOperationRequestForExecuteReconfiguration(
+                TaskOperationType.EXECUTE_RECONFIGURE_FAILURES,
+                OffsetDateTime.now().minus(Duration.ofDays(1))
+            ),
+            assigneeCredentials.getHeaders()
+        );
+
+        taskResult.then().assertThat()
+            .statusCode(HttpStatus.OK.value()); //Default max results
+
         // execute reconfigure process is not performed on current task
         // retry window is set 0 hours, so 1 unprocessed reconfiguration record to report
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
             .atMost(180, SECONDS)
             .until(() -> {
-                Response taskResult = restApiActions.post(
-                    ENDPOINT_BEING_TESTED,
-                    taskOperationRequestForExecuteReconfiguration(
-                        TaskOperationType.EXECUTE_RECONFIGURE_FAILURES,
-                        OffsetDateTime.now().minus(Duration.ofDays(1))
-                    ),
-                    assigneeCredentials.getHeaders()
-                );
 
-                taskResult.then().assertThat()
-                    .statusCode(HttpStatus.OK.value()); //Default max results
-
-                taskResult = restApiActions.get(
+                Response taskResultAfterReconfigFail = restApiActions.get(
                     "/task/{task-id}",
                     taskId,
                     assigneeCredentials.getHeaders()
                 );
 
-                taskResult.prettyPrint();
+                taskResultAfterReconfigFail.prettyPrint();
 
-                taskResult.then().assertThat()
+                taskResultAfterReconfigFail.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .and().contentType(MediaType.APPLICATION_JSON_VALUE)
                     .and().body("task.id", equalTo(taskId))
@@ -1045,7 +1046,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.additional_properties", equalToObject(Map.of(
+            .body("task.additional_properties", equalTo(Map.of(
                 "key1", "value1",
                 "key2", "value1",
                 "roleAssignmentId", roleAssignmentId
@@ -1120,7 +1121,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                           is("name - " + taskName + " - state - ASSIGNED - category - Protection"))
                     .body("task.due_date", notNullValue())
                     .body("task.role_category", is("CTSC"))
-                    .body("task.additional_properties", equalToObject(Map.of(
+                    .body("task.additional_properties", equalTo(Map.of(
                         "key1", "value1",
                         "key2", "reconfigValue2",
                         "roleAssignmentId", roleAssignmentId
