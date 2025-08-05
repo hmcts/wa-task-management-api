@@ -35,6 +35,24 @@ java:
     SPRING_PROFILES_ACTIVE: "preview,replica"
     DB_READER_USERNAME: "{{ .Values.postgresql.auth.username}}"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: true
+  wa-initiation-batch:
+    job:
+      releaseNameOverride: "{{ .Release.Name }}-wa-task-batch-initiation"
+      kind: CronJob
+      schedule: "*/5 * * * *"
+      aadIdentityName: wa
+      keyVaults:
+        wa:
+          secrets:
+            - s2s-secret-task-management-api
+      environment:
+        S2S_URL: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+        S2S_MICROSERVICE_NAME_TASK_MONITOR: "wa_task_monitor"
+        WA_TASK_MONITOR_SERVICE_URL: http://{{ .Release.Name }}-wa-task-monitor
+        JOB_NAME: "INITIATION"
+        ALLOW_CONFIG_MUTATIONS: true
+  taskBatchCron:
+    enabled: true
   postgresql:
     enabled: true
     auth:
