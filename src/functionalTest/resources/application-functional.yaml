@@ -45,4 +45,4 @@ config:
   initiationRequestRequiredFields: ${INITIATION_REQUEST_REQUIRED_FIELDS:name,taskType,caseId}
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
 
-initiation_job_running: ${INITIATION_JOB_RUNNING:false}
+initiation_job_running: ${INITIATION_JOB_RUNNING:true}
