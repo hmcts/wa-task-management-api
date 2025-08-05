@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.MIReplicaDBDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
@@ -317,6 +318,37 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(1, reportableTaskList.size());
                     assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
                     assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
+                    return true;
+                });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "COMPLETED,EXUI_CASE-EVENT_COMPLETION,Automated",
+        "COMPLETED,EXUI_USER_COMPLETION,Manual",
+        "COMPLETED,,"
+    })
+    void should_save_task_and_get_transformed_termination_process_label_from_reportable_task(
+        String taskState, String terminationProcess, String terminationProcessLabel) {
+        TaskResource taskResource = createAndSaveTask();
+        taskResource.setState(CFTTaskState.valueOf(taskState));
+        taskResource.setTerminationProcess(
+            terminationProcess != null ? TerminationProcess.fromValue(terminationProcess) : null);
+        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(terminationProcessLabel, reportableTaskList.get(0).getTerminationProcessLabel());
                     return true;
                 });
     }
