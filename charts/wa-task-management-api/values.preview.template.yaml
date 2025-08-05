@@ -40,7 +40,6 @@ java:
       releaseNameOverride: "{{ .Release.Name }}-wa-task-batch-initiation"
       kind: CronJob
       schedule: "*/5 * * * *"
-      aadIdentityName: wa
       keyVaults:
         wa:
           secrets:
