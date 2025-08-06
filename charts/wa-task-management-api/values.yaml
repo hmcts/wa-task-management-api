@@ -65,3 +65,5 @@ java:
     MANDATORY_TASK_FIELD_CHECK_ENABLED: false
   spotInstances:
     enabled: false
+  taskBatchCron:
+    enabled: false
