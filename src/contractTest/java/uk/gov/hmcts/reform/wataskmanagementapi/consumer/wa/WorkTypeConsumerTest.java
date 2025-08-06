@@ -107,7 +107,7 @@ public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
     private DslPart createResponseForGetWorkTypes() {
         return new PactDslJsonBody()
             .minArrayLike("work_types", 1,2)
-            .stringMatcher("id", "[a-zA-Z](?:_[a-zA-Z])", "hearing_work", "multi_track_hearing_work")
+            .stringMatcher("id", "^[a-zA-Z][a-zA-Z_]*$", "hearing_work", "multi_track_hearing_work")
             .stringType("label", "Hearing Work", "Multi track hearing work")
             .close();
     }
