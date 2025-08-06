@@ -31,4 +31,9 @@ public enum RoleCategory {
             .map(r -> r.abbreviation)
             .collect(Collectors.toSet());
     }
+
+    public static boolean isAllowed(String value) {
+        return Stream.of(RoleCategory.values())
+            .anyMatch(category -> category.name().equals(value));
+    }
 }
