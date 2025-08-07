@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.cleanupsensitivedata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,11 @@ public class CleanUpSensitiveLogsDataTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+
+    @AfterEach
+    void tearDown() {
+        sensitiveTaskEventLogsRepository.deleteAll();
+    }
 
     @BeforeEach
     void setUp() {
