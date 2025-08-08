@@ -1653,6 +1653,20 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("cancelled")
+        );
+
+        Response resultDelete = restApiActions.delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            userWithCompletionProcessDisabled.getHeaders()
+        );
+
+        resultDelete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
         await()
             .atLeast(3, TimeUnit.SECONDS)
             .pollDelay(3, TimeUnit.SECONDS)
@@ -1666,8 +1680,9 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultHistory.prettyPrint();
                 resultHistory.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
-                    .body("task_history_list.size()", equalTo(4))
-                    .body("task_history_list.get(3).termination_process", nullValue());
+                    .body("task_history_list.size()", equalTo(5))
+                    .body("task_history_list.get(3).termination_process", nullValue())
+                    .body("task_history_list.get(4).termination_process", nullValue());
             });
         await()
             .atLeast(3, TimeUnit.SECONDS)
@@ -1684,9 +1699,9 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultCompleteReport.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
-                    .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
                     .body("reportable_task_list.get(0).termination_process", nullValue());
             });
 
