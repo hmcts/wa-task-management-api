@@ -1,0 +1,6 @@
+UPDATE cft_task_db.reportable_task 
+SET final_state_label = 'COMPLETED' 
+WHERE task_id IN (
+'3da6bd28-563f-11ee-b1c7-b27219d2d53d', 
+'da7b1c5a-5644-11ee-839f-daadfe5d5fcf', 
+'42074d5b-5649-11ee-b1c7-b27219d2d53d');
