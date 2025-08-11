@@ -73,6 +73,14 @@ module "wa_task_management_api_database_flexible" {
     {
       name  = "azure.extensions"
       value = "btree_gin"
+    },
+    {
+      name  = "statement_timeout"
+      value = "60000"
+    },
+    {
+      name  = "work_mem"
+      value = "8192"
     }
   ]
 

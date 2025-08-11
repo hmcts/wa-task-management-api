@@ -179,7 +179,7 @@ public class CFTTaskMapper {
 
     @SuppressWarnings("PMD.NPathComplexity")
     public Task mapToTaskWithPermissions(TaskResource taskResource, Set<PermissionTypes> permissionsUnionForUser) {
-        return new Task(
+        Task task =  new Task(
             taskResource.getTaskId(),
             taskResource.getTaskName(),
             taskResource.getTaskType(),
@@ -220,6 +220,12 @@ public class CFTTaskMapper {
             taskResource.getLastReconfigurationTime() == null ? null
                 : taskResource.getLastReconfigurationTime().toZonedDateTime()
         );
+
+        if (taskResource.getTerminationProcess() != null) {
+            task.setTerminationProcess(taskResource.getTerminationProcess().getValue());
+        }
+        return task;
+
     }
 
 
@@ -256,6 +262,24 @@ public class CFTTaskMapper {
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
+        /*
+        Below fields are not required for reconfiguration
+        securityClassification
+        notes
+        autoAssigned
+        assignmentExpiry
+        businessContext
+        executionTypeCode
+        taskRoleResources
+        reconfigureRequestTime
+        lastReconfigurationTime
+        lastUpdatedTimestamp
+        lastUpdatedUser
+        lastUpdatedAction
+        indexed
+        terminationReason
+        taskSystem
+        */
         ReconfigureInputVariableDefinition task =
             TaskEntityToReconfigureInputVariableDefMapper.INSTANCE.map(taskResource);
         return objectMapper.convertValue(task, new TypeReference<HashMap<String, Object>>() {});

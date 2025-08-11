@@ -9,7 +9,6 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.ImmutableMap;
 import io.restassured.http.ContentType;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.jupiter.api.Test;
@@ -17,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
@@ -29,9 +29,13 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_search", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
+@ContextConfiguration(classes = {CamundaConsumerApplication.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBootContractBaseTest {
+
+    @MockitoBean
+    EntityManagerFactory entityManagerFactory;
+
 
     public static final String CONTENT_TYPE = "Content-Type";
     private static final String WA_SEARCH_QUERY = "/task";
@@ -152,6 +156,23 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskForTaskType())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeGetTasksWithCompletionProcessBySearchCriteria200(PactDslWithProvider builder) {
+        return builder
+            .given("appropriate tasks with completion process are returned by criteria")
+            .uponReceiving("Provider receives a POST /task request from a WA API for task with completion process")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithCompletionProcess())
             .toPact();
     }
 
@@ -303,6 +324,21 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchEventCaseWithAllWorkContext())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+
+    @Test
+    @PactTestFor(pactMethod = "executeGetTasksWithCompletionProcessBySearchCriteria200",
+        pactVersion = PactSpecVersion.V3)
+    void testGetTasksWithCompletionProcessBySearchCriteria200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -650,5 +686,16 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
+    }
+
+    private DslPart createResponseForGetTaskWithCompletionProcess() {
+        return newJsonBody(
+            o -> o
+                .minArrayLike("tasks", 1, 1, task -> {
+                    createResponseForGetTask();
+                    task.stringMatcher("termination_process",
+                                       "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                                       "EXUI_USER_COMPLETION");
+                })).build();
     }
 }

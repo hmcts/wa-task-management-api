@@ -7,13 +7,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.opentest4j.AssertionFailedError;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -116,50 +116,50 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @Slf4j
 class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
-    @MockBean
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
 
     @Mock
     private CaseDetails caseDetails;
 
-    @MockBean
+    @MockitoBean
     private CcdDataServiceApi ccdDataServiceApi;
 
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
 
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
 
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
 
     private ServiceMocks mockServices;
 
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @SpyBean
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
-    @SpyBean
+    @MockitoSpyBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
-    @MockBean
+    @MockitoBean
     private DmnEvaluationService dmnEvaluationService;
 
-    @MockBean
+    @MockitoBean
     private CftQueryService cftQueryService;
 
-    @MockBean
+    @MockitoBean
     private CcdDataService ccdDataService;
 
-    @MockBean
+    @MockitoBean
     private RoleAssignmentService roleAssignmentService;
 
     TaskTestUtils taskTestUtils;

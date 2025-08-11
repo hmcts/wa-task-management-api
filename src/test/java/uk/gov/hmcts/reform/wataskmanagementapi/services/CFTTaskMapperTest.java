@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
@@ -1213,6 +1214,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
+        taskResource.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
             asList(
                 PermissionTypes.READ,
@@ -1279,6 +1281,7 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.UNASSIGN_ASSIGN));
         assertNull(task.getReconfigureRequestTime());
         assertNull(task.getLastReconfigurationTime());
+        assertEquals("EXUI_USER_COMPLETION", task.getTerminationProcess());
     }
 
     @Test
@@ -1407,7 +1410,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(42);
+        assertThat(taskAttributes).size().isEqualTo(28);
     }
 
     @Test
@@ -1422,11 +1425,27 @@ class CFTTaskMapperTest {
             objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
         Map<String, Object> camundaTaskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertEquals(dbTaskAttributes.size(), camundaTaskAttributes.size());
+        assertEquals(dbTaskAttributes.size() - 15, camundaTaskAttributes.size());
         assertEquals(dbTaskAttributes.get("taskName"), camundaTaskAttributes.get("name"));
         assertEquals(dbTaskAttributes.get("state"), camundaTaskAttributes.get("taskState"));
         assertEquals(dbTaskAttributes.get("caseCategory"), camundaTaskAttributes.get("caseManagementCategory"));
         assertEquals(dbTaskAttributes.get("dueDateTime"), camundaTaskAttributes.get("dueDate"));
+        assertEquals("someWorkType", camundaTaskAttributes.get("workType"));
+
+        Set<String> expectedOnlyInDbTaskAttributes =
+            Set.of("lastUpdatedUser", "taskName", "dueDateTime", "caseCategory", "securityClassification",
+                   "lastReconfigurationTime", "reconfigureRequestTime", "autoAssigned", "state", "taskSystem",
+                   "indexed", "lastUpdatedTimestamp", "lastUpdatedAction", "taskRoleResources", "executionTypeCode",
+                   "businessContext", "terminationReason", "notes", "assignmentExpiry", "workTypeResource");
+        expectedOnlyInDbTaskAttributes.forEach(s -> {
+            assertTrue(dbTaskAttributes.containsKey(s));
+        }
+        );
+        expectedOnlyInDbTaskAttributes.forEach(s -> {
+            assertFalse(camundaTaskAttributes.containsKey(s));
+        }
+        );
+
     }
 
     @Test

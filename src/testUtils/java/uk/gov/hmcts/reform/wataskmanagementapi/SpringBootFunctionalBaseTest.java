@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
@@ -108,8 +107,6 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     protected TaskMandatoryFieldsValidator  taskMandatoryFieldsValidator;
-    @Autowired
-    protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
 
@@ -303,16 +300,28 @@ public abstract class SpringBootFunctionalBaseTest {
                                     Headers headers) {
 
         InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(testVariables, additionalProperties);
-        Response response = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            testVariables.getTaskId(),
-            initiateTaskRequest,
-            authorizationProvider.getServiceAuthorizationHeadersOnly()
-        );
+        AtomicReference<Response> response = new AtomicReference<>();
+        await()
+            .pollInterval(10, SECONDS)
+            .atMost(30, SECONDS)
+            .until(() -> {
+                response.set(restApiActions.post(
+                    TASK_INITIATION_ENDPOINT,
+                    testVariables.getTaskId(),
+                    initiateTaskRequest,
+                    authorizationProvider.getServiceAuthorizationHeadersOnly()
+                ));
+
+                boolean isTextPlain = response.get().getHeader("Content-Type").equals("text/plain");
+                boolean isStatus503 = response.get().getStatusCode() == 503;
+                boolean isNoAvailableServer = response.get().getBody().asString().contains("no available server");
+
+                return !(isStatus503 && isTextPlain && isNoAvailableServer);
+            });
 
         //Note: Since tasks can be initiated directly by task monitor, we will have database conflicts for
         // second initiation request, so we are by-passing 503 and 201 response statuses.
-        assertResponse(response,testVariables.getTaskId(),headers);
+        assertResponse(response.get(), testVariables.getTaskId(), headers);
 
     }
 

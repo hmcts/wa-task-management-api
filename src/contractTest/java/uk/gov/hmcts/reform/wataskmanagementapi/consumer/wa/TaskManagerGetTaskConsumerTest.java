@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.wa;
 
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.DslPart;
+import au.com.dius.pact.consumer.dsl.LambdaDsl;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
@@ -9,7 +10,6 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.ImmutableMap;
 import io.restassured.http.ContentType;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.jupiter.api.Test;
@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
@@ -29,9 +30,12 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_claim_task_by_id", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
+@ContextConfiguration(classes = {CamundaConsumerApplication.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
+
+    @MockitoBean
+    EntityManagerFactory entityManagerFactory;
 
     public static final String CONTENT_TYPE = "Content-Type";
     private static final String TASK_ID = "704c8b1c-e89b-436a-90f6-953b1dc40157";
@@ -86,6 +90,22 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
             .toPact();
     }
 
+    @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
+    public RequestResponsePact executeGetTaskByIdWithCompletionProcess200(PactDslWithProvider builder) {
+        return builder
+            .given("get a task using taskId with completion process")
+            .uponReceiving("taskId to get a task")
+            .path(WA_GET_TASK_BY_ID)
+            .method(HttpMethod.GET.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithCompletionProcess())
+            .toPact();
+    }
+
     @Test
     @PactTestFor(pactMethod = "executeGetTaskById200", pactVersion = PactSpecVersion.V3)
     void testGetTaskByTaskId200Test(MockServer mockServer) {
@@ -128,6 +148,19 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
 
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeGetTaskByIdWithCompletionProcess200", pactVersion = PactSpecVersion.V3)
+    void testGetTaskByTaskId200WithCompletionProcessTest(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
+            .then()
+            .statusCode(200);
+
+    }
+
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
@@ -160,6 +193,19 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("next_hearing_id", "nextHearingId")
                         .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
+    }
+
+
+    private DslPart createResponseForGetTaskWithCompletionProcess() {
+        return LambdaDsl.newJsonBody(o -> o.object("task", task -> {
+            createResponseForGetTask();
+            task.stringMatcher(
+                "termination_process",
+                "EXUI_USER_COMPLETION|EXUI_CASE-EVENT_COMPLETION",
+                "EXUI_USER_COMPLETION"
+            );
+        })
+        ).build();
     }
 
     private DslPart createResponseForGetTaskWithWarnings() {

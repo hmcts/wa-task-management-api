@@ -12,10 +12,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -91,11 +91,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private TaskResourceRepository taskResourceRepository;
     @Autowired
     private EntityManager entityManager;
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
-    @SpyBean
+    @MockitoSpyBean
     private CamundaService camundaService;
-    @SpyBean
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
@@ -108,30 +108,30 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockBean
+    @MockitoBean
     private ConfigureTaskService configureTaskService;
-    @MockBean
+    @MockitoBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
-    @MockBean
+    @MockitoBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
-    @MockBean(name = "systemUserIdamInfo")
+    @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
-    @MockBean
+    @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     @BeforeEach
@@ -461,13 +461,34 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
 
             verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
+        }
+
+        @Test
+        void completeTask_should_throw_exception_when_request_param_map_is_null() {
+
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+
+            createAndAssignTestTask(taskId);
+
+            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
+                .isInstanceOf(NullPointerException.class)
+                .hasNoCause()
+                .hasMessage("Request param map cannot be null");
         }
 
         @Test
@@ -488,11 +509,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
             verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
@@ -528,7 +549,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(true)
+                        new CompletionOptions(true),
+                        new HashMap<>()
                     )))
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
@@ -567,7 +589,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                         taskId,
                         accessControlResponse,
-                        new CompletionOptions(false)
+                        new CompletionOptions(false),
+                        new HashMap<>()
                     )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
@@ -601,6 +624,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             verify(camundaService, times(1)).deleteCftTaskState(randomTaskId);
             verify(cftTaskDatabaseService).saveTask(taskResource);
+
             await()
                 .pollInterval(100, MILLISECONDS)
                 .atMost(5, SECONDS)
