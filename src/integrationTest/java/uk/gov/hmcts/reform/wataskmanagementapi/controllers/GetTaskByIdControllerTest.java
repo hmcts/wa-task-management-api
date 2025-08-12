@@ -45,6 +45,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -109,15 +110,15 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Mock
     private CaseDetails caseDetails;
 
+    TaskTestUtils taskTestUtils;
 
-
-    private String taskId;
     private ServiceMocks mockServices;
 
 
     @BeforeEach
     void setUp() {
-        taskId = UUID.randomUUID().toString();
+
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
 
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
@@ -136,13 +137,16 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_return_a_200_when_get_by_standard_tribunal_case_worker() throws Exception {
+
+        String taskId =  UUID.randomUUID().toString();
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
+
+        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResource,null,null);
 
         List<RoleAssignment> roles = new ArrayList<>();
 
@@ -180,13 +184,17 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_return_a_200_when_get_by_standard_judge() throws Exception {
+        String taskId =  UUID.randomUUID().toString();
+
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC.getRoleName(),
             true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC.getRoleCategory().name()
         );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
+
+        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResource,null,null);
+
 
         List<RoleAssignment> roles = new ArrayList<>();
 
@@ -224,13 +232,16 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_return_a_200_when_get_by_challenge_access_admin() throws Exception {
+
+        String taskId = UUID.randomUUID().toString();
+
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN.getRoleName(),
             true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN.getRoleCategory().name()
         );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
+        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResource,null,null);
 
         List<RoleAssignment> roles = new ArrayList<>();
 
@@ -269,6 +280,8 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_a_404_when_id_is_not_found() throws Exception {
+
+        String taskId = UUID.randomUUID().toString();
 
         mockServices.mockUserInfo();
 
@@ -379,7 +392,8 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_a_403_when_restricted_role_is_given() throws Exception {
 
-        createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId1");
+        String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId1",null,null);
+
         mockServices.mockUserInfo();
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
@@ -421,7 +435,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_return_a_403_when_the_user_jurisdiction_did_not_match() throws Exception {
-        createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId2");
+        String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId2",null,null);
 
         mockServices.mockUserInfo();
 
@@ -457,13 +471,16 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_return_a_403_when_the_user_region_did_not_match() throws Exception {
+        String taskId = UUID.randomUUID().toString();
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
             true, true, false, true, true, false,
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, taskRoleResource);
+
+        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResource,null,null);
+
 
         List<RoleAssignment> roles = new ArrayList<>();
 
@@ -512,6 +529,8 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     @Execution(ExecutionMode.CONCURRENT)
     void should_return_404_when_initiation_request_failed_to_retrieve_data_from_ccd() throws Exception {
+
+        String taskId = UUID.randomUUID().toString();
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -631,6 +650,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     public void should_return_different_permissions_when_given_case_role_assignment() throws Exception {
         String caseId = UUID.randomUUID().toString();
+        String taskId = UUID.randomUUID().toString();
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -645,7 +665,8 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             new String[]{}, 1, false,
             TestRolesWithGrantType.SPECIFIC_CASE_MANAGER.getRoleCategory().name()
         );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId, Set.of(taskRoleResource, taskRoleResourceCase), "caseId1");
+
+        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResourceCase,null,null);
 
         String taskId2 = UUID.randomUUID().toString();
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(
@@ -654,7 +675,8 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             new String[]{}, 1, false,
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
-        insertDummyTaskInDb("WA", "WaCaseType", taskId2, taskRoleResource);
+        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId2,UNASSIGNED, taskRoleResource,null,null);
+
 
         List<RoleAssignment> roles = new ArrayList<>();
 
@@ -719,137 +741,6 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             jsonPath("$.task.permissions.values[0]").value("Read"),
             jsonPath("$.task.permissions.values[1]").value("Execute"),
             jsonPath("$.task.permissions.values[2]").value("Cancel")
-        );
-    }
-
-    private void insertDummyTaskInDb(String jurisdiction,
-                                     String caseType,
-                                     String caseId,
-                                     String taskId, CFTTaskState cftTaskState,
-                                     TaskRoleResource taskRoleResource) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            cftTaskState
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId(caseId);
-
-        taskRoleResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
-    }
-
-    private void insertDummyTaskInDb(String jurisdiction,
-                                     String caseType,
-                                     String taskId,
-                                     TaskRoleResource taskRoleResource) {
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, Set.of(taskRoleResource), "caseId1");
-    }
-
-    private void insertDummyTaskInDb(String jurisdiction,
-                                     String caseType,
-                                     String taskId,
-                                     Set<TaskRoleResource> taskRoleResources, String caseId) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            UNASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId(caseId);
-
-        taskRoleResources.forEach(t -> t.setTaskId(taskId));
-        Set<TaskRoleResource> taskRoleResourceSet = taskRoleResources;
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
-    }
-
-
-    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId) {
-        //assigner permission : manage, own, cancel
-        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
-            false, true, true, true, true, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
-        );
-        String jurisdiction = "IA";
-        String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource);
-
-        List<RoleAssignment> assignerRoles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId(caseId)
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
-    }
-
-    private TaskResource createTask(String taskId, Set<TaskRoleResource> taskRoleResources,
-                                    String caseId) {
-        return new TaskResource(
-            taskId,
-            "aTaskName",
-            "startAppeal",
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-            CFTTaskState.ASSIGNED,
-            TaskSystem.SELF,
-            SecurityClassification.PUBLIC,
-            "title",
-            "a description",
-            null,
-            0,
-            0,
-            "someAssignee",
-            false,
-            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
-            new WorkTypeResource("routine_work", "Routine work"),
-            "JUDICIAL",
-            false,
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-            caseId,
-            "WaCaseType",
-            "TestCase",
-            "WA",
-            "1",
-            "TestRegion",
-            "765324",
-            "Taylor House",
-            BusinessContext.CFT_TASK,
-            "Some termination reason",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            taskRoleResources,
-            "caseCategory",
-            ADDITIONAL_PROPERTIES,
-            "nextHearingId",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }
 

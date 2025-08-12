@@ -414,7 +414,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         throws Exception {
         String caseIdToday = "caseId4-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED,caseIdToday, dueDateTime, ASSIGNEE_USER);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
             anyString(),
@@ -438,13 +438,13 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            anyString())).thenReturn(taskTestUtils.permissionsResponse());
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+                .content(asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -477,9 +477,9 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(
+                .content(asJsonString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                    taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())

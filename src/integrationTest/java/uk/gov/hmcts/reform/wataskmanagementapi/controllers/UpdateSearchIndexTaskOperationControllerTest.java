@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantTy
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType.UPDATE_SEARCH_INDEX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -55,11 +57,11 @@ class UpdateSearchIndexTaskOperationControllerTest extends SpringBootIntegration
     @MockitoBean
     private IdamWebApi idamWebApi;
 
-    private String taskId;
+    TaskTestUtils taskTestUtils;
 
     @BeforeEach
     void setUp() {
-        taskId = UUID.randomUUID().toString();
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
         String bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
@@ -69,7 +71,7 @@ class UpdateSearchIndexTaskOperationControllerTest extends SpringBootIntegration
 
     @Test
     void should_perform_update_index_if_tasks_index_is_false() throws Exception {
-        createTaskAndRoleAssignments();
+        taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId1",null,null);
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -80,7 +82,7 @@ class UpdateSearchIndexTaskOperationControllerTest extends SpringBootIntegration
             status().is(HttpStatus.OK.value())
         );
 
-        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId");
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("getTaskCaseId1");
         taskResources.forEach(task -> assertTrue(task.getIndexed()));
     }
 
@@ -90,61 +92,6 @@ class UpdateSearchIndexTaskOperationControllerTest extends SpringBootIntegration
             .runId(UUID.randomUUID().toString())
             .build();
         return new TaskOperationRequest(operation, List.of());
-    }
-
-    private void insertDummyTaskInDb(String jurisdiction,
-                                     String caseType,
-                                     String taskId,
-                                     TaskRoleResource taskRoleResource) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            CFTTaskState.ASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now());
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("caseId");
-        taskResource.setIndexed(false);
-
-        taskRoleResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
-    }
-
-    private void createTaskAndRoleAssignments() {
-        //assigner permission : manage, own, cancel
-        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleName(),
-            false, true, true, true, true, false,
-            new String[]{}, 1, false,
-            TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE.getRoleCategory().name()
-        );
-        String jurisdiction = "IA";
-        String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, assignerTaskRoleResource);
-
-        List<RoleAssignment> assignerRoles = new ArrayList<>();
-
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId("caseId")
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
     }
 
 }

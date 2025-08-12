@@ -80,11 +80,11 @@ public class TaskTestUtils {
         return taskId;
     }
 
-    private void insertDummyTaskInDb(String jurisdiction,
-                                     String caseType,
-                                     String caseId,
-                                     String taskId, CFTTaskState cftTaskState,
-                                     TaskRoleResource taskRoleResource,OffsetDateTime dueDateTime, String assignee) {
+    public void insertDummyTaskInDb(String jurisdiction,
+                                    String caseType,
+                                    String caseId,
+                                    String taskId, CFTTaskState cftTaskState,
+                                    TaskRoleResource taskRoleResource, OffsetDateTime dueDateTime, String assignee) {
         TaskResource taskResource = new TaskResource(
             taskId,
             "someTaskName",

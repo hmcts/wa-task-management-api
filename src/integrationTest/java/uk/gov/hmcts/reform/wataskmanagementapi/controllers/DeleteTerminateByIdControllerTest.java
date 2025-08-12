@@ -81,6 +81,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
@@ -93,7 +94,9 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
         @Test
         void should_return_403_with_application_problem_response_when_client_is_not_allowed() throws Exception {
 
-            ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, "");
+            String taskId = UUID.randomUUID().toString();
+
+            ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(false);
 
@@ -158,7 +161,9 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
         @Test
         void should_return_403_with_application_problem_response_when_client_is_not_allowed() throws Exception {
 
-            ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, "");
+            String taskId = UUID.randomUUID().toString();
+
+            ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(false);
