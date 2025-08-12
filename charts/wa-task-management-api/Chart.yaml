@@ -10,9 +10,9 @@ dependencies:
   - name: java
     version: 5.3.0
     repository: 'oci://hmctspublic.azurecr.io/helm'
-  - name: wa-task-batch-service
-    version: ~0.1.0
+  - name: wa
+    version: ~1.1.0
     repository: 'oci://hmctspublic.azurecr.io/helm'
-    alias: wa-initiation-batch
-    condition: taskBatchCron.enabled
+    condition: wa.enabled
+
 
