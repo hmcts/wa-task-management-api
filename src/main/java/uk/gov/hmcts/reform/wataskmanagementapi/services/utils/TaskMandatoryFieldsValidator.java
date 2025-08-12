@@ -8,6 +8,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
@@ -17,6 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceM
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 
 /**
  * Service to validate mandatory fields of a task.
@@ -123,6 +126,11 @@ public class TaskMandatoryFieldsValidator {
                 if (isFieldNullOrEmpty(fieldValue)) {
                     addError(field, serviceSpecificErrors, tmSpecificErrors);
                 }
+                if (ROLE_CATEGORY.value().equals(field) && fieldValue != null && !fieldValue.toString().isBlank()) {
+                    if (!RoleCategory.isAllowed(fieldValue.toString())) {
+                        addNotAllowedValuesError(field,fieldValue, serviceSpecificErrors, tmSpecificErrors);
+                    }
+                }
             } catch (Exception e) {
                 throw new IllegalArgumentException("Cannot find property value for mandatory field " + field, e);
             }
@@ -160,5 +168,16 @@ public class TaskMandatoryFieldsValidator {
         } else {
             serviceSpecificErrors.add(errorMessage);
         }
+    }
+
+    private void addNotAllowedValuesError(String field, Object fieldValue, List<String> serviceSpecificErrors,
+                                          List<String> tmSpecificErrors) {
+        String errorMessage = field + " value '" + fieldValue + "' is not one of the allowed values";
+        if (tmSpecificMandatoryFields.contains(field)) {
+            tmSpecificErrors.add(errorMessage);
+        } else {
+            serviceSpecificErrors.add(errorMessage);
+        }
+
     }
 }
