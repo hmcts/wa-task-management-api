@@ -35,6 +35,13 @@
       "notes": "",
       "bunting": true,
       "working_day": false
+    },
+    {
+      "title": "working day",
+      "date": "2026-05-25",
+      "notes": "",
+      "bunting": true,
+      "working_day": true
     }
   ]
 }
