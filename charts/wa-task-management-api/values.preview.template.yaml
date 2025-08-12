@@ -63,13 +63,13 @@ wa:
     taskMonitor:
       enabled: true
     eventHandler:
-      enabled: true
+      enabled: false
     workflow:
-      enabled: true
+      enabled: false
     taskBatchCron:
       enabled: true
     messageCron:
-      enabled: true
+      enabled: false
     servicebus:
       enabled: false
     postgresql:
