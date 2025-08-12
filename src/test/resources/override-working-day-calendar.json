@@ -21,6 +21,20 @@
       "notes": "",
       "bunting": true,
       "working_day": true
+    },
+    {
+      "title": "Christmas Day",
+      "date": "2026-12-25",
+      "notes": "",
+      "bunting": true,
+      "working_day": false
+    },
+    {
+      "title": "Non-working day",
+      "date": "2026-12-30",
+      "notes": "",
+      "bunting": true,
+      "working_day": false
     }
   ]
 }
