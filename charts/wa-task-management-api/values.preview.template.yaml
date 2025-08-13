@@ -75,7 +75,7 @@ wa:
     postgresql:
       enabled: false
     camunda:
-      enabled: true
+      enabled: false
     reconfigurationBatchCron:
       enabled: false
     terminationBatchCron:
