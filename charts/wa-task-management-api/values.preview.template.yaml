@@ -67,8 +67,7 @@ wa:
     workflow:
       enabled: false
     taskBatchCron:
-      enabled: true
-      releaseNameOverride: "{{ .Release.Name }}-init"
+      enabled: false
     messageCron:
       enabled: false
     servicebus:
@@ -78,8 +77,7 @@ wa:
     camunda:
       enabled: false
     reconfigurationBatchCron:
-      enabled: true
-      releaseNameOverride: "{{ .Release.Name }}-reconfig"
+      enabled: false
     terminationBatchCron:
       enabled: false
 
