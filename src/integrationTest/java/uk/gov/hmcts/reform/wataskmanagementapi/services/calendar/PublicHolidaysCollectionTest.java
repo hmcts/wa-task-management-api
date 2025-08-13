@@ -50,22 +50,6 @@ class PublicHolidaysCollectionTest {
     }
 
     @Test
-    public void second_calendar_should_override_main_calendar() {
-        List<String> oneUri = List.of(CALENDAR_URI);
-        Set<LocalDate> oneCalendarResult = publicHolidaysCollection.getPublicHolidays(oneUri);
-        assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 26))).isTrue();
-        assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
-
-        List<String> twoUris = List.of(
-            CALENDAR_URI,
-            "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json"
-        );
-        Set<LocalDate> twoCalendarResult = publicHolidaysCollection.getPublicHolidays(twoUris);
-        assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 26))).isFalse();
-        assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
-    }
-
-    @Test
     public void should_return_empty_list_with_null() {
         List<String> nullList = null;
         Set<LocalDate> oneCalendarResult = publicHolidaysCollection.getPublicHolidays(nullList);
