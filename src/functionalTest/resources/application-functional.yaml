@@ -46,4 +46,4 @@ config:
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
   dmnConfigFieldsWithInternalDefaults: ${DMN_CONFIG_FIELDS_WITH_INTERNAL_DEFAULTS:title}
 
-initiation_job_running: ${INITIATION_JOB_RUNNING:true}
+initiation_job_running: ${INITIATION_JOB_RUNNING:false}

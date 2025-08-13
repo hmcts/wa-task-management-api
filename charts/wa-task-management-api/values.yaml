@@ -67,4 +67,6 @@ java:
     enabled: false
 wa:
   enabled: false
+camunda-bpm:
+  enabled: false
 

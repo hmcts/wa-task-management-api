@@ -80,3 +80,20 @@ wa:
       enabled: false
     terminationBatchCron:
       enabled: false
+
+camunda-bpm:
+  enabled: true
+  java:
+    releaseNameOverride: "{{ .Release.Name }}-camunda"
+    ingressHost: "camunda-{{ .Release.Name }}.preview.platform.hmcts.net"
+    disableKeyVaults: true
+    environment:
+      CAMUNDA_DB_HOST: "{{ .Release.Name }}-postgresql"
+      CAMUNDA_DB_USER_NAME: hmcts
+      CAMUNDA_DB_PASSWORD: ${GENERIC_HMCTS_YAML_PASS}
+      CAMUNDA_DB_CONN_OPTIONS: ""
+      CAMUNDA_DB_NAME: camunda
+      TASK_MANAGEMENT_API_URL: http://{{ .Release.Name }}-wa-task-management-api
+      CAMUNDA_BPM_DATABASE_SCHEMAUPDATE: true
+      RELEASE_REVISION: "{{ .Release.Revision }}"
+      CAMUNDA_API_AUTH_ENABLED: false

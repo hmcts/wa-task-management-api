@@ -60,5 +60,7 @@ java:
     SPRING_PROFILES_ACTIVE: "replica"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: true
 
-  taskBatchCron:
-    enabled: false
+wa:
+  enabled: false
+camunda-bpm:
+  enabled: false
