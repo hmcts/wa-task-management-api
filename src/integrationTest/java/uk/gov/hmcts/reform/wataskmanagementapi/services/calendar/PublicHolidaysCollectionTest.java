@@ -50,7 +50,8 @@ class PublicHolidaysCollectionTest {
         assertThat(resultFromApi).isSameAs(resultFromCache).isSameAs(resultFromCacheAgain);
     }
 
-    @Test @Ignore
+    @Ignore
+    @Test
     public void second_calendar_should_override_main_calendar() {
         List<String> oneUri = List.of(CALENDAR_URI);
         Set<LocalDate> oneCalendarResult = publicHolidaysCollection.getPublicHolidays(oneUri);
