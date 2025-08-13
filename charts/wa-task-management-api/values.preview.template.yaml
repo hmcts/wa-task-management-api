@@ -67,7 +67,7 @@ wa:
     workflow:
       enabled: false
     taskBatchCron:
-      enabled: true
+      enabled: false
     messageCron:
       enabled: false
     servicebus:
