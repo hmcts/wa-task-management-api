@@ -433,7 +433,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.due_date", notNullValue())
-                    .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25,
+                    .body("task.due_date", equalTo(LocalDateTime.of(2025, 10, 23,
                                                                     20, 00, 0, 0)
                                                        .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
@@ -466,7 +466,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .body("task.type", equalTo("functionalTestTask1"))
                 .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)))
                 .body("task.priority_date", equalTo(formatDate(2022, 12, 7, 14)))
-                .body("task.due_date", equalTo(formatDate(2023, 1, 17, 18)));
+                .body("task.due_date", equalTo(formatDate(2026, 1, 15, 18)));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -547,7 +547,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.due_date", notNullValue())
-                    .body("task.due_date", equalTo(formatDate(2023, 1, 17, 18)))
+                    .body("task.due_date", equalTo(formatDate(2026, 1, 15, 18)))
                     .body("task.priority_date", notNullValue())
                     .body("task.priority_date", equalTo(formatDate(2022, 12, 2, 16)))
                     .body("task.next_hearing_date", notNullValue())
