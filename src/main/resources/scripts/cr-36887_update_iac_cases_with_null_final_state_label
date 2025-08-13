@@ -1,7 +1,7 @@
 --precheck: verify 3 tasks exist with null final_state_label
 SELECT task_id
 FROM cft_task_db.reportable_task rt
-WHERE ((final_state_label is null and (state='TERMINATED')) and completed_date is not  null);
+WHERE ((final_state_label is null and (state='TERMINATED') and is_within_sla is null) and completed_date is not  null);
 
 --update query: update final_state_label to 'COMPLETED' for the tasks
 UPDATE cft_task_db.reportable_task
