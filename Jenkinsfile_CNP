@@ -106,9 +106,6 @@ withPipeline(type, product, component) {
     }
 
     onPR() {
-      disable('test')              // turn off unit tests
-      disable('integrationTest')   // turn off integration tests
-      enable('deploy')
       enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
 
