@@ -58,6 +58,10 @@ java:
 wa:
   enabled: true
   wa:
+    global:
+      postgresUsername: hmcts
+      postgresSecret: postgres
+      postgresHost: ${SERVICE_NAME}-postgresql
     taskManagement:
       enabled: false
     taskMonitor:
