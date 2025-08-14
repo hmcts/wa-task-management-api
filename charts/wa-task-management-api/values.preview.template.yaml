@@ -64,9 +64,11 @@ wa:
       enabled: true
     eventHandler:
       enabled: true
-      valueFrom:
-        secretKeyRef:
-          name: ceh
+      java:
+        releaseNameOverride: "{{ .Release.Name }}-ceh"
+        valueFrom:
+          secretKeyRef:
+            name: ceh
     wa-workflow-api:
       enabled: false
     taskBatchCron:
