@@ -62,13 +62,64 @@ wa:
       postgresUsername: hmcts
       postgresSecret: postgres
       postgresHost: ${SERVICE_NAME}-postgresql
-    taskManagement:
+    #    postgresHost: civil-preview.postgres.database.azure.com
+    #    databaseNamePrefix: "pr-${CHANGE_ID}-"
+    wa:
+      postgresql:
+        enabled: false
+    wa-case-event-handler:
+      java:
+        ingressHost: wa-case-event-handler-${SERVICE_FQDN}
+        releaseNameOverride: ${SERVICE_NAME}-wa-case-event-handler
+        secrets:
+          AZURE_SERVICE_BUS_CONNECTION_STRING:
+            secretRef: civil-sb-preview
+            key: connectionString
+          POSTGRES_PASSWORD:
+            secretRef: "{{ .Values.global.postgresSecret }}"
+            key: PASSWORD
+            disabled: true
+        environment:
+          CCD_URL: http://{{ .Release.Name }}-ccd-data-store-api
+          CCD_SEARCH_URL: http://{{ .Release.Name }}-ccd-data-store-api
+          ROLE_ASSIGNMENT_URL: http://am-role-assignment-service-aat.service.core-compute-aat.internal
+          AZURE_SERVICE_BUS_TOPIC_NAME: ${SERVICE_NAME}-asb-events
+          AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: ${SERVICE_NAME}-asb-events
+          #AZURE_SERVICE_BUS_TOPIC_NAME: servicebus-topic-{{ .Release.Name }}-asb-ccd-case-events
+          AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: ${SERVICE_NAME}-asb-events
+          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+          POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified"
+
+    wa-task-monitor:
+      java:
+        ingressHost: wa-task-monitor-${SERVICE_FQDN}
+        environment:
+          WA_TASK_MANAGEMENT_API_URL: http://{{ .Release.Name }}-wa-task-management-api
+          ROLE_ASSIGNMENT_URL: http://am-role-assignment-service-aat.service.core-compute-aat.internal
+
+    wa-task-management-api:
       enabled: false
-    taskMonitor:
-      enabled: true
-    eventHandler:
-      enabled: false
-      releaseNameOverride: "{{ .Release.Name }}-ceh"
+      java:
+        ingressHost: wa-task-mng-${SERVICE_FQDN}
+        environment:
+          ROLE_ASSIGNMENT_URL: http://am-role-assignment-service-aat.service.core-compute-aat.internal
+          POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified"
+          POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+          POSTGRES_REPLICA_HOST: "{{ .Release.Name }}-postgresql"
+          POSTGRES_REPLICA_PORT: 5432
+          POSTGRES_NAME: "cft_task_db"
+          POSTGRES_REPLICA_NAME: "cft_task_db_replica"
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+          REPLICATION_USERNAME: postgres
+          REPLICATION_PASSWORD: ${POSTGRES_PASSWORD}
+          SPRING_PROFILES_ACTIVE: "preview"
+          DB_READER_USERNAME: postgres
+        secrets:
+          POSTGRES_PASSWORD:
+            secretRef: "{{ .Values.global.postgresSecret }}"
+            key: PASSWORD
+            disabled: true
     wa-workflow-api:
       java:
         environment:
@@ -85,22 +136,39 @@ wa:
       job:
         schedule: "*/1 * * * *"
         releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
-    taskBatchCron:
-      enabled: false
-      releaseNameOverride: "{{ .Release.Name }}-init"
-    messageCron:
-      enabled: false
-      releaseNameOverride: "{{ .Release.Name }}-message"
-    servicebus:
-      enabled: false
-    postgresql:
-      enabled: false
-    camunda:
-      enabled: false
-    reconfigurationBatchCron:
-      enabled: false
-    terminationBatchCron:
-      enabled: false
+    wa-reconfiguration-batch:
+      job:
+        schedule: "*/1 * * * *"
+        releaseNameOverride: "{{ .Release.Name }}-reconfiguration"
+    wa-termination-batch:
+      job:
+        schedule: "*/1 * * * *"
+        releaseNameOverride: "{{ .Release.Name }}-termination-batch"
+    wa-message-cron-service:
+      job:
+        schedule: "*/1 * * * *"
+        releaseNameOverride: "{{ .Release.Name }}-wa-message-cron"
+
+    camunda-bpm:
+      java:
+        environment:
+          CAMUNDA_DB_USER_NAME: "hmcts"
+          CAMUNDA_DB_PASSWORD: ${POSTGRES_PASSWORD}
+          CAMUNDA_DB_CONN_OPTIONS: "?stringtype=unspecified"
+          CAMUNDA_DB_NAME: 'camunda'
+          TASK_MANAGEMENT_API_URL: http://{{ .Release.Name }}-wa-task-management-api
+          CAMUNDA_API_AUTH_ENABLED: false
+          CAMUNDA_DB_HOST: ${SERVICE_NAME}-postgresql
+          CAMUNDA_BPM_DATABASE_SCHEMA_UPDATE: true
+          ingressHost: camunda-${SERVICE_FQDN}
+          disableKeyVaults: true
+          releaseNameOverride: ${SERVICE_NAME}-camunda
+          S2S_URL: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+        secrets:
+          CAMUNDA_DB_PASSWORD:
+            secretRef: "{{ .Values.global.postgresSecret }}"
+            key: PASSWORD
+            disabled: true
 
 #camunda-bpm:
 #  enabled: true
