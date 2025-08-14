@@ -63,15 +63,15 @@ wa:
     taskMonitor:
       enabled: true
     eventHandler:
-      enabled: true
+      enabled: false
       releaseNameOverride: "{{ .Release.Name }}-ceh"
     workflow:
       enabled: false
     taskBatchCron:
-      enabled: true
+      enabled: false
       releaseNameOverride: "{{ .Release.Name }}-init"
     messageCron:
-      enabled: true
+      enabled: false
       releaseNameOverride: "{{ .Release.Name }}-message"
     servicebus:
       enabled: false
