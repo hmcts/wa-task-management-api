@@ -58,16 +58,15 @@ java:
 wa:
   enabled: true
   wa:
-    global:
-      postgresUsername: hmcts
-      postgresSecret: postgres
-      postgresHost: ${SERVICE_NAME}-postgresql
     taskManagement:
       enabled: false
     taskMonitor:
       enabled: true
     eventHandler:
       enabled: true
+      valueFrom:
+        secretKeyRef:
+          name: ceh
     wa-workflow-api:
       enabled: false
     taskBatchCron:
