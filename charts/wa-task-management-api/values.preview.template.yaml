@@ -63,7 +63,7 @@ wa:
     taskMonitor:
       enabled: true
     eventHandler:
-      enabled: true
+      enabled: false
       java:
         releaseNameOverride: "{{ .Release.Name }}-ceh"
         valueFrom:
