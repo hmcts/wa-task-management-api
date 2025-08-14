@@ -65,8 +65,22 @@ wa:
     eventHandler:
       enabled: false
       releaseNameOverride: "{{ .Release.Name }}-ceh"
-    workflow:
-      enabled: false
+    wa-workflow-api:
+      java:
+        environment:
+          DB_READER_USERNAME: "hmcts"
+          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+          POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified"
+          CAMUNDA_URL: https://camunda-${SERVICE_FQDN}/engine-rest/
+      secrets:
+        POSTGRES_PASSWORD:
+          secretRef: "{{ .Values.global.postgresSecret }}"
+          key: PASSWORD
+          disabled: true
+    wa-initiation-batch:
+      job:
+        schedule: "*/1 * * * *"
+        releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
     taskBatchCron:
       enabled: false
       releaseNameOverride: "{{ .Release.Name }}-init"
