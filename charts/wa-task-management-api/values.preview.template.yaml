@@ -65,7 +65,7 @@ wa:
     eventHandler:
       enabled: true
     workflow:
-      enabled: true
+      enabled: false
     taskBatchCron:
       enabled: false
     messageCron:
