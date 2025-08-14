@@ -64,12 +64,15 @@ wa:
       enabled: true
     eventHandler:
       enabled: true
+      releaseNameOverride: "{{ .Release.Name }}-ceh"
     workflow:
       enabled: false
     taskBatchCron:
-      enabled: false
+      enabled: true
+      releaseNameOverride: "{{ .Release.Name }}-init"
     messageCron:
-      enabled: false
+      enabled: true
+      releaseNameOverride: "{{ .Release.Name }}-message"
     servicebus:
       enabled: false
     postgresql:
