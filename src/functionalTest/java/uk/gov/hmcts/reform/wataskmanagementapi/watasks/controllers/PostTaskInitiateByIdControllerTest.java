@@ -224,7 +224,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_when_initiating_a_multiple_calendar_task_using_due_date() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -289,7 +288,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -603,7 +601,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_and_priority_date_using_intervals() {
 
         TestVariables taskVariables =
@@ -912,7 +909,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_must_be_working_day_should_default_to_next() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -974,7 +970,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_multiple_working_day_should_use_last_entry_in_dmn() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",

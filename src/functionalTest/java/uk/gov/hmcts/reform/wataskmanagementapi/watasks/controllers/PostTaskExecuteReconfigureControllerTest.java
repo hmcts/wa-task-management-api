@@ -358,7 +358,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @Ignore
     public void should_recalculate_due_date_when_executed_for_reconfigure() throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -445,7 +444,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @Ignore
     public void should_recalculate_next_hearing_date_using_interval_calculation_when_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
