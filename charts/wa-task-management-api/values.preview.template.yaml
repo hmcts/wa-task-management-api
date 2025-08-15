@@ -57,13 +57,15 @@ java:
 
 wa:
   enabled: true
+  eventHandler:
+    enabled: true
   wa:
     taskManagement:
       enabled: false
     taskMonitor:
       enabled: true
     eventHandler:
-      enabled: true
+      enabled: false
     workflow:
       enabled: false
     taskBatchCron:
