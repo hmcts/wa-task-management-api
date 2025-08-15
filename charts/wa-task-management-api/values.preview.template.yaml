@@ -70,7 +70,11 @@ wa:
     taskMonitor:
       enabled: true
     eventHandler:
-      enabled: true
+      enabled: false
+    wa-initiation-batch:
+      job:
+        schedule: "*/1 * * * *"
+        releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
     workflow:
       enabled: false
     taskBatchCron:
