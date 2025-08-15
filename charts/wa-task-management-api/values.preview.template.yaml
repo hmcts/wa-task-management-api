@@ -104,41 +104,41 @@ wa:
 #      RELEASE_REVISION: "{{ .Release.Revision }}"
 #      CAMUNDA_API_AUTH_ENABLED: false
 
-#wa-case-event-handler:
-#  java:
-#    ingressHost: "ceh-{{ .Release.Name }}.preview.platform.hmcts.net"
-#    releaseNameOverride: "{{ .Release.Name }}-ceh"
-#    secrets:
-#      AZURE_SERVICE_BUS_CONNECTION_STRING:
-#        secretRef: servicebus-access
-#        key: connectionString
-#      POSTGRES_PASSWORD:
-#        secretRef: "{{ .Values.global.postgresSecret }}"
-#        key: PASSWORD
-#        disabled: false
-#    keyVaults:
-#      wa:
-#        secrets:
-#          - name: s2s-secret-case-event-handler
-#            alias: S2S_SECRET_CASE_EVENT_HANDLER
-#          - name: ld-secret
-#            alias: LAUNCH_DARKLY_SDK_KEY
-#          - name: wa-idam-client-secret
-#            alias: WA_IDAM_CLIENT_SECRET
-#    environment:
-#      CAMUNDA_URL: http://{{ .Release.Name }}-camunda/engine-rest
-#      CCD_URL: http://{{ .Release.Name }}-ccd-data-store-api
-#      CCD_SEARCH_URL: http://{{ .Release.Name }}-ccd-data-store-api
-#      ROLE_ASSIGNMENT_URL: http://{{ .Release.Name }}-am-role-assignment-service
-#      WA_WORKFLOW_API_URL: http://{{ .Release.Name }}-wa-workflow-api
-#      WA_TASK_MANAGEMENT_API_URL: http://{{ .Release.Name }}-wa-task-management-api
-#      AZURE_SERVICE_BUS_TOPIC_NAME: "{{ .Release.Name }}-servicebus-ccd-case-events"
-#      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: "{{ .Release.Name }}-servicebus-ccd-case-events"
-#      AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: "{{ .Release.Name }}-servicebus-ccd-case-events"
-#      POSTGRES_NAME: '{{ tpl .Values.global.databaseNamePrefix $}}wa-case-event-handler'
-#      POSTGRES_HOST: '{{ tpl .Values.global.postgresHost $}}'
-#      POSTGRES_USERNAME: '{{ tpl .Values.global.postgresUsername $}}'
-#      POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified&reWriteBatchedInserts=true&sslmode=require"
-#      RECEIVED_MESSAGE_HEALTH_CHECK: disabled
+wa-case-event-handler:
+  java:
+    ingressHost: "ceh-{{ .Release.Name }}.preview.platform.hmcts.net"
+    releaseNameOverride: "{{ .Release.Name }}-ceh"
+    secrets:
+      AZURE_SERVICE_BUS_CONNECTION_STRING:
+        secretRef: servicebus-access
+        key: connectionString
+      POSTGRES_PASSWORD:
+        secretRef: "{{ .Values.global.postgresSecret }}"
+        key: PASSWORD
+        disabled: false
+    keyVaults:
+      wa:
+        secrets:
+          - name: s2s-secret-case-event-handler
+            alias: S2S_SECRET_CASE_EVENT_HANDLER
+          - name: ld-secret
+            alias: LAUNCH_DARKLY_SDK_KEY
+          - name: wa-idam-client-secret
+            alias: WA_IDAM_CLIENT_SECRET
+    environment:
+      CAMUNDA_URL: http://{{ .Release.Name }}-camunda/engine-rest
+      CCD_URL: http://{{ .Release.Name }}-ccd-data-store-api
+      CCD_SEARCH_URL: http://{{ .Release.Name }}-ccd-data-store-api
+      ROLE_ASSIGNMENT_URL: http://{{ .Release.Name }}-am-role-assignment-service
+      WA_WORKFLOW_API_URL: http://{{ .Release.Name }}-wa-workflow-api
+      WA_TASK_MANAGEMENT_API_URL: http://{{ .Release.Name }}-wa-task-management-api
+      AZURE_SERVICE_BUS_TOPIC_NAME: "{{ .Release.Name }}-servicebus-ccd-case-events"
+      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: "{{ .Release.Name }}-servicebus-ccd-case-events"
+      AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: "{{ .Release.Name }}-servicebus-ccd-case-events"
+      POSTGRES_NAME: '{{ tpl .Values.global.databaseNamePrefix $}}wa-case-event-handler'
+      POSTGRES_HOST: '{{ tpl .Values.global.postgresHost $}}'
+      POSTGRES_USERNAME: '{{ tpl .Values.global.postgresUsername $}}'
+      POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified&reWriteBatchedInserts=true&sslmode=require"
+      RECEIVED_MESSAGE_HEALTH_CHECK: disabled
 
 
