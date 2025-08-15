@@ -74,11 +74,14 @@ wa:
     wa-initiation-batch:
       job:
         schedule: "*/1 * * * *"
-        releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
+        releaseNameOverride: "{{ .Release.Name }}-wa-task-batch2"
     workflow:
       enabled: false
     taskBatchCron:
-      enabled: false
+      enabled: true
+      job:
+        schedule: "*/1 * * * *"
+        releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
     messageCron:
       enabled: false
     servicebus:
