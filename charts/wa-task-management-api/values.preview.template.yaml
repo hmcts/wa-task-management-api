@@ -82,12 +82,7 @@ wa:
       enabled: false
     terminationBatchCron:
       enabled: false
-    global:
-      postgresUsername: hmcts
-      postgresHost: ""
-      postgresSecret: ""
-      environment: preview
-      databaseNamePrefix: ""
+
 
 #camunda-bpm:
 #  enabled: true
@@ -107,6 +102,12 @@ wa:
 #      CAMUNDA_API_AUTH_ENABLED: false
 
 wa-case-event-handler:
+  global:
+    postgresUsername: hmcts
+    postgresHost: ""
+    postgresSecret: ""
+    environment: preview
+    databaseNamePrefix: ""
   java:
     ingressHost: "ceh-{{ .Release.Name }}.preview.platform.hmcts.net"
     releaseNameOverride: "{{ .Release.Name }}-ceh"
