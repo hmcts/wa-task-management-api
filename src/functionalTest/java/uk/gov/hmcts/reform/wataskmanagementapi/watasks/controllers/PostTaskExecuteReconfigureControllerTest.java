@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -358,7 +357,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @Ignore
     public void should_recalculate_due_date_when_executed_for_reconfigure() throws Exception {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -435,7 +433,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.due_date", notNullValue())
-                    .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 25,
+                    .body("task.due_date", equalTo(LocalDateTime.of(2025, 10, 23,
                                                                     20, 00, 0, 0)
                                                        .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
@@ -445,7 +443,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
     }
 
     @Test
-    @Ignore
     public void should_recalculate_next_hearing_date_using_interval_calculation_when_executed_for_reconfigure() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -469,7 +466,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .body("task.type", equalTo("functionalTestTask1"))
                 .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)))
                 .body("task.priority_date", equalTo(formatDate(2022, 12, 7, 14)))
-                .body("task.due_date", equalTo(formatDate(2023, 1, 17, 18)));
+                .body("task.due_date", equalTo(formatDate(2026, 1, 15, 18)));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -550,7 +547,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.last_reconfiguration_time", notNullValue())
                     .body("task.due_date", notNullValue())
-                    .body("task.due_date", equalTo(formatDate(2023, 1, 17, 18)))
+                    .body("task.due_date", equalTo(formatDate(2026, 1, 15, 18)))
                     .body("task.priority_date", notNullValue())
                     .body("task.priority_date", equalTo(formatDate(2022, 12, 2, 16)))
                     .body("task.next_hearing_date", notNullValue())
