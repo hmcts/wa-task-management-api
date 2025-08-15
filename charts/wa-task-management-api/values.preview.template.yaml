@@ -63,7 +63,10 @@ wa:
     postgresHost: ${SERVICE_NAME}-postgresql
     environment: preview
     databaseNamePrefix: "pr-${CHANGE_ID}-"
-
+  wa-initiation-batch:
+    job:
+      schedule: "*/1 * * * *"
+      releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
   wa:
     taskManagement:
       enabled: false
@@ -71,17 +74,10 @@ wa:
       enabled: true
     eventHandler:
       enabled: false
-    wa-initiation-batch:
-      job:
-        schedule: "*/1 * * * *"
-        releaseNameOverride: "{{ .Release.Name }}-wa-task-batch2"
     workflow:
       enabled: false
     taskBatchCron:
       enabled: true
-      job:
-        schedule: "*/1 * * * *"
-        releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
     messageCron:
       enabled: false
     servicebus:
@@ -155,5 +151,7 @@ wa:
 #      POSTGRES_USERNAME: '{{ tpl .Values.global.postgresUsername $}}'
 #      POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified&reWriteBatchedInserts=true&sslmode=require"
 #      RECEIVED_MESSAGE_HEALTH_CHECK: disabled
+
+
 
 
