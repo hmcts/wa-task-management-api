@@ -67,13 +67,35 @@ wa:
     job:
       schedule: "*/1 * * * *"
       releaseNameOverride: "{{ .Release.Name }}-wa-task-batch"
+  wa-case-event-handler:
+    java:
+      ingressHost: wa-case-event-handler-${SERVICE_FQDN}
+      releaseNameOverride: ${SERVICE_NAME}-wa-case-event-handler
+      secrets:
+        AZURE_SERVICE_BUS_CONNECTION_STRING:
+          secretRef: family-public-law-sb-preview
+          key: connectionString
+      devcpuRequests: 500m
+      devmemoryRequests: 1Gi
+      devcpuLimits: 2
+      devmemoryLimits: 4Gi
+      environment:
+        CAMUNDA_URL: "http://{{ .Release.Name }}-camunda/engine-rest"
+        CCD_URL: "http://{{ .Release.Name }}-ccd-data-store-api"
+        CCD_SEARCH_URL: "http://{{ .Release.Name }}-ccd-data-store-api"
+        ROLE_ASSIGNMENT_URL: https://am-role-assignment-service-${SERVICE_FQDN}
+        WA_WORKFLOW_API_URL: "http://{{ .Release.Name }}-wa-workflow-api"
+        WA_TASK_MANAGEMENT_API_URL: "http://{{ .Release.Name }}-wa-task-management-api"
+        AZURE_SERVICE_BUS_TOPIC_NAME: ${SERVICE_NAME}-ccd-case-events
+        AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: ${SERVICE_NAME}-ccd-case-events
+        AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: ${SERVICE_NAME}-ccd-case-events
   wa:
     taskManagement:
       enabled: false
     taskMonitor:
       enabled: true
     eventHandler:
-      enabled: false
+      enabled: true
     workflow:
       enabled: false
     taskBatchCron:
