@@ -24,10 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeD
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -36,24 +32,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -281,7 +271,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_a_404_when_id_is_not_found() throws Exception {
 
-        String taskId = UUID.randomUUID().toString();
+        final String taskId = UUID.randomUUID().toString();
 
         mockServices.mockUserInfo();
 
@@ -392,7 +382,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_a_403_when_restricted_role_is_given() throws Exception {
 
-        String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId1",null,null);
+        final String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId1",null,null);
 
         mockServices.mockUserInfo();
 
@@ -435,7 +425,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_return_a_403_when_the_user_jurisdiction_did_not_match() throws Exception {
-        String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId2",null,null);
+        final String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "getTaskCaseId2",null,null);
 
         mockServices.mockUserInfo();
 
@@ -530,7 +520,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Execution(ExecutionMode.CONCURRENT)
     void should_return_404_when_initiation_request_failed_to_retrieve_data_from_ccd() throws Exception {
 
-        String taskId = UUID.randomUUID().toString();
+        final String taskId = UUID.randomUUID().toString();
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -666,7 +656,8 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
             TestRolesWithGrantType.SPECIFIC_CASE_MANAGER.getRoleCategory().name()
         );
 
-        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResourceCase,null,null);
+        taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED,
+                                          taskRoleResourceCase,null,null);
 
         String taskId2 = UUID.randomUUID().toString();
         TaskRoleResource taskRoleResource2 = new TaskRoleResource(

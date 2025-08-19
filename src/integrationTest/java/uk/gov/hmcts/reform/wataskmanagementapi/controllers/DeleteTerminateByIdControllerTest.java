@@ -14,26 +14,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -103,7 +95,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("cancelled"));
 
             mockMvc.perform(
-            delete(ENDPOINT_BEING_TESTED)
+                delete(ENDPOINT_BEING_TESTED)
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -123,7 +115,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId1",null,null);
+            String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId1",
+                                                                       null,null);
             ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
@@ -192,7 +185,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId2",null,null);
+            String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId2",
+                                                                       null,null);
             ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
@@ -258,7 +252,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_204_and_delete_task() throws Exception {
-            String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId3",null,null);
+            String taskId = taskTestUtils.createTaskAndRoleAssignments(UNASSIGNED, "deleteTerminateByIdCaseId3",
+                                                                       null,null);
             ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());

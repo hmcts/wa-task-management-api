@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -17,12 +18,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOpe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -46,7 +46,8 @@ public class TaskTestUtils {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
     }
 
-    public String createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId,OffsetDateTime dueDateTime,String assignee) {
+    public String createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId,OffsetDateTime dueDateTime,
+                                               String assignee) {
         String taskId = UUID.randomUUID().toString();
 
         // Create TaskRoleResource
@@ -60,11 +61,13 @@ public class TaskTestUtils {
         String jurisdiction = "IA";
         String caseType = "Asylum";
         // Insert dummy task into the database
-        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource,dueDateTime,assignee);
+        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource,dueDateTime,
+                            assignee);
 
         // Create role assignments
         List<RoleAssignment> assignerRoles = new ArrayList<>();
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
                 RoleAssignmentHelper.RoleAssignmentAttribute.builder()
@@ -92,7 +95,7 @@ public class TaskTestUtils {
             cftTaskState
         );
         taskResource.setCreated(OffsetDateTime.now());
-        if(null != dueDateTime) {
+        if (null != dueDateTime) {
             taskResource.setDueDateTime(dueDateTime);
         } else {
             taskResource.setDueDateTime(OffsetDateTime.now());
@@ -105,8 +108,9 @@ public class TaskTestUtils {
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId(caseId);
         taskResource.setTitle("title");
-        if(null != assignee)
+        if (null != assignee) {
             taskResource.setAssignee(assignee);
+        }
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);

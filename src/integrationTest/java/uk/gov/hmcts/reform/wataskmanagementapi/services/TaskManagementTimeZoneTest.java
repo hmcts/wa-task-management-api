@@ -36,38 +36,26 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -301,14 +289,16 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
         String caseIdToday = UUID.randomUUID().toString();
         OffsetDateTime dueDateTime = OffsetDateTime.now(ZoneOffset.UTC);
-        String reconfigTaskId = taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime, ASSIGNEE_USER);
+        String reconfigTaskId = taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday,
+                                                                           dueDateTime, ASSIGNEE_USER);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(asJsonString(taskTestUtils.taskOperationRequest(
+                    MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );

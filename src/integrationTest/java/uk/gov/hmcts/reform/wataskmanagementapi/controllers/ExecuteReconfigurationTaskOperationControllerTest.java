@@ -640,7 +640,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
-        String taskId = taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime, ASSIGNEE_USER);
+        final String taskId = taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime, ASSIGNEE_USER);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
