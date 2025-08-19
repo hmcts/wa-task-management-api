@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.testing.FakeTicker;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +48,22 @@ class PublicHolidaysCollectionTest {
         BankHolidays resultFromCacheAgain = publicHolidayService.getPublicHolidays(CALENDAR_URI);
 
         assertThat(resultFromApi).isSameAs(resultFromCache).isSameAs(resultFromCacheAgain);
+    }
+
+    @Test
+    public void second_calendar_should_override_main_calendar() {
+        List<String> oneUri = List.of(CALENDAR_URI);
+        Set<LocalDate> oneCalendarResult = publicHolidaysCollection.getPublicHolidays(oneUri);
+        assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 26))).isTrue();
+        assertThat(oneCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
+
+        List<String> twoUris = List.of(
+            CALENDAR_URI,
+            "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json"
+        );
+        Set<LocalDate> twoCalendarResult = publicHolidaysCollection.getPublicHolidays(twoUris);
+        assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 26))).isFalse();
+        assertThat(twoCalendarResult.contains(LocalDate.of(2022, 12, 27))).isTrue();
     }
 
     @Test
