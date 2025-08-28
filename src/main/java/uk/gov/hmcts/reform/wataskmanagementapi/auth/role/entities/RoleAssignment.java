@@ -10,7 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,9 +31,9 @@ public class RoleAssignment {
     private GrantType grantType;
     private RoleCategory roleCategory;
     private boolean readOnly;
-    private LocalDateTime beginTime;
-    private LocalDateTime endTime;
-    private LocalDateTime created;
+    private OffsetDateTime beginTime;
+    private OffsetDateTime endTime;
+    private OffsetDateTime created;
     private Map<String, String> attributes;
     private List<String> authorisations;
 
@@ -71,9 +71,9 @@ public class RoleAssignment {
                           GrantType grantType,
                           RoleCategory roleCategory,
                           boolean readOnly,
-                          LocalDateTime beginTime,
-                          LocalDateTime endTime,
-                          LocalDateTime created,
+                          OffsetDateTime beginTime,
+                          OffsetDateTime endTime,
+                          OffsetDateTime created,
                           Map<String, String> attributes,
                           List<String> authorisations) {
         this(actorIdType, actorId, roleType,
@@ -129,15 +129,15 @@ public class RoleAssignment {
         return readOnly;
     }
 
-    public LocalDateTime getBeginTime() {
+    public OffsetDateTime getBeginTime() {
         return beginTime;
     }
 
-    public LocalDateTime getEndTime() {
+    public OffsetDateTime getEndTime() {
         return endTime;
     }
 
-    public LocalDateTime getCreated() {
+    public OffsetDateTime getCreated() {
         return created;
     }
 
