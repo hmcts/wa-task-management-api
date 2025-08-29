@@ -136,6 +136,13 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                     .stringValue("grantType", "STANDARD")
                     .stringValue("roleCategory", "LEGAL_OPERATIONS")
                     .booleanValue("readOnly", false)
+                    .stringMatcher(
+                        "created",
+                        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})",
+                        "2025-08-20T12:30:00Z"
+                    )
+                    .datetime("beginTime", "yyyy-MM-dd'T'HH:mm:ss")
+                    .datetime("endTime", "yyyy-MM-dd'T'HH:mm:ss")
                     .object("attributes", attribute -> attribute
                         .stringType("jurisdiction", "IA")
                         .stringType("primaryLocation", "500A2S"))
