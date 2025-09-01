@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -224,7 +223,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_when_initiating_a_multiple_calendar_task_using_due_date() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -272,7 +270,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")))
                 )
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo(LocalDateTime.of(2022, 12, 29, 18, 00, 0, 0)
+                .body("task.due_date", equalTo(LocalDateTime.of(2025, 12, 30, 18, 00, 0, 0)
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
@@ -289,7 +287,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
         TestVariables taskVariables =
             common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -338,7 +335,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.due_date", notNullValue())
                 .body(
                     "task.due_date",
-                    equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+                    equalTo(LocalDateTime.of(2025, 10, 23, 20, 00, 0, 0)
                                 .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
@@ -603,7 +600,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_and_priority_date_using_intervals() {
 
         TestVariables taskVariables =
@@ -641,8 +637,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.warnings", equalTo(false))
                 .body("task.case_management_category", equalTo("Protection"))
                 .body("task.next_hearing_date", nullValue())
-                .body("task.priority_date", equalTo("2023-01-04T18:00:00+0000"))
-                .body("task.due_date", equalTo("2023-01-04T18:00:00+0000"));
+                .body("task.priority_date", equalTo("2026-01-02T18:00:00+0000"))
+                .body("task.due_date", equalTo("2026-01-02T18:00:00+0000"));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -912,7 +908,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_must_be_working_day_should_default_to_next() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -957,7 +952,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                         .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                .body("task.due_date", equalTo(LocalDateTime.of(2025, 10, 15, 20, 00, 0, 0)
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
@@ -974,7 +969,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    @Ignore
     public void should_calculate_due_date_multiple_working_day_should_use_last_entry_in_dmn() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
@@ -1019,7 +1013,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                         .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                .body("task.due_date", equalTo(LocalDateTime.of(2025, 10, 15, 20, 00, 0, 0)
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
