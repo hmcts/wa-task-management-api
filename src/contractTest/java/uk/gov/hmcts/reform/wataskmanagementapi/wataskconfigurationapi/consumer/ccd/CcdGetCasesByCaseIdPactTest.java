@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 
 import java.util.Map;
 
+import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
@@ -53,7 +54,7 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         ccdDataService = new CcdDataService(ccdDataServiceApi, authTokenGenerator, systemTokenGenerator);
     }
 
-    @Pact(provider = "ccd_data_store_get_case_by_id", consumer = "wa_task_management_api")
+    @Pact(provider = "ccdDataStoreAPI_WorkAllocation", consumer = "wa_task_management_api")
     public RequestResponsePact executeCcdGetCasesByCaseId(PactDslWithProvider builder) {
 
         Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
@@ -79,14 +80,19 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         assertThat(caseDetails.getSecurityClassification(), is("PRIVATE"));
         assertThat(caseDetails.getJurisdiction(), is("IA"));
         assertThat(caseDetails.getCaseType(), is("Asylum"));
+        assertNotNull(caseDetails.getData());
     }
 
     private PactDslJsonBody createCasesResponse() {
-        return new PactDslJsonBody()
+        PactDslJsonBody body = new PactDslJsonBody()
             .stringType("id", "1593694526480034")
             .stringValue("jurisdiction", "IA")
             .stringValue("case_type", "Asylum")
             .stringValue("security_classification", "PRIVATE");
+
+        body.object("data")
+            .closeObject();
+        return body;
     }
 
     private CaseDetails read(String caseData) {

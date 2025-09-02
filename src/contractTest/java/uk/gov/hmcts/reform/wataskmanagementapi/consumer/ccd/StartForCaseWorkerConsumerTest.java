@@ -32,7 +32,7 @@ public class StartForCaseWorkerConsumerTest extends CcdConsumerTestBase {
         return caseDataContentMap;
     }
 
-    @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "wa_task_management_api")
+    @Pact(provider = "ccdDataStoreAPI_WorkAllocation", consumer = "wa_task_management_api")
     public RequestResponsePact startForCaseWorker(PactDslWithProvider builder) {
         return builder
             .given("A Start for a Caseworker is requested", setUpStateMapForProviderWithoutCaseData())
@@ -62,7 +62,7 @@ public class StartForCaseWorkerConsumerTest extends CcdConsumerTestBase {
             START_APPEAL);
 
         assertThat(startEventResponse.getEventId(), equalTo(START_APPEAL));
-        assertNotNull(startEventResponse.getCaseDetails());
+        assertNotNull(startEventResponse.getToken());
     }
 
     private String buildPath() {
