@@ -24,9 +24,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 
 import java.util.Map;
 
-import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
