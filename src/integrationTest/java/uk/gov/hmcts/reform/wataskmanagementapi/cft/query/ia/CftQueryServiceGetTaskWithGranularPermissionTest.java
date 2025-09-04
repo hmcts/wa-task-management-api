@@ -33,7 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -103,8 +103,8 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .roleName("tribunal-caseworker")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
             .authorisations(List.of("373"))
@@ -145,8 +145,8 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .roleName("tribunal-caseworker")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
             .authorisations(List.of("373"))
@@ -194,8 +194,8 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .roleName("tribunal-caseworker")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
             .authorisations(List.of("373"))

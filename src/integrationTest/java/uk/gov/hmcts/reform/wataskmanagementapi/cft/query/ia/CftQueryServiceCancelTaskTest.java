@@ -29,7 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,8 +79,8 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .roleType(RoleType.CASE)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -107,8 +107,8 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .roleType(RoleType.CASE)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -134,9 +134,9 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
             .roleType(RoleType.CASE)
-            .endTime(LocalDateTime.now().plusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -160,8 +160,8 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .roleType(RoleType.CASE)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -187,8 +187,8 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .roleType(RoleType.CASE)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("PROBATE", "SCSS"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -215,8 +215,8 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
