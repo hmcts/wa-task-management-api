@@ -943,6 +943,20 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("completed")
+        );
+
+        Response resultDelete = restApiActions.delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultDelete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
@@ -958,7 +972,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultHistory.get().prettyPrint();
                 resultHistory.get().then().assertThat()
                     .statusCode(HttpStatus.OK.value())
-                    .body("task_history_list.size()", equalTo(4));
+                    .body("task_history_list.size()", equalTo(5));
 
             });
 
@@ -976,11 +990,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultCompleteReport.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("COMPLETED"))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
                     .body("reportable_task_list.get(0).assignee", notNullValue())
                     .body("reportable_task_list.get(0).updated_by", notNullValue())
                     .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("Complete"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).completed_date", notNullValue())
                     .body("reportable_task_list.get(0).completed_date_time", notNullValue())
                     .body("reportable_task_list.get(0).created_date", notNullValue())
