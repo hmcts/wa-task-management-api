@@ -65,9 +65,3 @@ drop table cft_task_db.cft_task_db.deleted_tasks_task_history_backup;
 
 
 
-
-
-
-
-
-

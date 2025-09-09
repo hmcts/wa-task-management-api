@@ -24,5 +24,3 @@ drop table if exists cft_task_db.cft_task_db.deleted_tasks_reportable_task_backu
 drop table if exists cft_task_db.cft_task_db.deleted_tasks_task_history_backup;
 -- End of rollback script
 
-
-
