@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -103,31 +103,31 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
     public static final String ASSIGNEE_USER = "assigneeUser";
     public static final String OLD_ASSIGNEE_USER = "oldAssigneeUser";
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
-    @MockBean(name = "systemUserIdamInfo")
+    @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
-    @MockBean
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
-    @MockBean
+    @MockitoBean
     private CftQueryService cftQueryService;
-    @MockBean
+    @MockitoBean
     private CcdDataService ccdDataService;
-    @MockBean
+    @MockitoBean
     private DmnEvaluationService dmnEvaluationService;
-    @SpyBean
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockBean
+    @MockitoBean
     private RoleAssignmentService roleAssignmentService;
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
-    @SpyBean
+    @MockitoSpyBean
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
-    @SpyBean
+    @MockitoSpyBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     private String taskId;
@@ -416,6 +416,107 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+            });
+    }
+
+    /**
+     * This test verifies that when reconfigure is set to true and the internal field is set to reconfigure,
+     * the internal field is ignored during the reconfiguration process and retains its existing value.
+     */
+    @Test
+    void should_ignore_field_on_reconfigure_task_when_reconfigure_set_to_true_and_internal_field_set_to_reconfigure()
+        throws Exception {
+        String caseIdToday = "caseId4-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        OffsetDateTime dueDateTime = OffsetDateTime.now();
+        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString()
+        )).thenReturn(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("securityClassification"),
+                stringValue("PRIVATE"),
+                booleanValue(true)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("roleCategory"),
+                stringValue("JUDICIAL"),
+                booleanValue(true)
+            )
+        ));
+
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString())).thenReturn(permissionsResponse());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        List<TaskResource> taskResourcesBefore = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+        assertEquals(1, taskResourcesBefore.size());
+        taskResourcesBefore.forEach(task -> {
+            assertEquals(ASSIGNEE_USER, task.getAssignee());
+            assertEquals(CFTTaskState.ASSIGNED, task.getState());
+            assertNotNull(task.getReconfigureRequestTime());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate());
+            assertNull(task.getMinorPriority());
+            assertNull(task.getMajorPriority());
+            assertNull(task.getDescription());
+            assertNull(task.getCaseName());
+            assertEquals("765324", task.getLocation());
+            assertEquals("Taylor House", task.getLocationName());
+            assertNull(task.getCaseCategory());
+            assertNull(task.getWorkTypeResource());
+            assertNull(task.getRoleCategory());
+            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+            assertNull(task.getNextHearingDate());
+            assertNull(task.getNextHearingId());
+            assertNotNull(task.getDueDateTime());
+        });
+
+        when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(
+                    EXECUTE_RECONFIGURE,
+                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                )))
+        ).andExpectAll(
+            status().is(HttpStatus.OK.value())
+        );
+
+        await().ignoreException(AssertionFailedError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(10, SECONDS)
+            .untilAsserted(() -> {
+                List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+                assertEquals(1, taskResourcesAfter.size());
+                taskResourcesAfter.forEach(task -> {
+                    assertNotNull(task.getLastReconfigurationTime());
+                    assertNull(task.getReconfigureRequestTime());
+                    assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                    assertEquals(ASSIGNEE_USER, task.getAssignee());
+                    assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                    assertEquals("JUDICIAL", task.getRoleCategory());
+                    assertNotNull(task.getLastUpdatedTimestamp());
+                    assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                    assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                    assertEquals(SecurityClassification.PUBLIC, task.getSecurityClassification());
+                });
             });
     }
 

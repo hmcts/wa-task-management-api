@@ -270,7 +270,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")))
                 )
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo(LocalDateTime.of(2022, 12, 29, 18, 00, 0, 0)
+                .body("task.due_date", equalTo(LocalDateTime.of(2025, 12, 30, 18, 00, 0, 0)
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
@@ -335,7 +335,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.due_date", notNullValue())
                 .body(
                     "task.due_date",
-                    equalTo(LocalDateTime.of(2022, 10, 25, 20, 00, 0, 0)
+                    equalTo(LocalDateTime.of(2025, 10, 23, 20, 00, 0, 0)
                                 .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
@@ -637,8 +637,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.warnings", equalTo(false))
                 .body("task.case_management_category", equalTo("Protection"))
                 .body("task.next_hearing_date", nullValue())
-                .body("task.priority_date", equalTo("2023-01-04T18:00:00+0000"))
-                .body("task.due_date", equalTo("2023-01-04T18:00:00+0000"));
+                .body("task.priority_date", equalTo("2026-01-02T18:00:00+0000"))
+                .body("task.due_date", equalTo("2026-01-02T18:00:00+0000"));
         };
 
         initiateTask(taskVariables, assertConsumer);
@@ -952,7 +952,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                         .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                .body("task.due_date", equalTo(LocalDateTime.of(2025, 10, 15, 20, 00, 0, 0)
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
@@ -1013,7 +1013,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                         .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))))
                 .body("task.due_date", notNullValue())
-                .body("task.due_date", equalTo(LocalDateTime.of(2022, 10, 17, 20, 00, 0, 0)
+                .body("task.due_date", equalTo(LocalDateTime.of(2025, 10, 15, 20, 00, 0, 0)
                                                    .atZone(ZoneId.systemDefault()).toOffsetDateTime()
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };

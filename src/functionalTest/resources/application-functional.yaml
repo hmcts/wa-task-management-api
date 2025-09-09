@@ -44,5 +44,6 @@ config:
   taskMandatoryFields: ${MANDATORY_TASK_FIELDS:taskName,taskId,taskType,dueDateTime,state,securityClassification,title,majorPriority,minorPriority,executionTypeCode,caseId,caseTypeId,caseCategory,caseName,jurisdiction,region,location,created,roleCategory,workTypeResource}
   initiationRequestRequiredFields: ${INITIATION_REQUEST_REQUIRED_FIELDS:name,taskType,caseId}
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
+  dmnConfigFieldsWithInternalDefaults: ${DMN_CONFIG_FIELDS_WITH_INTERNAL_DEFAULTS:title}
 
 initiation_job_running: ${INITIATION_JOB_RUNNING:false}
