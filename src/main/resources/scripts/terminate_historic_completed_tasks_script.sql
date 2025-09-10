@@ -62,7 +62,7 @@ $function$;
 -- Tasks must be in COMPLETED or CANCELLED states and created over 90 days ago to qualify.
 --
 -- Example for calling the procedure
--- call cft_task_db.terminate_historic_completed_tasks(ARRAY['task_id1', 'task_id2', 'task_id3'],100);
+-- call cft_task_db.terminate_historic_completed_tasks(ARRAY['task_id1', 'task_id2', 'task_id3'],'user_id',100);
 
 CREATE OR REPLACE PROCEDURE cft_task_db.terminate_historic_completed_tasks(
     task_ids TEXT[],
@@ -140,9 +140,9 @@ $procedure$;
 -- if any discrepancies are found. This function ensures that terminated tasks have consistent and accurate metadata.
 --
 -- Example for calling the function
--- select cft_task_db.validate_terminated_tasks_in_primary(ARRAY['task_id1', 'task_id2', 'task_id3']);
+-- select cft_task_db.validate_terminated_tasks_in_primary(ARRAY['task_id1', 'task_id2', 'task_id3'],'user_id','2023-04-04 11:00'::TIMESTAMP);
 
-CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_primary(task_ids TEXT[], user_id TEXT DEFAULT 'script')
+CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_primary(task_ids TEXT[], user_id TEXT DEFAULT 'script', last_updated_script_timestamp TIMESTAMP)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
@@ -168,7 +168,7 @@ BEGIN
         SELECT
             (state = 'TERMINATED') AS state_valid,
             (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
-            (last_updated_timestamp >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
+            (last_updated_timestamp >= last_updated_script_timestamp) AS timestamp_valid,
             (last_updated_user = user_id) AS user_valid,
             (last_updated_action = 'TerminateException') AS action_valid
         INTO
@@ -217,9 +217,9 @@ $function$;
 -- the replica database.
 --
 -- Example for calling the function
--- select cft_task_db.validate_terminated_tasks_in_replica(ARRAY['task_id1', 'task_id2', 'task_id3']);
+-- select cft_task_db.validate_terminated_tasks_in_replica(ARRAY['task_id1', 'task_id2', 'task_id3'],'user_id','2023-04-04 11:00'::TIMESTAMP);
 
-CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_replica(task_ids TEXT[], user_id TEXT DEFAULT 'script')
+CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_replica(task_ids TEXT[], user_id TEXT DEFAULT 'script', last_updated_script_timestamp TIMESTAMP)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
@@ -245,7 +245,7 @@ BEGIN
         SELECT
             (state = 'TERMINATED') AS state_valid,
             (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
-            (last_updated_timestamp >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
+            (last_updated_timestamp >= last_updated_script_timestamp) AS timestamp_valid,
             (last_updated_user = user_id) AS user_valid,
             (last_updated_action = 'TerminateException') AS action_valid
         INTO
@@ -283,7 +283,7 @@ BEGIN
         SELECT
             (state = 'TERMINATED') AS state_valid,
             (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
-            (updated >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
+            (updated >= last_updated_script_timestamp) AS timestamp_valid,
             (updated_by = user_id) AS user_valid,
             (update_action = 'TerminateException') AS action_valid
         INTO
@@ -321,7 +321,7 @@ BEGIN
         SELECT
             (state = 'TERMINATED') AS state_valid,
             (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
-            (updated >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
+            (updated >= last_updated_script_timestamp) AS timestamp_valid,
             (updated_by = user_id) AS user_valid,
             (update_action = 'TerminateException') AS action_valid
         INTO
