@@ -63,10 +63,11 @@ $function$;
 --
 -- Example for calling the procedure
 -- call cft_task_db.terminate_historic_completed_tasks(ARRAY['task_id1', 'task_id2', 'task_id3'],'user_id',100);
+-- The user_id must be the emailId of the user running the script.
 
 CREATE OR REPLACE PROCEDURE cft_task_db.terminate_historic_completed_tasks(
     task_ids TEXT[],
-    user_id TEXT DEFAULT 'script',
+    user_id TEXT DEFAULT 'terminate_historic_completed_tasks_script',
     max_limit INT DEFAULT 100
 )
 LANGUAGE plpgsql
@@ -142,7 +143,7 @@ $procedure$;
 -- Example for calling the function
 -- select cft_task_db.validate_terminated_tasks_in_primary(ARRAY['task_id1', 'task_id2', 'task_id3'],'2023-04-04 11:00'::TIMESTAMP,'user_id',);
 
-CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_primary(task_ids TEXT[], last_updated_script_timestamp TIMESTAMP, user_id TEXT DEFAULT 'script')
+CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_primary(task_ids TEXT[], last_updated_script_timestamp TIMESTAMP, user_id TEXT DEFAULT 'terminate_historic_completed_tasks_script.sql')
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
@@ -219,7 +220,7 @@ $function$;
 -- Example for calling the function
 -- select cft_task_db.validate_terminated_tasks_in_replica(ARRAY['task_id1', 'task_id2', 'task_id3'],'2023-04-04 11:00'::TIMESTAMP ,'user_id');
 
-CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_replica(task_ids TEXT[], last_updated_script_timestamp TIMESTAMP, user_id TEXT DEFAULT 'script')
+CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_replica(task_ids TEXT[], last_updated_script_timestamp TIMESTAMP, user_id TEXT DEFAULT 'terminate_historic_completed_tasks_script.sql')
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
