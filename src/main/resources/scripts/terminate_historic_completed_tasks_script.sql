@@ -109,8 +109,8 @@ BEGIN
         UPDATE cft_task_db.tasks t
         SET state = 'TERMINATED',
             termination_reason = CASE
-                WHEN task_state = 'COMPLETED' THEN 'cancelled'
-                WHEN task_state = 'CANCELLED' THEN 'completed'
+                WHEN task_state = 'COMPLETED' THEN 'completed'
+                WHEN task_state = 'CANCELLED' THEN 'deleted'
             END,
             last_updated_timestamp = NOW(),
             last_updated_user = user_id,
@@ -167,7 +167,7 @@ BEGIN
         -- Check the task details
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
             (last_updated_timestamp >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (last_updated_user = user_id) AS user_valid,
             (last_updated_action = 'TerminateException') AS action_valid
@@ -244,7 +244,7 @@ BEGIN
         -- Check the task details in tasks table
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
             (last_updated_timestamp >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (last_updated_user = user_id) AS user_valid,
             (last_updated_action = 'TerminateException') AS action_valid
@@ -282,7 +282,7 @@ BEGIN
         -- Repeat the same checks for reportable_tasks table
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
             (updated >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (updated_by = user_id) AS user_valid,
             (update_action = 'TerminateException') AS action_valid
@@ -320,7 +320,7 @@ BEGIN
         -- Repeat the same checks for task_history table
         SELECT
             (state = 'TERMINATED') AS state_valid,
-            (termination_reason IN ('completed', 'cancelled')) AS termination_reason_valid,
+            (termination_reason IN ('completed', 'deleted')) AS termination_reason_valid,
             (updated >= NOW() - INTERVAL '5 minutes') AS timestamp_valid,
             (updated_by = user_id) AS user_valid,
             (update_action = 'TerminateException') AS action_valid
