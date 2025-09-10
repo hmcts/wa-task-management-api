@@ -140,9 +140,9 @@ $procedure$;
 -- if any discrepancies are found. This function ensures that terminated tasks have consistent and accurate metadata.
 --
 -- Example for calling the function
--- select cft_task_db.validate_terminated_tasks_in_primary(ARRAY['task_id1', 'task_id2', 'task_id3'],'user_id','2023-04-04 11:00'::TIMESTAMP);
+-- select cft_task_db.validate_terminated_tasks_in_primary(ARRAY['task_id1', 'task_id2', 'task_id3'],'2023-04-04 11:00'::TIMESTAMP,'user_id',);
 
-CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_primary(task_ids TEXT[], user_id TEXT DEFAULT 'script', last_updated_script_timestamp TIMESTAMP)
+CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_primary(task_ids TEXT[], last_updated_script_timestamp TIMESTAMP, user_id TEXT DEFAULT 'script')
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
@@ -217,9 +217,9 @@ $function$;
 -- the replica database.
 --
 -- Example for calling the function
--- select cft_task_db.validate_terminated_tasks_in_replica(ARRAY['task_id1', 'task_id2', 'task_id3'],'user_id','2023-04-04 11:00'::TIMESTAMP);
+-- select cft_task_db.validate_terminated_tasks_in_replica(ARRAY['task_id1', 'task_id2', 'task_id3'],'2023-04-04 11:00'::TIMESTAMP ,'user_id');
 
-CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_replica(task_ids TEXT[], user_id TEXT DEFAULT 'script', last_updated_script_timestamp TIMESTAMP)
+CREATE OR REPLACE FUNCTION cft_task_db.validate_terminated_tasks_in_replica(task_ids TEXT[], last_updated_script_timestamp TIMESTAMP, user_id TEXT DEFAULT 'script')
 RETURNS VOID
 LANGUAGE plpgsql
 AS $function$
