@@ -1595,6 +1595,20 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("cancelled")
+        );
+
+        Response resultDelete = restApiActions.delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        resultDelete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
         await()
             .pollDelay(5, TimeUnit.SECONDS)
             .atMost(30, SECONDS)
@@ -1610,16 +1624,16 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultCancelReport.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("CANCELLED"))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
                     .body("reportable_task_list.get(0).assignee", equalTo(null))
                     .body("reportable_task_list.get(0).updated_by", notNullValue())
                     .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("Cancel"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
                     .body("reportable_task_list.get(0).due_date", notNullValue())
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).completed_date", nullValue())
                     .body("reportable_task_list.get(0).completed_date_time", nullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("USER_CANCELLED"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time_days", nullValue())
                     .body("reportable_task_list.get(0).wait_time", nullValue())

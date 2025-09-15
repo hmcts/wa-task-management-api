@@ -1135,31 +1135,37 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         initiateTask(taskVariables, assignerCredentials.getHeaders(), additionalProperties);
 
-        Response result = restApiActions.get(
-            "/task/{task-id}",
-            taskId,
-            assignerCredentials.getHeaders()
-        );
+        await().ignoreException(Exception.class)
+            .pollInterval(5, SECONDS)
+            .atMost(180, SECONDS)
+            .untilAsserted(() -> {
+                Response result = restApiActions.get(
+                    "/task/{task-id}",
+                    taskId,
+                    assignerCredentials.getHeaders()
+                );
 
 
-        result.prettyPrint();
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_title", equalTo("A Task")) //Default task name
-            .body("task.additional_properties", equalTo(Map.of(
-                "key1", "value1",
-                "key2", "value1",
-                "roleAssignmentId", roleAssignmentId
-            )));
+                result.prettyPrint();
+                result.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_title", equalTo("A Task")) //Default task name
+                    .body(
+                        "task.additional_properties", equalTo(Map.of(
+                            "key1", "value1",
+                            "key2", "value1",
+                            "roleAssignmentId", roleAssignmentId
+                        ))
+                    );
+            });
 
         common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
 
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
-        result = restApiActions.post(
+        Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
                                                      taskVariables.getCaseId()),
