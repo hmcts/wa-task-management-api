@@ -1145,7 +1145,6 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     assignerCredentials.getHeaders()
                 );
 
-
                 result.prettyPrint();
                 result.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
@@ -1158,7 +1157,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                             "key2", "value1",
                             "roleAssignmentId", roleAssignmentId
                         ))
-                    );
+                );
             });
 
         common.setupWAOrganisationalRoleAssignment(assigneeCredentials.getHeaders(), "judge");
@@ -1167,8 +1166,10 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskOperationRequestForMarkToReconfigure(TaskOperationType.MARK_TO_RECONFIGURE,
-                                                     taskVariables.getCaseId()),
+            taskOperationRequestForMarkToReconfigure(
+                TaskOperationType.MARK_TO_RECONFIGURE,
+                taskVariables.getCaseId()
+            ),
             assigneeCredentials.getHeaders()
         );
 
@@ -1226,15 +1227,19 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                     .body("task.reconfigure_request_time", nullValue())
                     .body("task.security_classification", is("PUBLIC"))
                     .body("task.last_reconfiguration_time", notNullValue())
-                    .body("task.task_title",
-                          is("name - " + taskName + " - state - ASSIGNED - category - Protection"))
+                    .body(
+                        "task.task_title",
+                        is("name - " + taskName + " - state - ASSIGNED - category - Protection")
+                    )
                     .body("task.due_date", notNullValue())
                     .body("task.role_category", is("CTSC"))
-                    .body("task.additional_properties", equalTo(Map.of(
-                        "key1", "value1",
-                        "key2", "reconfigValue2",
-                        "roleAssignmentId", roleAssignmentId
-                    )));
+                    .body(
+                        "task.additional_properties", equalTo(Map.of(
+                            "key1", "value1",
+                            "key2", "reconfigValue2",
+                            "roleAssignmentId", roleAssignmentId
+                        ))
+                );
             });
         common.cleanUpTask(taskId);
     }
