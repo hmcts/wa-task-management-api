@@ -1623,7 +1623,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 resultHistory.prettyPrint();
                 resultHistory.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
-                    .body("task_history_list.size()", equalTo(1))
+                    .body("task_history_list.size()", equalTo(4))
                     .body("task_history_list.get(3).state", equalTo("CANCELLED"))
                     .body("task_history_list.get(3).assignee", equalTo(null))
                     .body("task_history_list.get(3).updated_by", notNullValue())
