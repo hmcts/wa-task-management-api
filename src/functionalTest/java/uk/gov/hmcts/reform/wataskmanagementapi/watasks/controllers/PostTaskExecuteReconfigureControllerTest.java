@@ -1135,8 +1135,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         initiateTask(taskVariables, assignerCredentials.getHeaders(), additionalProperties);
 
-        await().ignoreException(Exception.class)
-            .pollInterval(5, SECONDS)
+        await().pollInterval(5, SECONDS)
             .atMost(180, SECONDS)
             .untilAsserted(() -> {
                 Response result = restApiActions.get(

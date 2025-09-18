@@ -1614,6 +1614,34 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
+                Response resultHistory = restApiActions.get(
+                    ENDPOINT_BEING_TESTED_HISTORY,
+                    taskId,
+                    caseworkerCredentials.getHeaders()
+                );
+
+                resultHistory.prettyPrint();
+                resultHistory.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_history_list.size()", equalTo(1))
+                    .body("task_history_list.get(3).state", equalTo("CANCELLED"))
+                    .body("task_history_list.get(3).assignee", equalTo(null))
+                    .body("task_history_list.get(3).updated_by", notNullValue())
+                    .body("task_history_list.get(3).updated", notNullValue())
+                    .body("task_history_list.get(3).update_action", equalTo("Cancel"))
+                    .body("task_history_list.get(3).due_date", notNullValue())
+                    .body("task_history_list.get(3).last_updated_date", notNullValue())
+                    .body("task_history_list.get(3).completed_date", nullValue())
+                    .body("task_history_list.get(3).completed_date_time", nullValue())
+                    .body("task_history_list.get(3).final_state_label", equalTo("USER_CANCELLED"))
+                    .body("task_history_list.get(3).number_of_reassignments", equalTo(0))
+                    .body("task_history_list.get(3).wait_time_days", nullValue())
+                    .body("task_history_list.get(3).wait_time", nullValue())
+                    .body("task_history_list.get(3).first_assigned_date", nullValue())
+                    .body("task_history_list.get(3).first_assigned_date_time", nullValue());
+
+
+
                 Response resultCancelReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
