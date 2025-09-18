@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.QueryR
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment.RoleAssignmentConsumerApplication;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -135,9 +136,9 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                     .stringValue("classification", "PRIVATE")
                     .stringValue("grantType", "STANDARD")
                     .stringValue("roleCategory", "LEGAL_OPERATIONS")
-                    .datetime("created", "yyyy-MM-dd'T'HH:mm:ssZ")
-                    .datetime("beginTime", "yyyy-MM-dd'T'HH:mm:ssZ")
-                    .datetime("endTime", "yyyy-MM-dd'T'HH:mm:ssZ")
+                    .numberMatching("created", "^[0-9]+(\\.[0-9]+)?$", new BigDecimal("1758105100.293081000"))
+                    .numberMatching("beginTime", "^[0-9]+(\\.[0-9]+)?$", new BigDecimal("1758105100.293081000"))
+                    .numberMatching("endTime", "^[0-9]+(\\.[0-9]+)?$", new BigDecimal("1758105100.293081000"))
                     .booleanValue("readOnly", false)
                     .object("attributes", attribute -> attribute
                         .stringType("jurisdiction", "IA")
