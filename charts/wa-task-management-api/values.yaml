@@ -65,3 +65,8 @@ java:
     MANDATORY_TASK_FIELD_CHECK_ENABLED: false
   spotInstances:
     enabled: false
+wa:
+  enabled: false
+#camunda-bpm:
+#  enabled: false
+
