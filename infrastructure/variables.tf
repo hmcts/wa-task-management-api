@@ -73,3 +73,10 @@ variable "email_address_key" {
   type        = string
   default     = "db-alert-monitoring-email-address"
 }
+
+
+variable "is_qpa_enabled" {
+  description = "Enable Query Performance Insight"
+  type        = string
+  default     = false
+}
