@@ -87,6 +87,8 @@ module "wa_task_management_api_database_flexible" {
   pgsql_version = 14
   common_tags   = local.common_tags
 
+  enable_qpi = var.is_qpa_enabled
+
   admin_user_object_id = var.jenkins_AAD_objectId
 
 }
@@ -114,6 +116,7 @@ module "wa_task_management_api_database_flexible_replica" {
   ]
 
   pgsql_version = 14
+  enable_qpi = var.is_qpa_enabled
   common_tags   = local.common_tags
 
   admin_user_object_id = var.jenkins_AAD_objectId
