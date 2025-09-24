@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -77,7 +77,7 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
             .grantType(GrantType.SPECIFIC)
             .roleCategory(RoleCategory.LEGAL_OPERATIONS)
             .readOnly(false)
-            .created(LocalDateTime.parse("2020-11-09T14:32:23.693195"))
+            .created(OffsetDateTime.parse("2020-11-09T14:32:23.693195Z"))
             .attributes(Map.of(
                 RoleAttributeDefinition.CASE_ID.value(), "1604929600826893",
                 RoleAttributeDefinition.JURISDICTION.value(), "IA",
@@ -116,7 +116,7 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
                 .grantType(GrantType.SPECIFIC)
                 .roleCategory(RoleCategory.LEGAL_OPERATIONS)
                 .readOnly(false)
-                .created(LocalDateTime.parse("2020-11-09T14:32:23.693195"))
+                .created(OffsetDateTime.parse("2020-11-09T14:32:23.693195Z"))
                 .attributes(Map.of(
                     RoleAttributeDefinition.CASE_ID.value(), "1604929600826893",
                     RoleAttributeDefinition.JURISDICTION.value(), "IA",
@@ -134,7 +134,7 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
                 .grantType(GrantType.SPECIFIC)
                 .roleCategory(RoleCategory.LEGAL_OPERATIONS)
                 .readOnly(false)
-                .created(LocalDateTime.parse("2020-11-09T14:32:23.693195"))
+                .created(OffsetDateTime.parse("2020-11-09T14:32:23.693195Z"))
                 .attributes(Map.of(
                     RoleAttributeDefinition.CASE_ID.value(), "1604929600826893",
                     RoleAttributeDefinition.JURISDICTION.value(), "IA",
@@ -155,7 +155,6 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
         String roleAssignmentsResponseAsJsonString = loadJsonFileResourceWithUnknownValues();
 
         stubRoleAssignmentApiResponse(roleAssignmentsResponseAsJsonString);
-
         RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
             "user token",
             "s2s token",
@@ -174,7 +173,7 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
             .grantType(GrantType.UNKNOWN)
             .roleCategory(RoleCategory.UNKNOWN)
             .readOnly(false)
-            .created(LocalDateTime.parse("2020-11-09T14:32:23.693195"))
+            .created(OffsetDateTime.parse("2020-11-09T14:32:23.693195Z"))
             .attributes(Map.of(
                 RoleAttributeDefinition.CASE_ID.value(), "1604929600826893",
                 RoleAttributeDefinition.JURISDICTION.value(), "IA",
