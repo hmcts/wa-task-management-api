@@ -31,7 +31,7 @@ public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
         return caseDataContentMap;
     }
 
-    @Pact(provider = "ccdDataStoreAPI_WorkAllocation", consumer = "wa_task_management_api")
+    @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "wa_task_management_api")
     public RequestResponsePact startEventForCaseWorker(PactDslWithProvider builder) throws JSONException {
         return builder
             .given("A Start Event for a Caseworker is  requested",

@@ -54,7 +54,7 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         ccdDataService = new CcdDataService(ccdDataServiceApi, authTokenGenerator, systemTokenGenerator);
     }
 
-    @Pact(provider = "ccdDataStoreAPI_WorkAllocation", consumer = "wa_task_management_api")
+    @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "wa_task_management_api")
     public RequestResponsePact executeCcdGetCasesByCaseId(PactDslWithProvider builder) {
 
         Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");

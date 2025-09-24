@@ -32,7 +32,7 @@ public class SubmitEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
         return caseDataContentMap;
     }
 
-    @Pact(provider = "ccdDataStoreAPI_WorkAllocation", consumer = "wa_task_management_api")
+    @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "wa_task_management_api")
     public RequestResponsePact submitEventForCaseWorker(PactDslWithProvider builder) throws JSONException {
         return builder
             .given("A Submit Event for a Caseworker is requested",
