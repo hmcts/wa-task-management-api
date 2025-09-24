@@ -28,7 +28,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.io.IOException;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -49,7 +48,7 @@ public class Common {
     public static final String DEFAULT_TASK_TYPE = "reviewTheAppeal";
     public static final String DEFAULT_TASK_NAME = "A Task";
     public static final WarningValues DEFAULT_WARNINGS = new WarningValues();
-    public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+    public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     public static final String R2_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
     public static final String R1_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/set-organisational-role-assignment-request.json";
@@ -234,8 +233,8 @@ public class Common {
     public void cleanUpTask(String... taskId) {
         Stream.of(taskId).forEach(task -> {
             log.info("Cleaning task {}", task);
-//            camundaApiActions.post(ENDPOINT_COMPLETE_TASK, task,
-//                authorizationProvider.getServiceAuthorizationHeadersOnly());
+            camundaApiActions.post(ENDPOINT_COMPLETE_TASK, task,
+                authorizationProvider.getServiceAuthorizationHeadersOnly());
         });
     }
 
@@ -1103,7 +1102,7 @@ public class Common {
             } else {
                 assignmentRequestBody = assignmentRequestBody.replace(
                     "{END_TIME_PLACEHOLDER}",
-                    ZonedDateTime.now().plusHours(4).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
+                    ZonedDateTime.now().plusHours(2).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
                 );
             }
 
