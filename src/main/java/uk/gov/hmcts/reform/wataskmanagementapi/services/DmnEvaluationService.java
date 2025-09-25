@@ -25,6 +25,7 @@ import java.util.Set;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_PERMISSIONS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.jsonValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.DmnConfigFieldUtils.cleanFieldsWithInternalDefaults;
 
 @Slf4j
 @Component
@@ -108,21 +109,7 @@ public class DmnEvaluationService {
                 new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
 
-            /**
-             * Loop through each field in dmnConfigFieldsWithInternalDefaults and check if the field is equal to the
-             * name from dmnResponse. If the name is present, then get the value of the field. Check if the value is
-             * null or empty for that field if yes then remove the field from the dmnResponse so that it won't override
-             * existing value.
-             */
-
-            dmnConfigFieldsWithInternalDefaults.forEach(
-                field ->
-                    dmnResponse.removeIf(response -> {
-                        String nameValue = response.getName().getValue();
-                        String responseValue = response.getValue() != null ? response.getValue().getValue() : null;
-                        return field.equals(nameValue) && (responseValue == null || responseValue.isEmpty());
-                    })
-            );
+            cleanFieldsWithInternalDefaults(dmnConfigFieldsWithInternalDefaults, dmnResponse);
 
             return dmnResponse.stream().map(response -> {
                 if (fieldsToExcludeFromTrim.contains(response.getName().getValue())) {
