@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassifica
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
@@ -204,6 +205,24 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         assertNotNull(taskResourcePostComplete.get().getLastUpdatedTimestamp());
         assertEquals(IDAM_OTHER_USER_ID, taskResourcePostComplete.get().getLastUpdatedUser());
         assertEquals(TaskAction.COMPLETED.getValue(), taskResourcePostComplete.get().getLastUpdatedAction());
+
+        await()
+            .pollDelay(5, SECONDS)
+            .atMost(30, SECONDS)
+            .untilAsserted(() -> {
+
+                List<TaskHistoryResource> taskHistoryResourceList
+                    = miReportingServiceForTest.findByTaskId(taskId);
+
+                assertEquals(2, taskHistoryResourceList.size());
+                assertEquals("COMPLETED", taskHistoryResourceList.get(1).getState());
+                assertNotNull(taskHistoryResourceList.get(1).getAssignee());
+                assertNotNull(taskHistoryResourceList.get(1).getUpdatedBy());
+                assertNotNull(taskHistoryResourceList.get(1).getUpdated());
+                assertEquals("Complete", taskHistoryResourceList.get(1).getUpdateAction());
+                assertNotNull(taskHistoryResourceList.get(1).getCreated());
+                assertNotNull(taskHistoryResourceList.get(1).getDueDateTime());
+            });
 
         await()
             .pollDelay(5, SECONDS)
