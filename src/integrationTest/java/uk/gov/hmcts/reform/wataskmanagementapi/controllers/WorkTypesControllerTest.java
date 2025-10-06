@@ -106,7 +106,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(19)
+            jsonPath("$.work_types.length()").value(20)
         ).andReturn();
 
 
@@ -130,7 +130,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(19)
+            jsonPath("$.work_types.length()").value(20)
         );
     }
 
