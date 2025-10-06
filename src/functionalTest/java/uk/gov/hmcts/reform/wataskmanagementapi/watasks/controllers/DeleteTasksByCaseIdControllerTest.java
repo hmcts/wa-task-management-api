@@ -16,19 +16,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 
 public class DeleteTasksByCaseIdControllerTest extends SpringBootFunctionalBaseTest {
 
-
     private static final String ENDPOINT_BEING_TESTED = "task/delete";
-    private TestAuthenticationCredentials caseworkerCredentials;
-
-    @Before
-    public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-    }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+
     }
 
     @Test

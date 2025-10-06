@@ -86,7 +86,6 @@ withPipeline(type, product, component) {
     }
 
     before('functionalTest:aat') {
-        env.INITIATION_JOB_RUNNING = false
         env.MAX_FT_TESTS_PARALLEL_FORKS = 5
         env.ENABLE_TEST_USER_DELETION = true
     }

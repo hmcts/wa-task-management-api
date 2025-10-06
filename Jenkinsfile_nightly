@@ -74,7 +74,6 @@ withNightlyPipeline(type, product, component) {
   env.PACT_BROKER_SCHEME = "https"
   env.CCD_GW_URL = "https://gateway-ccd.aat.platform.hmcts.net"
   env.MAX_FT_TESTS_PARALLEL_FORKS = 3
-  env.INITIATION_JOB_RUNNING = false
   env.WA_WORKFLOW_API_URL = "http://wa-workflow-api-aat.service.core-compute-aat.internal"
 
 

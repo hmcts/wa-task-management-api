@@ -40,30 +40,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        caseworkerForReadCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        otherUser = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R2);
-
         assigneeId = getAssigneeId(waCaseworkerCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(otherUser.getHeaders());
-        authorizationProvider.deleteAccount(otherUser.getAccount().getUsername());
-
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -191,7 +177,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             result.then().assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             String completionProcess = data[0];
-            String terminationProcess = data[1];
             result = restApiActions.post(
                 ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
                 taskId,

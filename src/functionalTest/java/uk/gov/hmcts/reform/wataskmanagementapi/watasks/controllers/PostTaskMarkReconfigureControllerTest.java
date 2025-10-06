@@ -29,18 +29,11 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private String taskId;
 
-    @Before
-    public void setUp() {
-        assignerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-    }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
-        authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
     }
 
     @Test

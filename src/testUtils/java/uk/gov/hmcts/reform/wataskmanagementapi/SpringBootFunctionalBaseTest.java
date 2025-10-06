@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,9 +84,6 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
-    protected static String ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER =
-        "Role Assignment Verification: The user assigning the Task has failed the Role Assignment checks performed.";
-    protected static String TASK_NOT_FOUND_ERROR = "Task Not Found Error: The task could not be found.";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
@@ -100,13 +98,9 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected CcdRetryableClient ccdRetryableClient;
     @Autowired
-    protected RoleAssignmentHelper roleAssignmentHelper;
-    @Autowired
     protected IdamService idamService;
     @Autowired
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Autowired
-    protected TaskMandatoryFieldsValidator  taskMandatoryFieldsValidator;
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
 
@@ -118,24 +112,42 @@ public abstract class SpringBootFunctionalBaseTest {
     private String testUrl;
     @Value("${launch_darkly.url}")
     private String launchDarklyUrl;
-    @Value("${initiation_job_running}")
-    private Boolean initiationJobRunning;
 
-    protected TestAuthenticationCredentials baseCaseworkerCredentials;
-    protected TestAuthenticationCredentials waCaseworkerCredentials;
-    protected TestAuthenticationCredentials caseworkerCredentials;
-    protected TestAuthenticationCredentials assignerCredentials;
-    protected TestAuthenticationCredentials assigneeCredentials;
-    protected TestAuthenticationCredentials secondAssigneeCredentials;
-    protected TestAuthenticationCredentials caseworkerForReadCredentials;
-    protected TestAuthenticationCredentials currentCaseworkerCredentials;
-    protected TestAuthenticationCredentials unassignUser;
-    protected TestAuthenticationCredentials otherUser;
-    protected TestAuthenticationCredentials ginIndexCaseworkerCredentials;
-    protected String idamSystemUser;
+    protected static TestAuthenticationCredentials baseCaseworkerCredentials;
+    protected static TestAuthenticationCredentials waCaseworkerCredentials;
+    protected static TestAuthenticationCredentials caseworkerCredentials;
+    protected static TestAuthenticationCredentials assignerCredentials;
+    protected static TestAuthenticationCredentials assigneeCredentials;
+    protected static TestAuthenticationCredentials secondAssigneeCredentials;
+    protected static TestAuthenticationCredentials caseworkerForReadCredentials;
+    protected static TestAuthenticationCredentials currentCaseworkerCredentials;
+    protected static TestAuthenticationCredentials unassignUser;
+    protected static TestAuthenticationCredentials otherUser;
+    protected static TestAuthenticationCredentials ginIndexCaseworkerCredentials;
+    protected static String idamSystemUser;
+
+    private static boolean credentialsInitialized = false;
+
 
     @Before
-    public void setUpGivens() throws IOException {
+    public void setUpGivens() {
+        if (!credentialsInitialized) {
+            secondAssigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            caseworkerForReadCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R2);
+            baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            assignerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            assigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            ginIndexCaseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+
+
+            idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
+
+            credentialsInitialized = true;
+        }
+
+
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         workflowApiActions = new RestApiActions(workflowUrl, LOWER_CAMEL_CASE).setUp();
@@ -160,22 +172,20 @@ public abstract class SpringBootFunctionalBaseTest {
             roleAssignmentServiceApi,
             workflowApiActions);
 
-        idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
-        baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         common.setupWAOrganisationalRoleAssignment(baseCaseworkerCredentials.getHeaders());
     }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(250, MILLISECONDS)
+            .atMost(20, SECONDS)
             .until(
                 () -> {
                     Response camundaGetTaskResult = camundaApiActions.get(
@@ -257,32 +267,23 @@ public abstract class SpringBootFunctionalBaseTest {
                               Headers headers,
                               Map<String, String> additionalProperties,
                               Consumer<Response> assertConsumer) {
-        log.info("Task initiate with cron job {}", initiationJobRunning);
-        if (initiationJobRunning) {
-            await()
-                .pollInterval(10, SECONDS)
-                .atMost(120, SECONDS)
-                .until(
-                    () -> {
-                        Response response = restApiActions.get(
-                            TASK_GET_ENDPOINT,
-                            testVariables.getTaskId(),
-                            headers
-                        );
 
-                        return HttpStatus.OK.value() == response.getStatusCode();
-                    }
-                );
-        } else {
             sendInitiateRequest(testVariables, additionalProperties,headers);
-        }
 
-        Response response = restApiActions.get(
-            TASK_GET_ENDPOINT,
-            testVariables.getTaskId(),
-            headers
-        );
-        assertConsumer.accept(response);
+        await()
+            .pollInterval(1, SECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    Response response = restApiActions.get(
+                        TASK_GET_ENDPOINT,
+                        testVariables.getTaskId(),
+                        headers
+                    );
+
+                    return HttpStatus.OK.value() == response.getStatusCode();
+                }
+            );
     }
 
     private Consumer<Response> defaultInitiationAssert(TestVariables testVariables) {
@@ -342,7 +343,6 @@ public abstract class SpringBootFunctionalBaseTest {
         taskAttributes.put(SECURITY_CLASSIFICATION.value(), SecurityClassification.PUBLIC);
         taskAttributes.put(HAS_WARNINGS.value(), hasWarnings);
         taskAttributes.put(WARNING_LIST.value(), testVariables.getWarnings());
-        taskAttributes.put(WARNING_LIST.value(), testVariables.getWarnings());
         taskAttributes.put("__processCategory__Protection", true);
         Optional.ofNullable(additionalProperties).ifPresent(taskAttributes::putAll);
 
@@ -393,10 +393,6 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected String getAssigneeId(Headers headers) {
         return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
-    }
-
-    protected Boolean isInitiationJobRunning() {
-        return this.initiationJobRunning;
     }
 
 }

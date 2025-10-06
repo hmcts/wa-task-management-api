@@ -53,22 +53,12 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
 
-    @Before
-    public void setUp() {
-        assignerCredentials = authorizationProvider.getNewWaTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        assigneeCredentials = authorizationProvider.getNewWaTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        ginIndexCaseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
-    }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
         common.clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
-
-        authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -904,7 +894,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
                 .atLeast(5, TimeUnit.SECONDS)
-                .pollInterval(5, SECONDS)
+                .pollInterval(2, SECONDS)
                 .atMost(180, SECONDS)
                 .untilAsserted(() -> {
                     Response taskResult = restApiActions.get(
@@ -1000,7 +990,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
             .atLeast(5, TimeUnit.SECONDS)
-            .pollInterval(5, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(180, SECONDS)
             .untilAsserted(() -> {
 
@@ -1095,7 +1085,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
             .atLeast(5, TimeUnit.SECONDS)
-            .pollInterval(5, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(180, SECONDS)
             .untilAsserted(() -> {
 
@@ -1200,7 +1190,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
             .atLeast(5, TimeUnit.SECONDS)
-            .pollInterval(5, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(180, SECONDS)
             .untilAsserted(() -> {
                 Response taskResult = restApiActions.get(
@@ -1305,7 +1295,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
 
         await().ignoreException(Exception.class)
             .atLeast(5, TimeUnit.SECONDS)
-            .pollInterval(5, SECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(180, SECONDS)
             .untilAsserted(() -> {
 
