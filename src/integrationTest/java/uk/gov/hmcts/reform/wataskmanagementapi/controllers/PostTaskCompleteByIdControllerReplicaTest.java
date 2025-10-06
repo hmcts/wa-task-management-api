@@ -104,7 +104,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
     private ServiceMocks mockServices;
 
     @Test
-    void when_the_task_completed_values_should_reflect_replica_db() throws Exception {
+    void should_update_reportable_task_values_when_complete_api_invoked() throws Exception {
 
         final String taskId = UUID.randomUUID().toString();
 
