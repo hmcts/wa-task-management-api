@@ -347,13 +347,15 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                                                    "Query work");
         WorkType expectedWorkType19 = new WorkType("welsh_translation_work",
                                                    "Welsh translation work");
+        WorkType expectedWorkType20 = new WorkType("bail_work",
+                                                   "Bail work");
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
             expectedWorkType7, expectedWorkType8, expectedWorkType9,
             expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13,
             expectedWorkType14, expectedWorkType15, expectedWorkType16, expectedWorkType17,
-            expectedWorkType18, expectedWorkType19
+            expectedWorkType18, expectedWorkType19,expectedWorkType20
         ));
     }
 
