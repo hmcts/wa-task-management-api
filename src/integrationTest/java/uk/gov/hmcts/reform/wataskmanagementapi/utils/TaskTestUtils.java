@@ -344,8 +344,8 @@ public class TaskTestUtils {
             .classification(Classification.PUBLIC)
             .authorisations(authorisations)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
     }
 }
