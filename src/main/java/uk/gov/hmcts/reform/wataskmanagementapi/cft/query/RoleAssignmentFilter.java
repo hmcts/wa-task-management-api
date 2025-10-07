@@ -19,7 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassifica
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -403,10 +403,10 @@ public final class RoleAssignmentFilter {
     }
 
     private static boolean hasEndTimePermission(RoleAssignment roleAssignment) {
-        LocalDateTime endTime = roleAssignment.getEndTime();
+        OffsetDateTime endTime = roleAssignment.getEndTime();
         if (endTime != null) {
 
-            ZonedDateTime endTimeLondonTime = endTime.atZone(ZONE_ID);
+            ZonedDateTime endTimeLondonTime = endTime.atZoneSameInstant(ZONE_ID);
             ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(ZONE_ID);
 
             return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
@@ -415,10 +415,10 @@ public final class RoleAssignmentFilter {
     }
 
     private static boolean hasBeginTimePermission(RoleAssignment roleAssignment) {
-        LocalDateTime beginTime = roleAssignment.getBeginTime();
+        OffsetDateTime beginTime = roleAssignment.getBeginTime();
         if (beginTime != null) {
 
-            ZonedDateTime beginTimeLondonTime = beginTime.atZone(ZONE_ID);
+            ZonedDateTime beginTimeLondonTime = beginTime.atZoneSameInstant(ZONE_ID);
             ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(ZONE_ID);
 
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);

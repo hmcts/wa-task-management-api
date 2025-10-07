@@ -56,7 +56,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -701,8 +700,8 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             .classification(Classification.PUBLIC)
             .authorisations(authorisations)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
     }
 }
