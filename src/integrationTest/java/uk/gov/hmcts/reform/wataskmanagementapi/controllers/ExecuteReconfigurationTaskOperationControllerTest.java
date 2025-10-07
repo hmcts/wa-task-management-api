@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.launchdarkly.sdk.LDValue;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,10 +122,13 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
     }
 
+    @BeforeAll
+    void init() {
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
+    }
+
     @BeforeEach
     void setUp() {
-
-        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);

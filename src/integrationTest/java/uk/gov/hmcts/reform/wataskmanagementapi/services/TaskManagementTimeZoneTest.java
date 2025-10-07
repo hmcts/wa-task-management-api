@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -157,6 +158,11 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
     public static final String SYSTEM_USER_1 = "system_user1";
     public static final String ASSIGNEE_USER = "assigneeUser";
 
+    @BeforeAll
+    void init() {
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"UTC", "BST"})
     void when_timezone_changes_all_timestamp_attributes_should_behave_consistently(String timeZone) throws Exception {
@@ -248,8 +254,6 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     @Test
     void when_timezone_changes_reconfig_attributes_should_behave_consistently() throws Exception {
-
-        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);

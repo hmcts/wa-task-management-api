@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -104,11 +105,14 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     private ServiceMocks mockServices;
 
+    @BeforeAll
+    void init() {
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
+    }
+
 
     @BeforeEach
     void setUp() {
-
-        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
 
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
