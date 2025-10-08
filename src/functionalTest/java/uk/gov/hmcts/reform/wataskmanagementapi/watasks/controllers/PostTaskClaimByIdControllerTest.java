@@ -16,22 +16,13 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
 
-    @Before
-    public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        currentCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-    }
+
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(currentCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(currentCaseworkerCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -81,7 +72,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-        
+
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId);

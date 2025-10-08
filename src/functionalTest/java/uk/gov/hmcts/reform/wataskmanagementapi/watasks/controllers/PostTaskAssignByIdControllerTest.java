@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -17,30 +19,12 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
     private String taskId;
 
-    @Before
-    public void setUp() {
-        assignerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        assigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        secondAssigneeCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        caseworkerForReadCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-    }
-
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(assignerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(assigneeCredentials.getHeaders());
-        authorizationProvider.deleteAccount(assigneeCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(secondAssigneeCredentials.getHeaders());
-        authorizationProvider.deleteAccount(secondAssigneeCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
