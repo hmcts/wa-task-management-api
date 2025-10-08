@@ -24,7 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfig
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -1314,8 +1314,8 @@ class TaskAutoRoleAssignmentServiceTest {
             .classification(Classification.PUBLIC)
             .authorisations(authorisations)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
     }
 
