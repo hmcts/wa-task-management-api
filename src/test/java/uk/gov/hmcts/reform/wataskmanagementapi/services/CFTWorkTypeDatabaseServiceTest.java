@@ -79,7 +79,8 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkTypeResource("intermediate-track-decision-making-work", "Intermediate track decision making work"),
             new WorkTypeResource("multi-track-decision-making-work", "Multi track decision making work"),
             new WorkTypeResource("query_work", "Query work"),
-            new WorkTypeResource("welsh_translation_work", "Welsh translation work")
+            new WorkTypeResource("welsh_translation_work", "Welsh translation work"),
+            new WorkTypeResource("bail_work", "Bail work")
         );
 
         when(workTypeResourceRepository.findAll()).thenReturn(workTypeResources);
@@ -116,7 +117,8 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkType("intermediate_track_decision_making_work", "Intermediate track decision making work"),
             new WorkType("multi_track_decision_making_work", "Multi track decision making work"),
             new WorkType("query_work", "Query work"),
-            new WorkType("welsh_translation_work", "Welsh translation work")
+            new WorkType("welsh_translation_work", "Welsh translation work"),
+            new WorkType("bail_work", "Bail work")
         );
     }
 }
