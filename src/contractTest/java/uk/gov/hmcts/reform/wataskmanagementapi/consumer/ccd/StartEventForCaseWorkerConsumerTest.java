@@ -64,6 +64,7 @@ public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
             START_APPEAL);
 
         assertThat(startEventResponse.getEventId(), is(START_APPEAL));
+        assertNotNull(startEventResponse.getToken());
         assertCaseDetails(startEventResponse.getCaseDetails());
     }
 
