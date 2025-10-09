@@ -10,7 +10,7 @@ select task_id from cft_task_db.tasks where jurisdiction = 'SSCS' and state in (
 select count(*) from cft_task_db.sscs_completed_tasks_ids_backup;
 -- 8
 
-update cft_task_db.tasks set termination_reason = 'https://tools.hmcts.net/jira/browse/RWA-4667' where jurisdiction = 'SSCS' and state in ('COMPLETED','TERMINATED') and termination_reason = 'completed';
+update cft_task_db.tasks set termination_reason = 'RWA-4667' where jurisdiction = 'SSCS' and state in ('COMPLETED','TERMINATED') and termination_reason = 'completed';
 -- Updated Rows = 8
 
 -- Verify the update
@@ -18,7 +18,7 @@ select count(*) from cft_task_db.tasks where jurisdiction = 'SSCS' and state in 
 -- 0
 
 -- Verify the new termination reason
-select count(*) from cft_task_db.tasks where jurisdiction = 'SSCS' and state in ('COMPLETED','TERMINATED') and termination_reason = 'https://tools.hmcts.net/jira/browse/RWA-4667';
+select count(*) from cft_task_db.tasks where jurisdiction = 'SSCS' and state in ('COMPLETED','TERMINATED') and termination_reason = 'RWA-4667';
 -- 8
 
 -- Drop the backup table if not needed
