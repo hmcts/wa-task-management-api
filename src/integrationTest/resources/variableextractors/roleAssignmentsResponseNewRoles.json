@@ -11,7 +11,7 @@
       "grantType": "SPECIFIC",
       "roleCategory": "LEGAL_OPERATIONS",
       "readOnly": false,
-      "created": "2020-11-09T14:32:23.693195",
+      "created": "2020-11-09T14:32:23.693195+00:00",
       "attributes": {
         "caseId": "1604929600826893",
         "jurisdiction": "IA",
@@ -29,7 +29,7 @@
       "grantType": "SPECIFIC",
       "roleCategory": "LEGAL_OPERATIONS",
       "readOnly": false,
-      "created": "2020-11-09T14:32:23.693195",
+      "created": "2020-11-09T14:32:23.693195+00:00",
       "attributes": {
         "caseId": "1604929600826893",
         "jurisdiction": "IA",
