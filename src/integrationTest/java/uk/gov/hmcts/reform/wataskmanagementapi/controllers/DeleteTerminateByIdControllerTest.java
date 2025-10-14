@@ -288,4 +288,3 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
     }
 }
-
