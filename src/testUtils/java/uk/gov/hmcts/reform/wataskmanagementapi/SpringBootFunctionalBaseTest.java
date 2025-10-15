@@ -4,7 +4,6 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassifica
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -76,6 +76,8 @@ public abstract class SpringBootFunctionalBaseTest {
 
     @Autowired
     protected TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+    @Autowired
+    protected TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
@@ -87,15 +89,8 @@ public abstract class SpringBootFunctionalBaseTest {
 
     @Before
     public void setUpGivens() throws IOException {
-        baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            baseCaseworkerCredentials.getHeaders());
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        baseCaseworkerCredentials = taskFunctionalTestsUserUtils
+            .getTestUser(TaskFunctionalTestsUserUtils.BASE_CASE_WORDER);
     }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {

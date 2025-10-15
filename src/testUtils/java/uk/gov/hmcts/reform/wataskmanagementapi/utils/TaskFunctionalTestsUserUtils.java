@@ -18,6 +18,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @Profile("functional")
 public class TaskFunctionalTestsUserUtils {
 
+    public static final String BASE_CASE_WORDER = "base-case-worker";
     public static final String CASE_WORKER = "case-worker";
     public static final String WA_CASE_WORKER = "wa-case-worker";
     public static final String ASSIGNER = "assigner";
@@ -39,6 +40,8 @@ public class TaskFunctionalTestsUserUtils {
 
     private static final String EMAIL_PREFIX_GIN_INDEX = "wa-gin-index-";
 
+    TestAuthenticationCredentials baseCaseworkerCredentials;
+
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
@@ -51,6 +54,10 @@ public class TaskFunctionalTestsUserUtils {
 
     @PostConstruct
     public void setup() {
+        baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            baseCaseworkerCredentials.getHeaders());
+        testUsersMap.put(BASE_CASE_WORDER,baseCaseworkerCredentials);
         testUsersMap.put(CASE_WORKER, authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R2));
         testUsersMap.put(WA_CASE_WORKER, authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5));
         testUsersMap.put(ASSIGNER, authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5));
