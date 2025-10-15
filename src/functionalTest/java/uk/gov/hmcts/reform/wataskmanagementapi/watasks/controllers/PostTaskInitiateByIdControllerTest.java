@@ -4,10 +4,15 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -29,27 +34,41 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
+    @Autowired
+    protected AuthorizationProvider authorizationProvider;
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    TestAuthenticationCredentials waCaseworkerCredentials;
+    TestAuthenticationCredentials assignerCredentials;
+
     @Before
     public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.WA_CASE_WORKER);
+        assignerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.ASSIGNER);
+
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assignerCredentials.getHeaders());
     }
 
     @Test
     public void should_return_a_200_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "processApplication", "Process Application"
             );
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -83,7 +102,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                             + "trigger/decideAnApplication)"))
                 .body("task.permissions.values.size()", equalTo(6))
-                .body("task.permissions.values", hasItems("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))
+                .body("task.permissions.values",
+                      hasItems("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "key1", "value1",
                     "key2", "value2",
@@ -100,14 +120,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
 
-        Response response = restApiActions.get(
+        Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
             TASK_GET_ROLES_ENDPOINT,
             taskId,
             waCaseworkerCredentials.getHeaders()
@@ -147,17 +167,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[9].role_name", equalTo("tribunal-caseworker"))
             .body("roles[9].permissions", hasItems("Read", "Own"));
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_calculate_due_date_when_initiating_a_follow_up_overdue_respondent_evidence_using_due_date() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "followUpOverdueRespondentEvidence", "Follow-up overdue case building"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -190,7 +211,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.description", equalTo("[Dummy Activity](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                   + "trigger/dummyActivity)"))
                 .body("task.permissions.values.size()", equalTo(6))
-                .body("task.permissions.values", hasItems("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))
+                .body("task.permissions.values",
+                      hasItems("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "key1", "value1",
                     "key2", "value2",
@@ -213,23 +235,24 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_calculate_due_date_when_initiating_a_multiple_calendar_task_using_due_date() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "multipleCalendarsDueDate", "Multiple calendars"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -277,23 +300,24 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_201_when_initiating_a_due_date_calculation_task_by_using_due_date_origin() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
-                                             "calculateDueDate", "Calculate Due Date"
-            );
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                             "calculateDueDate", "Calculate Due Date");
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -342,26 +366,27 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds(
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
                 "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "reviewSpecificAccessRequestJudiciary",
                 "additionalProperties_roleAssignmentId"
             );
         String taskId = taskVariables.getTaskId();
 
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "judge");
+        taskFunctionalTestsApiUtils.getCommon()
+            .setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "judge");
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -405,13 +430,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, waCaseworkerCredentials.getHeaders(), assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        Response response = restApiActions.get(
+        Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
             TASK_GET_ROLES_ENDPOINT,
             taskId,
             waCaseworkerCredentials.getHeaders()
@@ -448,13 +473,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[8].role_name", equalTo("task-supervisor"))
             .body("roles[8].permissions", hasItems("Read", "Manage", "Cancel"));
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_priority_date_when_initiating_a_task_without_hearing_date() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds(
+            = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_no_hearing_date.json",
             "processApplication",
             "process Application"
@@ -513,7 +538,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                             + "trigger/decideAnApplication)")
                 )
                 .body("task.permissions.values.size()", equalTo(6))
-                .body("task.permissions.values", hasItems("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))
+                .body("task.permissions.values",
+                      hasItems("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))
                 .body("task.additional_properties", equalToObject(Map.of(
                     "key1", "value1",
                     "key2", "value2",
@@ -525,16 +551,16 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_with_task_when_next_hearing_date_is_empty() {
 
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json",
-                                             "processApplication", "process application"
-            );
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json",
+                                             "processApplication", "process application");
         String taskId = taskVariables.getTaskId();
 
         Consumer<Response> assertConsumer = (result) -> {
@@ -590,22 +616,22 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_calculate_due_date_and_priority_date_using_intervals() {
 
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json",
-                                             "functionalTestTask2", "functional Test Task 2"
-            );
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_empty_hearing_date.json",
+                                             "functionalTestTask2", "functional Test Task 2");
         String taskId = taskVariables.getTaskId();
 
         Consumer<Response> assertConsumer = (result) -> {
@@ -643,25 +669,25 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_initiate_review_appeal_skeleton_argument_task_with_ctsc_category() {
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds(
+            = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_no_hearing_date.json",
             "reviewAppealSkeletonArgument",
             "Review Appeal Skeleton Argument"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTCtscRoleAssignmentForWA(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupCFTCtscRoleAssignmentForWA(waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -704,13 +730,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, waCaseworkerCredentials.getHeaders(), assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        Response response = restApiActions.get(
+        Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
             TASK_GET_ROLES_ENDPOINT,
             taskId,
             waCaseworkerCredentials.getHeaders()
@@ -726,19 +752,20 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[1].role_name", equalTo("task-supervisor"))
             .body("roles[1].permissions", hasItems("Read", "Manage", "Cancel"));
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_when_initiating_a_follow_up_overdue_task_by_id() {
         TestVariables taskVariables =
-            common.setupWATaskAndRetrieveIds(
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
                 "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "followUpOverdue",
                 "Follow Up Overdue"
             );
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon()
+            .setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -793,13 +820,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, waCaseworkerCredentials.getHeaders(), assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        Response response = restApiActions.get(
+        Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
             TASK_GET_ROLES_ENDPOINT,
             taskId,
             waCaseworkerCredentials.getHeaders()
@@ -818,19 +845,20 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("roles[2].role_name", equalTo("tribunal-caseworker"))
             .body("roles[2].permissions", hasItems("Read", "Execute"));
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_503_if_task_already_initiated_however_handled_gracefully() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process Application"
         );
 
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon()
+            .setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         Consumer<Response> assertConsumer = result -> result.then()
             .assertThat()
@@ -858,7 +886,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task.work_type_id", equalTo("hearing_work"))
             .body("task.work_type_label", equalTo("Hearing work"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+            .body("task.description",
+                  equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                               + "trigger/decideAnApplication)"))
             .body("task.permissions.values.size()", equalTo(6))
             .body("task.permissions.values", hasItems("Read", "Own", "Manage", "CompleteOwn", "CancelOwn", "Claim"))
@@ -873,24 +902,23 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         initiateTask(taskVariables, waCaseworkerCredentials.getHeaders(), assertConsumer);
         //Expect to get 503 for database conflict
         initiateTask(taskVariables, waCaseworkerCredentials.getHeaders(), assertConsumer);
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_502_if_task_is_missing_mandatory_task_attributes() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "validateMandatoryTaskAttributesDuringInitiation",
             "validateMandatoryTaskAttributesDuringInitiation"
         );
 
-        assignerCredentials = authorizationProvider.getNewWaTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        common.setupHearingPanelJudgeForSpecificAccess(assignerCredentials.getHeaders(),
-                                                       taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+        taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
+            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
 
         InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(taskVariables, null);
-        Response response = restApiActions.post(
+        Response response = taskFunctionalTestsApiUtils.getRestApiActions().post(
             TASK_INITIATION_ENDPOINT,
             taskVariables.getTaskId(),
             initiateTaskRequest,
@@ -904,17 +932,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(502))
             .body("message", containsString(MANDATORY_FIELD_MISSING_ERROR.getDetail()));
 
-        common.cleanUpTask(taskVariables.getTaskId());
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskVariables.getTaskId());
     }
 
     @Test
     public void should_calculate_due_date_must_be_working_day_should_default_to_next() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "mustBeWorkingDayDefault", "Must be working day default"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -959,23 +988,24 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void should_calculate_due_date_multiple_working_day_should_use_last_entry_in_dmn() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "multipleMustBeWorkingDays", "Multiple must  be working day"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders());
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -1020,13 +1050,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         initiateTask(taskVariables, assertConsumer);
 
-        assertions.taskVariableWasUpdated(
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
             "unassigned"
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
 }
