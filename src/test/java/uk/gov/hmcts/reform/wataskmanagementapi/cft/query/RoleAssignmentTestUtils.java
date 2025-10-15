@@ -6,7 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +25,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -40,8 +40,8 @@ public class RoleAssignmentTestUtils {
             .roleType(RoleType.CASE)
             .attributes(specificAttributes)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -63,8 +63,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -77,8 +77,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         roleAssignments.add(roleAssignment);
@@ -101,8 +101,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -111,8 +111,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         roleAssignments.add(roleAssignment);
@@ -122,8 +122,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.UNKNOWN)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         roleAssignments.add(roleAssignment);
@@ -137,8 +137,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         roleAssignments.add(roleAssignment);
@@ -154,8 +154,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(Map.of())
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -175,8 +175,8 @@ public class RoleAssignmentTestUtils {
                 RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
             ))
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -187,8 +187,8 @@ public class RoleAssignmentTestUtils {
                 RoleAttributeDefinition.JURISDICTION.value(), "WA"
             ))
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -199,8 +199,8 @@ public class RoleAssignmentTestUtils {
                 RoleAttributeDefinition.REGION.value(), "2"
             ))
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -211,8 +211,8 @@ public class RoleAssignmentTestUtils {
                 RoleAttributeDefinition.BASE_LOCATION.value(), "765325"
             ))
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -223,8 +223,8 @@ public class RoleAssignmentTestUtils {
                 RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
             ))
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -245,8 +245,8 @@ public class RoleAssignmentTestUtils {
             .attributes(specificAttributes)
             .grantType(GrantType.STANDARD)
             .authorisations(List.of("Skill1"))
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -263,8 +263,8 @@ public class RoleAssignmentTestUtils {
             .attributes(specificAttributes)
             .grantType(GrantType.SPECIFIC)
             .authorisations(List.of("Skill2"))
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         roleAssignments.add(roleAssignment);
@@ -286,8 +286,8 @@ public class RoleAssignmentTestUtils {
             .attributes(specificAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -300,8 +300,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         roleAssignments.add(roleAssignment);
@@ -316,8 +316,8 @@ public class RoleAssignmentTestUtils {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().plusYears(1))
-            .endTime(LocalDateTime.now().minusYears(1))
+            .beginTime(OffsetDateTime.now().plusYears(1))
+            .endTime(OffsetDateTime.now().minusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -325,7 +325,7 @@ public class RoleAssignmentTestUtils {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
-            .endTime(LocalDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().minusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -333,7 +333,7 @@ public class RoleAssignmentTestUtils {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -341,8 +341,8 @@ public class RoleAssignmentTestUtils {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().minusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().minusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -350,8 +350,8 @@ public class RoleAssignmentTestUtils {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().plusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().plusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -371,8 +371,8 @@ public class RoleAssignmentTestUtils {
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -385,8 +385,8 @@ public class RoleAssignmentTestUtils {
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         roleAssignments.add(roleAssignment);
@@ -407,8 +407,8 @@ public class RoleAssignmentTestUtils {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -422,8 +422,8 @@ public class RoleAssignmentTestUtils {
             .attributes(stdAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -436,8 +436,8 @@ public class RoleAssignmentTestUtils {
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -450,8 +450,8 @@ public class RoleAssignmentTestUtils {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .roleType(RoleType.CASE)
             .grantType(GrantType.EXCLUDED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -463,8 +463,8 @@ public class RoleAssignmentTestUtils {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
             .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
 
         return Collections.singletonList(roleAssignment);
@@ -477,8 +477,8 @@ public class RoleAssignmentTestUtils {
             .classification(classification)
             .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 

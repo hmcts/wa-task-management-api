@@ -12,10 +12,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
@@ -46,7 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @Slf4j
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
-    @MockBean
+    @MockitoBean
     private CamundaService camundaService;
 
     private CftQueryService cftQueryService;
@@ -803,8 +803,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(tcAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -818,8 +818,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(stcAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -833,8 +833,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(Collections.emptyMap())
             .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -848,8 +848,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(specificAttributes)
             .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -863,8 +863,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(stdAttributes)
             .grantType(GrantType.STANDARD)
             .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -877,8 +877,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .roleType(RoleType.CASE)
             .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -887,8 +887,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(Collections.emptyMap())
             .grantType(GrantType.EXCLUDED)
             .roleType(RoleType.CASE)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -902,8 +902,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.SPECIFIC)
             .attributes(Collections.emptyMap())
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 

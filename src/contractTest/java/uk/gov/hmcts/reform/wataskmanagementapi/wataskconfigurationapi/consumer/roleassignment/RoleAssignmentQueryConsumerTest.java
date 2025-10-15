@@ -13,10 +13,10 @@ import com.google.common.collect.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.QueryR
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment.RoleAssignmentConsumerApplication;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +54,9 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     protected ObjectMapper objectMapper;
     @Autowired
     RoleAssignmentServiceApi roleAssignmentApi;
-    @MockBean
+    @MockitoBean
     AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private IdamTokenGenerator idamTokenGenerator;
     private RoleAssignmentService roleAssignmentService;
 
@@ -135,6 +136,9 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
                     .stringValue("classification", "PRIVATE")
                     .stringValue("grantType", "STANDARD")
                     .stringValue("roleCategory", "LEGAL_OPERATIONS")
+                    .numberMatching("created", "^[0-9]+(\\.[0-9]+)?$", new BigDecimal("1758105100.293081000"))
+                    .numberMatching("beginTime", "^[0-9]+(\\.[0-9]+)?$", new BigDecimal("1758105100.293081000"))
+                    .numberMatching("endTime", "^[0-9]+(\\.[0-9]+)?$", new BigDecimal("1758105100.293081000"))
                     .booleanValue("readOnly", false)
                     .object("attributes", attribute -> attribute
                         .stringType("jurisdiction", "IA")

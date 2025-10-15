@@ -2,18 +2,19 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.opentest4j.AssertionFailedError;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -36,37 +37,26 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -115,58 +105,63 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @Slf4j
 class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
-    @MockBean
+    @MockitoBean
     private ClientAccessControlService clientAccessControlService;
 
     @Mock
     private CaseDetails caseDetails;
 
-    @MockBean
+    @MockitoBean
     private CcdDataServiceApi ccdDataServiceApi;
 
-    @MockBean
+    @MockitoBean
     private CamundaServiceApi camundaServiceApi;
 
-    @MockBean
+    @MockitoBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
 
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
 
     private ServiceMocks mockServices;
 
-    @MockBean
+    @MockitoBean
     private IdamWebApi idamWebApi;
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @SpyBean
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
-    @SpyBean
+    @MockitoSpyBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
-    @MockBean
+    @MockitoBean
     private DmnEvaluationService dmnEvaluationService;
 
-    @MockBean
+    @MockitoBean
     private CftQueryService cftQueryService;
 
-    @MockBean
+    @MockitoBean
     private CcdDataService ccdDataService;
 
-    @MockBean
+    @MockitoBean
     private RoleAssignmentService roleAssignmentService;
 
-    private String reconfigTaskId;
+    TaskTestUtils taskTestUtils;
 
     private String bearerAccessToken1;
 
     public static final String SYSTEM_USER_1 = "system_user1";
     public static final String ASSIGNEE_USER = "assigneeUser";
+
+    @BeforeAll
+    void init() {
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"UTC", "BST"})
@@ -285,7 +280,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             Map.of("caseAccessCategory", "categoryA,categoryC")
         );
         lenient().when(ccdDataService.getCaseData(anyString())).thenReturn(caseDetails);
-        RoleAssignment roleAssignmentResource = buildRoleAssignment(
+        RoleAssignment roleAssignmentResource = taskTestUtils.buildRoleAssignment(
             ASSIGNEE_USER,
             "tribunalCaseworker",
             singletonList("IA")
@@ -296,17 +291,18 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
-        reconfigTaskId = UUID.randomUUID().toString();
         String caseIdToday = UUID.randomUUID().toString();
         OffsetDateTime dueDateTime = OffsetDateTime.now(ZoneOffset.UTC);
-        createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, ASSIGNEE_USER, caseIdToday, dueDateTime);
+        String reconfigTaskId = taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday,
+                                                                           dueDateTime, ASSIGNEE_USER);
         doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, markTaskFilters(caseIdToday))))
+                .content(asJsonString(taskTestUtils.taskOperationRequest(
+                    MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -348,21 +344,21 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(configurationDmnResponse(true));
+            anyString())).thenReturn(taskTestUtils.configurationDmnResponse(true));
         when(dmnEvaluationService.evaluateTaskPermissionsDmn(
             anyString(),
             anyString(),
             anyString(),
-            anyString())).thenReturn(permissionsResponse());
+            anyString())).thenReturn(taskTestUtils.permissionsResponse());
         when(cftQueryService.getTask(any(), any(), anyList())).thenReturn(Optional.of(taskResourcesBefore.get(0)));
 
         mockMvc.perform(
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(
+                .content(asJsonString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
-                    executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
+                    taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -528,181 +524,4 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
         return taskId;
     }
 
-    private void createTaskAndRoleAssignments(CFTTaskState cftTaskState, String assignee, String caseId,
-                                              OffsetDateTime dueDateTime) {
-
-        //assigner permission : manage, own, cancel
-        TaskRoleResource assignerTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-            false, true, true, true, true, false,
-            new String[]{"IA"}, 1, true,
-            TestRolesWithGrantType.SPECIFIC_TRIBUNAL_CASE_WORKER.getRoleCategory().name()
-        );
-        String jurisdiction = "IA";
-        String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, caseId, reconfigTaskId, cftTaskState, assignee, dueDateTime,
-                            assignerTaskRoleResource
-        );
-
-        List<RoleAssignment> assignerRoles = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
-            .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
-                    .jurisdiction(jurisdiction)
-                    .caseType(caseType)
-                    .caseId(caseId)
-                    .build()
-            )
-            .build();
-
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
-    }
-
-    private void insertDummyTaskInDb(String jurisdiction,
-                                     String caseType,
-                                     String caseId,
-                                     String taskId,
-                                     CFTTaskState cftTaskState,
-                                     String assignee,
-                                     OffsetDateTime dueDateTime,
-                                     TaskRoleResource taskRoleResource) {
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-            cftTaskState
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(dueDateTime);
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId(caseId);
-        taskResource.setAssignee(assignee);
-        taskResource.setTitle("title");
-        taskRoleResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-        cftTaskDatabaseService.saveTask(taskResource);
-    }
-
-    private TaskOperationRequest taskOperationRequest(
-        TaskOperationType operationName, List<TaskFilter<?>> taskFilters) {
-        TaskOperation operation = TaskOperation
-            .builder()
-            .type(operationName)
-            .runId(UUID.randomUUID().toString())
-            .maxTimeLimit(60)
-            .retryWindowHours(0)
-            .build();
-        return new TaskOperationRequest(operation, taskFilters);
-    }
-
-    private List<TaskFilter<?>> markTaskFilters(String caseId) {
-        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter(
-            "case_id", List.of(caseId), TaskFilterOperator.IN
-        );
-        return List.of(filter);
-    }
-
-    private List<ConfigurationDmnEvaluationResponse> configurationDmnResponse(boolean canReconfigure) {
-        return asList(
-            new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1"),
-                                                   booleanValue(false)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("description"), stringValue("description"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("TestCase"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("512401"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Manchester"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("caseCategory"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("routine_work"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("JUDICIAL"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(
-                stringValue("priorityDate"),
-                stringValue("2021-05-09T20:15"),
-                booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("minorPriority"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("majorPriority"), stringValue("1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(stringValue("nextHearingId"), stringValue("nextHearingId1"),
-                                                   booleanValue(canReconfigure)
-            ),
-            new ConfigurationDmnEvaluationResponse(
-                stringValue("nextHearingDate"),
-                stringValue("2021-05-09T20:15"),
-                booleanValue(canReconfigure)
-            )
-        );
-    }
-
-    private List<PermissionsDmnEvaluationResponse> permissionsResponse() {
-        return asList(
-            new PermissionsDmnEvaluationResponse(
-                stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Execute,Manage,Cancel"),
-                stringValue("IA"),
-                integerValue(1),
-                booleanValue(true),
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryA,categoryC")
-            ),
-            new PermissionsDmnEvaluationResponse(
-                stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Execute,Manage,Cancel"),
-                stringValue("IA"),
-                integerValue(2),
-                booleanValue(true),
-                stringValue("LEGAL_OPERATIONS"),
-                stringValue("categoryB,categoryD")
-            )
-        );
-    }
-
-    private List<TaskFilter<?>> executeTaskFilters(OffsetDateTime reconfigureRequestTime) {
-        TaskFilter<?> filter = new ExecuteReconfigureTaskFilter("reconfigure_request_time",
-                                                                reconfigureRequestTime, TaskFilterOperator.AFTER
-        );
-        return List.of(filter);
-    }
-
-    private RoleAssignment buildRoleAssignment(String actorId, String roleName, List<String> authorisations) {
-        return RoleAssignment.builder()
-            .id(UUID.randomUUID().toString())
-            .actorIdType(ActorIdType.IDAM)
-            .actorId(actorId)
-            .roleName(roleName)
-            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-            .roleType(RoleType.ORGANISATION)
-            .classification(Classification.PUBLIC)
-            .authorisations(authorisations)
-            .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-    }
 }

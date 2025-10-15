@@ -13,12 +13,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
@@ -90,7 +90,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
-    @MockBean
+    @MockitoBean
     private CamundaService camundaService;
     @Autowired
     private EntityManager entityManager;

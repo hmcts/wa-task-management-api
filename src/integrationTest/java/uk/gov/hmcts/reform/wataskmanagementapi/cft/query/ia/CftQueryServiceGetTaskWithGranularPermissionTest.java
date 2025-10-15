@@ -10,10 +10,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
@@ -33,7 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssignmentHelper {
 
-    @MockBean
+    @MockitoBean
     private CamundaService camundaService;
 
     private CftQueryService cftQueryService;
@@ -103,8 +103,8 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .roleName("tribunal-caseworker")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
             .authorisations(List.of("373"))
@@ -145,8 +145,8 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .roleName("tribunal-caseworker")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
             .authorisations(List.of("373"))
@@ -194,8 +194,8 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .roleName("tribunal-caseworker")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
             .authorisations(List.of("373"))

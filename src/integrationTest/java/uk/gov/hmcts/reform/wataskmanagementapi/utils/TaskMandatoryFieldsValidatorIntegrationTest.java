@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +13,7 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -36,11 +37,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 @SuppressWarnings("checkstyle:LineLength")
+@Slf4j
 public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private LDClientInterface ldClient;
@@ -60,30 +62,30 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
 
     @ParameterizedTest
     @CsvSource({
-        "'', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskName'",
-        "'someTaskName', '', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskType'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', '', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'title'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', '', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseId'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', '', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseTypeId'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', '', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseCategory'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', '', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseName'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', '', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'jurisdiction'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', '', '765324', 'roleCategory', 'workTypeResource', 'region'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '', 'roleCategory', 'workTypeResource', 'location'",
+        "'', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'taskName'",
+        "'someTaskName', '', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'taskType'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', '', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'title'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', '', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', '', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseTypeId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', '', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', '', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseName'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', '', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'jurisdiction'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', '', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'region'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '', 'LEGAL_OPERATIONS', 'workTypeResource', 'location'",
         "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', '', 'workTypeResource', 'roleCategory'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', '', 'workTypeResource'",
-        ", 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskName'",
-        "'someTaskName', , 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'taskType'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', , 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'title'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', , 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseId'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', , 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseTypeId'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', , 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseCategory'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', , 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'caseName'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', , 'TestRegion', '765324', 'roleCategory', 'workTypeResource', 'jurisdiction'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', , '765324', 'roleCategory', 'workTypeResource', 'region'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', , 'roleCategory', 'workTypeResource', 'location'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', '', 'workTypeResource'",
+        ", 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'taskName'",
+        "'someTaskName', , 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'taskType'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', , 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'title'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', , 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', , 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseTypeId'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', , 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseCategory'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', , 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'caseName'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', , 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'jurisdiction'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', , '765324', 'LEGAL_OPERATIONS', 'workTypeResource', 'region'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', , 'LEGAL_OPERATIONS', 'workTypeResource', 'location'",
         "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', , 'workTypeResource', 'roleCategory'",
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', , 'workTypeResource'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', , 'workTypeResource'",
 
     })
     @DisplayName("should throw ServiceMandatoryFieldValidationException when a mandatory field is missing")
@@ -91,12 +93,13 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
         TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
         ServiceMandatoryFieldValidationException exception = assertThrows(ServiceMandatoryFieldValidationException.class, () -> taskMandatoryFieldsValidator.validate(task));
         String message = exception.getMessage();
+        log.info("Exception message: {}", message);
         assertTrue(message.contains(fieldName + " cannot be null or empty"));
     }
 
     @ParameterizedTest
     @CsvSource({
-        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'roleCategory', 'workTypeResource'",
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'LEGAL_OPERATIONS', 'workTypeResource'",
         })
     @DisplayName("should validate successfully when all mandatory fields are present")
     void should_validate_successfully_when_all_mandatory_fields_are_present(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location, String roleCategory, String workTypeResource) {
@@ -116,6 +119,36 @@ public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootInteg
                 -> taskMandatoryFieldsValidator.validate(task));
         String message = exception.getMessage();
         assertTrue(message.contains("caseId cannot be null or empty"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', '', 'workTypeResource'",
+    })
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when role category is missing")
+    void should_throw_service_mandatory_field_validation_exception_when_role_category_is_missing(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location,String roleCategory, String workTypeResource) {
+        TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class, ()
+                -> taskMandatoryFieldsValidator.validate(task));
+
+        String message = exception.getMessage();
+        assertTrue(message.contains("roleCategory cannot be null or empty"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "'someTaskName', 'someTaskType', 'PUBLIC', 'title', 'CASE_ID', 'Asylum', 'CaseCategory', 'CaseName', 'IA', 'TestRegion', '765324', 'wrongRoleCategory', 'workTypeResource'",
+    })
+    @DisplayName("should throw ServiceMandatoryFieldValidationException when role category is incorrect")
+    void should_throw_service_mandatory_field_validation_exception_when_role_category_is_incorrect(String taskName, String taskType, String securityClassification, String title,  String caseId, String caseTypeId, String caseCategory, String caseName, String jurisdiction, String region, String location,String roleCategory, String workTypeResource) {
+        TaskResource task = getTaskResource(taskId, taskName, taskType, securityClassification, title, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, roleCategory, workTypeResource);
+        ServiceMandatoryFieldValidationException exception =
+            assertThrows(ServiceMandatoryFieldValidationException.class, ()
+                -> taskMandatoryFieldsValidator.validate(task));
+
+        String message = exception.getMessage();
+        assertTrue(message.contains("roleCategory value 'wrongRoleCategory' is not one of the allowed values"));
     }
 
     @Test
