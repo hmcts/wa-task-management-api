@@ -90,7 +90,8 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() throws IOException {
         idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
         baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(baseCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            baseCaseworkerCredentials.getHeaders());
     }
 
     @After
