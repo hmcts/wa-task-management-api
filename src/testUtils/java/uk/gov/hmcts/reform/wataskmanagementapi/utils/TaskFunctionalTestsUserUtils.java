@@ -4,6 +4,7 @@ import io.restassured.http.Headers;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
@@ -14,6 +15,7 @@ import java.util.Map;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @Component
+@Profile("functional")
 public class TaskFunctionalTestsUserUtils {
 
     public static final String CASE_WORKER = "case-worker";

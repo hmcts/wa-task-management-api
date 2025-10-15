@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -16,6 +17,7 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAME
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
 
 @Component
+@Profile("functional")
 public class TaskFunctionalTestsApiUtils {
 
     @Getter
