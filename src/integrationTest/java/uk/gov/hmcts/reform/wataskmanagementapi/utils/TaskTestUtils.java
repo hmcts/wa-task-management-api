@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -29,6 +30,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,8 +44,16 @@ public class TaskTestUtils {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
 
+    private final String profile;
+
     public TaskTestUtils(CFTTaskDatabaseService cftTaskDatabaseService) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
+        this.profile = "primary";
+    }
+
+    public TaskTestUtils(CFTTaskDatabaseService cftTaskDatabaseService, String profile) {
+        this.cftTaskDatabaseService = cftTaskDatabaseService;
+        this.profile = profile;
     }
 
     public String createTaskAndRoleAssignments(CFTTaskState cftTaskState, String caseId,OffsetDateTime dueDateTime,
@@ -98,7 +108,7 @@ public class TaskTestUtils {
         if (null != dueDateTime) {
             taskResource.setDueDateTime(dueDateTime);
         } else {
-            taskResource.setDueDateTime(OffsetDateTime.now());
+            taskResource.setDueDateTime(OffsetDateTime.now().plusDays(1));
         }
         taskResource.setJurisdiction(jurisdiction);
         taskResource.setCaseTypeId(caseType);
@@ -111,7 +121,13 @@ public class TaskTestUtils {
         if (null != assignee) {
             taskResource.setAssignee(assignee);
         }
-
+        if ("replica".equals(profile)) {
+            taskResource.setLastUpdatedAction("Configure");
+            taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+            addMissingParameters(taskResource,true);
+            taskResource.setPriorityDate(OffsetDateTime.now().plusDays(3).withHour(10).withMinute(0).withSecond(0)
+                                             .withNano(0));
+        }
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
@@ -347,5 +363,42 @@ public class TaskTestUtils {
             .beginTime(OffsetDateTime.now().minusYears(1))
             .endTime(OffsetDateTime.now().plusYears(1))
             .build();
+    }
+
+    private void addMissingParameters(TaskResource taskResource, boolean required) {
+        taskResource.setDescription(required
+                                        ? "[Decide an application](/case/WA/WaCaseType/"
+                                        + "${[CASE_REFERENCE]}/trigger/decideAnApplication)"
+                                        : null);
+        List<NoteResource> notesList = new ArrayList<>();
+        final NoteResource noteResource = new NoteResource(
+            "someCode",
+            "noteTypeVal",
+            "userVal",
+            "someContent"
+        );
+        notesList.add(noteResource);
+        taskResource.setNotes(required ? notesList : null);
+        taskResource.setRegion(required ? "Wales" : null);
+        taskResource.setLocationName(required ? "Cardiff" : null);
+        taskResource.setAdditionalProperties(required ? Map.of(
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4"
+        ) : null);
+        taskResource.setReconfigureRequestTime(required
+                                                   ? OffsetDateTime.now().plusDays(1).withHour(10)
+            .withMinute(0).withSecond(0).withNano(0)
+                                                   : null);
+        taskResource.setLastReconfigurationTime(required
+                                                    ? OffsetDateTime.now().plusDays(1).withHour(10)
+            .withMinute(0).withSecond(0).withNano(0)
+                                                    : null);
+        taskResource.setNextHearingId(required ? "W-CA-1234" : null);
+        taskResource.setNextHearingDate(required
+                                            ? OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0)
+            .withSecond(0).withNano(0)
+                                            : null);
     }
 }

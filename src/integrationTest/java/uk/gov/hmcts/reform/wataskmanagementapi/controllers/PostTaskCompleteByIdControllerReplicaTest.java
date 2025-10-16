@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -35,13 +34,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -104,6 +101,13 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
     private ServiceMocks mockServices;
 
+    TaskTestUtils taskTestUtils;
+
+    @BeforeAll
+    void init() {
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"replica");
+    }
+
     @Test
     void should_update_reportable_task_values_when_complete_api_invoked() throws Exception {
 
@@ -158,19 +162,6 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
         taskRoleResource.setComplete(true);
 
-        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource,IDAM_USER_ID);
-
-        await()
-                .pollDelay(5, SECONDS)
-                .atMost(30, SECONDS)
-                .untilAsserted(() -> {
-                    List<ReportableTaskResource> reportableTaskList2
-                            = miReportingServiceForTest.findByReportingTaskId(taskId);
-                    assertEquals(1, reportableTaskList2.size());
-                });
-
-        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
@@ -186,6 +177,11 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         doNothing().when(camundaServiceApi).assignTask(any(), any(), any());
         doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
+        taskTestUtils.insertDummyTaskInDb("IA", "Asylum", "completeCaseId1",
+                                          taskId,UNASSIGNED, taskRoleResource,null, IDAM_USER_ID);
+
+        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
+
         CompleteTaskRequest request = new CompleteTaskRequest(null);
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -196,6 +192,15 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         ).andExpectAll(
             status().isNoContent()
         );
+
+        await()
+            .pollDelay(5, SECONDS)
+            .atMost(30, SECONDS)
+            .untilAsserted(() -> {
+                List<ReportableTaskResource> reportableTaskList2
+                    = miReportingServiceForTest.findByReportingTaskId(taskId);
+                assertEquals(1, reportableTaskList2.size());
+            });
 
         Optional<TaskResource> taskResourcePostComplete = cftTaskDatabaseService.findByIdOnly(taskId);
 
@@ -258,72 +263,6 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
                 assertNotNull(reportableTaskList.get(0).getDueDateToCompletedDiffTime());
             });
 
-    }
-
-    private void insertDummyTaskInDb(String jurisdiction, String caseType, String taskId,
-                                     TaskRoleResource taskRoleResource,
-                                     String assignee) {
-
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType",
-                UNASSIGNED
-        );
-        taskResource.setCreated(OffsetDateTime.now());
-        taskResource.setDueDateTime(OffsetDateTime.now().plusDays(1));
-        taskResource.setJurisdiction(jurisdiction);
-        taskResource.setCaseTypeId(caseType);
-        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
-        taskResource.setLocation("765324");
-        taskResource.setLocationName("Taylor House");
-        taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("completeCaseId1");
-        taskResource.setAssignee(assignee);
-        taskResource.setLastUpdatedUser(assignee);
-        taskResource.setLastUpdatedAction("Configure");
-        taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
-        taskRoleResource.setTaskId(taskId);
-        Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
-        taskResource.setTaskRoleResources(taskRoleResourceSet);
-
-        addMissingParameters(taskResource,true);
-        taskResource.setPriorityDate(OffsetDateTime.now().plusDays(3).withHour(10).withMinute(0).withSecond(0)
-                                         .withNano(0));
-        taskResourceRepository.save(taskResource);
-    }
-
-    private void addMissingParameters(TaskResource taskResource, boolean required) {
-        taskResource.setDescription(required
-                ? "[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/trigger/decideAnApplication)"
-                : null);
-        List<NoteResource> notesList = new ArrayList<>();
-        final NoteResource noteResource = new NoteResource(
-            "someCode",
-            "noteTypeVal",
-            "userVal",
-            "someContent"
-        );
-        notesList.add(noteResource);
-        taskResource.setNotes(required ? notesList : null);
-        taskResource.setRegion(required ? "Wales" : null);
-        taskResource.setLocationName(required ? "Cardiff" : null);
-        taskResource.setAdditionalProperties(required ? Map.of(
-            "key1", "value1",
-            "key2", "value2",
-            "key3", "value3",
-            "key4", "value4"
-        ) : null);
-        taskResource.setReconfigureRequestTime(required
-                ? OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0)
-                : null);
-        taskResource.setLastReconfigurationTime(required
-                ? OffsetDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0)
-                : null);
-        taskResource.setNextHearingId(required ? "W-CA-1234" : null);
-        taskResource.setNextHearingDate(required
-                ? OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0)
-                : null);
     }
 
 }
