@@ -36,12 +36,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -212,7 +220,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         assertEquals(TaskAction.COMPLETED.getValue(), taskResourcePostComplete.get().getLastUpdatedAction());
 
         await()
-            .pollDelay(5, SECONDS)
+            .pollDelay(3, SECONDS)
             .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
@@ -221,16 +229,24 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
                 assertEquals(2, taskHistoryResourceList.size());
                 assertEquals("COMPLETED", taskHistoryResourceList.get(1).getState());
-                assertNotNull(taskHistoryResourceList.get(1).getAssignee());
-                assertNotNull(taskHistoryResourceList.get(1).getUpdatedBy());
-                assertNotNull(taskHistoryResourceList.get(1).getUpdated());
+                assertEquals(IDAM_USER_ID, taskHistoryResourceList.get(1).getAssignee());
+                assertEquals(IDAM_OTHER_USER_ID, taskHistoryResourceList.get(1).getUpdatedBy());
                 assertEquals("Complete", taskHistoryResourceList.get(1).getUpdateAction());
-                assertNotNull(taskHistoryResourceList.get(1).getCreated());
-                assertNotNull(taskHistoryResourceList.get(1).getDueDateTime());
+
+                OffsetDateTime expected = OffsetDateTime.now();
+
+                assertThat(taskHistoryResourceList.get(1).getUpdated())
+                    .isCloseTo(expected, within(1, ChronoUnit.MINUTES));
+
+                assertThat(taskHistoryResourceList.get(1).getCreated())
+                    .isCloseTo(expected, within(1, ChronoUnit.MINUTES));
+
+                assertThat(taskHistoryResourceList.get(1).getDueDateTime())
+                    .isCloseTo(expected.plusDays(1), within(1, ChronoUnit.MINUTES));
             });
 
         await()
-            .pollDelay(5, SECONDS)
+            .pollDelay(3, SECONDS)
             .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
@@ -240,27 +256,72 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
                 assertEquals(1, reportableTaskList.size());
                 assertEquals("COMPLETED", reportableTaskList.get(0).getState());
                 assertNotNull(reportableTaskList.get(0).getAssignee());
+                assertEquals(IDAM_USER_ID, reportableTaskList.get(0).getAssignee());
                 assertNotNull(reportableTaskList.get(0).getUpdatedBy());
-                assertNotNull(reportableTaskList.get(0).getUpdated());
+                assertEquals(IDAM_OTHER_USER_ID, reportableTaskList.get(0).getUpdatedBy());
+
+                OffsetDateTime expected = OffsetDateTime.now();
+
+                assertThat(reportableTaskList.get(0).getUpdated())
+                    .isCloseTo(expected, within(1, ChronoUnit.MINUTES));
                 assertEquals("Complete", reportableTaskList.get(0).getUpdateAction());
-                assertNotNull(reportableTaskList.get(0).getCompletedDate());
-                assertNotNull(reportableTaskList.get(0).getCompletedDateTime());
-                assertNotNull(reportableTaskList.get(0).getCreatedDate());
-                assertNotNull(reportableTaskList.get(0).getDueDate());
-                assertNotNull(reportableTaskList.get(0).getLastUpdatedDate());
+
+                LocalDate today = LocalDate.now(ZoneId.systemDefault());
+
+                assertEquals(today, reportableTaskList.get(0).getCompletedDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                assertThat(reportableTaskList.get(0).getCompletedDateTime().toLocalDate())
+                        .isEqualTo(expected.toLocalDate());
+                assertEquals(today, reportableTaskList.get(0).getCreatedDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+
+                assertThat(reportableTaskList.get(0).getDueDate()
+                        .toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate())
+                        .isEqualTo(LocalDate.now().plusDays(1));
+
+                assertEquals(today, reportableTaskList.get(0).getLastUpdatedDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                 assertEquals("COMPLETED", reportableTaskList.get(0).getFinalStateLabel());
-                assertNotNull(reportableTaskList.get(0).getFirstAssignedDate());
-                assertNotNull(reportableTaskList.get(0).getFirstAssignedDateTime());
+                assertEquals(today, reportableTaskList.get(0).getFirstAssignedDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                assertThat(reportableTaskList.get(0).getFirstAssignedDateTime())
+                    .isCloseTo(expected, within(1, ChronoUnit.MINUTES));
                 Assertions.assertNull(reportableTaskList.get(0).getWaitTimeDays());
                 Assertions.assertNull(reportableTaskList.get(0).getWaitTime());
-                assertNotNull(reportableTaskList.get(0).getHandlingTimeDays());
-                assertNotNull(reportableTaskList.get(0).getHandlingTime());
-                assertNotNull(reportableTaskList.get(0).getProcessingTimeDays());
-                assertNotNull(reportableTaskList.get(0).getProcessingTime());
+                assertEquals(0, reportableTaskList.get(0).getHandlingTimeDays());
+
+                long seconds = 0;
+                LocalTime time = null;
+
+                String processingTime = reportableTaskList.get(0).getProcessingTime();
+                time = LocalTime.parse(processingTime);
+                seconds = Duration.between(LocalTime.MIDNIGHT, time).getSeconds();
+                assertTrue(seconds < 60,
+                        String.format("Processing time %s exceeds 1 minute limit", processingTime));
+
+                String handlingTime = reportableTaskList.get(0).getHandlingTime();
+                time = LocalTime.parse(handlingTime);
+                seconds = Duration.between(LocalTime.MIDNIGHT, time).getSeconds();
+                assertTrue(seconds < 60,
+                        String.format("Handling time %s exceeds 1 minute limit", processingTime));
+
+                assertEquals(0, reportableTaskList.get(0).getProcessingTimeDays());
                 assertEquals("Yes", reportableTaskList.get(0).getIsWithinSla());
                 assertEquals(0, reportableTaskList.get(0).getNumberOfReassignments());
                 assertEquals(-1, reportableTaskList.get(0).getDueDateToCompletedDiffDays());
-                assertNotNull(reportableTaskList.get(0).getDueDateToCompletedDiffTime());
+
+                String diffTime = reportableTaskList.get(0).getDueDateToCompletedDiffTime();
+                if (diffTime.contains("day")) {
+                    int days = Integer.parseInt(diffTime.split(" ")[0]);
+                    assertTrue(days <= 1,
+                            String.format("Expected diff <= 1 day, but was %s", diffTime));
+                } else {
+                    time = LocalTime.parse(diffTime);
+                    assertTrue(time.isBefore(LocalTime.MIDNIGHT.minus(1, ChronoUnit.MILLIS)),
+                            String.format("Expected time < 24h, but was %s", time));
+                }
             });
 
     }
