@@ -47,18 +47,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
     private static final String ASSIGNED_ENDPOINT = "task/{task-id}/assign";
 
-    @Before
-    public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        ginIndexCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
-    }
+
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         common.clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test

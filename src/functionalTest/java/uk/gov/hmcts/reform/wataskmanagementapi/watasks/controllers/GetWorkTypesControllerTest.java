@@ -25,24 +25,6 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "work-types";
 
-    @Before
-    public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R2);
-    }
-
-    @After
-    public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
-    }
-
     @Test
     public void should_return_work_types_when_user_has_work_types() {
         common.setupWAOrganisationalRoleAssignmentWithWorkTypes(waCaseworkerCredentials.getHeaders(),

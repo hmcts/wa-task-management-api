@@ -20,22 +20,12 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
 
-    @Before
-    public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        unassignUser = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-    }
 
     @After
     public void cleanUp() {
         common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
         common.clearAllRoleAssignments(unassignUser.getHeaders());
-        authorizationProvider.deleteAccount(unassignUser.getAccount().getUsername());
-
         common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
