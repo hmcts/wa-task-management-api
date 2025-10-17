@@ -9,10 +9,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -24,33 +28,37 @@ import static org.hamcrest.Matchers.equalTo;
 @Slf4j
 public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalBaseTest {
 
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    TestAuthenticationCredentials waCaseworkerCredentials;
+
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/notes";
     private static final String GET_TASK_ENDPOINT = "task/{task-id}";
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.WA_CASE_WORKER);
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-        
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
     }
 
     @Test
     public void given_a_task_with_note_when_new_note_is_added_then_return_all_notes() {
-        TestVariables taskVariables = common.setupWATaskWithWarningsAndRetrieveIds("processApplication",
-                                                                                   "process application");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskWithWarningsAndRetrieveIds("processApplication", "process application");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
         String notesRequest = addNotes();
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
             notesRequest,
@@ -59,7 +67,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
         result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithCustomAttributes(
             waCaseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
@@ -67,7 +75,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             )
         );
         // validate the notes
-        result = restApiActions.get(
+        result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             GET_TASK_ENDPOINT,
             taskId,
             waCaseworkerCredentials.getHeaders()
@@ -93,14 +101,14 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
     @Test
     public void given_a_task_when_new_note_is_added_then_return_all_notes() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication",
-                                                                       "Process Application");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskAndRetrieveIds("processApplication", "Process Application");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
         String notesRequest = addNotes();
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
             notesRequest,
@@ -109,7 +117,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
         result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupWAOrganisationalRoleAssignmentWithCustomAttributes(
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithCustomAttributes(
             waCaseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
@@ -117,7 +125,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             )
         );
         // validate the notes
-        result = restApiActions.get(
+        result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             GET_TASK_ENDPOINT,
             taskId,
             waCaseworkerCredentials.getHeaders()

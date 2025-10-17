@@ -5,9 +5,13 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -16,29 +20,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    TestAuthenticationCredentials waCaseworkerCredentials;
+
     private static final String ENDPOINT_BEING_TESTED = "/task/task-types";
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.WA_CASE_WORKER);
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
     }
 
 
     @Test
     public void should_return_task_types_for_correct_jurisdiction() {
 
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon()
+            .setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?jurisdiction=wa",
             waCaseworkerCredentials.getHeaders()
         );
@@ -58,9 +67,10 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_task_types_for_correct_uppercase_jurisdiction() {
 
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon()
+            .setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?jurisdiction=WA",
             waCaseworkerCredentials.getHeaders()
         );
@@ -73,7 +83,8 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
         List<Map<String, Map<String, String>>> expectedTaskTypes = getExpectedTaskTypes();
 
-        expectedTaskTypes.forEach(expectedTaskType -> assertTrue(actualTaskTypes.contains(expectedTaskType)));
+        expectedTaskTypes
+            .forEach(expectedTaskType -> assertTrue(actualTaskTypes.contains(expectedTaskType)));
 
     }
 

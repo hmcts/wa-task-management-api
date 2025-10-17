@@ -2,14 +2,22 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,35 +28,44 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CASE_WORKER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.WA_CASE_WORKER;
 
-public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
+public class GetWorkTypesControllerTest {
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     private static final String ENDPOINT_BEING_TESTED = "work-types";
 
+    TestAuthenticationCredentials waCaseworkerCredentials;
+    TestAuthenticationCredentials caseworkerCredentials;
+
     @Before
     public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R2);
+        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(WA_CASE_WORKER);
+        caseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER);
     }
 
     @After
     public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerCredentials.getHeaders());
     }
 
     @Test
     public void should_return_work_types_when_user_has_work_types() {
-        common.setupWAOrganisationalRoleAssignmentWithWorkTypes(waCaseworkerCredentials.getHeaders(),
-            "tribunal-caseworker");
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithWorkTypes(
+            waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=true",
             waCaseworkerCredentials.getHeaders()
         );
@@ -70,9 +87,10 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_empty_work_types_when_user_has_no_work_types() {
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=true",
             waCaseworkerCredentials.getHeaders()
         );
@@ -89,9 +107,10 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_all_work_types() {
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=false",
             waCaseworkerCredentials.getHeaders()
         );
@@ -120,7 +139,8 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
             Map.of("id", "multi_track_hearing_work", "label", "Multi track hearing work"),
             Map.of("id", "intermediate_track_decision_making_work",
                    "label", "Intermediate track decision making work"),
-            Map.of("id", "multi_track_decision_making_work", "label", "Multi track decision making work"),
+            Map.of("id", "multi_track_decision_making_work", "label",
+                   "Multi track decision making work"),
             Map.of("id", "query_work", "label", "Query work"),
             Map.of("id", "welsh_translation_work", "label", "Welsh translation work"),
             Map.of("id", "bail_work", "label", "Bail work")
@@ -132,7 +152,7 @@ public class GetWorkTypesControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_403_when_the_user_did_not_have_any_roles() {
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=true",
             caseworkerCredentials.getHeaders()
         );
