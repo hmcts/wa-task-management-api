@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
+import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -19,20 +21,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 public class TaskFunctionalTestsUserUtils {
 
     public static final String BASE_CASE_WORDER = "base-case-worker";
-    public static final String CASE_WORKER = "case-worker";
-    public static final String WA_CASE_WORKER = "wa-case-worker";
-    public static final String ASSIGNER = "assigner";
-    public static final String ASSIGNEE = "assignee";
-    public static final String SECOND_ASSIGNEE = "second-assignee";
-    public static final String CASE_WORKER_FOR_READ = "case-worker-for-read";
-    public static final String CURRENT_CASE_WORKER = "current-caseWorker";
-    public static final String UNASSIGN_USER = "unassign-user";
-    public static final String OTHER_USER = "other-user";
     public static final String GIN_INDEX_CASE_WORKER = "gin-index-case-worker";
-    public static final String WA_USER_COMPLETION_ENABLED = "wa-user-with-completion-process-enabled-";
-    public static final String WA_USER_COMPLETION_DISABLED = "wa-user-with-completion-process-disabled-";
-    public static final String EMAIL_PREFIX_R2 = "wa-ft-test-r2-";
-    public static final String EMAIL_PREFIX_R3 = "wa-ft-test-r3-";
 
     public static final String USER_WITH_NO_ROLES = "USER_WITH_NO_ROLES";
     public static final String USER_WITH_CFT_ORG_ROLES = "USER_WITH_CFT_ORG_ROLES";
@@ -46,7 +35,6 @@ public class TaskFunctionalTestsUserUtils {
     public static final String USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES =
         "USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES";
     public static final String USER_WITH_TRIB_CASEWORKER_ROLE = "USER_WITH_TRIB_CASEWORKER_ROLE";
-    public static final String CASE_MNGR_WITH_SP_ACCESS = "CASE_MNGR_WITH_SP_ACCESS";
     public static final String CASE_WORKER_WITH_JUDGE_ROLE = "CASE_WORKER_WITH_JUDGE_ROLE";
     public static final String CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS = "CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS";
     public static final String CASE_WORKER_WITH_CASE_MANAGER_ROLE = "CASE_WORKER_WITH_CASE_MANAGER_ROLE";
@@ -70,12 +58,17 @@ public class TaskFunctionalTestsUserUtils {
     @Autowired
     protected AuthorizationProvider authorizationProvider;
 
+    @Getter
+    public Header authorizationHeaders;
+
     protected String idamSystemUser;
 
     protected Map<String,TestAuthenticationCredentials> testUsersMap = new HashMap<>();
 
     @PostConstruct
     public void setup() {
+
+        authorizationHeaders = authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-");
 
         baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
