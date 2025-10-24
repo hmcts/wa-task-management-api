@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,38 +24,36 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/cancel";
 
-    TestAuthenticationCredentials waCaseworkerCredentials;
-    TestAuthenticationCredentials caseworkerForReadCredentials;
+    TestAuthenticationCredentials caseWorkerWithJudgeRole;
+    TestAuthenticationCredentials hearingPanelJudgeForStandardAccess;
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.WA_CASE_WORKER);
-        caseworkerForReadCredentials = taskFunctionalTestsUserUtils.getTestUser(
-            TaskFunctionalTestsUserUtils.CASE_WORKER_FOR_READ);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
+        caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils
+            .getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_JUDGE_ROLE);
+        hearingPanelJudgeForStandardAccess = taskFunctionalTestsUserUtils
+            .getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS);
     }
 
     @Test
     public void user_should_not_cancel_task_when_role_assignment_verification_failed() {
+
+        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
         String taskId = taskVariables.getTaskId();
 
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            waCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
         initiateTask(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithLeadJudgeSpAccess.getHeaders()
         );
 
         result.then().assertThat()
@@ -67,60 +64,69 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithLeadJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithLeadJudgeSpAccess.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void user_should_cancel_task_when_role_assignment_verification_passed() {
 
+        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
                                       "Review Specific Access Request Judiciary");
 
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            waCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseworkerForReadCredentials.getHeaders(), "judge");
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
-        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+        initiateTask(taskVariables, caseWorkerWithJudgeRole.getHeaders());
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithLeadJudgeSpAccess.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithLeadJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithLeadJudgeSpAccess.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     //Add four IT to cover grant type SPECIFIC, STANDARD, CHALLENGED, EXCLUDED for cancel request and then remove this.
     @Test
     public void user_should_cancel_task_when_grant_type_challenged_and_permission_cancel() {
+
+        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "reviewSpecificAccessRequestJudiciary",
             "Review Specific Access Request Judiciary");
 
         taskFunctionalTestsApiUtils.getCommon().setupChallengedAccessLegalOps(
-            waCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForStandardAccess(
-            caseworkerForReadCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+        initiateTask(taskVariables, hearingPanelJudgeForStandardAccess.getHeaders());
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithLeadJudgeSpAccess.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithLeadJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithLeadJudgeSpAccess.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 }

@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,10 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import static org.hamcrest.Matchers.equalTo;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.ASSIGNER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CASE_WORKER_FOR_READ;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.SECOND_ASSIGNEE;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -31,27 +25,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
     private String taskId;
 
-    TestAuthenticationCredentials assignerCredentials;
-    TestAuthenticationCredentials assigneeCredentials;
-    TestAuthenticationCredentials secondAssigneeCredentials;
-    TestAuthenticationCredentials caseworkerForReadCredentials;
-
-    @Before
-    public void setUp() {
-        assignerCredentials = taskFunctionalTestsUserUtils.getTestUser(ASSIGNER);
-        assigneeCredentials = taskFunctionalTestsUserUtils.getTestUser(ASSIGNEE);
-        secondAssigneeCredentials = taskFunctionalTestsUserUtils.getTestUser(SECOND_ASSIGNEE);
-        caseworkerForReadCredentials = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_FOR_READ);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assignerCredentials.getHeaders());
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCredentials.getHeaders());
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(secondAssigneeCredentials.getHeaders());
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
-    }
-
     @Test
     public void assigner_should_not_assign_a_task_to_assignee_when_role_assignment_verification_failed() {
         //assigner role : manage
@@ -60,18 +33,24 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .setupWATaskAndRetrieveIds("processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
+        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
+        TestAuthenticationCredentials caseWorkerWithPanelJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithPanelJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
-            new AssignTaskRequest(getAssigneeId(assigneeCredentials.getHeaders())),
-            assignerCredentials.getHeaders()
+            new AssignTaskRequest(getAssigneeId(caseWorkerWithLeadJudgeSpAccess.getHeaders())),
+            caseWorkerWithPanelJudgeSpAccess.getHeaders()
         );
 
         result.then().assertThat()
@@ -84,6 +63,10 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
                                     + "The user being assigned the Task has failed "
                                     + "the Role Assignment checks performed."));
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithLeadJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithLeadJudgeSpAccess.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithPanelJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithPanelJudgeSpAccess.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
@@ -95,15 +78,25 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
+        TestAuthenticationCredentials caseMngrWithSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
+        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
-            assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(
-            taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(assigneeCredentials.getHeaders()));
+            taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(caseMngrWithSpAccess.getHeaders()),caseWorkerWithLeadJudgeSpAccess);
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseMngrWithSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseMngrWithSpAccess.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithLeadJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithLeadJudgeSpAccess.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
@@ -115,22 +108,37 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
+        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
+        TestAuthenticationCredentials caseWorkerWithFtpaJudge =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(taskVariables);
 
         //first assign
         taskFunctionalTestsApiUtils.getCommon().setupFtpaJudgeForSpecificAccess(
-            assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithFtpaJudge.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
-            assigneeCredentials.getHeaders()));
+            caseWorkerWithFtpaJudge.getHeaders()),caseWorkerWithLeadJudgeSpAccess);
+
+        TestAuthenticationCredentials caseWorkerWithFtpaJudge2 =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         //second assign
         taskFunctionalTestsApiUtils.getCommon().setupFtpaJudgeForSpecificAccess(
-            secondAssigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithFtpaJudge2.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(
-            taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(secondAssigneeCredentials.getHeaders()));
+            taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(caseWorkerWithFtpaJudge2.getHeaders()),caseWorkerWithLeadJudgeSpAccess);
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithLeadJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithLeadJudgeSpAccess.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithFtpaJudge.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithFtpaJudge.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithFtpaJudge2.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithFtpaJudge2.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
@@ -144,29 +152,42 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             "Review Specific Access Request Judiciary");
         taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseworkerForReadCredentials.getHeaders(), "judge");
+        TestAuthenticationCredentials caseMngrWithSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
+            caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        initiateTask(taskVariables, caseMngrWithSpAccess.getHeaders());
+
+        TestAuthenticationCredentials caseWorkerWithFtpaJudge =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         //first assign
         taskFunctionalTestsApiUtils.getCommon().setupFtpaJudgeForSpecificAccess(
-            assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithFtpaJudge.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
-            assigneeCredentials.getHeaders()));
+            caseWorkerWithFtpaJudge.getHeaders()),caseMngrWithSpAccess);
+
+        TestAuthenticationCredentials caseWorkerWithFtpaJudge2 =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         //second assign
         taskFunctionalTestsApiUtils.getCommon().setupFtpaJudgeForSpecificAccess(
-            secondAssigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithFtpaJudge2.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
-            secondAssigneeCredentials.getHeaders()));
+            caseWorkerWithFtpaJudge2.getHeaders()),caseMngrWithSpAccess);
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithFtpaJudge.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithFtpaJudge.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithFtpaJudge2.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithFtpaJudge2.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseMngrWithSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseMngrWithSpAccess.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
-    private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId) {
+    private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId, TestAuthenticationCredentials assignerCredentials) {
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,

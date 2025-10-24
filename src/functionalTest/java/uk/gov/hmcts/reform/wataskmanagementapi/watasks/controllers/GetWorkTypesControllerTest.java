@@ -5,7 +5,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.assertj.core.util.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -28,8 +27,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CASE_WORKER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.WA_CASE_WORKER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_NO_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -45,29 +45,24 @@ public class GetWorkTypesControllerTest {
 
     private static final String ENDPOINT_BEING_TESTED = "work-types";
 
-    TestAuthenticationCredentials waCaseworkerCredentials;
-    TestAuthenticationCredentials caseworkerCredentials;
+    TestAuthenticationCredentials caseWorkerWithTribRoleWithWorkTypes;
+    TestAuthenticationCredentials caseWorkerWithTribRole;
+    TestAuthenticationCredentials caseworkerWithNoRoles;
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(WA_CASE_WORKER);
-        caseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        caseworkerWithNoRoles = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_NO_ROLES);
+        caseWorkerWithTribRoleWithWorkTypes = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES);
+        caseWorkerWithTribRole = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_TRIB_CASEWORKER_ROLE);
     }
 
     @Test
     public void should_return_work_types_when_user_has_work_types() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithWorkTypes(
-            waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=true",
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithTribRoleWithWorkTypes.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -87,12 +82,10 @@ public class GetWorkTypesControllerTest {
 
     @Test
     public void should_return_empty_work_types_when_user_has_no_work_types() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=true",
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -107,12 +100,10 @@ public class GetWorkTypesControllerTest {
 
     @Test
     public void should_return_all_work_types() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=false",
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -154,7 +145,7 @@ public class GetWorkTypesControllerTest {
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?filter-by-user=true",
-            caseworkerCredentials.getHeaders()
+            caseworkerWithNoRoles.getHeaders()
         );
 
         result.then().assertThat()

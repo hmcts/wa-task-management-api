@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,30 +25,23 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
-    TestAuthenticationCredentials waCaseworkerCredentials;
+    TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
 
     private static final String ENDPOINT_BEING_TESTED = "/task/task-types";
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.WA_CASE_WORKER);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils
+            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_WA_ORG_ROLES);
     }
 
 
     @Test
     public void should_return_task_types_for_correct_jurisdiction() {
 
-        taskFunctionalTestsApiUtils.getCommon()
-            .setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
-
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?jurisdiction=wa",
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -67,12 +59,9 @@ public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_task_types_for_correct_uppercase_jurisdiction() {
 
-        taskFunctionalTestsApiUtils.getCommon()
-            .setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
-
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED + "?jurisdiction=WA",
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()

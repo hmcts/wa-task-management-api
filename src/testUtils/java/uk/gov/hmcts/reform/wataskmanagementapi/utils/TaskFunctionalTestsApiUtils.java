@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
@@ -63,12 +64,16 @@ public class TaskFunctionalTestsApiUtils {
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
 
+        TestAuthenticationCredentials caseCreateCredentials =
+            authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
+
         given = new GivensBuilder(
             camundaApiActions,
             restApiActions,
             authorizationProvider,
             ccdRetryableClient,
-            workflowApiActions
+            workflowApiActions,
+            caseCreateCredentials
         );
 
         common = new Common(

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +26,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE;
 
 public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -36,22 +36,17 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
-    TestAuthenticationCredentials assignerCredentials;
-    TestAuthenticationCredentials assigneeCredentials;
-
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private String taskId;
 
+    TestAuthenticationCredentials caseWorkerWithTribRole;
+    TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
+
     @Before
     public void setUp() {
-        assignerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.ASSIGNER);
-        assigneeCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.ASSIGNEE);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assignerCredentials.getHeaders());
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCredentials.getHeaders());
+        caseWorkerWithTribRole = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_TRIB_CASEWORKER_ROLE);
+        caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils
+            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_CFT_ORG_ROLES);
     }
 
     @Test
@@ -61,22 +56,21 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
             "Process Application"
         );
 
+        TestAuthenticationCredentials assignerCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
             assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         initiateTask(taskVariables);
 
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            assigneeCredentials.getHeaders(), "tribunal-caseworker");
-
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
-            assigneeCredentials.getHeaders()));
+            caseWorkerWithTribRole.getHeaders()),assignerCredentials);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
-            assigneeCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         result.then().assertThat()
@@ -87,7 +81,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             "/task/{task-id}",
             taskId,
-            assigneeCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         result.prettyPrint();
@@ -101,6 +95,9 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
             .body("task.last_reconfiguration_time", nullValue());
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assignerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
+
     }
 
     @Test
@@ -110,8 +107,6 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
             "Process Application"
         );
 
-        taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
-            assigneeCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         initiateTask(taskVariables);
 
         taskId = taskVariables.getTaskId();
@@ -120,7 +115,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             "/task/{task-id}",
             taskId,
-            assigneeCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.prettyPrint();
@@ -137,7 +132,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskOperationRequest(TaskOperationType.MARK_TO_RECONFIGURE, taskVariables.getCaseId()),
-            assigneeCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -147,7 +142,7 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             "/task/{task-id}",
             taskId,
-            assigneeCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.prettyPrint();
@@ -179,7 +174,8 @@ public class PostTaskMarkReconfigureControllerTest extends SpringBootFunctionalB
         return List.of(filter);
     }
 
-    private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId) {
+    private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId,
+                                       TestAuthenticationCredentials assignerCredentials) {
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             "task/{task-id}/assign",

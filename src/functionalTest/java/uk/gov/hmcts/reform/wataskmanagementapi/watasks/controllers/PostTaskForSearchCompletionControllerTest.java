@@ -4,7 +4,6 @@ import io.restassured.response.Response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,22 +37,16 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
-    TestAuthenticationCredentials waCaseworkerCredentials;
+    TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.WA_CASE_WORKER);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils
+            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_WA_ORG_ROLES);
     }
 
     @Test
     public void should_return_200_with_appropriate_task_to_complete() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders());
 
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
@@ -74,7 +67,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 ENDPOINT_BEING_TESTED,
                 decideAnApplicationSearchRequest,
-                waCaseworkerCredentials.getHeaders()
+                caseWorkerWithWAOrgRoles.getHeaders()
             );
 
             result.then().assertThat()
@@ -129,8 +122,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders());
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                       "processApplication",
@@ -147,7 +138,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -159,8 +150,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_empty_list_when_caseId_match_not_found() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders());
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                       "processApplication",
@@ -177,7 +166,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -189,8 +178,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_jurisdiction_not_match() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders());
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                       "processApplication",
@@ -207,7 +194,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -219,8 +206,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_case_type_not_match() {
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders());
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
                                       "processApplication",
@@ -237,7 +222,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()

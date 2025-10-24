@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,6 @@ import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.WA_CASE_WORKER;
 
 public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -32,16 +30,12 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
-    TestAuthenticationCredentials waCaseworkerCredentials;
+    private TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(WA_CASE_WORKER);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
+        caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils.getTestUser(
+            TaskFunctionalTestsUserUtils.USER_WITH_CFT_ORG_ROLES);
     }
 
     @Test
@@ -61,7 +55,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -85,7 +79,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             terminateTaskRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -105,7 +99,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = taskFunctionalTestsApiUtils.getCamundaApiActions().post(
             "/history/variable-instance",
             request,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         if (value == null) {
@@ -130,17 +124,15 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            waCaseworkerCredentials.getHeaders(),
+            caseWorkerWithCftOrgRoles.getHeaders(),
             HttpStatus.NO_CONTENT
         );
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             "task/{task-id}/cancel",
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -152,17 +144,15 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-        taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            waCaseworkerCredentials.getHeaders(),
+            caseWorkerWithCftOrgRoles.getHeaders(),
             HttpStatus.NO_CONTENT
         );
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             "task/{task-id}/complete",
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()

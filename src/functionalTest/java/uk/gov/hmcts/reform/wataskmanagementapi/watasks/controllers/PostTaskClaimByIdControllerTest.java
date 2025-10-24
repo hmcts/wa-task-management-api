@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import static org.hamcrest.Matchers.equalTo;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CURRENT_CASE_WORKER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.WA_CASE_WORKER;
 
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -28,29 +25,25 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
 
-    TestAuthenticationCredentials waCaseworkerCredentials;
-    TestAuthenticationCredentials currentCaseworkerCredentials;
+    TestAuthenticationCredentials caseWorkerWithTribRole;
 
     @Before
     public void setUp() {
-        waCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(WA_CASE_WORKER);
-        currentCaseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(CURRENT_CASE_WORKER);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(currentCaseworkerCredentials.getHeaders());
+        caseWorkerWithTribRole = taskFunctionalTestsUserUtils.getTestUser(
+            TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE);
     }
 
     @Test
     public void user_should_not_claim_task_when_role_assignment_verification_failed() {
 
+        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("processApplication", "Process Application");
 
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            waCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
         initiateTask(taskVariables);
 
@@ -58,7 +51,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithLeadJudgeSpAccess.getHeaders()
         );
 
         result.then().assertThat()
@@ -69,6 +62,8 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithLeadJudgeSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithLeadJudgeSpAccess.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
@@ -80,14 +75,11 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         initiateTask(taskVariables);
 
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            waCaseworkerCredentials.getHeaders(), "tribunal-caseworker");
-
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         result.then().assertThat()
@@ -102,11 +94,14 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
+        TestAuthenticationCredentials caseMngrWithSpAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
-            currentCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         initiateTask(taskVariables);
 
@@ -114,24 +109,31 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            currentCaseworkerCredentials.getHeaders()
+            caseMngrWithSpAccess.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        TestAuthenticationCredentials caseMngrWithSpAccess2 =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
-            waCaseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseMngrWithSpAccess2.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseMngrWithSpAccess2.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.CONFLICT.value());
 
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseMngrWithSpAccess.getHeaders());
+        authorizationProvider.deleteAccount(caseMngrWithSpAccess.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseMngrWithSpAccess2.getHeaders());
+        authorizationProvider.deleteAccount(caseMngrWithSpAccess2.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 

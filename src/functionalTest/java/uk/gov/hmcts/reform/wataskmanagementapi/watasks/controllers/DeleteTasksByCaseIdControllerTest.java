@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.http.Header;
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +26,12 @@ public class DeleteTasksByCaseIdControllerTest extends SpringBootFunctionalBaseT
 
     private static final String ENDPOINT_BEING_TESTED = "task/delete";
 
-    private TestAuthenticationCredentials caseworkerCredentials;
+    private TestAuthenticationCredentials caseworkerWithNoRoles;
 
     @Before
     public void setUp() {
-        caseworkerCredentials = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER);
-    }
-
-    @After
-    public void cleanUp() {
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        caseworkerWithNoRoles = taskFunctionalTestsUserUtils.getTestUser(
+            TaskFunctionalTestsUserUtils.USER_WITH_NO_ROLES);
     }
 
     @Test
@@ -50,7 +45,7 @@ public class DeleteTasksByCaseIdControllerTest extends SpringBootFunctionalBaseT
         final Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 ENDPOINT_BEING_TESTED,
                 deleteTasksRequest,
-                caseworkerCredentials.getHeaders()
+                caseworkerWithNoRoles.getHeaders()
         );
 
         result.then().assertThat().statusCode(HttpStatus.CREATED.value());
