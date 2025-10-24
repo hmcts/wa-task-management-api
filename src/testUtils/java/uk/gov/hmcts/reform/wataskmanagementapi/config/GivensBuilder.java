@@ -51,6 +51,7 @@ public class GivensBuilder {
 
     private final AtomicInteger nextHearingDateCounter = new AtomicInteger();
     private final CcdRetryableClient ccdRetryableClient;
+    TestAuthenticationCredentials caseCreateCredentials;
 
 
     public GivensBuilder(RestApiActions camundaApiActions,
@@ -65,6 +66,21 @@ public class GivensBuilder {
         this.ccdRetryableClient = ccdRetryableClient;
         this.workflowApiActions = workflowApiActions;
 
+    }
+
+    public GivensBuilder(RestApiActions camundaApiActions,
+                         RestApiActions restApiActions,
+                         AuthorizationProvider authorizationProvider,
+                         CcdRetryableClient ccdRetryableClient,
+                         RestApiActions workflowApiActions,
+                         TestAuthenticationCredentials caseCreateCredentials
+    ) {
+        this.camundaApiActions = camundaApiActions;
+        this.restApiActions = restApiActions;
+        this.authorizationProvider = authorizationProvider;
+        this.ccdRetryableClient = ccdRetryableClient;
+        this.workflowApiActions = workflowApiActions;
+        this.caseCreateCredentials = caseCreateCredentials;
     }
 
     public GivensBuilder iCreateATaskWithCustomVariables(Map<String, CamundaValue<?>> processVariables) {
@@ -329,23 +345,19 @@ public class GivensBuilder {
     }
 
     public String iCreateWACcdCase(String resourceFileName) {
-        TestAuthenticationCredentials lawFirmCredentials =
-            authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
         return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
             "WA",
             "WaCaseType",
             "CREATE",
             "START_PROGRESS",
-            lawFirmCredentials,
+            caseCreateCredentials,
             resourceFileName
         );
     }
 
     public void updateWACcdCase(String caseId, Map<String, Object> updates, String event) {
-        TestAuthenticationCredentials lawFirmCredentials
-            = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
         updateCase("WA", "WaCaseType", event,
-                   caseId, lawFirmCredentials, updates
+                   caseId, caseCreateCredentials, updates
         );
     }
 
