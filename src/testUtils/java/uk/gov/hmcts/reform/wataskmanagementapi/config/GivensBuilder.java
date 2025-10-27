@@ -428,8 +428,6 @@ public class GivensBuilder {
 
         updateCase(jurisdiction, caseType, submitEventId, caseDetails.getId().toString(), credentials, Map.of());
 
-        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
-
         return caseDetails.getId().toString();
     }
 
