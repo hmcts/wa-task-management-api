@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.time.ZonedDateTime;
@@ -27,9 +28,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_NO_ROLES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_NO_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -42,6 +43,9 @@ public class GetWorkTypesControllerTest {
 
     @Autowired
     TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
     private static final String ENDPOINT_BEING_TESTED = "work-types";
 

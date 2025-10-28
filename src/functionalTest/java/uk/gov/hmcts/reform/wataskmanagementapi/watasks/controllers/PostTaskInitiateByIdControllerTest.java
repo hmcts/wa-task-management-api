@@ -1,16 +1,21 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.time.LocalDateTime;
@@ -31,11 +36,20 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_CFTC_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_JUDGE_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_WA_ORG_ROLES2;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CFTC_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.TASK_GET_ROLES_ENDPOINT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.TASK_INITIATION_ENDPOINT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
 
-public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
+public class PostTaskInitiateByIdControllerTest {
 
     @Autowired
     protected AuthorizationProvider authorizationProvider;
@@ -45,6 +59,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
     TestAuthenticationCredentials caseWorkerWithJudgeRole;
@@ -114,7 +131,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -229,7 +246,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -292,7 +309,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -356,7 +373,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -417,7 +434,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, caseWorkerWithJudgeRole.getHeaders(), assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, caseWorkerWithJudgeRole.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -538,7 +556,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(5000));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
@@ -603,7 +621,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.priority_date", notNullValue());
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -656,7 +674,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.due_date", equalTo("2026-01-02T18:00:00+0000"));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -716,7 +734,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 .body("task.major_priority", equalTo(5000));
         };
 
-        initiateTask(taskVariables, userWithCFTCtscRole.getHeaders(), assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, userWithCFTCtscRole.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -804,7 +823,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -883,9 +903,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ))).body("task.minor_priority", equalTo(500))
             .body("task.major_priority", equalTo(1000));
 
-        initiateTask(taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
         //Expect to get 503 for database conflict
-        initiateTask(taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
@@ -905,7 +927,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             hearingPanelJudge.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
 
-        InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(taskVariables, null);
+        InitiateTaskRequestMap initiateTaskRequest = taskFunctionalTestsInitiationUtils.initiateTaskRequestMap(
+            taskVariables, null);
         Response response = taskFunctionalTestsApiUtils.getRestApiActions().post(
             TASK_INITIATION_ENDPOINT,
             taskVariables.getTaskId(),
@@ -974,7 +997,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -1034,7 +1057,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),

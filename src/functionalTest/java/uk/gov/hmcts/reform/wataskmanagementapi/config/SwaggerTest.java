@@ -5,10 +5,9 @@ import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
 
-public class SwaggerTest extends SpringBootFunctionalBaseTest {
+public class SwaggerTest {
 
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;

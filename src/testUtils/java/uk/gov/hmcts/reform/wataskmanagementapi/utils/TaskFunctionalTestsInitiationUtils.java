@@ -1,17 +1,13 @@
-package uk.gov.hmcts.reform.wataskmanagementapi;
+package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -19,19 +15,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDef
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -39,7 +31,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CREATED;
@@ -47,50 +38,31 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.BASE_CASE_WORDER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.TASK_GET_ENDPOINT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.TASK_INITIATION_ENDPOINT;
 
-@RunWith(SpringIntegrationSerenityRunner.class)
-@SpringBootTest
-@ActiveProfiles("functional")
+@Component
+@Profile("functional")
 @Slf4j
-public abstract class SpringBootFunctionalBaseTest {
+public class TaskFunctionalTestsInitiationUtils {
 
-    public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED =
-        "Could not complete task with id: %s as task was not previously assigned";
-    public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_ASSIGNED_TO_OTHER_USER =
-        "Could not complete task with id: %s as task was assigned to other user %s";
-    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    @Autowired
+    protected TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
-    protected static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
-    protected static final String TASK_GET_ENDPOINT = "task/{task-id}";
-    protected static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
-    protected static final String WA_JURISDICTION = "WA";
-    protected static final String WA_CASE_TYPE = "WaCaseType";
-    protected static final String EMAIL_PREFIX_R3_5 = "wa-granular-permission-";
-    protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
-        "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure";
-    protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
-    protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
-        "Role Assignment Verification: The request failed the Role Assignment checks performed.";
     @Autowired
     protected AuthorizationProvider authorizationProvider;
 
     @Autowired
-    protected TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-    @Autowired
     protected TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    @Autowired
-    protected IdamTokenGenerator idamTokenGenerator;
-
-    @Value("${initiation_job_running}")
-    private Boolean initiationJobRunning;
 
     protected TestAuthenticationCredentials baseCaseworkerCredentials;
 
-    @Before
-    public void setUpGivens() throws IOException {
+    @PostConstruct
+    public void setup() throws IOException {
         baseCaseworkerCredentials = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.BASE_CASE_WORDER);
+            .getTestUser(BASE_CASE_WORDER);
     }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
@@ -111,9 +83,9 @@ public abstract class SpringBootFunctionalBaseTest {
                         .body("[0].name", is(taskName));
 
                     response.set(camundaGetTaskResult
-                        .then()
-                        .extract()
-                        .path("[0].id"));
+                                     .then()
+                                     .extract()
+                                     .path("[0].id"));
                     return true;
                 });
         return response;
@@ -140,64 +112,46 @@ public abstract class SpringBootFunctionalBaseTest {
 
     }
 
-    protected void initiateTask(TestVariables testVariables) {
+    public void initiateTask(TestVariables testVariables) {
         Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
 
-    protected void initiateTask(TestVariables testVariables,
-                                Headers headers) {
+    public void initiateTask(TestVariables testVariables,
+                             Headers headers) {
         initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
-    protected void initiateTask(TestVariables testVariables,
+    public void initiateTask(TestVariables testVariables,
                                 Consumer<Response> assertConsumer) {
         Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, null, assertConsumer);
     }
 
-    protected void initiateTask(TestVariables testVariables,
+    public void initiateTask(TestVariables testVariables,
                                 Headers headers,
                                 Consumer<Response> assertConsumer) {
         initiateTask(testVariables, headers, null, assertConsumer);
     }
 
-    protected void initiateTask(TestVariables testVariables,
+    public void initiateTask(TestVariables testVariables,
                                 Map<String, String> additionalProperties) {
         Headers headers = baseCaseworkerCredentials.getHeaders();
         initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
-    protected void initiateTask(TestVariables testVariables,
-                                Headers headers,
-                                Map<String, String> additionalProperties) {
+    public void initiateTask(TestVariables testVariables,
+                             Headers headers,
+                             Map<String, String> additionalProperties) {
         initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
-    private void initiateTask(TestVariables testVariables,
+    public void initiateTask(TestVariables testVariables,
                               Headers headers,
                               Map<String, String> additionalProperties,
                               Consumer<Response> assertConsumer) {
-        log.info("Task initiate with cron job {}", initiationJobRunning);
-        if (initiationJobRunning) {
-            await()
-                .pollInterval(10, SECONDS)
-                .atMost(120, SECONDS)
-                .until(
-                    () -> {
-                        Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
-                            TASK_GET_ENDPOINT,
-                            testVariables.getTaskId(),
-                            headers
-                        );
-
-                        return HttpStatus.OK.value() == response.getStatusCode();
-                    }
-                );
-        } else {
-            sendInitiateRequest(testVariables, additionalProperties,headers);
-        }
+        sendInitiateRequest(testVariables, additionalProperties,headers);
 
         Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
             TASK_GET_ENDPOINT,
@@ -247,7 +201,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     }
 
-    protected InitiateTaskRequestMap initiateTaskRequestMap(TestVariables testVariables, Map<String,
+    public InitiateTaskRequestMap initiateTaskRequestMap(TestVariables testVariables, Map<String,
         String> additionalProperties) {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -312,13 +266,4 @@ public abstract class SpringBootFunctionalBaseTest {
                 throw new RuntimeException("Invalid status received for task initiation " + statusCode);
         }
     }
-
-    protected String getAssigneeId(Headers headers) {
-        return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
-    }
-
-    protected Boolean isInitiationJobRunning() {
-        return this.initiationJobRunning;
-    }
-
 }

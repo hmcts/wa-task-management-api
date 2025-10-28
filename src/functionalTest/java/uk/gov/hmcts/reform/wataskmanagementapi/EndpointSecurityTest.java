@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtil
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
+public class EndpointSecurityTest {
 
     @Value("${targets.instance}")
     private String testUrl;

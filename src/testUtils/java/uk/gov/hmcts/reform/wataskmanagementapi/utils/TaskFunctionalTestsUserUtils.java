@@ -15,40 +15,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.BASE_CASE_WORDER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CASE_MANAGER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CASE_MANAGER_ROLE2;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CFTC_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_SENIOR_TRIB_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_GIN_INDEX;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_DISABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_ENABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_NO_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_ROLE_COMPLETION_DISABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_ROLE_COMPLETION_ENABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES3;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
 @Component
 @Profile("functional")
 public class TaskFunctionalTestsUserUtils {
-
-    public static final String BASE_CASE_WORDER = "base-case-worker";
-    public static final String GIN_INDEX_CASE_WORKER = "gin-index-case-worker";
-
-    public static final String USER_WITH_NO_ROLES = "USER_WITH_NO_ROLES";
-    public static final String USER_WITH_CFT_ORG_ROLES = "USER_WITH_CFT_ORG_ROLES";
-    public static final String USER_WITH_WA_ORG_ROLES = "USER_WITH_WA_ORG_ROLES";
-    public static final String USER_WITH_WA_ORG_ROLES2 = "USER_WITH_WA_ORG_ROLES2";
-    public static final String USER_WITH_WA_ORG_ROLES3 = "USER_WITH_WA_ORG_ROLES23";
-    public static final String USER_WITH_COMPLETION_ENABLED = "USER_WITH_COMPLETION_ENABLED";
-    public static final String USER_WITH_TRIB_ROLE_COMPLETION_ENABLED = "USER_WITH_TRIB_ROLE_COMPLETION_ENABLED";
-    public static final String USER_WITH_TRIB_ROLE_COMPLETION_DISABLED = "USER_WITH_TRIB_ROLE_COMPLETION_DISABLED";
-    public static final String USER_WITH_COMPLETION_DISABLED = "USER_WITH_COMPLETION_DISABLED";
-    public static final String USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES =
-        "USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES";
-    public static final String USER_WITH_TRIB_CASEWORKER_ROLE = "USER_WITH_TRIB_CASEWORKER_ROLE";
-    public static final String CASE_WORKER_WITH_JUDGE_ROLE = "CASE_WORKER_WITH_JUDGE_ROLE";
-    public static final String CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS = "CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS";
-    public static final String CASE_WORKER_WITH_CASE_MANAGER_ROLE = "CASE_WORKER_WITH_CASE_MANAGER_ROLE";
-    public static final String CASE_WORKER_WITH_CASE_MANAGER_ROLE2 = "CASE_WORKER_WITH_CASE_MANAGER_ROLE2";
-    public static final String CASE_WORKER_WITH_CFTC_ROLE = "CASE_WORKER_WITH_CFTC_ROLE";
-    public static final String CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE = "CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE";
-    public static final String GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE = "GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE";
-    public static final String CASE_WORKER_WITH_SENIOR_TRIB_ROLE = "CASE_WORKER_WITH_SENIOR_TRIB_ROLE";
-
-    protected static final String WA_JURISDICTION = "WA";
-    protected static final String WA_CASE_TYPE = "WaCaseType";
-    protected static final String EMAIL_PREFIX_R3_5 = "wa-granular-permission-";
-
-    public static final String EMAIL_PREFIX_GIN_INDEX = "wa-gin-index-";
 
     TestAuthenticationCredentials baseCaseworkerCredentials;
 

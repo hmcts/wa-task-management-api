@@ -2,13 +2,16 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -23,7 +26,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredenti
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.time.Duration;
@@ -50,19 +55,31 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_CASE_MANAGER_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_JUDGE_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.GIN_INDEX_CASE_WORKER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CASE_MANAGER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
 @Slf4j
-public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunctionalBaseTest {
+public class PostTaskExecuteReconfigureControllerTest {
 
     @Autowired
     TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
+
+    @Autowired
+    AuthorizationProvider authorizationProvider;
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
 
@@ -94,7 +111,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
             assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -209,7 +226,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -290,7 +307,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
             assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         assignTaskAndValidate(taskVariables,
                               taskFunctionalTestsUserUtils
@@ -395,7 +412,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         taskFunctionalTestsApiUtils.getCommon().setupStandardCaseManager(assignerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -502,7 +519,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .body("task.due_date", equalTo(formatDate(2026, 1, 15, 18)));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
         log.info("after initiation assert");
 
         //update next hearing date
@@ -609,7 +626,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             "/task/{task-id}",
@@ -760,7 +778,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
                 "/task/{task-id}",
@@ -866,7 +885,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
                 "/task/{task-id}",
@@ -985,7 +1005,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -1085,7 +1105,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .body("task.type", equalTo("taskAttributesWithDefaultValue"));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -1171,7 +1191,8 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
 
         await().pollInterval(5, SECONDS)
             .atMost(180, SECONDS)
@@ -1309,7 +1330,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
                 .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
         };
 
-        initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -1434,7 +1455,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         );
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables, userWithCaseManagerRole.getHeaders());
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, userWithCaseManagerRole.getHeaders());
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             "/task/{task-id}",

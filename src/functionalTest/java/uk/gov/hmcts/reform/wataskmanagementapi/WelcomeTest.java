@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import static net.serenitybdd.rest.SerenityRest.expect;
 import static org.hamcrest.Matchers.containsString;
 
-public class WelcomeTest extends SpringBootFunctionalBaseTest {
+public class WelcomeTest {
 
     @Value("${targets.instance}")
     private String testUrl;
