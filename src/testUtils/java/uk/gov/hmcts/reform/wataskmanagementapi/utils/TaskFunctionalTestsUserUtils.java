@@ -50,8 +50,6 @@ public class TaskFunctionalTestsUserUtils {
 
     public static final String EMAIL_PREFIX_GIN_INDEX = "wa-gin-index-";
 
-    TestAuthenticationCredentials baseCaseworkerCredentials;
-
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
@@ -61,20 +59,12 @@ public class TaskFunctionalTestsUserUtils {
     @Getter
     public Header authorizationHeaders;
 
-    protected String idamSystemUser;
-
     protected Map<String,TestAuthenticationCredentials> testUsersMap = new HashMap<>();
 
     @PostConstruct
     public void setup() {
 
         authorizationHeaders = authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-");
-
-        baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            baseCaseworkerCredentials.getHeaders());
-
-        testUsersMap.put(BASE_CASE_WORDER,baseCaseworkerCredentials);
 
         testUsersMap.put(USER_WITH_NO_ROLES,
                          authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5));
@@ -192,7 +182,6 @@ public class TaskFunctionalTestsUserUtils {
             .setupWAOrganisationalRoleAssignment(
                 userWithSeniorTribCaseworker.getHeaders(), "senior-tribunal-caseworker");
         testUsersMap.put(CASE_WORKER_WITH_SENIOR_TRIB_ROLE,userWithSeniorTribCaseworker);
-
 
     }
 
