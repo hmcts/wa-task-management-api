@@ -64,124 +64,130 @@ public class TaskFunctionalTestsUserUtils {
     @PostConstruct
     public void setup() {
 
-        authorizationHeaders = authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-");
+            authorizationHeaders = authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-");
 
-        testUsersMap.put(USER_WITH_NO_ROLES,
+            TestAuthenticationCredentials baseCaseworkerCredentials = authorizationProvider.
+                getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                baseCaseworkerCredentials.getHeaders());
+            testUsersMap.put(BASE_CASE_WORDER,baseCaseworkerCredentials);
+
+            testUsersMap.put(USER_WITH_NO_ROLES,
                          authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5));
 
-        TestAuthenticationCredentials caseWorkerWithCftOrgRoles =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
-            caseWorkerWithCftOrgRoles.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        testUsersMap.put(USER_WITH_CFT_ORG_ROLES,caseWorkerWithCftOrgRoles);
+            TestAuthenticationCredentials caseWorkerWithCftOrgRoles =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
+                caseWorkerWithCftOrgRoles.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+            testUsersMap.put(USER_WITH_CFT_ORG_ROLES, caseWorkerWithCftOrgRoles);
 
-        TestAuthenticationCredentials caseWorkerWithWAOrgRoles =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithWAOrgRoles.getHeaders());
-        testUsersMap.put(USER_WITH_WA_ORG_ROLES,caseWorkerWithWAOrgRoles);
+            TestAuthenticationCredentials caseWorkerWithWAOrgRoles =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                caseWorkerWithWAOrgRoles.getHeaders());
+            testUsersMap.put(USER_WITH_WA_ORG_ROLES, caseWorkerWithWAOrgRoles);
 
-        TestAuthenticationCredentials caseWorkerWithWAOrgRoles2 =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithWAOrgRoles2.getHeaders());
-        testUsersMap.put(USER_WITH_WA_ORG_ROLES2,caseWorkerWithWAOrgRoles2);
+            TestAuthenticationCredentials caseWorkerWithWAOrgRoles2 =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                caseWorkerWithWAOrgRoles2.getHeaders());
+            testUsersMap.put(USER_WITH_WA_ORG_ROLES2, caseWorkerWithWAOrgRoles2);
 
-        TestAuthenticationCredentials caseWorkerWithWAOrgRoles3 =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithWAOrgRoles3.getHeaders());
-        testUsersMap.put(USER_WITH_WA_ORG_ROLES3,caseWorkerWithWAOrgRoles3);
+            TestAuthenticationCredentials caseWorkerWithWAOrgRoles3 =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                caseWorkerWithWAOrgRoles3.getHeaders());
+            testUsersMap.put(USER_WITH_WA_ORG_ROLES3, caseWorkerWithWAOrgRoles3);
 
-        TestAuthenticationCredentials caseWorkerWithCompletionEnabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithCompletionEnabled.getHeaders());
-        testUsersMap.put(USER_WITH_COMPLETION_ENABLED,caseWorkerWithCompletionEnabled);
+            TestAuthenticationCredentials caseWorkerWithCompletionEnabled =
+                authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                caseWorkerWithCompletionEnabled.getHeaders());
+            testUsersMap.put(USER_WITH_COMPLETION_ENABLED, caseWorkerWithCompletionEnabled);
 
-        TestAuthenticationCredentials tribCaseworkerWithCompletionEnabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            tribCaseworkerWithCompletionEnabled.getHeaders(),"tribunal-caseworker");
-        testUsersMap.put(USER_WITH_TRIB_ROLE_COMPLETION_ENABLED,tribCaseworkerWithCompletionEnabled);
+            TestAuthenticationCredentials tribCaseworkerWithCompletionEnabled =
+                authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                tribCaseworkerWithCompletionEnabled.getHeaders(), "tribunal-caseworker");
+            testUsersMap.put(USER_WITH_TRIB_ROLE_COMPLETION_ENABLED, tribCaseworkerWithCompletionEnabled);
 
-        TestAuthenticationCredentials caseWorkerWithCompletionDisabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithCompletionDisabled.getHeaders());
-        testUsersMap.put(USER_WITH_COMPLETION_DISABLED,caseWorkerWithCompletionDisabled);
+            TestAuthenticationCredentials caseWorkerWithCompletionDisabled =
+                authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                caseWorkerWithCompletionDisabled.getHeaders());
+            testUsersMap.put(USER_WITH_COMPLETION_DISABLED, caseWorkerWithCompletionDisabled);
 
-        TestAuthenticationCredentials tribCaseworkerWithCompletionDisabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            tribCaseworkerWithCompletionDisabled.getHeaders(),"tribunal-caseworker");
-        testUsersMap.put(USER_WITH_TRIB_ROLE_COMPLETION_DISABLED,tribCaseworkerWithCompletionDisabled);
+            TestAuthenticationCredentials tribCaseworkerWithCompletionDisabled =
+                authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                tribCaseworkerWithCompletionDisabled.getHeaders(), "tribunal-caseworker");
+            testUsersMap.put(USER_WITH_TRIB_ROLE_COMPLETION_DISABLED, tribCaseworkerWithCompletionDisabled);
 
-        TestAuthenticationCredentials caseWorkerWithTribRoleWithWorkTypes =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithWorkTypes(
-            caseWorkerWithTribRoleWithWorkTypes.getHeaders(), "tribunal-caseworker");
-        testUsersMap.put(USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES,caseWorkerWithTribRoleWithWorkTypes);
+            TestAuthenticationCredentials caseWorkerWithTribRoleWithWorkTypes =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithWorkTypes(
+                caseWorkerWithTribRoleWithWorkTypes.getHeaders(), "tribunal-caseworker");
+            testUsersMap.put(USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES, caseWorkerWithTribRoleWithWorkTypes);
 
-        TestAuthenticationCredentials caseWorkerWithTribRole =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithTribRole.getHeaders(), "tribunal-caseworker");
-        testUsersMap.put(USER_WITH_TRIB_CASEWORKER_ROLE,caseWorkerWithTribRole);
+            TestAuthenticationCredentials caseWorkerWithTribRole =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                caseWorkerWithTribRole.getHeaders(), "tribunal-caseworker");
+            testUsersMap.put(USER_WITH_TRIB_CASEWORKER_ROLE, caseWorkerWithTribRole);
 
-        TestAuthenticationCredentials caseWorkerWithJudgeRole =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithJudgeRole.getHeaders(), "judge");
-        testUsersMap.put(CASE_WORKER_WITH_JUDGE_ROLE,caseWorkerWithJudgeRole);
+            TestAuthenticationCredentials caseWorkerWithJudgeRole =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+                caseWorkerWithJudgeRole.getHeaders(), "judge");
+            testUsersMap.put(CASE_WORKER_WITH_JUDGE_ROLE, caseWorkerWithJudgeRole);
 
-        TestAuthenticationCredentials hearingPanelJudgeForStandardAccess =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForStandardAccess(
-            hearingPanelJudgeForStandardAccess.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        testUsersMap.put(CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS,hearingPanelJudgeForStandardAccess);
+            TestAuthenticationCredentials hearingPanelJudgeForStandardAccess =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForStandardAccess(
+                hearingPanelJudgeForStandardAccess.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+            testUsersMap.put(CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS, hearingPanelJudgeForStandardAccess);
 
-        TestAuthenticationCredentials userWithCaseManagerRole =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon()
-            .setupWAOrganisationalRoleAssignment(userWithCaseManagerRole.getHeaders(), "case-manager");
-        testUsersMap.put(CASE_WORKER_WITH_CASE_MANAGER_ROLE,userWithCaseManagerRole);
+            TestAuthenticationCredentials userWithCaseManagerRole =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWAOrganisationalRoleAssignment(userWithCaseManagerRole.getHeaders(), "case-manager");
+            testUsersMap.put(CASE_WORKER_WITH_CASE_MANAGER_ROLE, userWithCaseManagerRole);
 
-        TestAuthenticationCredentials userWithCFTCtscRole =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon().setupCFTCtscRoleAssignmentForWA(userWithCFTCtscRole.getHeaders());
-        testUsersMap.put(CASE_WORKER_WITH_CFTC_ROLE,userWithCFTCtscRole);
+            TestAuthenticationCredentials userWithCFTCtscRole =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon().setupCFTCtscRoleAssignmentForWA(userWithCFTCtscRole.getHeaders());
+            testUsersMap.put(CASE_WORKER_WITH_CFTC_ROLE, userWithCFTCtscRole);
 
-        TestAuthenticationCredentials userWithCaseManagerRole2 =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon()
-            .setupWAOrganisationalRoleAssignment(userWithCaseManagerRole2.getHeaders(), "case-manager");
-        testUsersMap.put(CASE_WORKER_WITH_CASE_MANAGER_ROLE2,userWithCaseManagerRole2);
+            TestAuthenticationCredentials userWithCaseManagerRole2 =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWAOrganisationalRoleAssignment(userWithCaseManagerRole2.getHeaders(), "case-manager");
+            testUsersMap.put(CASE_WORKER_WITH_CASE_MANAGER_ROLE2, userWithCaseManagerRole2);
 
-        TestAuthenticationCredentials userWithTaskSupervisorRole =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon()
-            .setupWAOrganisationalRoleAssignment(userWithTaskSupervisorRole.getHeaders(), "task-supervisor");
-        testUsersMap.put(CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE,userWithTaskSupervisorRole);
+            TestAuthenticationCredentials userWithTaskSupervisorRole =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWAOrganisationalRoleAssignment(userWithTaskSupervisorRole.getHeaders(), "task-supervisor");
+            testUsersMap.put(CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE, userWithTaskSupervisorRole);
 
-        TestAuthenticationCredentials ginIndexCaseWorker =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
-        taskFunctionalTestsApiUtils.getCommon()
-            .setupWAOrganisationalRoleAssignment(ginIndexCaseWorker.getHeaders(), "tribunal-caseworker");
-        testUsersMap.put(GIN_INDEX_CASE_WORKER,ginIndexCaseWorker);
+            TestAuthenticationCredentials ginIndexCaseWorker =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWAOrganisationalRoleAssignment(ginIndexCaseWorker.getHeaders(), "tribunal-caseworker");
+            testUsersMap.put(GIN_INDEX_CASE_WORKER, ginIndexCaseWorker);
 
-        TestAuthenticationCredentials ginIndexCaseWorkerWithJudgeRole =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
-        taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForStandardAccess(
-            ginIndexCaseWorkerWithJudgeRole.getHeaders(),WA_JURISDICTION, WA_CASE_TYPE);
-        testUsersMap.put(GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE,ginIndexCaseWorkerWithJudgeRole);
+            TestAuthenticationCredentials ginIndexCaseWorkerWithJudgeRole =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+            taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForStandardAccess(
+                ginIndexCaseWorkerWithJudgeRole.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+            testUsersMap.put(GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE, ginIndexCaseWorkerWithJudgeRole);
 
-        TestAuthenticationCredentials userWithSeniorTribCaseworker =
-            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        taskFunctionalTestsApiUtils.getCommon()
-            .setupWAOrganisationalRoleAssignment(
-                userWithSeniorTribCaseworker.getHeaders(), "senior-tribunal-caseworker");
-        testUsersMap.put(CASE_WORKER_WITH_SENIOR_TRIB_ROLE,userWithSeniorTribCaseworker);
+            TestAuthenticationCredentials userWithSeniorTribCaseworker =
+                authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+            taskFunctionalTestsApiUtils.getCommon()
+                .setupWAOrganisationalRoleAssignment(
+                    userWithSeniorTribCaseworker.getHeaders(), "senior-tribunal-caseworker");
+            testUsersMap.put(CASE_WORKER_WITH_SENIOR_TRIB_ROLE, userWithSeniorTribCaseworker);
 
     }
 
