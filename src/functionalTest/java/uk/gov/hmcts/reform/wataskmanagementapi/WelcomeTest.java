@@ -1,15 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import io.restassured.RestAssured;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 
 import static net.serenitybdd.rest.SerenityRest.expect;
 import static org.hamcrest.Matchers.containsString;
 
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
 public class WelcomeTest {
 
     @Value("${targets.instance}")
