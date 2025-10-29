@@ -10,6 +10,8 @@ public enum FeatureFlag {
 
     WA_COMPLETION_PROCESS_UPDATE("wa-completion-process-update"),
 
+    WA_CANCELLATION_PROCESS_FEATURE("wa-cancellation-process-feature"),
+
 
     //The following keys are used for testing purposes only.
     TEST_KEY("tester"),
