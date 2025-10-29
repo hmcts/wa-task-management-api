@@ -4,10 +4,12 @@ import io.restassured.RestAssured;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,6 +18,9 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
     private String testUrl;
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     @Before
     public void setUp() {
@@ -112,7 +117,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
+            .header(taskFunctionalTestsUserUtils.getAuthorizationHeaders())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .when()
@@ -123,7 +128,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
+            .header(taskFunctionalTestsUserUtils.getAuthorizationHeaders())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -135,7 +140,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
+            .header(taskFunctionalTestsUserUtils.getAuthorizationHeaders())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -147,7 +152,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
+            .header(taskFunctionalTestsUserUtils.getAuthorizationHeaders())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -159,7 +164,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
+            .header(taskFunctionalTestsUserUtils.getAuthorizationHeaders())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -172,7 +177,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
+            .header(taskFunctionalTestsUserUtils.getAuthorizationHeaders())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
