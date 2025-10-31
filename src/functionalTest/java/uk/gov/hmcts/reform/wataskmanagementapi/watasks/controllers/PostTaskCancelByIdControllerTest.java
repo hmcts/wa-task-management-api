@@ -127,13 +127,12 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
             initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
-            String cancellationProcess = data[0];
-            String terminationProcess = data[1];
-
             String taskId = taskVariables.getTaskId();
             waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(userEmailPrefix);
             common.setupLeadJudgeForSpecificAccess(waCaseworkerCredentials.getHeaders(),
                                                    taskVariables.getCaseId(), WA_JURISDICTION);
+            String cancellationProcess = data[0];
+            String terminationProcess = data[1];
 
             Response result = restApiActions.post(
                 ENDPOINT_BEING_TESTED + "?cancellation_process=" + cancellationProcess,
