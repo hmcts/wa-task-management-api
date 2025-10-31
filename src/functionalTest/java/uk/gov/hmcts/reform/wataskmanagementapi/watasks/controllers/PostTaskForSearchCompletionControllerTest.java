@@ -7,9 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.util.List;
@@ -23,6 +25,7 @@ import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
+@Import(AwaitilityTestConfig.class)
 @Slf4j
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 

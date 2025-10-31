@@ -4,9 +4,11 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
@@ -28,6 +30,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
+@Import(AwaitilityTestConfig.class)
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBaseTest {
 

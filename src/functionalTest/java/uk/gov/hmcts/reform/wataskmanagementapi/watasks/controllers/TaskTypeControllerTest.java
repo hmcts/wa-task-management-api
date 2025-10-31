@@ -5,15 +5,18 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Import(AwaitilityTestConfig.class)
 public class TaskTypeControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/task-types";

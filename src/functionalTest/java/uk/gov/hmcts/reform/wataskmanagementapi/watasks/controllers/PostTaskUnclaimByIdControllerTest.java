@@ -4,8 +4,10 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.util.Map;
@@ -14,7 +16,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.REGION;
 
-
+@Import(AwaitilityTestConfig.class)
 public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 import com.launchdarkly.sdk.LDValue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
@@ -14,7 +15,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFla
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.NON_EXISTENT_KEY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.TEST_KEY;
 
-
+@Import(AwaitilityTestConfig.class)
 public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
 
     public static final String SOME_USER_ID = "some user id";

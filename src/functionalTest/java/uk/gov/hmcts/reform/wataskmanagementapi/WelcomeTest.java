@@ -4,12 +4,15 @@ import io.restassured.RestAssured;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 
 import static net.serenitybdd.rest.SerenityRest.expect;
 import static org.hamcrest.Matchers.containsString;
 
+@Import(AwaitilityTestConfig.class)
 public class WelcomeTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
