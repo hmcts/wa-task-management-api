@@ -244,6 +244,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             assertEquals(terminationProcess, savedTaskResource.get().getTerminationProcess().getValue());
         });
     }
+
     private void createAndSaveTestTask(String taskId, CFTTaskState cftTaskState) {
         transactionHelper.doInNewTransaction(() -> {
             TaskResource taskResource = new TaskResource(
@@ -410,8 +411,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
             HashMap<String, Object> requestParamMap = new HashMap<>();
-            if (termnationProcess != null)
-            {
+            if (termnationProcess != null) {
                 requestParamMap.put(REQ_PARAM_CANCELLATION_PROCESS, termnationProcess);
             }
 
