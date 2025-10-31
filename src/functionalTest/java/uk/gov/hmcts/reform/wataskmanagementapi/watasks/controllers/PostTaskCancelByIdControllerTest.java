@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -82,6 +83,73 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void user_should_cancel_task_and_set_termination_process_for_valid_cancellation_process_and_flag_enabled() {
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), "judge");
+
+        String[][] testData = {
+            {"EXUI_USER_CANCELLATION", "EXUI_USER_CANCELLATION"},
+            {"INVALID_VALUE", null},
+            {null, null},
+            {"", null}
+        };
+
+        cancelTaskAndAssertTerminationProcess(testData, caseworkerForReadCredentials,
+                                              "wa-user-with-cancellation-process-enabled-");
+    }
+
+    @Test
+    public void user_should_cancel_task_and_not_set_termination_process_when_flag_disabled() {
+
+        common.setupWAOrganisationalRoleAssignment(caseworkerForReadCredentials.getHeaders(), "judge");
+
+        String[][] testData = {
+            {"EXUI_USER_CANCELLATION", null},
+            {"INVALID_VALUE", null},
+            {null, null},
+            {"", null}
+        };
+
+        cancelTaskAndAssertTerminationProcess(testData, caseworkerForReadCredentials,
+                                              "wa-user-with-cancellation-process-disabled-");
+    }
+
+    private void cancelTaskAndAssertTerminationProcess(String[][] testData,
+                                                       TestAuthenticationCredentials caseworkerForReadCredentials,
+                                                       String userEmailPrefix) {
+
+        for (String[] data : testData) {
+            TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
+                                                                           "Review Specific Access Request Judiciary");
+
+            initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+
+            String cancellationProcess = data[0];
+            String terminationProcess = data[1];
+
+            String taskId = taskVariables.getTaskId();
+            waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(userEmailPrefix);
+            common.setupLeadJudgeForSpecificAccess(waCaseworkerCredentials.getHeaders(),
+                                                   taskVariables.getCaseId(), WA_JURISDICTION);
+
+            Response result = restApiActions.post(
+                ENDPOINT_BEING_TESTED + "?cancellation_process=" + cancellationProcess,
+                taskId,
+                waCaseworkerCredentials.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            assertions.taskFieldWasUpdatedInDatabase(
+                taskId, "termination_process", terminationProcess,
+                caseworkerForReadCredentials.getHeaders()
+            );
+
+            common.cleanUpTask(taskId);
+        }
     }
 
     //Add four IT to cover grant type SPECIFIC, STANDARD, CHALLENGED, EXCLUDED for cancel request and then remove this.

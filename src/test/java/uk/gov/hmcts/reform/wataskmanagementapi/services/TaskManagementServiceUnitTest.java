@@ -1462,7 +1462,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap);
 
             assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
             verify(camundaService, times(1)).cancelTask(taskId);
@@ -1481,7 +1481,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                requestParamMap
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1504,7 +1505,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                requestParamMap
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1537,7 +1539,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                requestParamMap
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1552,7 +1555,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                requestParamMap
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
@@ -1568,7 +1572,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap))
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
@@ -1625,7 +1629,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap);
 
             verify(camundaServiceApi, never()).bpmnEscalation(any(), anyString(), anyMap());
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -1689,7 +1693,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>(List.of(taskRoleResource));
 
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
-            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap))
                 .isInstanceOf(TaskCancelException.class);
 
             verify(camundaServiceApi, never()).bpmnEscalation(any(), anyString(), anyMap());
@@ -1722,7 +1726,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             taskRoleResourcesItems.add(taskRoleResource);
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap);
 
             assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
             verify(camundaService, times(1)).cancelTask(taskId);
@@ -1754,7 +1758,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             taskRoleResourcesItems.add(taskRoleResource);
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap);
 
             assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
             verify(camundaService, times(1)).cancelTask(taskId);
@@ -1900,7 +1904,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                requestParamMap
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
@@ -2129,7 +2134,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                requestParamMap
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
