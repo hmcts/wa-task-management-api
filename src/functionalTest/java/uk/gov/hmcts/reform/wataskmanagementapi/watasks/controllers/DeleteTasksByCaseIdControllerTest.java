@@ -5,8 +5,10 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteCaseTasksAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
@@ -14,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
+@Import(AwaitilityTestConfig.class)
 public class DeleteTasksByCaseIdControllerTest extends SpringBootFunctionalBaseTest {
 
 

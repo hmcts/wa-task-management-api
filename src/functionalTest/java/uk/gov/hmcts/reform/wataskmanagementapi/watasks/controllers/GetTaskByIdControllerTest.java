@@ -6,9 +6,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import java.util.List;
@@ -21,6 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.hasItems;
 
+@Import(AwaitilityTestConfig.class)
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -38,7 +41,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
-    
+
     @Test
     public void should_return_a_200_with_task_and_correct_properties() {
 
