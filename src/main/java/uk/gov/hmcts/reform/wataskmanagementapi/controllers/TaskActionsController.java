@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRe
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
@@ -72,6 +73,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEnt
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
     public static final String REQ_PARAM_COMPLETION_PROCESS = "completion_process";
+    public static final String REQ_PARAM_CANCELLATION_PROCESS = "cancellation_process";
+
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private final TaskManagementService taskManagementService;
@@ -83,6 +86,8 @@ public class TaskActionsController extends BaseController {
 
     private final CompletionProcessValidator completionProcessValidator;
 
+    private final CancellationProcessValidator cancellationProcessValidator;
+
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
@@ -92,6 +97,7 @@ public class TaskActionsController extends BaseController {
                                  ClientAccessControlService clientAccessControlService,
                                  TaskDeletionService taskDeletionService,
                                  CompletionProcessValidator completionProcessValidator,
+                                 CancellationProcessValidator cancellationProcessValidator,
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         super();
         this.taskManagementService = taskManagementService;
@@ -100,6 +106,7 @@ public class TaskActionsController extends BaseController {
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
         this.completionProcessValidator = completionProcessValidator;
+        this.cancellationProcessValidator = cancellationProcessValidator;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
@@ -290,12 +297,21 @@ public class TaskActionsController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
     public ResponseEntity<Void> cancelTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
-                                           @PathVariable(TASK_ID) String taskId) {
+                                           @PathVariable(TASK_ID) String taskId,
+                                           @RequestParam(name = REQ_PARAM_CANCELLATION_PROCESS, required = false)
+                                               String cancellationProcess) {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
+        Optional<String> validatedCancellationProcess =
+            cancellationProcessValidator.validate(cancellationProcess, taskId,
+                                                isUpdateCancellationProcessFlagEnabled(accessControlResponse));
+        Map<String, Object> requestParamMap = new HashMap<>();
 
-        taskManagementService.cancelTask(taskId, accessControlResponse);
+        if (validatedCancellationProcess.isPresent() && !validatedCancellationProcess.get().isBlank()) {
+            requestParamMap.put(REQ_PARAM_CANCELLATION_PROCESS, validatedCancellationProcess.get());
+        }
+        taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap);
 
         return ResponseEntity
             .noContent()
@@ -438,4 +454,19 @@ public class TaskActionsController extends BaseController {
             accessControlResponse.getUserInfo().getEmail()
         );
     }
+
+    /**
+     * Checks if the "WA_CANCELLATION_PROCESS_UPDATE" feature flag is enabled for the given user.
+     *
+     * @param accessControlResponse The access control response containing user information.
+     * @return true if the feature flag is enabled, false otherwise.
+     */
+    private boolean isUpdateCancellationProcessFlagEnabled(AccessControlResponse accessControlResponse) {
+        return launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+    }
+
 }

@@ -83,6 +83,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
@@ -362,8 +363,14 @@ public class TaskManagementService {
      */
     @Transactional
     public void cancelTask(String taskId,
-                           AccessControlResponse accessControlResponse) {
+                           AccessControlResponse accessControlResponse, Map<String, Object> requestParamMap) {
+        TerminationProcess terminationProcess = null;
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
+        if (requestParamMap.get(REQ_PARAM_CANCELLATION_PROCESS) != null) {
+            final String cancellationProcess = requestParamMap.get(REQ_PARAM_CANCELLATION_PROCESS).toString();
+            terminationProcess = TerminationProcess.fromValue(cancellationProcess);
+        }
         PermissionRequirements permissionsRequired;
 
         String userId = accessControlResponse.getUserInfo().getUid();
@@ -390,6 +397,7 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         CFTTaskState previousTaskState = task.getState();
         task.setState(CFTTaskState.CANCELLED);
+        task.setTerminationProcess(terminationProcess);
 
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
