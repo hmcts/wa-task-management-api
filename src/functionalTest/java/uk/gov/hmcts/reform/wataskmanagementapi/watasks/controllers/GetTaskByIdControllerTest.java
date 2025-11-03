@@ -38,8 +38,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
-
-
     @Test
     public void should_return_a_200_with_task_and_correct_properties() {
 

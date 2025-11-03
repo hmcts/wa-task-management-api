@@ -81,8 +81,6 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-
-
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId);
