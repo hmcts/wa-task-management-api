@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 
 import static org.hamcrest.Matchers.equalTo;
 
+
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -80,6 +81,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 

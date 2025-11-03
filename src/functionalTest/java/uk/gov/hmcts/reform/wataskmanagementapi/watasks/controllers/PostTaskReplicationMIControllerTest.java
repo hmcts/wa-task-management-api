@@ -20,10 +20,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -1696,8 +1694,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,

@@ -37,6 +37,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
 
+
         common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
     }
