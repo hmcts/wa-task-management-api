@@ -216,7 +216,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         });
     }
 
-    void verifyTransactionTerminated(String taskId, String terminationProcess) {
+    void verifyTransactionTerminated(String taskId) {
         transactionHelper.doInNewTransaction(() -> {
             //Find the task
             Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
@@ -419,7 +419,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap)
             );
 
-            verifyTransactionTerminated(taskId, termnationProcess);
+            verifyTransactionTerminated(taskId);
 
         }
 
