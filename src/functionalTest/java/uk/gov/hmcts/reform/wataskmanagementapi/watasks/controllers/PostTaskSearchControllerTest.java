@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -42,7 +40,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.USER;
 
-@Import(AwaitilityTestConfig.class)
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {

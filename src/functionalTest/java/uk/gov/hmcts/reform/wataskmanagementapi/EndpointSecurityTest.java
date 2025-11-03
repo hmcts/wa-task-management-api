@@ -5,16 +5,13 @@ import net.serenitybdd.rest.SerenityRest;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import(AwaitilityTestConfig.class)
 public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
