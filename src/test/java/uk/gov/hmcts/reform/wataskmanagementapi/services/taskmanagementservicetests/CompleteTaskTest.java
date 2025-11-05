@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -91,6 +92,9 @@ class CompleteTaskTest extends CamundaHelpers {
     private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
+    @Mock
+    LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
 
     @Test
@@ -436,7 +440,7 @@ class CompleteTaskTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator, featureFlagProvider);
 
 
         taskId = UUID.randomUUID().toString();

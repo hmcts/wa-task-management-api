@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
@@ -84,6 +85,9 @@ class InitiateTaskTest extends CamundaHelpers {
     @Mock
     private IdamTokenGenerator idamTokenGenerator;
 
+    @Mock
+    LaunchDarklyFeatureFlagProvider featureFlagProvider;
+
     @Spy
     @InjectMocks
     TaskAutoAssignmentService taskAutoAssignmentService;
@@ -118,7 +122,7 @@ class InitiateTaskTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator, featureFlagProvider);
 
 
         taskId = UUID.randomUUID().toString();

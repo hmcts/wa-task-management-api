@@ -81,6 +81,8 @@ public class TaskManagementProviderTestConfiguration {
     @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
+    @MockitoBean
+    LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Bean
     @Primary
@@ -111,7 +113,7 @@ public class TaskManagementProviderTestConfiguration {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator, featureFlagProvider);
     }
 
     @Bean

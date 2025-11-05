@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequire
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -70,6 +71,8 @@ class GetTaskTest extends CamundaHelpers {
     IdamTokenGenerator idamTokenGenerator;
     @Mock
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    @Mock
+    LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Test
     void getTask_should_succeed_and_return_mapped_task() {
@@ -122,7 +125,7 @@ class GetTaskTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator, featureFlagProvider);
 
 
         taskId = UUID.randomUUID().toString();

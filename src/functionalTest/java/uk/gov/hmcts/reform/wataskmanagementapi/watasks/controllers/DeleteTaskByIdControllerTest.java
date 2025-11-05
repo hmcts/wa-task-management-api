@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
+import io.cucumber.java.it.Ma;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+@Slf4j
 public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -86,6 +89,45 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     }
 
+    @Test
+    public void should_succeed_when_terminate_reason_is_cancelled_test() {
+        TestVariables taskVariables = common.setupWATaskWithCancellationProcessAndRetrieveIds(
+            Map.of(
+                "cancellationProcess", "CASE_EVENT_CANCELLATION"
+            ),
+            "requests/ccd/wa_case_data.json",
+            "processApplication"
+        );
+        initiateTask(taskVariables);
+
+        claimAndCancelTask(taskVariables);
+        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
+
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("cancelled")
+        );
+
+        Response result = restApiActions.delete(
+            ENDPOINT_BEING_TESTED,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            waCaseworkerCredentials.getHeaders()
+        );
+        result.prettyPrint();
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result = restApiActions.get(
+            "task/{task-id}",
+            taskVariables.getTaskId(),
+            waCaseworkerCredentials.getHeaders()
+        );
+        log.info("Get Task Response after Termination: {}", result.asString());
+        result.prettyPrint();
+        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
+    }
+
     private void checkHistoryVariable(String taskId, String variable, String value) {
 
         Map<String, Object> request = Map.of(
@@ -138,6 +180,17 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         return taskVariables;
+    }
+
+    private void cancelTask(TestVariables taskVariables) {
+        common.setupCFTOrganisationalRoleAssignment(baseCaseworkerCredentials.getHeaders(),
+                                                    WA_JURISDICTION, WA_CASE_TYPE);
+        given.updateWACcdCase(
+            taskVariables.getCaseId(),
+            Map.of("cancellationProcess", "CASE_EVENT_CANCELLATION"),
+            "removeAppealFromOnline"
+        );
+
     }
 
 

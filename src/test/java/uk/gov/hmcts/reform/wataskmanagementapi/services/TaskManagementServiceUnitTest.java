@@ -216,6 +216,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
+    @Mock
+    LaunchDarklyFeatureFlagProvider featureFlagProvider;
     private Map<String, Object> requestParamMap = new HashMap<>();
 
     @Test
@@ -389,8 +391,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator
-        );
+            taskMandatoryFieldsValidator,
+            featureFlagProvider);
 
 
         taskId = UUID.randomUUID().toString();

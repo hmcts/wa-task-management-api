@@ -25,11 +25,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -121,6 +124,8 @@ public class TaskManagementService {
     private final IdamTokenGenerator idamTokenGenerator;
     private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
+    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -134,7 +139,7 @@ public class TaskManagementService {
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
                                  CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
-                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
+                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator, LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -145,6 +150,7 @@ public class TaskManagementService {
         this.idamTokenGenerator = idamTokenGenerator;
         this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
         this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
+        this.featureFlagProvider = featureFlagProvider;
     }
 
     protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
@@ -548,6 +554,7 @@ public class TaskManagementService {
      */
     @Transactional
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
+        log.info("Terminating task with id: {}", taskId);
         TaskResource task = null;
         try {
             //Find and Lock Task
@@ -571,9 +578,12 @@ public class TaskManagementService {
                     default -> TERMINATE_EXCEPTION;
                 };
                 setSystemUserTaskActionAttributes(task, taskAction);
+
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
+                setTaskTerminationProcess(taskId, task);
                 isCamundaStateUpdated = true;
+
                 // Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             } catch (Exception ex) {
@@ -584,6 +594,23 @@ public class TaskManagementService {
                 log.error("Error occurred while terminating task with id: {}", taskId, ex);
                 throw ex;
             }
+        }
+    }
+
+    /**
+     * Sets the termination process for a task during termination if not already set.
+     *
+     * @param taskId the task id.
+     * @param task   the task resource.
+     */
+    private void setTaskTerminationProcess(String taskId, TaskResource task) {
+        log.info("Checking termination process for task id {} during termination", taskId);
+        String userToken = idamTokenGenerator.generate();
+        if (featureFlagProvider.getBooleanValue(FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE,
+                                                   idamTokenGenerator.getUserInfo(userToken).getUid(),
+                                                   idamTokenGenerator.getUserInfo(userToken).getEmail())) {
+            log.info("Setting termination process for task id {} during termination", taskId);
+            task.setTerminationProcess(calculateTerminationProcess(taskId));
         }
     }
 
@@ -1009,5 +1036,31 @@ public class TaskManagementService {
                 throw new CustomConstraintViolationException(singletonList(violation));
             }
         });
+    }
+
+    /**
+     * Calculates termination process for the given task.
+     *
+     * @param taskId the task ID.
+     */
+    private TerminationProcess calculateTerminationProcess(String taskId) {
+        Optional<HistoryVariableInstance> cancellationProcess =
+            camundaService.getVariableFromHistory(taskId, "cancellationProcess");
+
+        String cancellationProcessValue = null;
+
+        if (cancellationProcess.isPresent()) {
+            cancellationProcessValue = cancellationProcess.get().getValue();
+            log.info("Task with id {} had cancellationProcess variable with value {} in camunda history",
+                     taskId, cancellationProcessValue);
+        } else {
+            log.info("Task with id {} did not have cancellationProcess variable in camunda history", taskId);
+        }
+
+        //As we are saving cancellation_process variable value as CASE-EVENT_CANCELLATION in case event handler
+        if ("CASE_EVENT_CANCELLATION".equals(cancellationProcessValue)) {
+           return TerminationProcess.EXUI_CASE_EVENT_CANCELLATION;
+        }
+        return null;
     }
 }

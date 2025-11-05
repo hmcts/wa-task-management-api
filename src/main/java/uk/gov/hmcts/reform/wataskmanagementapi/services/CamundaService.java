@@ -47,6 +47,7 @@ import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.INITIATION_TIMESTAMP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -353,6 +354,45 @@ public class CamundaService {
             );
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem when deleting the historic cftTaskState", ex);
+        }
+    }
+
+    public Optional<HistoryVariableInstance> getVariableFromHistory(String taskId, String variableName) {
+
+        Map<String, Object> body = Map.of(
+            VALUE_TASK_ID_IN, singleton(taskId)
+        );
+
+        try {
+            List<HistoryVariableInstance> results = camundaServiceApi.searchHistory(
+                authTokenGenerator.generate(),
+                body
+            );
+
+            //Get process Instance Id
+            Optional<String> processInstanceId = results.stream()
+                .map(HistoryVariableInstance::getProcessInstanceId)
+                .findFirst();
+
+            //Now get cancellationProcess using processInstanceId
+            if (processInstanceId.isEmpty()) {
+                log.info("No processInstanceId found for taskId '{}'", taskId);
+                return Optional.empty();
+            }
+
+            body = Map.of(
+                "processInstanceId", processInstanceId.get()
+            );
+
+            results = camundaServiceApi.searchHistory(
+                authTokenGenerator.generate(),
+                body
+            );
+            return  results.stream()
+                .filter(r -> r.getName().equals(variableName))
+                .findFirst();
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem when fetching variable from history", ex);
         }
     }
 
