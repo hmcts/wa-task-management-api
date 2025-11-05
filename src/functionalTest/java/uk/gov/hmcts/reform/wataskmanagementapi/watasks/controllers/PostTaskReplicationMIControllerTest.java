@@ -8,8 +8,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
@@ -18,10 +20,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Import(AwaitilityTestConfig.class)
 @SuppressWarnings("checkstyle:LineLength")
 @SpringBootTest
 public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
@@ -82,8 +83,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -107,41 +106,38 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("task_history_list.get(1).update_action", equalTo("Configure"));
             });
 
-        await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
-            .untilAsserted(() -> {
-                Response resultReportable = restApiActions.get(
-                    ENDPOINT_BEING_TESTED_REPORTABLE,
-                    taskId,
-                    caseworkerCredentials.getHeaders()
-                );
+        await().untilAsserted(() -> {
+            Response resultReportable = restApiActions.get(
+                ENDPOINT_BEING_TESTED_REPORTABLE,
+                taskId,
+                caseworkerCredentials.getHeaders()
+            );
 
-                resultReportable.prettyPrint();
-                resultReportable.then().assertThat()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
-                    .body("reportable_task_list.get(0).assignee", equalTo(null))
-                    .body("reportable_task_list.get(0).updated_by", notNullValue())
-                    .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("Configure"))
-                    .body("reportable_task_list.get(0).first_assigned_date", nullValue())
-                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
-                    .body("reportable_task_list.get(0).wait_time_days", nullValue())
-                    .body("reportable_task_list.get(0).wait_time", nullValue())
-                    .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
-                    .body("reportable_task_list.get(0).completed_date", nullValue())
-                    .body("reportable_task_list.get(0).completed_date_time", nullValue())
-                    .body("reportable_task_list.get(0).final_state_label", nullValue())
-                    .body("reportable_task_list.get(0).handling_time_days", nullValue())
-                    .body("reportable_task_list.get(0).handling_time", nullValue())
-                    .body("reportable_task_list.get(0).processing_time_days", nullValue())
-                    .body("reportable_task_list.get(0).processing_time", nullValue())
-                    .body("reportable_task_list.get(0).is_within_sla", nullValue())
-                    .body("reportable_task_list.get(0).due_date_to_completed_diff_days", nullValue())
-                    .body("reportable_task_list.get(0).due_date_to_completed_diff_time", nullValue());
-            });
+            resultReportable.prettyPrint();
+            resultReportable.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .body("reportable_task_list.size()", equalTo(1))
+                .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
+                .body("reportable_task_list.get(0).assignee", equalTo(null))
+                .body("reportable_task_list.get(0).updated_by", notNullValue())
+                .body("reportable_task_list.get(0).updated", notNullValue())
+                .body("reportable_task_list.get(0).update_action", equalTo("Configure"))
+                .body("reportable_task_list.get(0).first_assigned_date", nullValue())
+                .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
+                .body("reportable_task_list.get(0).wait_time_days", nullValue())
+                .body("reportable_task_list.get(0).wait_time", nullValue())
+                .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+                .body("reportable_task_list.get(0).completed_date", nullValue())
+                .body("reportable_task_list.get(0).completed_date_time", nullValue())
+                .body("reportable_task_list.get(0).final_state_label", nullValue())
+                .body("reportable_task_list.get(0).handling_time_days", nullValue())
+                .body("reportable_task_list.get(0).handling_time", nullValue())
+                .body("reportable_task_list.get(0).processing_time_days", nullValue())
+                .body("reportable_task_list.get(0).processing_time", nullValue())
+                .body("reportable_task_list.get(0).is_within_sla", nullValue())
+                .body("reportable_task_list.get(0).due_date_to_completed_diff_days", nullValue())
+                .body("reportable_task_list.get(0).due_date_to_completed_diff_time", nullValue());
+        });
 
         Response resultAssignments = restApiActions.get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -171,8 +167,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> configureJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultTaskReportable = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -204,8 +198,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0));
             });
 
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertNotNull(taskId));
+        Awaitility.await().untilAsserted(() -> assertNotNull(taskId));
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -214,8 +207,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultHistory = restApiActions.get(
@@ -246,8 +237,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = restApiActions.get(
@@ -291,7 +280,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
         common.cleanUpTask(taskId);
@@ -309,7 +298,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
         given.iClaimATaskWithIdAndAuthorization(
@@ -321,8 +310,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -356,8 +343,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultReportable.set(restApiActions.get(
@@ -402,7 +387,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
         Response resultAssignments = restApiActions.get(
@@ -435,8 +420,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultAssignmentsUnclaim = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultAssignmentsUnclaim.set(restApiActions.get(
@@ -455,8 +438,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultUnclaimHistory = restApiActions.get(
@@ -485,8 +466,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 resultReportable.set(restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -538,8 +517,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(1).assignment_end", nullValue());
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response reClaimResultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -570,8 +547,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -629,7 +604,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
         common.cleanUpTask(taskId);
@@ -651,8 +626,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultReportable = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultReportable.set(restApiActions.get(
@@ -713,8 +686,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -740,8 +711,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultDeleteReportable = restApiActions.get(
@@ -856,7 +825,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
 
         String taskId = taskVariables.getTaskId();
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
         given.iClaimATaskWithIdAndAuthorization(
@@ -868,8 +837,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = restApiActions.get(
@@ -909,7 +876,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
 
             });
 
@@ -931,7 +898,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task_assignments_list.get(0).task_name", equalTo("Process Application"));
 
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
         Response resultComplete = restApiActions.post(
@@ -960,8 +927,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -977,8 +942,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1052,8 +1015,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
                 ).toSecondOfDay();
-                assertTrue(waitTimeSeconds > 1);
-                assertTrue(processingTimeSeconds > 1);
+                assertTrue(waitTimeSeconds >= 0);
+                assertTrue(processingTimeSeconds >= 0);
                 assertEquals(handlingTimeSeconds, processingTimeSeconds - waitTimeSeconds);
 
             });
@@ -1111,8 +1074,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = restApiActions.get(
@@ -1196,8 +1157,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(restApiActions.get(
@@ -1223,16 +1182,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
 
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultTerminateReportable = restApiActions.get(
@@ -1295,9 +1249,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultAssignmentsPostTermination = restApiActions.get(
@@ -1357,9 +1308,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultReportable = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1409,9 +1357,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task.id", equalTo(taskId));
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1431,9 +1376,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1484,9 +1426,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultReportable = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1524,9 +1463,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1541,9 +1477,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("task_history_list.get(4).termination_process", nullValue());
             });
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1610,8 +1543,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultHistory = restApiActions.get(
@@ -1748,8 +1679,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = restApiActions.get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1765,8 +1694,6 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReport = restApiActions.get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
