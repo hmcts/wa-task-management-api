@@ -86,7 +86,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     public void user_should_configure_task_and_configure_action_recorded_in_replica_tables() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );

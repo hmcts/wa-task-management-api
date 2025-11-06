@@ -590,7 +590,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         TestVariables taskVariables =
             taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(
             additionalProperties,
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "reviewSpecificAccessRequestJudiciary2"
         );
         String taskId = taskVariables.getTaskId();
@@ -738,7 +738,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskWithAdditionalPropertiesAndRetrieveIds(
                 additionalProperties,
-                "requests/ccd/wa_case_data.json",
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "reviewSpecificAccessRequestJudiciary"
         );
         String taskId = taskVariables.getTaskId();
@@ -842,7 +842,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskWithAdditionalPropertiesAndRetrieveIds(
                 additionalProperties,
-                "requests/ccd/wa_case_data.json",
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "reviewSpecificAccessRequestJudiciary1"
         );
         String taskId = taskVariables.getTaskId();
@@ -1039,7 +1039,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "taskAttributesWithDefaultValue",
             "Task Attributes With Default Value"
         );
@@ -1137,7 +1137,7 @@ public class PostTaskExecuteReconfigureControllerTest extends SpringBootFunction
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskWithAdditionalPropertiesAndRetrieveIds(
             additionalProperties,
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "reconfigTaskAttributesTask"
         );
         String taskId = taskVariables.getTaskId();

@@ -47,7 +47,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_with_task_and_correct_properties() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
@@ -113,7 +113,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_403_when_user_grant_type_standard_and_excluded() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
@@ -219,7 +219,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties,
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "reviewSpecificAccessRequestJudiciary"
         );
         String taskId = taskVariables.getTaskId();
@@ -254,7 +254,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskType = "reviewSpecificAccessRequestLegalOps";
         String taskName = "review specific access request legal ops";
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWAStandaloneTaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             taskType,
             taskName
         );
@@ -365,12 +365,12 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_and_add_permission_for_specific_role() {
 
         TestVariables taskVariables1 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
         TestVariables taskVariables2 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );

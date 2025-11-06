@@ -496,7 +496,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     //Need new IT to cover role assignment verification for attributes in common for all actions, then remove this test.
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithWithCustomVariableAndRetrieveIds(REGION, "1", "requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithWithCustomVariableAndRetrieveIds(REGION, "1", "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskId = taskVariables.getTaskId();
 
         initiateTask(taskVariables, caseWorkerWithCftOrgRoles.getHeaders());

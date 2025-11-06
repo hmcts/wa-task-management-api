@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
@@ -49,7 +48,6 @@ public class GivensBuilder {
     private final RestApiActions restApiActions;
     private final AuthorizationProvider authorizationProvider;
 
-    private final AtomicInteger nextHearingDateCounter = new AtomicInteger();
     private final CcdRetryableClient ccdRetryableClient;
     TestAuthenticationCredentials caseCreateCredentials;
 
@@ -355,6 +353,73 @@ public class GivensBuilder {
         );
     }
 
+    public String iCreateWACcdCaseWithCustomHearignDate(String jurisdiction,
+                                                        String caseType,
+                                                        String startEventId,
+                                                        String submitEventId,
+                                                        String resourceFilename,OffsetDateTime hearingDate) {
+
+        String userToken = caseCreateCredentials.getHeaders().getValue(AUTHORIZATION);
+        String serviceToken = caseCreateCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
+        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
+
+        StartEventResponse startCase = ccdRetryableClient.startForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            jurisdiction,
+            caseType,
+            startEventId
+        );
+
+        Map data = null;
+        try {
+            String caseDataString = FileUtils.readFileToString(
+                ResourceUtils.getFile("classpath:" + resourceFilename),
+                "UTF-8"
+            );
+
+
+            caseDataString = caseDataString.replace(
+                "{NEXT_HEARING_DATE}",
+                hearingDate.toString()
+            );
+
+            data = new ObjectMapper().readValue(caseDataString, Map.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .eventToken(startCase.getToken())
+            .event(Event.builder()
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
+            .data(data)
+            .build();
+
+        //Fire submit event
+        CaseDetails caseDetails = ccdRetryableClient.submitForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            jurisdiction,
+            caseType,
+            true,
+            caseDataContent
+        );
+
+        log.info("Created case [" + caseDetails.getId() + "]");
+
+        updateCase(jurisdiction, caseType, submitEventId, caseDetails.getId().toString(),
+                   caseCreateCredentials, Map.of());
+
+
+        return caseDetails.getId().toString();
+    }
+
     public void updateWACcdCase(String caseId, Map<String, Object> updates, String event) {
         updateCase("WA", "WaCaseType", event,
                    caseId, caseCreateCredentials, updates
@@ -387,16 +452,6 @@ public class GivensBuilder {
                 ResourceUtils.getFile("classpath:" + resourceFilename),
                 "UTF-8"
             );
-
-            caseDataString = caseDataString.replace(
-                "{NEXT_HEARING_DATE}",
-                OffsetDateTime.now().plusMinutes(nextHearingDateCounter.incrementAndGet()).toString()
-            );
-
-            // This code is mad next hearing date sortable
-            if (nextHearingDateCounter.get() > 10) {
-                nextHearingDateCounter.set(0);
-            }
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {

@@ -238,7 +238,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     private TestVariables setupScenario(String taskType, String taskName) {
         TestVariables taskVariables
             = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-                "requests/ccd/wa_case_data.json",
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
             taskType,
             taskName);
         return taskVariables;
