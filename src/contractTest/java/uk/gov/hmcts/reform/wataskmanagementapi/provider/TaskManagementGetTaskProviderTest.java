@@ -124,8 +124,8 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
         when(userInfo.getEmail()).thenReturn("someEmailId");
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                             anyString(), anyString())).thenReturn(true);
+        when(completionProcessValidator.isCompletionProcessFeatureEnabled(any()))
+            .thenReturn(true);
         when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithCompletionProcess());
     }
 

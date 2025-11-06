@@ -247,8 +247,6 @@ public class TaskActionsController extends BaseController {
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
 
-
-
         Optional<String> validatedCompletionProcess =
             completionProcessValidator.validate(completionProcess, taskId, accessControlResponse);
 
