@@ -508,13 +508,7 @@ public class TaskManagementService {
                                                               CompletionOptions completionOptions,
                                                               Map<String, Object> requestParamMap) {
         String userId = accessControlResponse.getUserInfo().getUid();
-        TerminationProcess terminationProcess = null;
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
-        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(completionProcess);
-        }
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
@@ -538,7 +532,7 @@ public class TaskManagementService {
                 userId,
                 taskStateIsAssignedAlready
             );
-            task.setTerminationProcess(terminationProcess);
+            task.setTerminationProcess(getTerminationProcess(requestParamMap, REQ_PARAM_COMPLETION_PROCESS));
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
