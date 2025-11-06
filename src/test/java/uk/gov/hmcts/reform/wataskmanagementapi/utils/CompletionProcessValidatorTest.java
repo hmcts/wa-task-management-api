@@ -51,7 +51,8 @@ class CompletionProcessValidatorTest {
     void validate_returns_completion_process_when_valid(String validCompletionProcess) {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
                                                                        any(), anyString())).thenReturn(true);
-        Optional<String> result = completionProcessValidator.validate(validCompletionProcess, "taskId123", mockAccessControlResponse);
+        Optional<String> result =
+            completionProcessValidator.validate(validCompletionProcess, "taskId123", mockAccessControlResponse);
         assertTrue(result.isPresent());
         assertEquals(validCompletionProcess, result.get());
     }
