@@ -9,9 +9,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CcdRetryableClient;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -32,8 +38,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
@@ -52,6 +56,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 @SpringBootTest
 @ActiveProfiles("functional")
 @Slf4j
+@Import(AwaitilityTestConfig.class)
 public abstract class SpringBootFunctionalBaseTest {
 
     public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED =
@@ -95,9 +100,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
         AtomicReference<String> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     Response camundaGetTaskResult = taskFunctionalTestsApiUtils.getCamundaApiActions().get(
@@ -182,8 +185,6 @@ public abstract class SpringBootFunctionalBaseTest {
         log.info("Task initiate with cron job {}", initiationJobRunning);
         if (initiationJobRunning) {
             await()
-                .pollInterval(10, SECONDS)
-                .atMost(120, SECONDS)
                 .until(
                     () -> {
                         Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -224,8 +225,6 @@ public abstract class SpringBootFunctionalBaseTest {
         InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(testVariables, additionalProperties);
         AtomicReference<Response> response = new AtomicReference<>();
         await()
-            .pollInterval(10, SECONDS)
-            .atMost(30, SECONDS)
             .until(() -> {
                 response.set(taskFunctionalTestsApiUtils.getRestApiActions().post(
                     TASK_INITIATION_ENDPOINT,
