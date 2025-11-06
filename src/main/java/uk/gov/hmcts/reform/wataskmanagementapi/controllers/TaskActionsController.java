@@ -27,8 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -88,8 +86,6 @@ public class TaskActionsController extends BaseController {
 
     private final CancellationProcessValidator cancellationProcessValidator;
 
-    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
@@ -97,8 +93,7 @@ public class TaskActionsController extends BaseController {
                                  ClientAccessControlService clientAccessControlService,
                                  TaskDeletionService taskDeletionService,
                                  CompletionProcessValidator completionProcessValidator,
-                                 CancellationProcessValidator cancellationProcessValidator,
-                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                                 CancellationProcessValidator cancellationProcessValidator) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
@@ -107,7 +102,6 @@ public class TaskActionsController extends BaseController {
         this.taskDeletionService = taskDeletionService;
         this.completionProcessValidator = completionProcessValidator;
         this.cancellationProcessValidator = cancellationProcessValidator;
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -133,7 +127,7 @@ public class TaskActionsController extends BaseController {
             accessControlResponse
         );
 
-        if (!isUpdateCompletionProcessFlagEnabled(accessControlResponse)) {
+        if (!completionProcessValidator.isCompletionProcessFeatureEnabled(accessControlResponse)) {
             task.setTerminationProcess(null);
         }
 
@@ -256,8 +250,7 @@ public class TaskActionsController extends BaseController {
 
 
         Optional<String> validatedCompletionProcess =
-            completionProcessValidator.validate(completionProcess, taskId,
-                                                isUpdateCompletionProcessFlagEnabled(accessControlResponse));
+            completionProcessValidator.validate(completionProcess, taskId, accessControlResponse);
 
         if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
             requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
@@ -304,8 +297,7 @@ public class TaskActionsController extends BaseController {
         LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
         Optional<String> validatedCancellationProcess =
-            cancellationProcessValidator.validate(cancellationProcess, taskId,
-                                                isUpdateCancellationProcessFlagEnabled(accessControlResponse));
+            cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse);
         Map<String, Object> requestParamMap = new HashMap<>();
 
         if (validatedCancellationProcess.isPresent() && !validatedCancellationProcess.get().isBlank()) {
@@ -441,32 +433,4 @@ public class TaskActionsController extends BaseController {
             assignerAuthToken
         ));
     }
-
-    /**
-     Checks if the "WA_COMPLETION_PROCESS_UPDATE" feature flag is enabled for the given user.
-
-     @param accessControlResponse The access control response containing user information.
-     @return true if the feature flag is enabled, false otherwise. */
-    private boolean isUpdateCompletionProcessFlagEnabled(AccessControlResponse accessControlResponse) {
-        return  launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-    }
-
-    /**
-     * Checks if the "WA_CANCELLATION_PROCESS_UPDATE" feature flag is enabled for the given user.
-     *
-     * @param accessControlResponse The access control response containing user information.
-     * @return true if the feature flag is enabled, false otherwise.
-     */
-    private boolean isUpdateCancellationProcessFlagEnabled(AccessControlResponse accessControlResponse) {
-        return launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-    }
-
 }

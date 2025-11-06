@@ -364,13 +364,8 @@ public class TaskManagementService {
     @Transactional
     public void cancelTask(String taskId,
                            AccessControlResponse accessControlResponse, Map<String, Object> requestParamMap) {
-        TerminationProcess terminationProcess = null;
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
-        if (requestParamMap.get(REQ_PARAM_CANCELLATION_PROCESS) != null) {
-            final String cancellationProcess = requestParamMap.get(REQ_PARAM_CANCELLATION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(cancellationProcess);
-        }
+
         PermissionRequirements permissionsRequired;
 
         String userId = accessControlResponse.getUserInfo().getUid();
@@ -397,7 +392,7 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         CFTTaskState previousTaskState = task.getState();
         task.setState(CFTTaskState.CANCELLED);
-        task.setTerminationProcess(terminationProcess);
+        task.setTerminationProcess(getTerminationProcess(requestParamMap, REQ_PARAM_CANCELLATION_PROCESS));
 
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
@@ -440,6 +435,26 @@ public class TaskManagementService {
     }
 
     /**
+     * Retrieves the termination process from the provided request parameter map using the specified key.
+     * This method ensures that the request parameter map is not null and attempts to map the value
+     * associated with the given key to a `TerminationProcess` enum value.
+     *
+     * @param requestParamMap A map containing request parameters. Must not be null.
+     * @param key             The key used to retrieve the termination process value from the map.
+     * @return The `TerminationProcess` enum value corresponding to the key, or null if the key is not present
+     *         or the value cannot be mapped.
+     * @throws NullPointerException if the `requestParamMap` is null.
+     */
+    private TerminationProcess getTerminationProcess(final Map<String, Object> requestParamMap, String key) {
+        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
+        TerminationProcess terminationProcess = Optional.ofNullable(requestParamMap.get(key))
+            .map(Object::toString)
+            .map(TerminationProcess::fromValue)
+            .orElse(null);
+        return terminationProcess;
+    }
+
+    /**
      * Completes a task in camunda also performs role assignment verifications.
      * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
@@ -450,14 +465,8 @@ public class TaskManagementService {
     @Transactional
     public void completeTask(String taskId, AccessControlResponse accessControlResponse,
                              Map<String, Object> requestParamMap) {
-        TerminationProcess terminationProcess = null;
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
-        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(completionProcess);
-        }
         boolean taskHasCompleted;
 
         checkCompletePermissions(taskId, accessControlResponse, userId);
@@ -477,7 +486,7 @@ public class TaskManagementService {
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
-                task.setTerminationProcess(terminationProcess);
+                task.setTerminationProcess(getTerminationProcess(requestParamMap, REQ_PARAM_COMPLETION_PROCESS));
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
