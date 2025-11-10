@@ -4,7 +4,6 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.CcdRetryableClient;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -27,10 +21,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDef
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -41,8 +33,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -77,99 +67,31 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static final String WA_JURISDICTION = "WA";
     protected static final String WA_CASE_TYPE = "WaCaseType";
     protected static final String EMAIL_PREFIX_R3_5 = "wa-granular-permission-";
-    protected static final String EMAIL_PREFIX_R2 = "wa-ft-test-r2-";
-    protected static final String EMAIL_PREFIX_GIN_INDEX = "wa-gin-index-";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TYPE =
         "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_TITLE = "Role Assignment Verification";
     protected static String ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED =
         "Role Assignment Verification: The request failed the Role Assignment checks performed.";
-    protected static String ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER =
-        "Role Assignment Verification: The user assigning the Task has failed the Role Assignment checks performed.";
-    protected static String TASK_NOT_FOUND_ERROR = "Task Not Found Error: The task could not be found.";
-    protected GivensBuilder given;
-    protected Assertions assertions;
-    protected Common common;
-    protected RestApiActions restApiActions;
-    protected RestApiActions camundaApiActions;
-
-    protected RestApiActions workflowApiActions;
-    protected RestApiActions launchDarklyActions;
     @Autowired
     protected AuthorizationProvider authorizationProvider;
 
     @Autowired
-    protected CcdRetryableClient ccdRetryableClient;
+    protected TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
     @Autowired
-    protected RoleAssignmentHelper roleAssignmentHelper;
-    @Autowired
-    protected IdamService idamService;
-    @Autowired
-    protected RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Autowired
-    protected TaskMandatoryFieldsValidator  taskMandatoryFieldsValidator;
+    protected TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
     @Autowired
     protected IdamTokenGenerator idamTokenGenerator;
 
-    @Value("${targets.camunda}")
-    private String camundaUrl;
-    @Value("${targets.workflow}")
-    private String workflowUrl;
-    @Value("${targets.instance}")
-    private String testUrl;
-    @Value("${launch_darkly.url}")
-    private String launchDarklyUrl;
     @Value("${initiation_job_running}")
     private Boolean initiationJobRunning;
 
     protected TestAuthenticationCredentials baseCaseworkerCredentials;
-    protected TestAuthenticationCredentials waCaseworkerCredentials;
-    protected TestAuthenticationCredentials caseworkerCredentials;
-    protected TestAuthenticationCredentials assignerCredentials;
-    protected TestAuthenticationCredentials assigneeCredentials;
-    protected TestAuthenticationCredentials secondAssigneeCredentials;
-    protected TestAuthenticationCredentials caseworkerForReadCredentials;
-    protected TestAuthenticationCredentials currentCaseworkerCredentials;
-    protected TestAuthenticationCredentials unassignUser;
-    protected TestAuthenticationCredentials otherUser;
-    protected TestAuthenticationCredentials ginIndexCaseworkerCredentials;
-    protected String idamSystemUser;
 
     @Before
     public void setUpGivens() throws IOException {
-        restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
-        camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
-        workflowApiActions = new RestApiActions(workflowUrl, LOWER_CAMEL_CASE).setUp();
-        assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
-
-        launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
-
-        given = new GivensBuilder(
-            camundaApiActions,
-            restApiActions,
-            authorizationProvider,
-            ccdRetryableClient,
-            workflowApiActions
-        );
-
-        common = new Common(
-            given,
-            restApiActions,
-            camundaApiActions,
-            authorizationProvider,
-            idamService,
-            roleAssignmentServiceApi,
-            workflowApiActions);
-
-        idamSystemUser = idamTokenGenerator.getUserInfo(idamTokenGenerator.generate()).getUid();
-        baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        common.setupWAOrganisationalRoleAssignment(baseCaseworkerCredentials.getHeaders());
-    }
-
-    @After
-    public void cleanUp() {
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        baseCaseworkerCredentials = taskFunctionalTestsUserUtils
+            .getTestUser(TaskFunctionalTestsUserUtils.BASE_CASE_WORDER);
     }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
@@ -177,7 +99,7 @@ public abstract class SpringBootFunctionalBaseTest {
         await()
             .until(
                 () -> {
-                    Response camundaGetTaskResult = camundaApiActions.get(
+                    Response camundaGetTaskResult = taskFunctionalTestsApiUtils.getCamundaApiActions().get(
                         "/task" + filter,
                         authorizationProvider.getServiceAuthorizationHeader()
                     );
@@ -198,7 +120,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     public String createTask(CreateTaskMessage createTaskMessage) {
 
-        Response camundaResult = camundaApiActions.post(
+        Response camundaResult = taskFunctionalTestsApiUtils.getCamundaApiActions().post(
             "/message",
             createTaskMessage,
             authorizationProvider.getServiceAuthorizationHeader()
@@ -261,7 +183,7 @@ public abstract class SpringBootFunctionalBaseTest {
             await()
                 .until(
                     () -> {
-                        Response response = restApiActions.get(
+                        Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
                             TASK_GET_ENDPOINT,
                             testVariables.getTaskId(),
                             headers
@@ -274,7 +196,7 @@ public abstract class SpringBootFunctionalBaseTest {
             sendInitiateRequest(testVariables, additionalProperties,headers);
         }
 
-        Response response = restApiActions.get(
+        Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
             TASK_GET_ENDPOINT,
             testVariables.getTaskId(),
             headers
@@ -300,7 +222,7 @@ public abstract class SpringBootFunctionalBaseTest {
         AtomicReference<Response> response = new AtomicReference<>();
         await()
             .until(() -> {
-                response.set(restApiActions.post(
+                response.set(taskFunctionalTestsApiUtils.getRestApiActions().post(
                     TASK_INITIATION_ENDPOINT,
                     testVariables.getTaskId(),
                     initiateTaskRequest,
@@ -367,7 +289,7 @@ public abstract class SpringBootFunctionalBaseTest {
                         "Database Conflict Error: The action could not be completed because "
                             + "there was a conflict in the database."));
 
-                Response result = restApiActions.get(
+                Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     "task/{task-id}",
                     taskId,
                     headers
