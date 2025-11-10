@@ -47,7 +47,6 @@ import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.INITIATION_TIMESTAMP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_STATE;

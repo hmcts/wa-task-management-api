@@ -838,7 +838,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         void should_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_value_and_flag_on() {
             String taskId = UUID.randomUUID().toString();
             createAndAssignTestTask(taskId);
-            TerminationProcess terminationProcess = TerminationProcess.EXUI_CASE_EVENT_CANCELLATION;
             HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
                 "id",
                 "cancellationProcess",
@@ -866,7 +865,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             verify(cftTaskDatabaseService, times(1)).saveTask(any());
             Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
             assertTrue(savedTaskResource.isPresent());
-            assertEquals(terminationProcess, savedTaskResource.get().getTerminationProcess());
+            assertEquals(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION,
+                         savedTaskResource.get().getTerminationProcess());
         }
 
         @Test

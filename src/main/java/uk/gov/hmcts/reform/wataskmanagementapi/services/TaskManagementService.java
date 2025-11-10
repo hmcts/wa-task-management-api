@@ -139,7 +139,8 @@ public class TaskManagementService {
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
                                  CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
-                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator, LaunchDarklyFeatureFlagProvider featureFlagProvider) {
+                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator,
+                                 LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;

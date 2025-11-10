@@ -70,6 +70,7 @@ class ClaimTaskTest extends CamundaHelpers {
 
     @Mock
     LaunchDarklyFeatureFlagProvider featureFlagProvider;
+
     @Test
     void claimTask_should_succeed() {
 

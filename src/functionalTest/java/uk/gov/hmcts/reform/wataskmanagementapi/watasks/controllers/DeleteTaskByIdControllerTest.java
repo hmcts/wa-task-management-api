@@ -91,11 +91,12 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_succeed_and_set_termination_process_when_cancellation_process_variable_available_in_camunda() {
-        TestVariables taskVariables = common.setupWATaskWithCancellationProcessAndRetrieveIds(
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskWithCancellationProcessAndRetrieveIds(
             Map.of(
                 "cancellationProcess", "CASE_EVENT_CANCELLATION"
             ),
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication"
         );
         initiateTask(taskVariables);
@@ -108,20 +109,20 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             new TerminateInfo("cancelled")
         );
 
-        Response result = restApiActions.delete(
+        Response result =  taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
         result.prettyPrint();
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        result = restApiActions.get(
+        result =  taskFunctionalTestsApiUtils.getRestApiActions().get(
             "task/{task-id}",
             taskVariables.getTaskId(),
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
         result.prettyPrint();
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
