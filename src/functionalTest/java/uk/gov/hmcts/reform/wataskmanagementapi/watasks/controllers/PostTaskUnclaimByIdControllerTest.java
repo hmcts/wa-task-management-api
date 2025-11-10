@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
@@ -263,7 +264,7 @@ public class PostTaskUnclaimByIdControllerTest {
     private TestVariables setupScenario(String taskType, String taskName) {
         TestVariables taskVariables
             = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-                "requests/ccd/wa_case_data.json",
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
             taskType,
             taskName);
         return taskVariables;

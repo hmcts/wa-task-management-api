@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -96,11 +97,11 @@ public class PostTaskSearchControllerTest {
 
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", "processApplication", "process application");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", "processApplication", "process application");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
@@ -174,18 +175,17 @@ public class PostTaskSearchControllerTest {
     public void should_return_a_200_with_search_results_and_correct_properties_for_granular_permission() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
         ;
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
@@ -270,11 +270,11 @@ public class PostTaskSearchControllerTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, additionalProperties);
 
@@ -323,11 +323,11 @@ public class PostTaskSearchControllerTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, additionalProperties);
 
@@ -522,18 +522,17 @@ public class PostTaskSearchControllerTest {
     public void should_return_a_200_with_search_results_and_correct_properties_using_search_index() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
 
@@ -609,7 +608,7 @@ public class PostTaskSearchControllerTest {
         TestAuthenticationCredentials ginIndexCaseworkerCredentials =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
@@ -718,11 +717,11 @@ public class PostTaskSearchControllerTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, additionalProperties);
 

@@ -48,6 +48,12 @@ public class PostTaskForSearchCompletionControllerTest {
     @Autowired
     TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
@@ -65,7 +71,7 @@ public class PostTaskForSearchCompletionControllerTest {
         scenarios.forEach(scenario -> {
 
             TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
-                .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+                .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                           "processApplication",
                                           "process application");
             taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
@@ -136,7 +142,7 @@ public class PostTaskForSearchCompletionControllerTest {
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
         taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
@@ -164,7 +170,7 @@ public class PostTaskForSearchCompletionControllerTest {
     @Test
     public void should_return_a_200_and_empty_list_when_caseId_match_not_found() {
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
         taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
@@ -192,7 +198,7 @@ public class PostTaskForSearchCompletionControllerTest {
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_jurisdiction_not_match() {
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
         taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
@@ -220,7 +226,7 @@ public class PostTaskForSearchCompletionControllerTest {
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_case_type_not_match() {
         TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
         taskFunctionalTestsInitiationUtils.initiateTask(testVariables);

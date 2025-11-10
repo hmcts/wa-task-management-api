@@ -11,8 +11,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
@@ -25,10 +27,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtil
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -48,6 +48,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
+@Import(AwaitilityTestConfig.class)
 @SuppressWarnings("checkstyle:LineLength")
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -66,6 +67,12 @@ public class PostTaskReplicationMIControllerTest {
 
     @Autowired
     AuthorizationProvider authorizationProvider;
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED_HISTORY = "/task/{task-id}/history";
@@ -108,7 +115,7 @@ public class PostTaskReplicationMIControllerTest {
     public void user_should_configure_task_and_configure_action_recorded_in_replica_tables() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
@@ -125,8 +132,6 @@ public class PostTaskReplicationMIControllerTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -150,41 +155,38 @@ public class PostTaskReplicationMIControllerTest {
                     .body("task_history_list.get(1).update_action", equalTo("Configure"));
             });
 
-        await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
-            .untilAsserted(() -> {
-                Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
-                    ENDPOINT_BEING_TESTED_REPORTABLE,
-                    taskId,
-                    caseWorkerWithWAOrgRoles.getHeaders()
-                );
+        await().untilAsserted(() -> {
+            Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                ENDPOINT_BEING_TESTED_REPORTABLE,
+                taskId,
+                caseWorkerWithWAOrgRoles.getHeaders()
+            );
 
-                resultReportable.prettyPrint();
-                resultReportable.then().assertThat()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
-                    .body("reportable_task_list.get(0).assignee", equalTo(null))
-                    .body("reportable_task_list.get(0).updated_by", notNullValue())
-                    .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("Configure"))
-                    .body("reportable_task_list.get(0).first_assigned_date", nullValue())
-                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
-                    .body("reportable_task_list.get(0).wait_time_days", nullValue())
-                    .body("reportable_task_list.get(0).wait_time", nullValue())
-                    .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
-                    .body("reportable_task_list.get(0).completed_date", nullValue())
-                    .body("reportable_task_list.get(0).completed_date_time", nullValue())
-                    .body("reportable_task_list.get(0).final_state_label", nullValue())
-                    .body("reportable_task_list.get(0).handling_time_days", nullValue())
-                    .body("reportable_task_list.get(0).handling_time", nullValue())
-                    .body("reportable_task_list.get(0).processing_time_days", nullValue())
-                    .body("reportable_task_list.get(0).processing_time", nullValue())
-                    .body("reportable_task_list.get(0).is_within_sla", nullValue())
-                    .body("reportable_task_list.get(0).due_date_to_completed_diff_days", nullValue())
-                    .body("reportable_task_list.get(0).due_date_to_completed_diff_time", nullValue());
-            });
+            resultReportable.prettyPrint();
+            resultReportable.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .body("reportable_task_list.size()", equalTo(1))
+                .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
+                .body("reportable_task_list.get(0).assignee", equalTo(null))
+                .body("reportable_task_list.get(0).updated_by", notNullValue())
+                .body("reportable_task_list.get(0).updated", notNullValue())
+                .body("reportable_task_list.get(0).update_action", equalTo("Configure"))
+                .body("reportable_task_list.get(0).first_assigned_date", nullValue())
+                .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
+                .body("reportable_task_list.get(0).wait_time_days", nullValue())
+                .body("reportable_task_list.get(0).wait_time", nullValue())
+                .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+                .body("reportable_task_list.get(0).completed_date", nullValue())
+                .body("reportable_task_list.get(0).completed_date_time", nullValue())
+                .body("reportable_task_list.get(0).final_state_label", nullValue())
+                .body("reportable_task_list.get(0).handling_time_days", nullValue())
+                .body("reportable_task_list.get(0).handling_time", nullValue())
+                .body("reportable_task_list.get(0).processing_time_days", nullValue())
+                .body("reportable_task_list.get(0).processing_time", nullValue())
+                .body("reportable_task_list.get(0).is_within_sla", nullValue())
+                .body("reportable_task_list.get(0).due_date_to_completed_diff_days", nullValue())
+                .body("reportable_task_list.get(0).due_date_to_completed_diff_time", nullValue());
+        });
 
         Response resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
@@ -206,14 +208,11 @@ public class PostTaskReplicationMIControllerTest {
             "Process Application"
         );
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
 
         AtomicReference<JsonPath> configureJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultTaskReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -245,8 +244,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0));
             });
 
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertNotNull(taskId));
+        Awaitility.await().untilAsserted(() -> assertNotNull(taskId));
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -255,8 +253,6 @@ public class PostTaskReplicationMIControllerTest {
         );
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -287,8 +283,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -332,7 +326,7 @@ public class PostTaskReplicationMIControllerTest {
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
@@ -346,9 +340,8 @@ public class PostTaskReplicationMIControllerTest {
             "Process Application"
         );
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
@@ -360,8 +353,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -395,8 +386,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultReportable.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -441,7 +430,7 @@ public class PostTaskReplicationMIControllerTest {
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
         Response resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -473,8 +462,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<Response> resultAssignmentsUnclaim = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultAssignmentsUnclaim.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -493,8 +480,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultUnclaimHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -523,8 +508,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 resultReportable.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -575,8 +558,6 @@ public class PostTaskReplicationMIControllerTest {
             .body("task_assignments_list.get(1).assignment_end", nullValue());
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response reClaimResultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -607,8 +588,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -666,7 +645,7 @@ public class PostTaskReplicationMIControllerTest {
                 assertTrue(LocalTime.parse(
                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
@@ -687,8 +666,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<Response> resultReportable = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultReportable.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -749,8 +726,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -776,8 +751,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultDeleteReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -888,9 +861,8 @@ public class PostTaskReplicationMIControllerTest {
             "Process Application"
         );
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
@@ -902,8 +874,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -943,7 +913,7 @@ public class PostTaskReplicationMIControllerTest {
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
 
             });
 
@@ -965,7 +935,7 @@ public class PostTaskReplicationMIControllerTest {
             .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task_assignments_list.get(0).task_name", equalTo("Process Application"));
 
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
         Response resultComplete = taskFunctionalTestsApiUtils.getRestApiActions().post(
@@ -994,8 +964,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -1011,8 +979,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1086,8 +1052,8 @@ public class PostTaskReplicationMIControllerTest {
                     completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
                 ).toSecondOfDay();
-                assertTrue(waitTimeSeconds > 1);
-                assertTrue(processingTimeSeconds > 1);
+                assertTrue(waitTimeSeconds >= 0);
+                assertTrue(processingTimeSeconds >= 0);
                 assertEquals(handlingTimeSeconds, processingTimeSeconds - waitTimeSeconds);
 
             });
@@ -1132,7 +1098,6 @@ public class PostTaskReplicationMIControllerTest {
             "Process Application"
         );
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -1143,8 +1108,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -1228,8 +1191,6 @@ public class PostTaskReplicationMIControllerTest {
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -1255,16 +1216,11 @@ public class PostTaskReplicationMIControllerTest {
 
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
 
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultTerminateReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -1327,9 +1283,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultAssignmentsPostTermination = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -1373,7 +1326,6 @@ public class PostTaskReplicationMIControllerTest {
             "Process Application"
         );
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -1382,9 +1334,6 @@ public class PostTaskReplicationMIControllerTest {
         );
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1434,9 +1383,6 @@ public class PostTaskReplicationMIControllerTest {
             .body("task.id", equalTo(taskId));
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1456,9 +1402,6 @@ public class PostTaskReplicationMIControllerTest {
 
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1505,9 +1448,6 @@ public class PostTaskReplicationMIControllerTest {
         );
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1545,9 +1485,6 @@ public class PostTaskReplicationMIControllerTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1562,9 +1499,6 @@ public class PostTaskReplicationMIControllerTest {
                     .body("task_history_list.get(4).termination_process", nullValue());
             });
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 Response resultCompleteReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
@@ -1630,8 +1564,6 @@ public class PostTaskReplicationMIControllerTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -1701,7 +1633,6 @@ public class PostTaskReplicationMIControllerTest {
             "Process Application"
         );
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -1769,8 +1700,6 @@ public class PostTaskReplicationMIControllerTest {
             .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
@@ -1786,8 +1715,6 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 Response resultReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,

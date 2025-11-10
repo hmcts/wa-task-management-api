@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
@@ -46,6 +47,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 @Component
 @Profile("functional")
 @Slf4j
+@Import(AwaitilityTestConfig.class)
 public class TaskFunctionalTestsInitiationUtils {
 
     @Autowired
@@ -67,9 +69,7 @@ public class TaskFunctionalTestsInitiationUtils {
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
         AtomicReference<String> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     Response camundaGetTaskResult = taskFunctionalTestsApiUtils.getCamundaApiActions().get(
@@ -178,8 +178,6 @@ public class TaskFunctionalTestsInitiationUtils {
         InitiateTaskRequestMap initiateTaskRequest = initiateTaskRequestMap(testVariables, additionalProperties);
         AtomicReference<Response> response = new AtomicReference<>();
         await()
-            .pollInterval(10, SECONDS)
-            .atMost(30, SECONDS)
             .until(() -> {
                 response.set(taskFunctionalTestsApiUtils.getRestApiActions().post(
                     TASK_INITIATION_ENDPOINT,

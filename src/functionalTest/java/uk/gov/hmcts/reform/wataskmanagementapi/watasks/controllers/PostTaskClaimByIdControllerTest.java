@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
@@ -45,6 +46,12 @@ public class PostTaskClaimByIdControllerTest {
 
     @Autowired
     AuthorizationProvider authorizationProvider;
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
 
@@ -96,7 +103,6 @@ public class PostTaskClaimByIdControllerTest {
             .setupWATaskAndRetrieveIds("processApplication", "Process Application");
 
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,

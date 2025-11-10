@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -71,6 +72,15 @@ public class PostTaskCompleteByIdControllerTest {
 
     @Autowired
     AuthorizationProvider authorizationProvider;
+
+    @Autowired
+    protected IdamService idamService;
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
     @Autowired
     protected IdamService idamService;
@@ -523,7 +533,7 @@ public class PostTaskCompleteByIdControllerTest {
     //Need new IT to cover role assignment verification for attributes in common for all actions, then remove this test.
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithWithCustomVariableAndRetrieveIds(REGION, "1", "requests/ccd/wa_case_data.json");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithWithCustomVariableAndRetrieveIds(REGION, "1", "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskId = taskVariables.getTaskId();
 
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseWorkerWithCftOrgRoles.getHeaders());
@@ -568,7 +578,6 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "Process Application");
 
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-
         String taskId = taskVariables.getTaskId();
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(

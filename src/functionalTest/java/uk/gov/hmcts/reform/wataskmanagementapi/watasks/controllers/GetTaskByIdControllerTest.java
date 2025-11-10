@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
@@ -55,6 +56,12 @@ public class GetTaskByIdControllerTest {
     @Autowired
     AuthorizationProvider authorizationProvider;
 
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
     private TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
@@ -69,7 +76,7 @@ public class GetTaskByIdControllerTest {
     public void should_return_a_200_with_task_and_correct_properties() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
@@ -135,7 +142,7 @@ public class GetTaskByIdControllerTest {
     public void should_return_403_when_user_grant_type_standard_and_excluded() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
@@ -241,7 +248,7 @@ public class GetTaskByIdControllerTest {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties,
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "reviewSpecificAccessRequestJudiciary"
         );
         String taskId = taskVariables.getTaskId();
@@ -277,7 +284,7 @@ public class GetTaskByIdControllerTest {
         String taskType = "reviewSpecificAccessRequestLegalOps";
         String taskName = "review specific access request legal ops";
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWAStandaloneTaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             taskType,
             taskName
         );
@@ -388,12 +395,12 @@ public class GetTaskByIdControllerTest {
     public void should_return_a_200_and_add_permission_for_specific_role() {
 
         TestVariables taskVariables1 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
         TestVariables taskVariables2 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
