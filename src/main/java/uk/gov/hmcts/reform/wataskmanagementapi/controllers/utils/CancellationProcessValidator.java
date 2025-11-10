@@ -1,7 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +14,13 @@ import java.util.Optional;
 @Slf4j
 @Component
 public class CancellationProcessValidator {
+
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
+    @Autowired
+    public CancellationProcessValidator(LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+    }
 
     private static final List<String> VALID_CANCELLATION_PROCESS = Arrays.asList(
         "EXUI_USER_CANCELLATION",
@@ -31,8 +42,8 @@ public class CancellationProcessValidator {
      * @return an Optional containing the valid completion process value, or empty if invalid.
      */
     public Optional<String> validate(String cancellationProcess, String taskId,
-                                     boolean updateCancellationProcessFlagEnabled) {
-        if (!updateCancellationProcessFlagEnabled) {
+                                     AccessControlResponse accessControlResponse) {
+        if (!isCancellationProcessFeatureEnabled(accessControlResponse)) {
             log.info("Update cancellation process flag is disabled. No action taken for task with id {}", taskId);
             return Optional.empty();
         } else if (cancellationProcess == null || cancellationProcess.isBlank()
@@ -45,5 +56,19 @@ public class CancellationProcessValidator {
                      cancellationProcess, taskId);
             return Optional.of(cancellationProcess);
         }
+    }
+
+    /**
+     * Checks if the cancellation process feature is enabled for the user.
+     *
+     * @param accessControlResponse the access control response containing user details
+     * @return true if the feature is enabled, false otherwise
+     */
+    public boolean isCancellationProcessFeatureEnabled(AccessControlResponse accessControlResponse) {
+        return launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
     }
 }

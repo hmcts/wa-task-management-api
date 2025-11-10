@@ -370,13 +370,8 @@ public class TaskManagementService {
     @Transactional
     public void cancelTask(String taskId,
                            AccessControlResponse accessControlResponse, Map<String, Object> requestParamMap) {
-        TerminationProcess terminationProcess = null;
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
-        if (requestParamMap.get(REQ_PARAM_CANCELLATION_PROCESS) != null) {
-            final String cancellationProcess = requestParamMap.get(REQ_PARAM_CANCELLATION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(cancellationProcess);
-        }
+
         PermissionRequirements permissionsRequired;
 
         String userId = accessControlResponse.getUserInfo().getUid();
@@ -403,7 +398,8 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         CFTTaskState previousTaskState = task.getState();
         task.setState(CFTTaskState.CANCELLED);
-        task.setTerminationProcess(terminationProcess);
+        parseTerminationProcessParam(requestParamMap, REQ_PARAM_CANCELLATION_PROCESS)
+            .ifPresent(task::setTerminationProcess);
 
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
@@ -456,14 +452,8 @@ public class TaskManagementService {
     @Transactional
     public void completeTask(String taskId, AccessControlResponse accessControlResponse,
                              Map<String, Object> requestParamMap) {
-        TerminationProcess terminationProcess = null;
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
-        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(completionProcess);
-        }
         boolean taskHasCompleted;
 
         checkCompletePermissions(taskId, accessControlResponse, userId);
@@ -483,7 +473,9 @@ public class TaskManagementService {
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
-                task.setTerminationProcess(terminationProcess);
+                parseTerminationProcessParam(requestParamMap, REQ_PARAM_COMPLETION_PROCESS)
+                    .ifPresent(task::setTerminationProcess);
+
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
@@ -505,13 +497,7 @@ public class TaskManagementService {
                                                               CompletionOptions completionOptions,
                                                               Map<String, Object> requestParamMap) {
         String userId = accessControlResponse.getUserInfo().getUid();
-        TerminationProcess terminationProcess = null;
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
-        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(completionProcess);
-        }
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
@@ -535,7 +521,8 @@ public class TaskManagementService {
                 userId,
                 taskStateIsAssignedAlready
             );
-            task.setTerminationProcess(terminationProcess);
+            parseTerminationProcessParam(requestParamMap, REQ_PARAM_COMPLETION_PROCESS)
+                .ifPresent(task::setTerminationProcess);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
@@ -581,7 +568,7 @@ public class TaskManagementService {
 
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
-                setTaskTerminationProcess(taskId, task);
+                fetchTerminationProcessFromCamunda(taskId).ifPresent(task::setTerminationProcess);
                 isCamundaStateUpdated = true;
 
                 // Commit transaction
@@ -594,23 +581,6 @@ public class TaskManagementService {
                 log.error("Error occurred while terminating task with id: {}", taskId, ex);
                 throw ex;
             }
-        }
-    }
-
-    /**
-     * Sets the termination process for a task during termination if not already set.
-     *
-     * @param taskId the task id.
-     * @param task   the task resource.
-     */
-    private void setTaskTerminationProcess(String taskId, TaskResource task) {
-        log.info("Checking termination process for task id {} during termination", taskId);
-        String userToken = idamTokenGenerator.generate();
-        if (featureFlagProvider.getBooleanValue(FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE,
-                                                   idamTokenGenerator.getUserInfo(userToken).getUid(),
-                                                   idamTokenGenerator.getUserInfo(userToken).getEmail())) {
-            log.info("Setting termination process for task id {} during termination", taskId);
-            task.setTerminationProcess(calculateTerminationProcess(taskId));
         }
     }
 
@@ -1039,28 +1009,71 @@ public class TaskManagementService {
     }
 
     /**
-     * Calculates termination process for the given task.
+     * Fetches the cancellation process history variable for a given task ID.
+     * This method queries the Camunda service to retrieve the value of the
+     * "cancellationProcess" variable from the task's history.
      *
-     * @param taskId the task ID.
+     * @param taskId The ID of the task for which the cancellation process variable is to be fetched.
+     * @return An Optional containing the value of the "cancellationProcess" variable if it exists,
+     *         or an empty Optional if the variable is not found.
      */
-    private TerminationProcess calculateTerminationProcess(String taskId) {
-        Optional<HistoryVariableInstance> cancellationProcess =
-            camundaService.getVariableFromHistory(taskId, "cancellationProcess");
-
-        String cancellationProcessValue = null;
-
-        if (cancellationProcess.isPresent()) {
-            cancellationProcessValue = cancellationProcess.get().getValue();
-            log.info("Task with id {} had cancellationProcess variable with value {} in camunda history",
-                     taskId, cancellationProcessValue);
-        } else {
-            log.info("Task with id {} did not have cancellationProcess variable in camunda history", taskId);
-        }
-
-        //As we are saving cancellation_process variable value as CASE-EVENT_CANCELLATION in case event handler
-        if ("CASE_EVENT_CANCELLATION".equals(cancellationProcessValue)) {
-           return TerminationProcess.EXUI_CASE_EVENT_CANCELLATION;
-        }
-        return null;
+    private Optional<String> fetchCancellationProcessHistoryVar(String taskId) {
+        return camundaService.getVariableFromHistory(taskId, "cancellationProcess")
+            .map(HistoryVariableInstance::getValue)
+            .map(value -> {
+                log.debug("Task {} had cancellationProcess='{}' in Camunda history", taskId, value);
+                return value;
+            })
+            .or(() -> {
+                log.debug("Task {} did not have cancellationProcess variable in Camunda history", taskId);
+                return Optional.empty();
+            });
     }
+
+    /**
+     * Fetches the termination process for a given task ID from Camunda.
+     * This method checks if the WA_CANCELLATION_PROCESS_FEATURE flag is enabled
+     * and retrieves the "cancellationProcess" variable from the task's history in Camunda.
+     *
+     * @param taskId The ID of the task for which the termination process is to be fetched.
+     * @return An Optional containing the TerminationProcess if the feature flag is enabled
+     *         and the "cancellationProcess" variable is found, or an empty Optional otherwise.
+     */
+    private Optional<TerminationProcess> fetchTerminationProcessFromCamunda(String taskId) {
+        final String userToken = idamTokenGenerator.generate();
+        final UserInfo userInfo = idamTokenGenerator.getUserInfo(userToken);
+
+        final boolean featureOn = featureFlagProvider.getBooleanValue(
+            FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE,
+            userInfo.getUid(),
+            userInfo.getEmail()
+        );
+
+        if (!featureOn) {
+            return Optional.empty();
+        }
+
+        return fetchCancellationProcessHistoryVar(taskId)
+            .map(TerminationProcess::fromValue);
+    }
+
+    /**
+     * Parses the termination process parameter from the provided request parameter map.
+     * This method retrieves the value associated with the specified key in the map,
+     * converts it to a string, and maps it to a TerminationProcess enum value.
+     *
+     * @param requestParamMap The map containing request parameters. Must not be null.
+     * @param key             The key whose associated value is to be parsed as a TerminationProcess.
+     * @return An Optional containing the TerminationProcess if the key exists and the value is valid,
+     *         or an empty Optional if the key is not present or the value is invalid.
+     * @throws NullPointerException if the requestParamMap is null.
+     */
+    private Optional<TerminationProcess> parseTerminationProcessParam(final Map<String, Object> requestParamMap,
+                                                                      String key) {
+        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
+        return Optional.ofNullable(requestParamMap.get(key))
+            .map(Object::toString)
+            .map(TerminationProcess::fromValue);
+    }
+
 }

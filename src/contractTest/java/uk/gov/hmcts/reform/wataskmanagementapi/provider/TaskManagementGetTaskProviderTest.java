@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskPermissions;
@@ -29,7 +28,6 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -75,8 +73,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             clientAccessControlService,
             taskDeletionService,
             completionProcessValidator,
-            cancellationProcessValidator,
-            launchDarklyFeatureFlagProvider
+            cancellationProcessValidator
         ));
 
         if (context != null) {
@@ -125,8 +122,8 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
         when(userInfo.getEmail()).thenReturn("someEmailId");
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                             anyString(), anyString())).thenReturn(true);
+        when(completionProcessValidator.isCompletionProcessFeatureEnabled(any()))
+            .thenReturn(true);
         when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithCompletionProcess());
     }
 

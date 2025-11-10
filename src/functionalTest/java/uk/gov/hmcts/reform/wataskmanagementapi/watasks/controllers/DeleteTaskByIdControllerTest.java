@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
-import io.cucumber.java.it.Ma;
 import io.restassured.response.Response;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +17,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Slf4j
 public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -90,7 +87,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_succeed_when_terminate_reason_is_cancelled_test() {
+    public void should_succeed_and_set_termination_process_when_cancellation_process_variable_available_in_camunda() {
         TestVariables taskVariables = common.setupWATaskWithCancellationProcessAndRetrieveIds(
             Map.of(
                 "cancellationProcess", "CASE_EVENT_CANCELLATION"
@@ -123,7 +120,6 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             taskVariables.getTaskId(),
             waCaseworkerCredentials.getHeaders()
         );
-        log.info("Get Task Response after Termination: {}", result.asString());
         result.prettyPrint();
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
     }
@@ -180,17 +176,6 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         return taskVariables;
-    }
-
-    private void cancelTask(TestVariables taskVariables) {
-        common.setupCFTOrganisationalRoleAssignment(baseCaseworkerCredentials.getHeaders(),
-                                                    WA_JURISDICTION, WA_CASE_TYPE);
-        given.updateWACcdCase(
-            taskVariables.getCaseId(),
-            Map.of("cancellationProcess", "CASE_EVENT_CANCELLATION"),
-            "removeAppealFromOnline"
-        );
-
     }
 
 

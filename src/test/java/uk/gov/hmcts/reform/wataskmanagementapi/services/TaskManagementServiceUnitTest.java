@@ -13,6 +13,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -54,6 +56,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -216,8 +219,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
-    @Mock
-    LaunchDarklyFeatureFlagProvider featureFlagProvider;
     private Map<String, Object> requestParamMap = new HashMap<>();
 
     @Test
@@ -392,7 +393,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
             taskMandatoryFieldsValidator,
-            featureFlagProvider);
+            launchDarklyFeatureFlagProvider);
 
 
         taskId = UUID.randomUUID().toString();
@@ -2592,6 +2593,44 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
 
+            @Test
+            void should_succeed_and_set_termination_process_when_flag_on() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any()))
+                    .thenReturn(true);
+                when(camundaService.getVariableFromHistory(anyString(), anyString())).thenReturn(Optional.of(
+                    new HistoryVariableInstance("id", "cancellationProcess", "CASE_EVENT_CANCELLATION")));
+
+
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                assertEquals(TERMINATED, taskResource.getState());
+                assertEquals("completed", taskResource.getTerminationReason());
+                assertEquals("CASE_EVENT_CANCELLATION", taskResource.getTerminationProcess().getValue());
+            }
+
+            @Test
+            void should_succeed_and_not_set_termination_process_when_flag_off() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any()))
+                    .thenReturn(false);
+
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                assertEquals(TERMINATED, taskResource.getState());
+                assertEquals("completed", taskResource.getTerminationReason());
+                assertNull(taskResource.getTerminationProcess());
+            }
             @Test
             void should_handle_when_task_resource_not_found_and_delete_task_in_camunda() {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))

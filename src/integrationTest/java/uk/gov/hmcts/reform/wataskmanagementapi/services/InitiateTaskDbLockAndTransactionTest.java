@@ -149,7 +149,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator,
+            launchDarklyFeatureFlagProvider);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());
