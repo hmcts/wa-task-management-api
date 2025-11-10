@@ -76,15 +76,6 @@ public class PostTaskCompleteByIdControllerTest {
     @Autowired
     protected IdamService idamService;
 
-    @Autowired
-    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
-    @Autowired
-    protected IdamService idamService;
-
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/complete";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
     private static final String ASSIGN_ENDPOINT = "task/{task-id}/assign";

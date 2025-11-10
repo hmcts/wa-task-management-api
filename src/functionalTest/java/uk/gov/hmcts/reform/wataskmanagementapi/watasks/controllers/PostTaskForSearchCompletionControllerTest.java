@@ -48,12 +48,6 @@ public class PostTaskForSearchCompletionControllerTest {
     @Autowired
     TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
-    @Autowired
-    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles;

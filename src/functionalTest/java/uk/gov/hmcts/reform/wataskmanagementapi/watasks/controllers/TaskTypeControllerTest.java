@@ -39,14 +39,6 @@ public class TaskTypeControllerTest {
 
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
 
-    @Autowired
-    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
-    TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
-
     private static final String ENDPOINT_BEING_TESTED = "/task/task-types";
 
     @Before

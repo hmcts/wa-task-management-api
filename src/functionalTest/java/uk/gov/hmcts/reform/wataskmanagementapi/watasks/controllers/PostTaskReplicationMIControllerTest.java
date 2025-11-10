@@ -68,12 +68,6 @@ public class PostTaskReplicationMIControllerTest {
     @Autowired
     AuthorizationProvider authorizationProvider;
 
-    @Autowired
-    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED_HISTORY = "/task/{task-id}/history";
     private static final String ENDPOINT_BEING_TESTED_REPORTABLE = "/task/{task-id}/reportable";

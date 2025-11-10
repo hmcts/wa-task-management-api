@@ -43,12 +43,6 @@ public class PostTaskAssignByIdControllerTest {
     @Autowired
     AuthorizationProvider authorizationProvider;
 
-    @Autowired
-    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
     private String taskId;
 

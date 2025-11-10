@@ -67,19 +67,6 @@ public class PostTaskInitiateByIdControllerTest {
     TestAuthenticationCredentials caseWorkerWithJudgeRole;
     TestAuthenticationCredentials userWithCFTCtscRole;
 
-    @Autowired
-    protected AuthorizationProvider authorizationProvider;
-
-    @Autowired
-    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
-    TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
-    TestAuthenticationCredentials caseWorkerWithJudgeRole;
-    TestAuthenticationCredentials userWithCFTCtscRole;
-
     @Before
     public void setUp() {
         caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES2);

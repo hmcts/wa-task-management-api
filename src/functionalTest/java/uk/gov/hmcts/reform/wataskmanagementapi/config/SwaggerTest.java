@@ -22,9 +22,6 @@ public class SwaggerTest {
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
     private static final String SWAGGER_URL = "/swagger-ui/index.html";
 
     @Test

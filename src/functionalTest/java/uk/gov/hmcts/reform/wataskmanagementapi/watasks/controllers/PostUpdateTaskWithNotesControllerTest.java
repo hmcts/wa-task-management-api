@@ -44,9 +44,6 @@ public class PostUpdateTaskWithNotesControllerTest {
     @Autowired
     AuthorizationProvider authorizationProvider;
 
-    @Autowired
-    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
-
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/notes";
     private static final String GET_TASK_ENDPOINT = "task/{task-id}";
 
