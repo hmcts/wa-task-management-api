@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,7 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
     protected JdbcDatabaseContainer container;
     protected JdbcDatabaseContainer containerReplica;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         //Logical Replication is a pre-requisite for all tests here
         waitForReplication();
