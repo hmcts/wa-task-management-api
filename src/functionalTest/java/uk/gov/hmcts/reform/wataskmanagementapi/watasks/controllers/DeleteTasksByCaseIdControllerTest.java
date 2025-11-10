@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
+import groovy.util.logging.Slf4j;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
-import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
