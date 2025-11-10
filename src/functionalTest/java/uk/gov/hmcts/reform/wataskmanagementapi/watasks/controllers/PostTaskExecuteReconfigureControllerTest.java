@@ -835,16 +835,18 @@ public class PostTaskExecuteReconfigureControllerTest {
 
             taskResult.prettyPrint();
 
-                    taskResult.then().assertThat()
-                            .statusCode(HttpStatus.OK.value())
-                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .and().body("task.id", equalTo(taskId))
-                            .body("task.task_state", is("assigned"))
-                            .body("task.reconfigure_request_time", nullValue())
-                            .body("task.last_reconfiguration_time", notNullValue())
-                            .body("task.additional_properties", equalToObject(Map.of(
-                                    "roleAssignmentId", roleAssignmentId)));
-                });
+            taskResult.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.task_state", is("assigned"))
+                .body("task.reconfigure_request_time", nullValue())
+                .body("task.last_reconfiguration_time", notNullValue())
+                .body(
+                    "task.additional_properties", equalToObject(Map.of(
+                        "roleAssignmentId", roleAssignmentId))
+            );
+        });
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
@@ -938,16 +940,18 @@ public class PostTaskExecuteReconfigureControllerTest {
 
             taskResult.prettyPrint();
 
-                    taskResult.then().assertThat()
-                            .statusCode(HttpStatus.OK.value())
-                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .and().body("task.id", equalTo(taskId))
-                            .body("task.task_state", is("assigned"))
-                            .body("task.reconfigure_request_time", nullValue())
-                            .body("task.last_reconfiguration_time", notNullValue())
-                            .body("task.additional_properties", equalToObject(Map.of(
-                                    "roleAssignmentId", roleAssignmentId)));
-                });
+            taskResult.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskId))
+                .body("task.task_state", is("assigned"))
+                .body("task.reconfigure_request_time", nullValue())
+                .body("task.last_reconfiguration_time", notNullValue())
+                .body(
+                    "task.additional_properties", equalToObject(Map.of(
+                        "roleAssignmentId", roleAssignmentId))
+            );
+        });
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 

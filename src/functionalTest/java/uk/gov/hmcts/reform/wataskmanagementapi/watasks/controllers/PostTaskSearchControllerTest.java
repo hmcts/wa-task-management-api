@@ -53,7 +53,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_GIN_INDEX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
@@ -86,7 +86,7 @@ public class PostTaskSearchControllerTest {
 
     @Before
     public void setUp() {
-        caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES);
+        caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES2);
         ginIndexCaseWorkerWithJudgeRole = taskFunctionalTestsUserUtils.getTestUser(GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE);
         hearingPanelJudgeForStandardAccess = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS);
         userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_CFTC_ROLE);
