@@ -103,41 +103,6 @@ false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "
 false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
 'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'title', 'welsh_translation_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00');
 
-('8d6cc5cf-c973-11eb-bdba-0242ac111033', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
-'1623278362431017', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
-false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_hearing_work', 'stf_24w_hearing_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
-
-('8d6cc5cf-c973-11eb-bdba-0242ac111034', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
-'1623278362431018', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
-false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_routine_work', 'stf_24w_routine_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
-
-('8d6cc5cf-c973-11eb-bdba-0242ac111035', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
-'1623278362431019', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
-false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_decision_making_work', 'stf_24w_decision_making_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
-
-('8d6cc5cf-c973-11eb-bdba-0242ac111036', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
-'1623278362431020', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
-false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_applications', 'stf_24w_applications', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
-
-('8d6cc5cf-c973-11eb-bdba-0242ac111037', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
-'1623278362431021', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
-false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_upper_tribunal', 'stf_24w_upper_tribunal', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
-
-('8d6cc5cf-c973-11eb-bdba-0242ac111038', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
-'1623278362431022', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
-false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_access_requests', 'stf_24w_access_requests', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
-
-('8d6cc5cf-c973-11eb-bdba-0242ac111039', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
-'1623278362431023', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
-false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_review_case', 'stf_24w_review_case', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00');
-
 INSERT INTO cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id, case_name, case_type_id, created,
 description, due_date_time, has_warnings, jurisdiction, location, location_name, major_priority, minor_priority,
 notes, region, region_name, role_category, security_classification, state, task_name, task_system, task_type,
@@ -152,6 +117,42 @@ false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "
 '1623278362431016', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
 false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
 'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'title', 'bail_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION');
+
+VALUES
+('8d6cc5cf-c973-11eb-bdba-0242ac111033', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+'1623278362431017', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_hearing_work', 'stf_24w_hearing_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111034', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+'1623278362431018', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_routine_work', 'stf_24w_routine_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111035', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+'1623278362431019', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_decision_making_work', 'stf_24w_decision_making_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111036', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+'1623278362431020', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_applications', 'stf_24w_applications', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111037', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+'1623278362431021', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_upper_tribunal', 'stf_24w_upper_tribunal', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111038', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+'1623278362431022', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_access_requests', 'stf_24w_access_requests', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111039', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+'1623278362431023', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+false, 'IAC', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_review_case', 'stf_24w_review_case', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION');
 
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
 "read", own, "execute", manage, cancel,
