@@ -366,11 +366,15 @@ public class PostTaskSearchControllerTest {
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_desc() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate = OffsetDateTime.now();
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate);
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate2);
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
@@ -476,11 +480,15 @@ public class PostTaskSearchControllerTest {
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate = OffsetDateTime.now();
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate);
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate2);
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
@@ -764,11 +772,15 @@ public class PostTaskSearchControllerTest {
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "process Application");
+        OffsetDateTime hearingDate = OffsetDateTime.now();
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","processApplication", "process Application",hearingDate);
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "process Application");
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","processApplication", "process Application",hearingDate2);
         tasksCreated.add(taskVariables);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
@@ -885,11 +897,15 @@ public class PostTaskSearchControllerTest {
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables1 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence");
+        OffsetDateTime hearingDate = OffsetDateTime.now();
+
+        TestVariables taskVariables1 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence",hearingDate);
         tasksCreated.add(taskVariables1);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables1);
 
-        TestVariables taskVariables2 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence");
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        TestVariables taskVariables2 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence",hearingDate2);
         tasksCreated.add(taskVariables2);
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables2);
 
