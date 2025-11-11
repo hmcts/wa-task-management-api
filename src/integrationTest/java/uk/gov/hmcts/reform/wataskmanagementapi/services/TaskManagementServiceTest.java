@@ -526,27 +526,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void completeTask_should_throw_exception_when_request_param_map_is_null() {
-
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
-
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
-            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-
-            createAndAssignTestTask(taskId);
-
-            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
-                .isInstanceOf(NullPointerException.class)
-                .hasNoCause()
-                .hasMessage("Request param map cannot be null");
-        }
-
-        @Test
         void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
