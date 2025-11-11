@@ -56,8 +56,6 @@ public class TaskFunctionalTestsUserUtils {
     @Getter
     public Header authorizationHeaders;
 
-    protected String idamSystemUser;
-
     protected Map<String,TestAuthenticationCredentials> testUsersMap = new HashMap<>();
 
     @PostConstruct

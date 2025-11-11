@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -11,14 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,14 +54,6 @@ public class TaskFunctionalTestsInitiationUtils {
 
     @Autowired
     protected TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
-
-    protected TestAuthenticationCredentials baseCaseworkerCredentials;
-
-    @PostConstruct
-    public void setup() throws IOException {
-        baseCaseworkerCredentials = taskFunctionalTestsUserUtils
-            .getTestUser(BASE_CASE_WORDER);
-    }
 
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
         AtomicReference<String> response = new AtomicReference<>();
@@ -112,7 +101,8 @@ public class TaskFunctionalTestsInitiationUtils {
     }
 
     public void initiateTask(TestVariables testVariables) {
-        Headers headers = baseCaseworkerCredentials.getHeaders();
+        Headers headers = taskFunctionalTestsUserUtils
+            .getTestUser(BASE_CASE_WORDER).getHeaders();
         initiateTask(testVariables, headers, null, defaultInitiationAssert(testVariables));
     }
 
@@ -124,7 +114,8 @@ public class TaskFunctionalTestsInitiationUtils {
 
     public void initiateTask(TestVariables testVariables,
                                 Consumer<Response> assertConsumer) {
-        Headers headers = baseCaseworkerCredentials.getHeaders();
+        Headers headers = taskFunctionalTestsUserUtils
+            .getTestUser(BASE_CASE_WORDER).getHeaders();
         initiateTask(testVariables, headers, null, assertConsumer);
     }
 
@@ -136,7 +127,8 @@ public class TaskFunctionalTestsInitiationUtils {
 
     public void initiateTask(TestVariables testVariables,
                                 Map<String, String> additionalProperties) {
-        Headers headers = baseCaseworkerCredentials.getHeaders();
+        Headers headers = taskFunctionalTestsUserUtils
+            .getTestUser(BASE_CASE_WORDER).getHeaders();
         initiateTask(testVariables, headers, additionalProperties, defaultInitiationAssert(testVariables));
     }
 
