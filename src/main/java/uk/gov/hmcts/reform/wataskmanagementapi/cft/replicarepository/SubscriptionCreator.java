@@ -77,6 +77,7 @@ public class SubscriptionCreator {
 
             createSubscription(host, port, dbName, replicaHost, replicaPort, replicaDbName);
             log.info("Subscription created for: " + host + ":" + port + "/" + dbName);
+            log.error("lars-test-01");
 
         } catch (SQLException ex) {
             log.error("Primary datasource connection exception.", ex);
