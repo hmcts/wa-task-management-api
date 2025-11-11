@@ -33,6 +33,9 @@ public class LaunchDarklyFeatureFlagProvider {
             createLaunchDarklyContext(userId, email),
             true);
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
+        log.info("lars-test-04");
+        log.warn("lars-test-05");
+        log.error("lars-test-06");
         return result;
     }
 
