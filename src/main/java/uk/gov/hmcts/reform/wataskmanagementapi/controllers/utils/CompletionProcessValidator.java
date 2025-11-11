@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -13,14 +13,10 @@ import java.util.Optional;
 
 @Slf4j
 @Component
+@AllArgsConstructor
 public class CompletionProcessValidator {
 
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    @Autowired
-    public CompletionProcessValidator(LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
-    }
 
     private static final List<String> VALID_COMPLETION_PROCESS = Arrays.asList(
         "EXUI_USER_COMPLETION",
