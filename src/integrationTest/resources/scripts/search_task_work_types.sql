@@ -116,7 +116,7 @@ false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "
 ('8d6cc5cf-c973-11eb-bdba-0242ac111032', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
 '1623278362431016', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
 false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
-'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'title', 'bail_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION');
+'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'title', 'bail_work', 'MANUAL', '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00', 'EXUI_CASE_EVENT_COMPLETION'),
 
 ('8d6cc5cf-c973-11eb-bdba-0242ac111040', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
 '1623278362432017', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
