@@ -4,6 +4,8 @@ java:
   keyVaults:
     wa:
       secrets:
+        - name: app-insights-connection-string
+        - alias: app-insights-connection-string
         - name: AppInsightsInstrumentationKey
           alias: azure.application-insights.instrumentation-key
         - name: wa-system-username
