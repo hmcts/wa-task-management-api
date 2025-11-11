@@ -77,9 +77,16 @@ public class SubscriptionCreator {
 
             createSubscription(host, port, dbName, replicaHost, replicaPort, replicaDbName);
             log.info("Subscription created for: " + host + ":" + port + "/" + dbName);
-            log.error("lars-test-01");
-            log.warn("lars-test-02");
-            log.trace("lars-test-03");
+
+            log.info("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-00");
+            log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-01");
+            log.warn("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-02");
+            log.trace("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-03");
+
+            log.info("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-01");
+            log.info("FIND_PROBLEM_MESSAGES Retrieved problem messages lars-test-01");
+            log.info("Task Execute Reconfiguration Failed lars-test-01");
+            log.info("TASK_REPLICATION_ERROR: lars-test-01");
 
         } catch (SQLException ex) {
             log.error("Primary datasource connection exception.", ex);
