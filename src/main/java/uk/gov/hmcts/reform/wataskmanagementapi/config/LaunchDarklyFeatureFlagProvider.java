@@ -33,11 +33,8 @@ public class LaunchDarklyFeatureFlagProvider {
             createLaunchDarklyContext(userId, email),
             true);
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
-        log.info("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-04 2025-11-12T15:01:00Z");
-        log.warn("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-05 2025-11-12T15:01:00Z");
-        log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-06 created: 2025-11-12T15:01:00Z");
 
-        log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-02 created: 2025-11-12T15:01:00Z");
+        log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-06 created: 2025-11-12T15:01:00Z");
         log.error("FIND_PROBLEM_MESSAGES Retrieved problem messages lars-test-02 created: 2025-11-12T15:01:00Z");
         log.error("Task Execute Reconfiguration Failed lars-test-02 created: 2025-11-12T15:01:00Z");
         log.error("TASK_REPLICATION_ERROR: lars-test-02 created: 2025-11-12T15:01:00Z");
