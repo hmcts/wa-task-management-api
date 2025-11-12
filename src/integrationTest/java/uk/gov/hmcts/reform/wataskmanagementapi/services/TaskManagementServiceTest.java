@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
@@ -34,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
@@ -72,7 +74,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -121,8 +122,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
+    private TerminationProcessHelper terminationProcessHelper;
     @MockitoBean
     private ConfigureTaskService configureTaskService;
     @MockitoBean
@@ -139,6 +140,17 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
+    @Autowired
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
+    private CancellationProcessValidator cancellationProcessValidator;
+
+    @MockitoBean
+    private AccessControlService accessControlService;
+
+    public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
+    public static final String USER_WITH_CANCELLATION_FLAG_DISABLED = "wa-user-with-cancellation-process-disabled";
+
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
@@ -153,6 +165,12 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             cftTaskDatabaseService,
             cftQueryService,
             cftSensitiveTaskEventLogsDatabaseService);
+        cancellationProcessValidator = new CancellationProcessValidator(launchDarklyFeatureFlagProvider);
+        terminationProcessHelper = new TerminationProcessHelper(
+            camundaService,
+            systemUserIdamToken,
+            cancellationProcessValidator,
+            accessControlService);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -164,7 +182,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             systemUserIdamToken,
             cftSensitiveTaskEventLogsDatabaseService,
             taskMandatoryFieldsValidator,
-            launchDarklyFeatureFlagProvider);
+            terminationProcessHelper);
 
         mockServices.mockServiceAPIs();
     }
@@ -654,6 +672,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             assertNotNull(taskResource);
             doThrow(new RuntimeException("Database error")).when(cftTaskDatabaseService).saveTask(taskResource);
             TerminateInfo terminateInfo = new TerminateInfo("deleted");
+            UserInfo mockedUserInfo =
+                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+            when(accessControlService.getRoles(any()))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
             assertThatThrownBy(() -> taskManagementService.terminateTask(
                     randomTaskId,
                     terminateInfo
@@ -822,8 +845,12 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 "cancellationProcess",
                 "CASE_EVENT_CANCELLATION"
             );
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString()))
-                .thenReturn(true);
+
+            UserInfo mockedUserInfo =
+                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+            when(accessControlService.getRoles(any()))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
@@ -858,8 +885,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 "cancellationProcess",
                 "CASE_EVENT_CANCELLATION"
             );
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString()))
-                .thenReturn(false);
+            UserInfo mockedUserInfo =
+                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_DISABLED).build();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+            when(accessControlService.getRoles(any()))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
@@ -888,8 +918,12 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         void should_not_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_empty_and_flag_on() {
             String taskId = UUID.randomUUID().toString();
             createAndAssignTestTask(taskId);
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString()))
-                .thenReturn(true);
+            UserInfo mockedUserInfo =
+                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+            when(accessControlService.getRoles(any()))
+                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.empty());

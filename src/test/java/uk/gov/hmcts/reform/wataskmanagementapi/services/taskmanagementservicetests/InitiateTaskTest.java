@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
@@ -31,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TerminationProcessHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
@@ -86,7 +86,7 @@ class InitiateTaskTest extends CamundaHelpers {
     private IdamTokenGenerator idamTokenGenerator;
 
     @Mock
-    LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    TerminationProcessHelper terminationProcessHelper;
 
     @Spy
     @InjectMocks
@@ -122,7 +122,8 @@ class InitiateTaskTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator, featureFlagProvider);
+            taskMandatoryFieldsValidator,
+            terminationProcessHelper);
 
 
         taskId = UUID.randomUUID().toString();

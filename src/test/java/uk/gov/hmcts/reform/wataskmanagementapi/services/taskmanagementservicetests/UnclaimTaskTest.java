@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
@@ -24,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TerminationProcessHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
@@ -72,7 +72,7 @@ class UnclaimTaskTest extends CamundaHelpers {
     private EntityManager entityManager;
 
     @Mock
-    LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    TerminationProcessHelper terminationProcessHelper;
 
     @Test
     void unclaimTask_should_succeed() {
@@ -130,7 +130,7 @@ class UnclaimTaskTest extends CamundaHelpers {
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
             taskMandatoryFieldsValidator,
-            featureFlagProvider);
+            terminationProcessHelper);
 
 
         taskId = UUID.randomUUID().toString();

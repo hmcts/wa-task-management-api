@@ -44,7 +44,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -168,7 +167,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    TerminationProcessHelper terminationProcessHelper;
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -391,7 +390,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
             taskMandatoryFieldsValidator,
-            launchDarklyFeatureFlagProvider);
+            terminationProcessHelper);
 
 
         taskId = UUID.randomUUID().toString();
@@ -2599,8 +2598,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     .thenReturn(Optional.of(taskResource));
 
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any()))
-                    .thenReturn(true);
+                when(terminationProcessHelper.getCancellationProcessValidator()
+                         .isCancellationProcessFeatureEnabled(any())).thenReturn(true);
                 when(camundaService.getVariableFromHistory(anyString(), anyString())).thenReturn(Optional.of(
                     new HistoryVariableInstance("id", "cancellationProcess", "CASE_EVENT_CANCELLATION")));
 
@@ -2620,8 +2619,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     .thenReturn(Optional.of(taskResource));
 
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any()))
-                    .thenReturn(false);
+                when(terminationProcessHelper.getCancellationProcessValidator()
+                         .isCancellationProcessFeatureEnabled(any())).thenReturn(false);
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 

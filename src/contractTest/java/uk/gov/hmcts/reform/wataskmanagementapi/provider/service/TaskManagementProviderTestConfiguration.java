@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
@@ -34,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificati
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TerminationProcessHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
@@ -67,7 +67,7 @@ public class TaskManagementProviderTestConfiguration {
     @MockitoBean
     private RoleAssignmentService roleAssignmentService;
     @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private TerminationProcessHelper terminationProcessHelper;
     @MockitoBean
     private ConfigureTaskService configureTaskService;
     @MockitoBean
@@ -112,7 +112,7 @@ public class TaskManagementProviderTestConfiguration {
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
             taskMandatoryFieldsValidator,
-            launchDarklyFeatureFlagProvider);
+            terminationProcessHelper);
     }
 
     @Bean
