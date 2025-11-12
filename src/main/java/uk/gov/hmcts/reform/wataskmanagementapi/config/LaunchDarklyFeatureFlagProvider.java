@@ -37,11 +37,10 @@ public class LaunchDarklyFeatureFlagProvider {
         log.warn("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-05");
         log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-06");
 
-        log.info("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-02");
-        log.info("FIND_PROBLEM_MESSAGES Retrieved problem messages lars-test-02");
-        log.info("Task Execute Reconfiguration Failed lars-test-02");
-        log.info("TASK_REPLICATION_ERROR: lars-test-02");
-
+        log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test-02");
+        log.error("FIND_PROBLEM_MESSAGES Retrieved problem messages lars-test-02");
+        log.error("Task Execute Reconfiguration Failed lars-test-02");
+        log.error("TASK_REPLICATION_ERROR: lars-test-02");
 
         return result;
     }
