@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -42,12 +43,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
@@ -217,6 +221,11 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     private UserInfo userInfo;
 
     private Map<String, Object> requestParamMap = new HashMap<>();
+
+    @Autowired
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
+
+    private CancellationProcessValidator cancellationProcessValidator;
 
     @Test
     void unclaimTask_succeed_when_task_assignee_differs_from_user_and_has_unassign_gp_flag_on() {
@@ -2591,36 +2600,33 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             }
 
             @Test
-            void should_succeed_and_set_termination_process_when_flag_on() {
+            void should_succeed_and_set_termination_process_when_valid_value_returned_from_camunda() {
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
 
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                when(terminationProcessHelper.getCancellationProcessValidator()
-                         .isCancellationProcessFeatureEnabled(any())).thenReturn(true);
-                when(camundaService.getVariableFromHistory(anyString(), anyString())).thenReturn(Optional.of(
-                    new HistoryVariableInstance("id", "cancellationProcess", "CASE_EVENT_CANCELLATION")));
-
+                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
+                    .thenReturn(Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION));
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
                 assertEquals(TERMINATED, taskResource.getState());
                 assertEquals("completed", taskResource.getTerminationReason());
-                assertEquals("CASE_EVENT_CANCELLATION", taskResource.getTerminationProcess().getValue());
+                assertEquals(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION, taskResource.getTerminationProcess());
             }
 
             @Test
-            void should_succeed_and_not_set_termination_process_when_flag_off() {
+            void should_not_set_termination_process_when_optional_empty_returned_from_camunda() {
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
 
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                when(terminationProcessHelper.getCancellationProcessValidator()
-                         .isCancellationProcessFeatureEnabled(any())).thenReturn(false);
+                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
+                    .thenReturn(Optional.empty());
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
