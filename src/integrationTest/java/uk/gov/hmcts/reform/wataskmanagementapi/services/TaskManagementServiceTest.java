@@ -74,6 +74,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -133,6 +134,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ServiceMocks mockServices;
     @MockitoBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
+
+
     @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
@@ -140,7 +143,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
-    @Autowired
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private CancellationProcessValidator cancellationProcessValidator;
@@ -854,6 +857,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
+
             AtomicBoolean success = new AtomicBoolean(false);
 
             transactionHelper.doInNewTransaction(
@@ -890,7 +895,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             List<RoleAssignment> roleAssignments = new ArrayList<>();
             when(accessControlService.getRoles(any()))
                 .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
-
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(false);
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
             AtomicBoolean success = new AtomicBoolean(false);
@@ -923,6 +928,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             List<RoleAssignment> roleAssignments = new ArrayList<>();
             when(accessControlService.getRoles(any()))
                 .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
 
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
