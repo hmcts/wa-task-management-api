@@ -46,7 +46,7 @@ class CancellationProcessValidatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"EXUI_USER_CANCELLATION", "EXUI_CASE_EVENT_CANCELLATION"})
+    @ValueSource(strings = {"EXUI_USER_CANCELLATION", "CASE_EVENT_CANCELLATION"})
     void validate_returns_completion_process_when_valid(String validCompletionProcess) {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE),
                                                                        any(), anyString())).thenReturn(true);
