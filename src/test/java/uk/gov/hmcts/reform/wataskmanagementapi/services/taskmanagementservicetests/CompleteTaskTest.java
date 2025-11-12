@@ -137,11 +137,12 @@ class CompleteTaskTest extends CamundaHelpers {
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         Map<String,Object> requestMap = new HashMap<>();
         requestMap.put(REQ_PARAM_COMPLETION_PROCESS, "EXUI_CASE-EVENT_COMPLETION");
-
+        when(terminationProcessHelper.parseTerminationProcessParam(any(),anyString()))
+            .thenReturn(Optional.of(TerminationProcess.EXUI_CASE_EVENT_COMPLETION));
         taskManagementService.completeTask(taskId, accessControlResponse, requestMap);
+        Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value().equals(mockedVariables.get("taskState"));
         verify(taskResource, times(1))
             .setTerminationProcess(TerminationProcess.EXUI_CASE_EVENT_COMPLETION);

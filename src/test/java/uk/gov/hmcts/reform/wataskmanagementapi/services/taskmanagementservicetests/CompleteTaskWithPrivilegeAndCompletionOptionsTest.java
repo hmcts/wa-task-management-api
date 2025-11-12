@@ -51,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -163,7 +164,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
                 HashMap<String, Object> requestParamMap = new HashMap<>();
                 requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, "EXUI_USER_COMPLETION");
-
+                when(terminationProcessHelper.parseTerminationProcessParam(any(), anyString()))
+                    .thenReturn(Optional.of(TerminationProcess.EXUI_USER_COMPLETION));
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
