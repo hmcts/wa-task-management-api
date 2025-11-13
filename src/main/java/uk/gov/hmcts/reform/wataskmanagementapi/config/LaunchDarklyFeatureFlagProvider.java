@@ -5,10 +5,11 @@ import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
+
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static java.util.Objects.requireNonNull;
 
