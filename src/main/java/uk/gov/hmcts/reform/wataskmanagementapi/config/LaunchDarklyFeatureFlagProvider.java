@@ -36,6 +36,7 @@ public class LaunchDarklyFeatureFlagProvider {
             createLaunchDarklyContext(userId, email),
             true);
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
+
         String timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
 
         log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test created: " + timestamp);
