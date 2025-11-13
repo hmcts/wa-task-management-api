@@ -1,26 +1,47 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import static org.hamcrest.Matchers.equalTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
 @SuppressWarnings("checkstyle:LineLength")
-public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
+public class PostTaskAssignByIdControllerTest {
 
     @Autowired
     TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
+
+    @Autowired
+    AuthorizationProvider authorizationProvider;
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
     private String taskId;
@@ -41,7 +62,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
             caseWorkerWithPanelJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
             caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -49,7 +70,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
-            new AssignTaskRequest(getAssigneeId(caseWorkerWithLeadJudgeSpAccess.getHeaders())),
+            new AssignTaskRequest(taskFunctionalTestsUserUtils.getAssigneeId(caseWorkerWithLeadJudgeSpAccess.getHeaders())),
             caseWorkerWithPanelJudgeSpAccess.getHeaders()
         );
 
@@ -86,7 +107,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
             caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
             caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -116,7 +137,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
             caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         //first assign
         taskFunctionalTestsApiUtils.getCommon().setupFtpaJudgeForSpecificAccess(
@@ -158,7 +179,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
             caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        initiateTask(taskVariables, caseMngrWithSpAccess.getHeaders());
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseMngrWithSpAccess.getHeaders());
 
         TestAuthenticationCredentials caseWorkerWithFtpaJudge =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
