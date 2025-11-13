@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -104,19 +105,40 @@ public class Common {
 
     public TestVariables setupWATaskAndRetrieveIds() {
         return setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
     }
 
     public TestVariables setupWATaskAndRetrieveIds(String taskType, String taskName) {
-        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", taskType, taskName);
+        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", taskType, taskName);
     }
 
     public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, WA_JURISDICTION, WA_CASE_TYPE, taskType, taskName)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
+    }
+
+    public TestVariables setupWATaskAndRetrieveIdsWithCustomHearingDate(String resourceFileName, String taskType, String taskName, OffsetDateTime nextHearingDate) {
+
+        String caseId = given.iCreateWACcdCaseWithCustomHearignDate("WA",
+                                                                    "WaCaseType",
+                                                                    "CREATE",
+                                                                    "START_PROGRESS",resourceFileName,
+                                                                    nextHearingDate
+                                                                    );
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, WA_JURISDICTION, WA_CASE_TYPE, taskType, taskName)
@@ -205,7 +227,7 @@ public class Common {
 
     public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType, String taskName) {
 
-        String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data.json");
+        String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
         WarningValues warnings = new WarningValues(
             asList(
                 new Warning("Code1", "Text1"),

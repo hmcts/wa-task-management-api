@@ -2,13 +2,14 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
@@ -16,7 +17,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +43,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils.EMAIL_PREFIX_GIN_INDEX;
 
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
@@ -47,31 +52,35 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
     private static final String ASSIGNED_ENDPOINT = "task/{task-id}/assign";
 
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
+    TestAuthenticationCredentials ginIndexCaseWorkerWithJudgeRole;
+    TestAuthenticationCredentials hearingPanelJudgeForStandardAccess;
+    TestAuthenticationCredentials userWithCFTCtscRole;
+
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-        ginIndexCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
-    }
-
-    @After
-    public void cleanUp() {
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        common.clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
-        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
+        caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_WA_ORG_ROLES2);
+        ginIndexCaseWorkerWithJudgeRole = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE);
+        hearingPanelJudgeForStandardAccess = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS);
+        userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_CFTC_ROLE);
     }
 
     @Test
     public void should_return_a_200_with_search_results_and_correct_properties() {
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", "processApplication", "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", "processApplication", "process application");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", "processApplication", "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
@@ -88,10 +97,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -138,29 +147,24 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_a_200_with_search_results_and_correct_properties_for_granular_permission() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
-
-        common.setupHearingPanelJudgeForStandardAccess(caseworkerCredentials.getHeaders(),
-            "WA",
-            "WaCaseType"
-        );
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
         ;
@@ -176,10 +180,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            hearingPanelJudgeForStandardAccess.getHeaders()
         );
 
         result.then().assertThat()
@@ -226,13 +230,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_a_200_with_search_results_and_additional_properties_and_granular_permission() {
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -247,11 +250,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
@@ -267,10 +270,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -282,12 +285,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "Manage", "Claim"))));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -302,11 +304,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
@@ -322,10 +324,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         Map<String, String> expectedAdditionalProperties = Map.of("roleAssignmentId", roleAssignmentId);
@@ -338,19 +340,22 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_desc() {
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate = OffsetDateTime.now();
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate);
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate2);
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
@@ -367,10 +372,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.prettyPrint();
@@ -383,20 +388,19 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_a_200_with_role_category_ctsc() {
-        common.setupCFTCtscRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+            = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
             "reviewAppealSkeletonArgument",
             "Review Appeal Skeleton Argument");
         tasksCreated.add(taskVariables);
-        initiateTask(taskVariables, caseworkerCredentials.getHeaders());
+        initiateTask(taskVariables, userWithCFTCtscRole.getHeaders());
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
@@ -407,10 +411,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
         ));
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            userWithCFTCtscRole.getHeaders()
         );
 
         result.then().assertThat()
@@ -450,19 +454,22 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(1));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate = OffsetDateTime.now();
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate);
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps");
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","reviewSpecificAccessRequestLegalOps", "review Specific Access Request LegalOps",hearingDate2);
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
@@ -479,10 +486,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.prettyPrint();
@@ -495,7 +502,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     //These tests are same as above tests but run through the gin index search
@@ -504,22 +511,17 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_with_search_results_and_correct_properties_using_search_index() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
-
-        common.setupHearingPanelJudgeForStandardAccess(ginIndexCaseworkerCredentials.getHeaders(),
-            "WA",
-            "WaCaseType"
-        );
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
@@ -533,11 +535,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED
                 + "?first_result=0&max_results=10",
             searchTaskRequest,
-            ginIndexCaseworkerCredentials.getHeaders()
+            ginIndexCaseWorkerWithJudgeRole.getHeaders()
         );
 
         result.then().assertThat()
@@ -584,26 +586,32 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_a_200_with_search_results_for_my_work_and_correct_properties_using_search_index() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
+        TestAuthenticationCredentials caseworkerCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+
+        TestAuthenticationCredentials ginIndexCaseworkerCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application");
         initiateTask(taskVariables);
 
         String taskId = taskVariables.getTaskId();
 
-        common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),
+        taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        common.setupCaseManagerForSpecificAccess(ginIndexCaseworkerCredentials.getHeaders(),
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(ginIndexCaseworkerCredentials.getHeaders(),
             taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
-        String assigneeId = getAssigneeId(ginIndexCaseworkerCredentials.getHeaders());
-        Response result = restApiActions.post(
+        String assigneeId = taskFunctionalTestsUserUtils.getAssigneeId(ginIndexCaseworkerCredentials.getHeaders());
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ASSIGNED_ENDPOINT,
             taskId,
             new AssignTaskRequest(assigneeId),
@@ -623,7 +631,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
-        result = restApiActions.post(
+        result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             ginIndexCaseworkerCredentials.getHeaders()
@@ -673,13 +681,18 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.major_priority", everyItem(equalTo(1000)))
             .body("total_records", equalTo(1));
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_200_with_search_results_with_additional_properties_using_search_index() {
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId,
@@ -694,11 +707,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
-        taskVariables = common.setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data.json", "reviewSpecificAccessRequestLegalOps");
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties, "requests/ccd/wa_case_data_fixed_hearing_date.json", "reviewSpecificAccessRequestLegalOps");
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables, additionalProperties);
 
@@ -716,10 +729,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -731,19 +744,25 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Own", "Manage", "Claim"))));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
     }
 
     @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_desc_using_search_index() {
-        common.setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders());
+        TestAuthenticationCredentials ginIndexCaseworkerCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "process Application");
+        OffsetDateTime hearingDate = OffsetDateTime.now();
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","processApplication", "process Application",hearingDate);
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
-        taskVariables = common.setupWATaskAndRetrieveIds("processApplication", "process Application");
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","processApplication", "process Application",hearingDate2);
         tasksCreated.add(taskVariables);
         initiateTask(taskVariables);
 
@@ -760,7 +779,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             ginIndexCaseworkerCredentials.getHeaders()
@@ -776,16 +795,20 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_200_with_role_category_ctsc_using_search_index() {
-        common.setupCFTCtscRoleAssignmentForWA(ginIndexCaseworkerCredentials.getHeaders());
+        TestAuthenticationCredentials ginIndexCaseworkerCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+        taskFunctionalTestsApiUtils.getCommon().setupCFTCtscRoleAssignmentForWA(ginIndexCaseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
         TestVariables taskVariables
-            = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+            = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
             "reviewAppealSkeletonArgument",
             "Review Appeal Skeleton Argument");
         tasksCreated.add(taskVariables);
@@ -802,7 +825,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
         ));
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             ginIndexCaseworkerCredentials.getHeaders()
@@ -845,27 +868,35 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(1));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
 
     @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc_using_search_index() {
-        common.setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders());
+        TestAuthenticationCredentials ginIndexCaseworkerCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(ginIndexCaseworkerCredentials.getHeaders());
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence");
-        tasksCreated.add(taskVariables);
-        initiateTask(taskVariables);
+        OffsetDateTime hearingDate = OffsetDateTime.now();
 
-        taskVariables = common.setupWATaskAndRetrieveIds("followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence");
-        tasksCreated.add(taskVariables);
-        initiateTask(taskVariables);
+        TestVariables taskVariables1 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence",hearingDate);
+        tasksCreated.add(taskVariables1);
+        log.info("Case ID1: " + taskVariables1.getCaseId());
+        initiateTask(taskVariables1);
+
+        OffsetDateTime hearingDate2 = OffsetDateTime.now().plusMinutes(10);
+
+        TestVariables taskVariables2 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIdsWithCustomHearingDate("requests/ccd/wa_case_data.json","followUpOverdueRespondentEvidence", "follow Up Overdue Respondent Evidence",hearingDate2);
+        tasksCreated.add(taskVariables2);
+        log.info("Case ID2: " + taskVariables2.getCaseId());
+        initiateTask(taskVariables2);
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
-        ;
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
-        ;
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             RequestContext.AVAILABLE_TASKS,
@@ -877,7 +908,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             List.of(new SortingParameter(SortField.NEXT_HEARING_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             ginIndexCaseworkerCredentials.getHeaders()
@@ -893,7 +924,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(2));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
     }
 
 
