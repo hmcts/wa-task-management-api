@@ -1,9 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.launchdarkly.sdk.LDValue;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -14,8 +18,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFla
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.NON_EXISTENT_KEY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.TEST_KEY;
 
-
-public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
+public class LaunchDarklyFeatureFlagProviderTest {
 
     public static final String SOME_USER_ID = "some user id";
     public static final String SOME_USER_EMAIL = "test@test.com";

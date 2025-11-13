@@ -4,15 +4,19 @@ import io.restassured.response.Response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.util.List;
@@ -25,15 +29,24 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
 @Slf4j
-public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
+public class PostTaskForSearchCompletionControllerTest {
 
     @Autowired
     TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
@@ -42,7 +55,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     @Before
     public void setUp() {
         caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_WA_ORG_ROLES);
+            .getTestUser(USER_WITH_WA_ORG_ROLES);
     }
 
     @Test
@@ -55,7 +68,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                           "processApplication",
                                           "process application");
-            initiateTask(testVariables);
+            taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -126,7 +139,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -154,7 +167,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             "invalidCaseId",
@@ -182,7 +195,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -210,7 +223,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),

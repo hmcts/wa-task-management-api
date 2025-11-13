@@ -1,16 +1,21 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.util.Map;
@@ -19,14 +24,22 @@ import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
 
-public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
+public class DeleteTaskByIdControllerTest {
 
     @Autowired
     TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
@@ -35,13 +48,13 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils.getTestUser(
-            TaskFunctionalTestsUserUtils.USER_WITH_CFT_ORG_ROLES);
+            USER_WITH_CFT_ORG_ROLES);
     }
 
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -67,7 +80,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
