@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 
-import java.util.Map;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -106,21 +105,5 @@ public class TerminationProcessHelper {
             }
         }
         return Optional.empty();
-    }
-
-    /**
-     * Parses the termination process parameter from the provided request parameter map.
-     * This method retrieves the value associated with the specified key in the map,
-     * converts it to a string, and maps it to a TerminationProcess enum value.
-     * @param requestParamMap The map containing request parameters. Must not be null.
-     * @param key             The key whose associated value is to be parsed as a TerminationProcess.
-     * @return An Optional containing the TerminationProcess if the key exists and the value is valid,
-    or an empty Optional if the key is not present.
-     */
-    public Optional<TerminationProcess> parseTerminationProcessParam(final Map<String, Object> requestParamMap,
-                                                                     String key) {
-        return Optional.ofNullable(requestParamMap.get(key))
-            .map(Object::toString)
-            .map(TerminationProcess::fromValue);
     }
 }

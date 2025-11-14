@@ -42,9 +42,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -69,8 +67,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,7 +104,7 @@ class TaskActionsControllerTest {
 
     private String taskId;
 
-    private Map<String, Object> requestParamMap;
+
 
     @BeforeEach
     void setUp() {
@@ -123,7 +119,6 @@ class TaskActionsControllerTest {
             completionProcessValidator,
             cancellationProcessValidator
         );
-        requestParamMap = new HashMap<>();
     }
 
     @Test
@@ -303,7 +298,7 @@ class TaskActionsControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(taskManagementService, times(1))
-            .completeTask(taskId, mockAccessControlResponse, requestParamMap);
+            .completeTask(taskId, mockAccessControlResponse, null);
 
     }
 
@@ -335,7 +330,7 @@ class TaskActionsControllerTest {
             taskId,
             mockAccessControlResponse,
             request.getCompletionOptions(),
-            requestParamMap
+            null
         );
 
     }
@@ -362,7 +357,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            requestParamMap
+            null
         );
 
     }
@@ -405,7 +400,7 @@ class TaskActionsControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
         verify(taskManagementService, times(1))
-            .cancelTask(taskId, mockAccessControlResponse, new HashMap<>());
+            .cancelTask(taskId, mockAccessControlResponse, null);
     }
 
     @ParameterizedTest(name = "should complete task with null termination process when flag disabled")
@@ -430,7 +425,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).cancelTask(
             taskId,
             mockAccessControlResponse,
-            requestParamMap
+            null
         );
 
     }
@@ -450,9 +445,7 @@ class TaskActionsControllerTest {
         doReturn(Optional.of(cancellationProcess)).when(cancellationProcessValidator)
             .validate(anyString(), anyString(), any());
 
-        requestParamMap = Map.of(
-            REQ_PARAM_CANCELLATION_PROCESS, cancellationProcess
-        );
+
         ResponseEntity<Void> response = taskActionsController.cancelTask(
             IDAM_AUTH_TOKEN,
             taskId,
@@ -464,7 +457,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).cancelTask(
             taskId,
             mockAccessControlResponse,
-            requestParamMap
+            cancellationProcess
         );
     }
 
@@ -490,7 +483,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).cancelTask(
             taskId,
             mockAccessControlResponse,
-            requestParamMap
+            null
         );
     }
 
@@ -680,7 +673,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            requestParamMap
+            null
         );
 
     }
@@ -702,9 +695,7 @@ class TaskActionsControllerTest {
         doReturn(Optional.of(completionProcess)).when(completionProcessValidator)
             .validate(anyString(), anyString(), any());
 
-        requestParamMap = Map.of(
-            REQ_PARAM_COMPLETION_PROCESS, completionProcess
-        );
+
         ResponseEntity<Void> response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
@@ -718,7 +709,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            requestParamMap
+            completionProcess
         );
     }
 
@@ -751,7 +742,7 @@ class TaskActionsControllerTest {
         verify(taskManagementService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            requestParamMap
+            null
         );
     }
 

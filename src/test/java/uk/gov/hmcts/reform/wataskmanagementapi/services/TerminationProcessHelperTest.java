@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertTrue;
@@ -19,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
 
 @ExtendWith(MockitoExtension.class)
 public class TerminationProcessHelperTest {
@@ -105,26 +103,6 @@ public class TerminationProcessHelperTest {
         assertTrue(result.isEmpty());
     }
 
-    @Test
-    void should_return_termination_process_when_key_is_present_in_request_param_map() {
-        Map<String, Object> requestParamMap = Map.of(REQ_PARAM_CANCELLATION_PROCESS, "EXUI_USER_CANCELLATION");
-        TerminationProcess expectedTerminationProcess = TerminationProcess.fromValue("EXUI_USER_CANCELLATION");
 
-        Optional<TerminationProcess> result =
-            terminationProcessHelper.parseTerminationProcessParam(requestParamMap, REQ_PARAM_CANCELLATION_PROCESS);
-
-        assertTrue(result.isPresent());
-        assertEquals(expectedTerminationProcess, result.get());
-    }
-
-    @Test
-    void should_return_empty_optional_when_key_is_not_present_in_request_param_map() {
-        Map<String, Object> requestParamMap = Map.of();
-
-        Optional<TerminationProcess> result =
-            terminationProcessHelper.parseTerminationProcessParam(requestParamMap, REQ_PARAM_CANCELLATION_PROCESS);
-
-        assertTrue(result.isEmpty());
-    }
 
 }

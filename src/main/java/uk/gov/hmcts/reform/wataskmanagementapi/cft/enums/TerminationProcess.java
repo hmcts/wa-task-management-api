@@ -25,13 +25,13 @@ public enum TerminationProcess {
     @JsonCreator
     public static TerminationProcess fromValue(String value) {
         if (value == null) {
-            throw new IllegalArgumentException("TerminationProcess value cannot be null");
+            return null;
         }
         for (TerminationProcess terminationProcess : TerminationProcess.values()) {
             if (terminationProcess.getValue().equalsIgnoreCase(value)) {
                 return terminationProcess;
             }
         }
-        throw new IllegalArgumentException("Unknown TerminationProcess: " + value);
+       return null;
     }
 }

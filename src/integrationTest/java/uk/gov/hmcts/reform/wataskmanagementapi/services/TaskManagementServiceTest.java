@@ -86,7 +86,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CAN
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
@@ -390,7 +389,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCancelException.class)
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
@@ -435,13 +434,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-            HashMap<String, Object> requestParamMap = new HashMap<>();
-            if (termnationProcess != null) {
-                requestParamMap.put(REQ_PARAM_CANCELLATION_PROCESS, termnationProcess);
-            }
 
             transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap)
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, termnationProcess)
             );
 
             verifyTransactionTerminated(taskId);
@@ -479,7 +474,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCancelException.class)
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
@@ -510,9 +505,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, Map.of(
-                    REQ_PARAM_CANCELLATION_PROCESS, "EXUI_USER_CANCELLATION"
-                ))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, "EXUI_USER_CANCELLATION")
             );
 
             verifyTransactionCancelledWithTerminationProcess(taskId, "EXUI_USER_CANCELLATION");
@@ -541,7 +534,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
@@ -568,7 +561,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
@@ -609,7 +602,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        new HashMap<>()
+                        null
                     )))
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
@@ -649,7 +642,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        new HashMap<>()
+                        null
                     )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
@@ -865,7 +858,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 () -> {
                     taskManagementService.terminateTask(
                         taskId,
-                        new TerminateInfo("completed")
+                        new TerminateInfo("deleted")
 
                     );
                     success.set(true);

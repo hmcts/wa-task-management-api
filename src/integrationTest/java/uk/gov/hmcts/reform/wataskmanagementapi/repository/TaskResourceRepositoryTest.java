@@ -258,6 +258,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     @CsvSource(value = {
         "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE_EVENT_COMPLETION",
         "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
+        "EXUI_USER_CANCELLATION, EXUI_USER_CANCELLATION",
+        "CASE_EVENT_CANCELLATION, EXUI_CASE_EVENT_CANCELLATION",
         "NULL,NULL"
     }, nullValues = "NULL")
     void given_task_is_created_when_find_by_id_and_return_termination_process(String terminationProcess,
