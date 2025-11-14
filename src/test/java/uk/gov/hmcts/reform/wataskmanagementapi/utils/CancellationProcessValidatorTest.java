@@ -59,7 +59,7 @@ class CancellationProcessValidatorTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {"INVALID_PROCESS", "RANDOM_VALUE"})
-    void should_returns_empty_when_invalid_or_blank_completion_process_passed_for_validation(String invalidCompletionProcess) {
+    void should_returns_empty_when_invalid_completion_process_passed_for_validation(String invalidCompletionProcess) {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE),
                                                                        any(), anyString())).thenReturn(true);
 
@@ -70,7 +70,7 @@ class CancellationProcessValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"EXUI_USER_CANCELLATION", "EXUI_CASE_EVENT_CANCELLATION"})
-    void should_returns_empty_when_update_completion_process_flag_is_disabled_on_validate(String validCompletionProcess) {
+    void should_returns_empty_when_update_completion_process_flag_is_disabled_on(String validCompletionProcess) {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE),
                                                                        any(), anyString())).thenReturn(false);
 
