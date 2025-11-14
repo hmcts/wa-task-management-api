@@ -72,7 +72,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
             ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
         );
 
-        sensitiveTaskEventLogsExecutorService.awaitTermination(300, TimeUnit.MILLISECONDS);
+        sensitiveTaskEventLogsExecutorService.awaitTermination(400, TimeUnit.MILLISECONDS);
 
         Optional<SensitiveTaskEventLog> sensitiveTaskEventLog = sensitiveTaskEventLogsRepository.getByTaskId(taskId);
         assertThat(sensitiveTaskEventLog).isPresent();

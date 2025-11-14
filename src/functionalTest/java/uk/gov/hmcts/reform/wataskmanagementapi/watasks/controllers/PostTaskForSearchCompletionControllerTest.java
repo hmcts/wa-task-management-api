@@ -4,13 +4,20 @@ import io.restassured.response.Response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -22,37 +29,46 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
 @Slf4j
-public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
+public class PostTaskForSearchCompletionControllerTest {
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
+    TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
+
     @Before
     public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-    }
-
-    @After
-    public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_WA_ORG_ROLES);
     }
 
     @Test
     public void should_return_200_with_appropriate_task_to_complete() {
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
 
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
 
-            TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                           "processApplication",
-                                                                           "process application");
-            initiateTask(testVariables);
+            TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
+                .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                          "processApplication",
+                                          "process application");
+            taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -61,10 +77,10 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 WA_CASE_TYPE
             );
 
-            Response result = restApiActions.post(
+            Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 ENDPOINT_BEING_TESTED,
                 decideAnApplicationSearchRequest,
-                waCaseworkerCredentials.getHeaders()
+                caseWorkerWithWAOrgRoles.getHeaders()
             );
 
             result.then().assertThat()
@@ -113,17 +129,17 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 .body("tasks.minor_priority", everyItem(equalTo(500)))
                 .body("tasks.major_priority", everyItem(equalTo(1000)));
 
-            common.cleanUpTask(testVariables.getTaskId());
+            taskFunctionalTestsApiUtils.getCommon().cleanUpTask(testVariables.getTaskId());
         });
     }
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
-        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
-        initiateTask(testVariables);
+        TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                      "processApplication",
+                                      "process application");
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -132,26 +148,26 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             WA_CASE_TYPE
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(0));
 
-        common.cleanUpTask(testVariables.getTaskId());
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(testVariables.getTaskId());
     }
 
     @Test
     public void should_return_a_200_and_empty_list_when_caseId_match_not_found() {
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
-        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
-        initiateTask(testVariables);
+        TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                      "processApplication",
+                                      "process application");
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             "invalidCaseId",
@@ -160,26 +176,26 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             WA_CASE_TYPE
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(0));
 
-        common.cleanUpTask(testVariables.getTaskId());
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(testVariables.getTaskId());
     }
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_jurisdiction_not_match() {
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
-        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
-        initiateTask(testVariables);
+        TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                      "processApplication",
+                                      "process application");
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -188,26 +204,26 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             WA_CASE_TYPE
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(0));
 
-        common.cleanUpTask(testVariables.getTaskId());
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(testVariables.getTaskId());
     }
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_dmn_case_type_not_match() {
-        common.setupWAOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders());
-        TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json",
-                                                                       "processApplication",
-                                                                       "process application");
-        initiateTask(testVariables);
+        TestVariables testVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
+                                      "processApplication",
+                                      "process application");
+        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -216,17 +232,17 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "GrantOfRepresentation"
         );
 
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(0));
 
-        common.cleanUpTask(testVariables.getTaskId());
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(testVariables.getTaskId());
     }
 
 
