@@ -79,7 +79,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
-    private static String ENDPOINT_BEING_TESTED;
 
     @MockitoBean
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -107,8 +106,6 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
     @Mock
     private UserInfo mockedUserInfo;
 
-    private ServiceMocks mockServices;
-
     TaskTestUtils taskTestUtils;
 
     @BeforeAll
@@ -133,7 +130,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         lenient().when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
 
-        mockServices = new ServiceMocks(
+        ServiceMocks mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
@@ -188,11 +185,11 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         taskTestUtils.insertDummyTaskInDb("IA", "Asylum", "completeCaseId1",
                                           taskId,UNASSIGNED, taskRoleResource,null, IDAM_USER_ID);
 
-        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
+        String endpointBeingTested = String.format(ENDPOINT_PATH, taskId);
 
         CompleteTaskRequest request = new CompleteTaskRequest(null);
         mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
+            post(endpointBeingTested)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)

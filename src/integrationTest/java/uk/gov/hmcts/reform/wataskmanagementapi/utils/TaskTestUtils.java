@@ -46,11 +46,6 @@ public class TaskTestUtils {
 
     private final String profile;
 
-    public TaskTestUtils(CFTTaskDatabaseService cftTaskDatabaseService) {
-        this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.profile = "primary";
-    }
-
     public TaskTestUtils(CFTTaskDatabaseService cftTaskDatabaseService, String profile) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.profile = profile;
@@ -124,7 +119,7 @@ public class TaskTestUtils {
         if ("replica".equals(profile)) {
             taskResource.setLastUpdatedAction("Configure");
             taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
-            addMissingParameters(taskResource,true);
+            addMissingParameters(taskResource);
             taskResource.setPriorityDate(OffsetDateTime.now().plusDays(3).withHour(10).withMinute(0).withSecond(0)
                                              .withNano(0));
         }
@@ -365,11 +360,8 @@ public class TaskTestUtils {
             .build();
     }
 
-    private void addMissingParameters(TaskResource taskResource, boolean required) {
-        taskResource.setDescription(required
-                                        ? "[Decide an application](/case/WA/WaCaseType/"
-                                        + "${[CASE_REFERENCE]}/trigger/decideAnApplication)"
-                                        : null);
+    private void addMissingParameters(TaskResource taskResource) {
+        taskResource.setDescription("[Decide an application](/case/WA/WaCaseType/");
         List<NoteResource> notesList = new ArrayList<>();
         final NoteResource noteResource = new NoteResource(
             "someCode",
@@ -378,27 +370,21 @@ public class TaskTestUtils {
             "someContent"
         );
         notesList.add(noteResource);
-        taskResource.setNotes(required ? notesList : null);
-        taskResource.setRegion(required ? "Wales" : null);
-        taskResource.setLocationName(required ? "Cardiff" : null);
-        taskResource.setAdditionalProperties(required ? Map.of(
+        taskResource.setNotes(notesList);
+        taskResource.setRegion("Wales");
+        taskResource.setLocationName("Cardiff");
+        taskResource.setAdditionalProperties(Map.of(
             "key1", "value1",
             "key2", "value2",
             "key3", "value3",
             "key4", "value4"
-        ) : null);
-        taskResource.setReconfigureRequestTime(required
-                                                   ? OffsetDateTime.now().plusDays(1).withHour(10)
-            .withMinute(0).withSecond(0).withNano(0)
-                                                   : null);
-        taskResource.setLastReconfigurationTime(required
-                                                    ? OffsetDateTime.now().plusDays(1).withHour(10)
-            .withMinute(0).withSecond(0).withNano(0)
-                                                    : null);
-        taskResource.setNextHearingId(required ? "W-CA-1234" : null);
-        taskResource.setNextHearingDate(required
-                                            ? OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0)
-            .withSecond(0).withNano(0)
-                                            : null);
+        ));
+        taskResource.setReconfigureRequestTime(OffsetDateTime.now().plusDays(1).withHour(10)
+            .withMinute(0).withSecond(0).withNano(0));
+        taskResource.setLastReconfigurationTime(OffsetDateTime.now().plusDays(1).withHour(10)
+            .withMinute(0).withSecond(0).withNano(0));
+        taskResource.setNextHearingId("W-CA-1234");
+        taskResource.setNextHearingDate(OffsetDateTime.now().plusDays(2).withHour(10).withMinute(0)
+            .withSecond(0).withNano(0));
     }
 }
