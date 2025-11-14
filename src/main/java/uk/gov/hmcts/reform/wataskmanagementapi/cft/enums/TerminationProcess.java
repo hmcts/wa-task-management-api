@@ -24,7 +24,7 @@ public enum TerminationProcess {
 
     @JsonCreator
     public static TerminationProcess fromValue(String value) {
-         for (TerminationProcess terminationProcess : TerminationProcess.values()) {
+        for (TerminationProcess terminationProcess : TerminationProcess.values()) {
             if (terminationProcess.getValue().equalsIgnoreCase(value)) {
                 return terminationProcess;
             }
