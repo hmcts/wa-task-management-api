@@ -124,7 +124,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
 
     @BeforeAll
     void init() {
-        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
     }
 
     @BeforeEach
