@@ -32,6 +32,6 @@ public enum TerminationProcess {
                 return terminationProcess;
             }
         }
-       return null;
+        return null;
     }
 }

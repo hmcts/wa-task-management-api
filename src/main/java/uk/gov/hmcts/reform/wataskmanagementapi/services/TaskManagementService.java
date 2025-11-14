@@ -362,7 +362,7 @@ public class TaskManagementService {
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
-     * @param cancellationProcess
+     * @param cancellationProcess   the termination process using which task is cancelled
      */
     @Transactional
     public void cancelTask(String taskId,
@@ -535,7 +535,6 @@ public class TaskManagementService {
      */
     @Transactional
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
-        log.info("Terminating task with id: {}", taskId);
         TaskResource task = null;
         try {
             //Find and Lock Task
@@ -559,7 +558,6 @@ public class TaskManagementService {
                     default -> TERMINATE_EXCEPTION;
                 };
                 setSystemUserTaskActionAttributes(task, taskAction);
-
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
                 if (task.getTerminationProcess() == null && terminateInfo.getTerminateReason() != "completed") {
