@@ -127,7 +127,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                new HashMap<>()
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
