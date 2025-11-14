@@ -112,7 +112,7 @@ public class DeleteTaskByIdControllerTest {
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication"
         );
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");

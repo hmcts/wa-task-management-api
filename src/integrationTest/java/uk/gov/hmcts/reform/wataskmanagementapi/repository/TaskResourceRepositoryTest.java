@@ -264,9 +264,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }, nullValues = "NULL")
     void given_task_is_created_when_find_by_id_and_return_termination_process(String terminationProcess,
                                                                               String expectedTerminationProcess) {
-
-        log.info("Termination Process: {}", terminationProcess);
-        log.info("Expected Termination Process: {}", expectedTerminationProcess);
         String taskId = UUID.randomUUID().toString();
         TerminationProcess terminationProcessEnum;
         if (terminationProcess != null) {
@@ -288,7 +285,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertAll(
             () -> assertTrue(taskResourceInDb.isPresent()),
             () -> assertEquals(taskId, taskResourceInDb.get().getTaskId()),
-            () -> assertEquals(terminationProcessEnum, taskResourceInDb.get().getTerminationProcess())
+            () -> assertEquals(expectedTerminationProcess, taskResourceInDb.get().getTerminationProcess())
         );
 
     }
