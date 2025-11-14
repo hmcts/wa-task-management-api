@@ -1,14 +1,20 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.util.Map;
@@ -16,9 +22,22 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_SENIOR_TRIB_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_NO_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
-
-public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
+public class PostTaskUnclaimByIdControllerTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
@@ -29,6 +48,12 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
 
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
+
+    @Autowired
+    AuthorizationProvider authorizationProvider;
+
     TestAuthenticationCredentials waCaseworkerWithNoRoles;
     TestAuthenticationCredentials userWithTaskSupervisorRole;
     TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
@@ -37,13 +62,13 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
     @Before
     public void setUp() {
         waCaseworkerWithNoRoles = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_NO_ROLES);
+            .getTestUser(USER_WITH_NO_ROLES);
         userWithTaskSupervisorRole = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE);
+            .getTestUser(CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE);
         caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_CFT_ORG_ROLES);
+            .getTestUser(USER_WITH_CFT_ORG_ROLES);
         userWithSeniorTribCaseworker = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_SENIOR_TRIB_ROLE);
+            .getTestUser(CASE_WORKER_WITH_SENIOR_TRIB_ROLE);
 
     }
 
@@ -60,7 +85,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
             "process application");
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             CLAIM_ENDPOINT,
@@ -98,7 +123,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         TestVariables taskVariables = setupScenario("processApplication",
             "process application");
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().updateTaskWithCustomVariablesOverride(
             taskVariables, Map.of(REGION, "1"));
@@ -135,7 +160,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         String taskId = taskVariables.getTaskId();
 
@@ -170,7 +195,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
             caseWorkerForClaim.getHeaders(), "WA", "WaCaseType");
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         String taskId = taskVariables.getTaskId();
 
@@ -207,7 +232,7 @@ public class PostTaskUnclaimByIdControllerTest extends SpringBootFunctionalBaseT
         taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
             caseWorkerForClaim.getHeaders(), "WA", "WaCaseType");
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         String taskId = taskVariables.getTaskId();
 
