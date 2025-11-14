@@ -6,7 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +24,8 @@ public abstract class RoleAssignmentHelper {
     protected static final String SSCS_JURISDICTION = "SSCS";
     protected static final String PRIMARY_LOCATION = "765324";
 
-    protected static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
-        RoleAssignmentRequest roleAssignmentRequest) {
+    public static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
+                                                            RoleAssignmentRequest roleAssignmentRequest) {
 
         Map<String, String> attributes = createAttributes(roleAssignmentRequest.getRoleAssignmentAttribute());
 
@@ -38,12 +38,12 @@ public abstract class RoleAssignmentHelper {
             .attributes(attributes)
             .beginTime(
                 roleAssignmentRequest.getBeginTime() == null
-                    ? LocalDateTime.now().minusYears(1)
+                    ? OffsetDateTime.now().minusYears(1)
                     : roleAssignmentRequest.getBeginTime()
             )
             .endTime(
                 roleAssignmentRequest.getEndTime() == null
-                    ? LocalDateTime.now().plusYears(1)
+                    ? OffsetDateTime.now().plusYears(1)
                     : roleAssignmentRequest.getEndTime()
             )
             .roleType(roleAssignmentRequest.getTestRolesWithGrantType().getRoleType())
@@ -89,18 +89,18 @@ public abstract class RoleAssignmentHelper {
 
     @Builder
     @Getter
-    protected static class RoleAssignmentRequest {
+    public static class RoleAssignmentRequest {
 
         private TestRolesWithGrantType testRolesWithGrantType;
         private RoleAssignmentAttribute roleAssignmentAttribute;
         private List<String> authorisations;
-        private LocalDateTime beginTime;
-        private LocalDateTime endTime;
+        private OffsetDateTime beginTime;
+        private OffsetDateTime endTime;
     }
 
     @Builder
     @Getter
-    protected static class RoleAssignmentAttribute {
+    public static class RoleAssignmentAttribute {
 
         private String jurisdiction;
         private String caseType;

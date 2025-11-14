@@ -1,14 +1,22 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.util.Map;
 
@@ -16,29 +24,37 @@ import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
 
-public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
+@RunWith(SpringIntegrationSerenityRunner.class)
+@SpringBootTest
+@ActiveProfiles("functional")
+@Slf4j
+public class DeleteTaskByIdControllerTest {
+
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
+    private TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
+
     @Before
     public void setUp() {
-        waCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
-    }
-
-    @After
-    public void cleanUp() {
-        common.clearAllRoleAssignments(waCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(waCaseworkerCredentials.getAccount().getUsername());
-
-        common.clearAllRoleAssignments(baseCaseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(baseCaseworkerCredentials.getAccount().getUsername());
+        caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils.getTestUser(
+            USER_WITH_CFT_ORG_ROLES);
     }
 
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -48,11 +64,11 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             new TerminateInfo("cancelled")
         );
 
-        Response result = restApiActions.delete(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -63,8 +79,8 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
@@ -72,11 +88,11 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             new TerminateInfo("completed")
         );
 
-        Response result = restApiActions.delete(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             terminateTaskRequest,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -93,10 +109,10 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "taskIdIn", singleton(taskId)
         );
 
-        Response result = camundaApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getCamundaApiActions().post(
             "/history/variable-instance",
             request,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         if (value == null) {
@@ -121,17 +137,15 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(),
-            WA_JURISDICTION, WA_CASE_TYPE);
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            waCaseworkerCredentials.getHeaders(),
+            caseWorkerWithCftOrgRoles.getHeaders(),
             HttpStatus.NO_CONTENT
         );
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             "task/{task-id}/cancel",
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
@@ -143,23 +157,22 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(waCaseworkerCredentials.getHeaders(),
-            WA_JURISDICTION, WA_CASE_TYPE);
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            waCaseworkerCredentials.getHeaders(),
+            caseWorkerWithCftOrgRoles.getHeaders(),
             HttpStatus.NO_CONTENT
         );
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             "task/{task-id}/complete",
             taskId,
-            waCaseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(), "taskState", "completed");
 
         return taskVariables;
     }
