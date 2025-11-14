@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 import static java.util.Objects.requireNonNull;
 
 @Slf4j
@@ -33,6 +36,20 @@ public class LaunchDarklyFeatureFlagProvider {
             createLaunchDarklyContext(userId, email),
             true);
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
+
+        String timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+
+        log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks lars-test created: " + timestamp);
+        log.error("TASK_INITIATION_FAILURES There are some uninitiated tasks:\n"
+                      + "-> caseId: 1, taskId: 1, jurisdiction: a, name: lars, "
+                      + "caseType: 1, created: " + timestamp);
+        log.error("FIND_PROBLEM_MESSAGES Retrieved problem messages "
+                      + "UNPROCESSABLE lars-test-02 created: " + timestamp);
+        log.error("Task Execute Reconfiguration Failed lars-test-02 created: " + timestamp);
+        log.error("TASK_REPLICATION_ERROR: lars-test-02 created: " + timestamp);
+        log.error("TASK_TERMINATION_FAILURES There are some unterminated tasks "
+                      + "lars-test-02 created: " + timestamp);
+
         return result;
     }
 
