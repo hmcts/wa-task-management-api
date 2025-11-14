@@ -169,7 +169,7 @@ public class PostTaskCancelByIdControllerTest {
             TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
                 "reviewSpecificAccessRequestJudiciary", "Review Specific Access Request Judiciary");
 
-            initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+            taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
             String taskId = taskVariables.getTaskId();
             TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
