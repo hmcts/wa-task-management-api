@@ -356,6 +356,64 @@ public class CamundaService {
         }
     }
 
+    /**
+     * Retrieves the process instance ID for the given task ID.
+     *
+     * @param taskId the task ID for which the process instance ID is to be retrieved.
+     * @return an Optional containing the process instance ID, or an empty Optional if not found.
+     */
+    public Optional<String> getProcessInstanceId(String taskId) {
+        Map<String, Object> body = Map.of(
+            VALUE_TASK_ID_IN, singleton(taskId)
+        );
+
+        try {
+            List<HistoryVariableInstance> results = camundaServiceApi.searchHistory(
+                authTokenGenerator.generate(),
+                body
+            );
+
+            return results.stream()
+                .map(HistoryVariableInstance::getProcessInstanceId)
+                .findFirst();
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem when fetching the process instance ID", ex);
+        }
+    }
+
+    /**
+     * Retrieves a specific variable from the history for the given task ID and variable name.
+     *
+     * @param taskId       the task ID for which the variable is to be retrieved.
+     * @param variableName the name of the variable to retrieve.
+     * @return an Optional containing the HistoryVariableInstance, or an empty Optional if not found.
+     */
+    public Optional<HistoryVariableInstance> getVariableFromHistory(String taskId, String variableName) {
+        try {
+            Optional<String> processInstanceId = getProcessInstanceId(taskId);
+
+            if (processInstanceId.isEmpty()) {
+                log.info("No processInstanceId found for taskId '{}'", taskId);
+                return Optional.empty();
+            }
+
+            Map<String, Object> body = Map.of(
+                "processInstanceId", processInstanceId.get()
+            );
+
+            List<HistoryVariableInstance> results = camundaServiceApi.searchHistory(
+                authTokenGenerator.generate(),
+                body
+            );
+
+            return results.stream()
+                .filter(r -> r.getName().equals(variableName))
+                .findFirst();
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem when fetching variable from history", ex);
+        }
+    }
+
     private Map<String, CamundaVariable> performGetVariablesAction(String id) {
         try {
             return camundaServiceApi.getVariables(authTokenGenerator.generate(), id);

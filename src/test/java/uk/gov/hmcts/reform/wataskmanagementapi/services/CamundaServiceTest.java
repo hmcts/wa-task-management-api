@@ -40,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -1162,6 +1163,148 @@ class CamundaServiceTest extends CamundaHelpers {
 
         }
 
+        @Nested
+        @DisplayName("getProcessInstanceId()")
+        class GetProcessInstanceId {
+
+            @Test
+            void should_return_process_instance_id_when_present() {
+                String processInstanceId = "processInstanceId123";
+                HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                    "someId",
+                    "someVariable",
+                    "someValue",
+                    processInstanceId
+                );
+
+                Map<String, Object> body = Map.of(
+                    "taskIdIn", singleton(taskId)
+                );
+
+                when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                    .thenReturn(singletonList(historyVariableInstance));
+
+                Optional<String> result = camundaService.getProcessInstanceId(taskId);
+
+                assertTrue(result.isPresent());
+                assertEquals(processInstanceId, result.get());
+            }
+
+            @Test
+            void should_return_empty_optional_when_no_process_instance_id_found() {
+                Map<String, Object> body = Map.of(
+                    "taskIdIn", singleton(taskId)
+                );
+
+                when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body))
+                    .thenReturn(emptyList());
+
+                Optional<String> result = camundaService.getProcessInstanceId(taskId);
+
+                assertTrue(result.isEmpty());
+            }
+
+            @Test
+            void should_throw_server_error_exception_when_camunda_client_throws_feign_exception() {
+                Map<String, Object> body = Map.of(
+                    "taskIdIn", singleton(taskId)
+                );
+
+                doThrow(FeignException.class)
+                    .when(camundaServiceApi)
+                    .searchHistory(BEARER_SERVICE_TOKEN, body);
+
+                assertThatThrownBy(() -> camundaService.getProcessInstanceId(taskId))
+                    .isInstanceOf(ServerErrorException.class)
+                    .hasMessage("There was a problem when fetching the process instance ID");
+            }
+        }
+
+        @Nested
+        @DisplayName("getVariableFromHistory()")
+        class GetVariableFromHistory {
+
+            @Test
+            void should_return_variable_when_present_in_history() {
+                HistoryVariableInstance taskHistoryVariableInstance = new HistoryVariableInstance(
+                    "id1",
+                    "taskId",
+                    taskId,
+                    "processInstanceId123"
+                );
+
+                HistoryVariableInstance cancellationProcessVariableInstance = new HistoryVariableInstance(
+                    "id2",
+                    "cancellationProcess",
+                    "CASE_EVENT_CANCELLATION",
+                    "processInstanceId123"
+                );
+
+
+                Map<String, Object> body1 = Map.of(
+                    "taskIdIn", singleton(taskId)
+                );
+
+                Map<String, Object> body2 = Map.of(
+                    "processInstanceId", "processInstanceId123"
+                );
+
+                when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body1))
+                    .thenReturn(singletonList(taskHistoryVariableInstance));
+
+                when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body2))
+                    .thenReturn(singletonList(cancellationProcessVariableInstance));
+
+                Optional<HistoryVariableInstance> result =
+                    camundaService.getVariableFromHistory(taskId, "cancellationProcess");
+
+                assertTrue(result.isPresent());
+                assertEquals(cancellationProcessVariableInstance, result.get());
+            }
+
+            @Test
+            void should_return_empty_optional_when_variable_not_found_in_history() {
+                String variableName = "nonExistentVariable";
+
+                String processInstanceId = "processInstanceId123";
+                HistoryVariableInstance taskHistoryVariableInstance = new HistoryVariableInstance(
+                    "id1",
+                    "taskId",
+                    taskId,
+                    "processInstanceId123"
+                );
+
+                HistoryVariableInstance cancellationProcessVariableInstance = new HistoryVariableInstance(
+                    "id2",
+                    "cancellationProcess",
+                    "CASE_EVENT_CANCELLATION",
+                    "processInstanceId123"
+                );
+
+
+                Map<String, Object> body1 = Map.of(
+                    "taskIdIn", singleton(taskId)
+                );
+
+                Map<String, Object> body2 = Map.of(
+                    "processInstanceId", "processInstanceId123"
+                );
+
+                when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body1))
+                    .thenReturn(singletonList(taskHistoryVariableInstance));
+
+                when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body2))
+                    .thenReturn(singletonList(cancellationProcessVariableInstance));
+
+                Map<String, Object> body = Map.of("processInstanceId", processInstanceId);
+                when(camundaServiceApi.searchHistory(BEARER_SERVICE_TOKEN, body)).thenReturn(emptyList());
+
+                Optional<HistoryVariableInstance> result = camundaService.getVariableFromHistory(taskId, variableName);
+
+                assertTrue(result.isEmpty());
+            }
+
+        }
 
     }
 }

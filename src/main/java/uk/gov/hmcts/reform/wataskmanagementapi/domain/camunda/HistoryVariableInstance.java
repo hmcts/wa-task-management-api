@@ -11,6 +11,7 @@ public class HistoryVariableInstance {
     private String id;
     private String name;
     private String value;
+    private String processInstanceId;
 
     private HistoryVariableInstance() {
     }
@@ -19,6 +20,13 @@ public class HistoryVariableInstance {
         this.id = id;
         this.name = name;
         this.value = value;
+    }
+
+    public HistoryVariableInstance(String id, String name, String value, String processInstanceId) {
+        this.id = id;
+        this.name = name;
+        this.value = value;
+        this.processInstanceId = processInstanceId;
     }
 
     public String getId() {
@@ -31,6 +39,10 @@ public class HistoryVariableInstance {
 
     public String getValue() {
         return value;
+    }
+
+    public String getProcessInstanceId() {
+        return processInstanceId;
     }
 
 }
