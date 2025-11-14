@@ -99,92 +99,14 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
-    public TestAuthenticationCredentials getNewLawFirm() {
-        /*
-         * This user is used to create cases in ccd
-         */
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
-
-        Headers authenticationHeaders = new Headers(
-            getAuthorizationOnly(lawfirm),
-            getServiceAuthorizationHeader()
-        );
-
-        return new TestAuthenticationCredentials(lawfirm, authenticationHeaders);
-    }
-
-    public TestAuthenticationCredentials getJudgeAuthorization(String emailPrefix) {
-        /*
-         * This user is used to create cases in ccd
-         */
-        TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
-
-        Headers headers = new Headers(
-            getJudgeAuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-
-        return new TestAuthenticationCredentials(lawfirm, headers);
-    }
-
-    public TestAuthenticationCredentials getAdminCaseworker(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        TestAccount caseworker = getIdamLawFirmCredentials(emailPrefix);
-
-        Headers authenticationHeaders = new Headers(
-            getAuthorizationOnly(caseworker),
-            getServiceAuthorizationHeader()
-        );
-
-        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
-    }
-
-    public TestAuthenticationCredentials getAdminUserAuthorization(String emailPrefix) {
-        /*
-         * This user is used to create cases in ccd
-         */
-        TestAccount caseworker = getAdministativeCredentials(emailPrefix);
-
-        Headers authenticationHeaders = new Headers(
-            getAdminUserAuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
-
-    }
-
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
 
-    public Header getLawFirmAuthorizationOnly() {
-
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
-
-    }
-
     public Header getAuthorizationOnly(TestAccount account) {
         return getAuthorization(account.getUsername(), account.getPassword());
-    }
-
-    public Header getJudgeAuthorizationOnly(String emailPrefix) {
-
-        TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
-
-    }
-
-    public Header getAdminUserAuthorizationOnly(String emailPrefix) {
-
-        TestAccount lawfirm = getAdministativeCredentials(emailPrefix);
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
-
     }
 
     public UserInfo getUserInfo(String userToken) {
@@ -197,30 +119,6 @@ public class AuthorizationProvider {
 
     public Headers getServiceAuthorizationHeadersOnly() {
         return new Headers(getServiceAuthorizationHeader());
-    }
-
-    public Headers getWACaseworkerAAuthorization(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        return new Headers(
-            getWACaseworkerAAuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-    }
-
-    public Header getWACaseworkerAAuthorizationOnly(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
-            new RoleCode("payments"),
-            new RoleCode("caseworker-wa"));
-        TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
-        return getAuthorization(testAccount.getUsername(), testAccount.getPassword());
-
-    }
-
-    public String getUserId(Headers headers) {
-        return getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
     private Header getAuthorization(String username, String password) {
@@ -243,22 +141,6 @@ public class AuthorizationProvider {
     private TestAccount getIdamLawFirmCredentials(String emailPrefix) {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
             new RoleCode("caseworker-ia-legalrep-solicitor"),
-            new RoleCode("payments")
-        );
-        return generateIdamTestAccount(emailPrefix, requiredRoles);
-    }
-
-    private TestAccount getIdamJudgeCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-            new RoleCode("caseworker-ia-judiciary"),
-            new RoleCode("payments")
-        );
-        return generateIdamTestAccount(emailPrefix, requiredRoles);
-    }
-
-    private TestAccount getAdministativeCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-            new RoleCode("caseworker-ia-admofficer"),
             new RoleCode("payments")
         );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
