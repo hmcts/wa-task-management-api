@@ -262,8 +262,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         "CASE_EVENT_CANCELLATION, EXUI_CASE_EVENT_CANCELLATION",
         "NULL,NULL"
     }, nullValues = "NULL")
-    void given_task_is_created_when_find_by_id_and_return_termination_process(String terminationProcess,
-                                                                              String expectedTerminationProcess) {
+    void given_task_is_created_when_find_by_id_and_return_termination_process(
+        String terminationProcess, TerminationProcess expectedTerminationProcess) {
         String taskId = UUID.randomUUID().toString();
         TerminationProcess terminationProcessEnum;
         if (terminationProcess != null) {
