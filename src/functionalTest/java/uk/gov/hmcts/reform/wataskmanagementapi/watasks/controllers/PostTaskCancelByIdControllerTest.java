@@ -60,7 +60,7 @@ public class PostTaskCancelByIdControllerTest {
     }
 
     @Test
-    public void user_should_not_cancel_task_when_role_assignment_verification_failed() {
+    public void should_not_cancel_task_when_role_assignment_verification_failed() {
 
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
@@ -94,7 +94,7 @@ public class PostTaskCancelByIdControllerTest {
     }
 
     @Test
-    public void user_should_cancel_task_when_role_assignment_verification_passed() {
+    public void should_cancel_task_when_role_assignment_verification_passed() {
 
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
@@ -124,7 +124,7 @@ public class PostTaskCancelByIdControllerTest {
     }
 
     @Test
-    public void user_should_cancel_task_and_set_termination_process_for_valid_cancellation_process_and_flag_enabled() {
+    public void should_cancel_task_and_set_termination_process_for_valid_value_when_flag_enabled() {
 
         TestAuthenticationCredentials caseworkerForReadCredentials =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
@@ -143,7 +143,7 @@ public class PostTaskCancelByIdControllerTest {
     }
 
     @Test
-    public void user_should_cancel_task_and_not_set_termination_process_when_flag_disabled() {
+    public void should_cancel_task_and_not_set_termination_process_when_flag_disabled() {
         TestAuthenticationCredentials caseworkerForReadCredentials =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
@@ -198,7 +198,7 @@ public class PostTaskCancelByIdControllerTest {
 
     //Add four IT to cover grant type SPECIFIC, STANDARD, CHALLENGED, EXCLUDED for cancel request and then remove this.
     @Test
-    public void user_should_cancel_task_when_grant_type_challenged_and_permission_cancel() {
+    public void should_cancel_task_when_grant_type_challenged_and_permission_cancel() {
 
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
