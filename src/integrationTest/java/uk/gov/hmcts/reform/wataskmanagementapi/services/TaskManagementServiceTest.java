@@ -342,7 +342,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @DisplayName("cancelTask()")
     class CancelTask {
         @Test
-        void cancelTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
+        void should_rollback_transaction_when_exception_occurs_calling_camunda_for_cancel_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -464,7 +464,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void cancelTask_should_set_termination_process_from_request_map_when_it_is_not_empty() {
+        void should_set_termination_process_from_request_map_when_it_is_not_empty_for_cancel_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -499,7 +499,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @DisplayName("completeTask()")
     class CompleteTask {
         @Test
-        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
+        void should_rollback_transaction_when_exception_occurs_calling_camunda_for_complete_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -526,7 +526,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() {
+        void should_rollback_transaction_when_exception_occurs_calling_camunda_complete_for_complete_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
