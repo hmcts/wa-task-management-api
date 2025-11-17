@@ -48,7 +48,7 @@ class CompletionProcessValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"EXUI_USER_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"})
-    void validate_returns_completion_process_when_valid(String validCompletionProcess) {
+    void should_return_completion_process_when_valid_value_passed_for_validation(String validCompletionProcess) {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
                                                                        any(), anyString())).thenReturn(true);
         Optional<String> result =
@@ -60,7 +60,7 @@ class CompletionProcessValidatorTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {"INVALID_PROCESS", "RANDOM_VALUE"})
-    void validate_returns_empty_for_invalid_or_blank_completion_process(String invalidCompletionProcess) {
+    void should_return_empty_completion_process_when_invalid_or_blank_value_passed(String invalidCompletionProcess) {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
                                                                        any(), anyString())).thenReturn(true);
         Optional<String> result =
@@ -70,7 +70,7 @@ class CompletionProcessValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"EXUI_USER_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"})
-    void validate_returns_empty_when_update_completion_process_flag_is_disabled(String validCompletionProcess) {
+    void should_return_empty_completion_process_when_flag_is_disabled(String validCompletionProcess) {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
                                                                        any(), anyString())).thenReturn(false);
 
