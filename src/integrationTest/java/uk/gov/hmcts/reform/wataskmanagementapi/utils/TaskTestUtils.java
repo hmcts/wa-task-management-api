@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.createRoleAssignment;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
@@ -41,6 +40,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValu
 public class TaskTestUtils {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
+
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     public TaskTestUtils(CFTTaskDatabaseService cftTaskDatabaseService) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
@@ -78,7 +79,7 @@ public class TaskTestUtils {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         return taskId;
     }

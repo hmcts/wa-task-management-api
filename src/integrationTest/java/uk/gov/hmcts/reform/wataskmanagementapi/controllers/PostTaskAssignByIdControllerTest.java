@@ -14,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -98,6 +99,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     private IdamService idamService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private ServiceMocks mockServices;
     private String taskId;
 
@@ -151,10 +153,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -162,7 +165,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -180,10 +183,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -191,7 +194,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -427,10 +430,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -438,7 +442,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -453,10 +457,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -464,7 +468,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
 
@@ -525,10 +529,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -536,7 +541,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -551,10 +556,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -562,7 +567,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         //Excluded role
         assigneeTaskRoleResource = new TaskRoleResource(
@@ -573,10 +578,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -584,7 +589,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -643,10 +648,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -654,7 +660,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -671,10 +677,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_CASE_MANAGER)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -682,7 +688,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
 
@@ -743,10 +749,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -754,7 +761,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -768,10 +775,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_CASE_MANAGER)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -779,7 +786,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         //assignee excluded role
         assigneeTaskRoleResource = new TaskRoleResource(
@@ -790,10 +797,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -801,7 +808,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -862,10 +869,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -873,7 +881,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -894,10 +902,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
         //assignee permissions : own, execute
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -905,7 +913,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -972,10 +980,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -983,13 +992,13 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         //assignee permissions : own, execute
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
                     .caseType(caseType)
                     .caseId("caseId1")
@@ -997,7 +1006,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
@@ -1068,10 +1077,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1079,13 +1089,13 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         //assignee permissions : own, execute
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1093,7 +1103,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
@@ -1151,10 +1161,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1162,7 +1173,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -1185,10 +1196,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
         //assignee permissions : own, execute
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1196,7 +1207,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -1256,10 +1267,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1267,7 +1279,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -1290,10 +1302,10 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
         //assignee permissions : own, execute
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1301,7 +1313,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -1361,10 +1373,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1372,7 +1385,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -1442,10 +1455,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_HEARING_PANEL_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -1453,7 +1467,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);

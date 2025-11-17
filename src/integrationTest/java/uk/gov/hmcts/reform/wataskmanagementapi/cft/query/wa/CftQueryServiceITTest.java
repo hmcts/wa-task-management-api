@@ -54,6 +54,10 @@ import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.PRIMARY_LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.SSCS_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
@@ -76,7 +80,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Disabled
-public class CftQueryServiceITTest extends RoleAssignmentHelper {
+public class CftQueryServiceITTest {
+
+    static RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
@@ -180,10 +186,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -193,7 +200,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("unknownValue"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
             .scenarioName("standard_grant_type_with_authorizations")
@@ -579,10 +586,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_CASE_WORKER_RESTRICTED)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -591,12 +599,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("unknownValue"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -605,7 +613,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario invalidAuthorization = TaskQueryScenario.builder()
             .scenarioName("standard_and_excluded_grant_type_with_invalid_authorization")
@@ -691,10 +699,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(SSCS_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -703,12 +712,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -717,7 +726,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
             .scenarioName("challenged_and_excluded_grant_type_with_invalid_caseId")
@@ -1220,11 +1229,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         ));
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.INACTIVE_ROLE)
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario inActive = TaskQueryScenario.builder()
             .scenarioName("inactive_role")
@@ -1250,10 +1260,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_RESTRICTED)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -1263,7 +1274,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .endTime(null)
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario invalidBeginAndEndTime = TaskQueryScenario.builder()
             .scenarioName("invalid-begin-end-time")
@@ -1283,10 +1294,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> invalidCaseRoleAssignmentsWithGrantTypeSpecific() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_LEAD_JUDGE_RESTRICTED)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -1297,7 +1309,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1305,33 +1317,34 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeSpecific(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("SPECIFIC_LEAD_JUDGE_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(SSCS_JURISDICTION)
                     .caseId("1623278362400013")
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("SPECIFIC_LEAD_JUDGE_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseId("1623278362400013")
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1339,12 +1352,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeStandard(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(SSCS_JURISDICTION)
                     .region("1")
                     .baseLocation("653255")
@@ -1352,14 +1366,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -1367,7 +1381,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1375,33 +1389,34 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeChallenged(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("CHALLENGED_ACCESS_JUDICIARY_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(SSCS_JURISDICTION)
                     .build()
             )
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("CHALLENGED_ACCESS_JUDICIARY_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .build()
             )
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1409,12 +1424,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeStandardAndExcluded(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -1422,19 +1438,19 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseId("1623278362431003")
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1443,31 +1459,32 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("CHALLENGED_ACCESS_JUDICIARY_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .build()
             )
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseId("1623278362400016")
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1476,12 +1493,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + classification)
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -1489,7 +1507,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1497,47 +1515,48 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> pagination(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("PAGINATION_ROLE_" + classification.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -2211,10 +2230,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         //apply standard role to user
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -2222,7 +2242,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -2246,17 +2266,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
 
         //apply excluded role to standard user
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseId(caseId)
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
@@ -2286,10 +2306,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         //apply challenged role to user
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .caseId(caseId)
@@ -2298,7 +2319,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
@@ -2322,17 +2343,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
 
         //apply excluded role to standard user
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseId(caseId)
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
@@ -2363,10 +2384,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         //apply standard role to user
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_LEAD_JUDGE_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -2375,7 +2397,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -2400,17 +2422,17 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
 
         //apply excluded role to standard user
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseId(caseId)
                     .build()
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);

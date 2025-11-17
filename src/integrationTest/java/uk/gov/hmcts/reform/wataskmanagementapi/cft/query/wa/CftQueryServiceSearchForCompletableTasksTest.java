@@ -35,6 +35,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
@@ -48,7 +50,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @Testcontainers
 @Sql("/scripts/wa/search_for_completable_tasks_data.sql")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignmentHelper {
+public class CftQueryServiceSearchForCompletableTasksTest {
 
     private PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
         .buildSingleRequirementWithOr(OWN, EXECUTE);
@@ -61,6 +63,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     private CftQueryService cftQueryService;
 
@@ -78,10 +82,11 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -89,7 +94,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -122,10 +127,11 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -133,7 +139,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -166,10 +172,11 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -177,13 +184,13 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         //excluded
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -191,7 +198,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -222,10 +229,11 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -233,7 +241,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -264,10 +272,11 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -275,13 +284,13 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         //excluded
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -289,7 +298,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -320,10 +329,11 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -331,7 +341,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -362,10 +372,11 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_FTPA_JUDGE)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -373,13 +384,13 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         //excluded
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .caseId(caseId)
@@ -387,7 +398,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(

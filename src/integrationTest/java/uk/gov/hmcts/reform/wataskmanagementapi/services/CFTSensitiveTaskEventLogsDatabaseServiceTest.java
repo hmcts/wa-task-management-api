@@ -29,6 +29,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.PRIMARY_LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTION;
 
 @Slf4j
 @ActiveProfiles("integration")
@@ -37,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/get_task_data.sql")
-public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignmentHelper {
+public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
 
     @Autowired
     TaskResourceRepository taskResourceRepository;
@@ -47,6 +50,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
     ExecutorService sensitiveTaskEventLogsExecutorService;
     CFTTaskDatabaseService cftTaskDatabaseService;
     CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    static RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     @BeforeEach
     void setUp() {
@@ -83,7 +87,8 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
     private static List<RoleAssignment> roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PUBLIC.name())
             )
@@ -96,14 +101,14 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PUBLIC.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(IA_JURISDICTION)
                     .region("2")
                     .baseLocation("765325")
@@ -112,14 +117,14 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
             .authorisations(List.of("skill2"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PRIVATE.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -127,7 +132,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         return roleAssignments;

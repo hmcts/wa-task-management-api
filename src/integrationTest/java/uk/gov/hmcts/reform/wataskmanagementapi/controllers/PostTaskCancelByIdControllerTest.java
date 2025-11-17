@@ -11,6 +11,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -87,6 +88,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
     private UserInfo mockedUserInfo;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private ServiceMocks mockServices;
     private String taskId;
 
@@ -117,10 +119,11 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId("cancelCaseSuccessId1")
@@ -128,7 +131,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
         TaskRoleResource tribunalResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, false, true,
@@ -167,10 +170,11 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId("cancelCaseSuccessId1")
@@ -178,7 +182,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
         TaskRoleResource tribunalResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, false, false,
@@ -226,10 +230,11 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId("cancelCaseSuccessId1")
@@ -237,7 +242,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
         TaskRoleResource tribunalResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, false, false,
@@ -284,10 +289,11 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId("cancelCaseSuccessId1")
@@ -295,7 +301,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
         TaskRoleResource tribunalResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, false, false,
@@ -340,10 +346,11 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId("cancelCaseSuccessId1")
@@ -351,7 +358,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
         TaskRoleResource tribunalResource = new TaskRoleResource(
             "tribunal-caseworker", true, false, false, false, true,

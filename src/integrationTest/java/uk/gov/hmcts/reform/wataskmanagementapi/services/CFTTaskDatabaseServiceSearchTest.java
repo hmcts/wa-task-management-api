@@ -37,6 +37,9 @@ import java.util.Optional;
 
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.PRIMARY_LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 
 @ActiveProfiles("integration")
 @DataJpaTest
@@ -44,13 +47,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
-class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
+class CFTTaskDatabaseServiceSearchTest {
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
 
     @Autowired
     TaskResourceRepository taskResourceRepository;
 
     CFTTaskDatabaseService cftTaskDatabaseService;
+
+    static RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     @BeforeEach
     void setUp() {
@@ -606,12 +611,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsForCaseType() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.SPECIFIC_LEAD_JUDGE_RESTRICTED
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -620,7 +626,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -628,12 +634,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsForSeniorTribunalCaseworker() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_PUBLIC
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -641,7 +648,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -649,12 +656,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PUBLIC.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -662,14 +670,14 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PUBLIC.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(IA_JURISDICTION)
                     .region("2")
                     .baseLocation("765325")
@@ -678,14 +686,14 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .authorisations(List.of("skill2"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PRIVATE.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -693,7 +701,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
 
@@ -703,12 +711,13 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
     private static List<RoleAssignment> roleAssignmentsForExclusion() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
                 TestRolesWithGrantType.STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_PUBLIC
             )
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -716,12 +725,12 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -730,12 +739,12 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
-        roleAssignmentRequest = RoleAssignmentRequest.builder()
+        roleAssignmentRequest = RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .baseLocation(PRIMARY_LOCATION)
                     .region("1")
@@ -744,7 +753,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }

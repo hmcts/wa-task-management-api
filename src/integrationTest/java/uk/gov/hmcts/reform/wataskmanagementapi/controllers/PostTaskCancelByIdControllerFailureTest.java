@@ -9,6 +9,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -70,6 +71,7 @@ class PostTaskCancelByIdControllerFailureTest extends SpringBootIntegrationBaseT
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     private UserInfo mockedUserInfo;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private ServiceMocks mockServices;
     private String taskId;
 
@@ -98,10 +100,11 @@ class PostTaskCancelByIdControllerFailureTest extends SpringBootIntegrationBaseT
         mockServices.mockUserInfo();
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId("cancelCaseId1")
@@ -109,7 +112,7 @@ class PostTaskCancelByIdControllerFailureTest extends SpringBootIntegrationBaseT
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
         insertDummyTaskInDb(taskId);
 

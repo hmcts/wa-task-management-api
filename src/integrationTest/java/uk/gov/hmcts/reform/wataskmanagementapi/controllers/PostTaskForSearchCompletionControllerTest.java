@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -87,6 +88,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private UserInfo mockedUserInfo;
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
 
@@ -234,17 +236,18 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         // Role attribute is IA
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId(caseId)
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -302,17 +305,18 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         // Role attribute is IA
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId(caseId)
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -386,17 +390,18 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         // Role attribute is IA
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId(caseId)
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         String roleAssignmentId = UUID.randomUUID().toString();
 
         // Task created is IA
@@ -461,17 +466,18 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         // Role attribute is IA
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId(caseId)
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -529,17 +535,18 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         // Role attribute is IA
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
+            .RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction("IA")
                     .caseType("Asylum")
                     .caseId(caseId)
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(

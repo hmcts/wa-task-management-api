@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
@@ -82,6 +83,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTION;
 
 @Slf4j
 @ExtendWith(OutputCaptureExtension.class)
@@ -122,6 +125,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ConfigureTaskService configureTaskService;
     @MockitoBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
+
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
@@ -283,11 +288,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     }
 
-    private RoleAssignmentRequest prepareRoleAssignmentRequest() {
-        return RoleAssignmentRequest.builder()
+    private RoleAssignmentHelper.RoleAssignmentRequest prepareRoleAssignmentRequest() {
+        return RoleAssignmentHelper.RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentAttribute.builder()
+                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -329,9 +334,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             when(camundaServiceApi.searchHistory(any(), any()))
                 .thenReturn(singletonList(new HistoryVariableInstance(
                     "someId",
@@ -369,9 +374,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -403,9 +408,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -448,9 +453,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -475,9 +480,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -496,9 +501,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -533,9 +538,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-                RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+                RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-                createRoleAssignment(roleAssignments, roleAssignmentRequest);
+                roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
                 UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
                 AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -573,9 +578,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-                RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+                RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-                createRoleAssignment(roleAssignments, roleAssignmentRequest);
+                roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
                 UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
                 AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
