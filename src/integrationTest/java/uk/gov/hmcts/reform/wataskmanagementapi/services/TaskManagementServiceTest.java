@@ -19,7 +19,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
@@ -147,9 +146,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     private CancellationProcessValidator cancellationProcessValidator;
 
-    @MockitoBean
-    private AccessControlService accessControlService;
-
     public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
     public static final String USER_WITH_CANCELLATION_FLAG_DISABLED = "wa-user-with-cancellation-process-disabled";
 
@@ -171,8 +167,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         terminationProcessHelper = new TerminationProcessHelper(
             camundaService,
             systemUserIdamToken,
-            cancellationProcessValidator,
-            accessControlService);
+            cancellationProcessValidator);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -668,11 +663,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             assertNotNull(taskResource);
             doThrow(new RuntimeException("Database error")).when(cftTaskDatabaseService).saveTask(taskResource);
             TerminateInfo terminateInfo = new TerminateInfo("deleted");
-            UserInfo mockedUserInfo =
-                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-            when(accessControlService.getRoles(any()))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
             assertThatThrownBy(() -> taskManagementService.terminateTask(
                     randomTaskId,
                     terminateInfo
@@ -842,12 +832,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 "CASE_EVENT_CANCELLATION"
             );
 
-            UserInfo mockedUserInfo =
-                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-            when(accessControlService.getRoles(any()))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
-
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
@@ -883,11 +867,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 "cancellationProcess",
                 "CASE_EVENT_CANCELLATION"
             );
-            UserInfo mockedUserInfo =
-                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_DISABLED).build();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-            when(accessControlService.getRoles(any()))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(false);
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
@@ -918,9 +897,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             createAndAssignTestTask(taskId);
             UserInfo mockedUserInfo =
                 UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-            when(accessControlService.getRoles(any()))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+            when(systemUserIdamToken.getUserInfo(anyString())).thenReturn(mockedUserInfo);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
 
 

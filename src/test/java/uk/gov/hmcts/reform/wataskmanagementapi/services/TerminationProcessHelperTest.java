@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
@@ -29,9 +28,6 @@ public class TerminationProcessHelperTest {
 
     @Mock
     CancellationProcessValidator cancellationProcessValidator;
-
-    @Mock
-    AccessControlService accessControlService;
     TerminationProcessHelper terminationProcessHelper;
 
     @BeforeEach
@@ -39,8 +35,7 @@ public class TerminationProcessHelperTest {
         terminationProcessHelper = new TerminationProcessHelper(
             camundaService,
             idamTokenGenerator,
-            cancellationProcessValidator,
-            accessControlService
+            cancellationProcessValidator
         );
     }
 

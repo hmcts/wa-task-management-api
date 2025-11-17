@@ -142,7 +142,7 @@ public class DeleteTaskByIdControllerTest {
         taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
             taskVariables.getTaskId(),
             "termination_process",
-            "EXUI_CASE_EVENT_CANCELLATION",
+            "CASE_EVENT_CANCELLATION",
             caseWorkerWithCftOrgRoles.getHeaders()
         );
 

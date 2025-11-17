@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -21,7 +22,6 @@ public class TerminationProcessHelper {
     private CamundaService camundaService;
     private IdamTokenGenerator idamTokenGenerator;
     private CancellationProcessValidator cancellationProcessValidator;
-    private AccessControlService accessControlService;
 
 
     /**
@@ -64,7 +64,10 @@ public class TerminationProcessHelper {
      */
     public Optional<TerminationProcess> fetchTerminationProcessFromCamunda(String taskId) {
         final String userToken = idamTokenGenerator.generate();
-        AccessControlResponse accessControlResponse = accessControlService.getRoles(userToken);
+        final UserInfo userInfo = idamTokenGenerator.getUserInfo(userToken);
+
+        //Don't need roles for feature flag check
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, new ArrayList<>());
 
         if (!cancellationProcessValidator.isCancellationProcessFeatureEnabled(accessControlResponse)) {
             return Optional.empty();
