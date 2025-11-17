@@ -396,7 +396,7 @@ public class TaskManagementService {
         CFTTaskState previousTaskState = task.getState();
         task.setState(CFTTaskState.CANCELLED);
 
-        task.setTerminationProcess(TerminationProcess.fromValue(cancellationProcess));
+        task.setTerminationProcess(TerminationProcess.fromValue(cancellationProcess).orElse(null));
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
         log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
@@ -469,7 +469,7 @@ public class TaskManagementService {
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
-                task.setTerminationProcess(TerminationProcess.fromValue(completionProcess));
+                task.setTerminationProcess(TerminationProcess.fromValue(completionProcess).orElse(null));
 
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
@@ -516,7 +516,7 @@ public class TaskManagementService {
                 userId,
                 taskStateIsAssignedAlready
             );
-            task.setTerminationProcess(TerminationProcess.fromValue(completionProcess));
+            task.setTerminationProcess(TerminationProcess.fromValue(completionProcess).orElse(null));
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 

@@ -95,7 +95,7 @@ public class TerminationProcessHelper {
         if (cancellationProcessOpt.isPresent()) {
             String cancellationProcess = cancellationProcessOpt.get();
             if (cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse).isPresent()) {
-                return Optional.of(TerminationProcess.fromValue(cancellationProcess));
+                return TerminationProcess.fromValue(cancellationProcess);
             } else {
                 log.warn(
                     "Task {} has invalid cancellationProcess='{}' in Camunda history",

@@ -262,21 +262,21 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         "CASE_EVENT_CANCELLATION, EXUI_CASE_EVENT_CANCELLATION",
         "NULL,NULL"
     }, nullValues = "NULL")
-    void given_task_is_created_when_find_by_id_and_return_termination_process(
+    void should_return_termination_process_when_task_is_created_and_by_id(
         String terminationProcess, TerminationProcess expectedTerminationProcess) {
         String taskId = UUID.randomUUID().toString();
-        TerminationProcess terminationProcessEnum;
+        Optional<TerminationProcess> terminationProcessEnum;
         if (terminationProcess != null) {
             terminationProcessEnum = TerminationProcess.fromValue(terminationProcess);
         } else {
-            terminationProcessEnum = null;
+            terminationProcessEnum = Optional.empty();
         }
 
         TaskResource taskResource = createTask(taskId, "tribunal-caseofficer", "IA",
                                                "startAppeal", "someAssignee", "1623278362430412",
                                                CFTTaskState.ASSIGNED);
 
-        taskResource.setTerminationProcess(terminationProcessEnum);
+        taskResource.setTerminationProcess(terminationProcessEnum.orElse(null));
 
         taskResourceRepository.save(taskResource);
 

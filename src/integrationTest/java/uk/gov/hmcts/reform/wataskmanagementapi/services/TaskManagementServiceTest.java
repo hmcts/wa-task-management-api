@@ -832,8 +832,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @DisplayName("should_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_value_and_flag_on")
-        void should_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_value_and_flag_on() {
+        @DisplayName("should_set_termination_process_when_termination_process_from_camunda_returns_value_and_flag_on")
+        void should_set_termination_process_when_termination_process_from_camunda_returns_value_and_flag_on() {
             String taskId = UUID.randomUUID().toString();
             createAndAssignTestTask(taskId);
             HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
@@ -874,8 +874,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @DisplayName("should_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_value_flag_off")
-        void should_not_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_value_and_flag_off() {
+        @DisplayName("should_not_set_termination_process_when_termination_process_from_camunda_returns_value_flag_off")
+        void should_not_set_termination_process_when_termination_process_from_camunda_returns_value_and_flag_off() {
             String taskId = UUID.randomUUID().toString();
             createAndAssignTestTask(taskId);
             HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
@@ -912,8 +912,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @DisplayName("should_not_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_empty")
-        void should_not_set_termination_process_when_fetchTerminationProcessFromCamunda_returns_empty_and_flag_on() {
+        @DisplayName("should_not_set_termination_process_when_termination_process_from_camunda_returns_empty")
+        void should_not_set_termination_process_when_termination_process_from_camunda_returns_empty_and_flag_on() {
             String taskId = UUID.randomUUID().toString();
             createAndAssignTestTask(taskId);
             UserInfo mockedUserInfo =

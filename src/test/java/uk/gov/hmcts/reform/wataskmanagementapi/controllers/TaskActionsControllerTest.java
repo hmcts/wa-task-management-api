@@ -104,8 +104,6 @@ class TaskActionsControllerTest {
 
     private String taskId;
 
-
-
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();

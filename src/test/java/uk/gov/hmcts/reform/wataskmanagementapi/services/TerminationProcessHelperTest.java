@@ -58,8 +58,8 @@ public class TerminationProcessHelperTest {
         Optional<TerminationProcess> result = terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId);
 
         assertTrue(result.isPresent());
-        TerminationProcess expectedTerminationProcess = TerminationProcess.fromValue(cancellationProcess);
-        assertEquals(expectedTerminationProcess, result.get());
+        Optional<TerminationProcess> expectedTerminationProcess = TerminationProcess.fromValue(cancellationProcess);
+        assertEquals(expectedTerminationProcess.get(), result.get());
     }
 
     @Test

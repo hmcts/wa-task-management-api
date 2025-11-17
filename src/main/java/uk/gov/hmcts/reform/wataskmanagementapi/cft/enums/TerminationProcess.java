@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.util.Optional;
+
 public enum TerminationProcess {
 
     EXUI_USER_COMPLETION("EXUI_USER_COMPLETION"),
@@ -23,12 +25,12 @@ public enum TerminationProcess {
     }
 
     @JsonCreator
-    public static TerminationProcess fromValue(String value) {
+    public static Optional<TerminationProcess> fromValue(String value) {
         for (TerminationProcess terminationProcess : TerminationProcess.values()) {
             if (terminationProcess.getValue().equalsIgnoreCase(value)) {
-                return terminationProcess;
+                return Optional.of(terminationProcess);
             }
         }
-        return null;
+        return Optional.empty();
     }
 }

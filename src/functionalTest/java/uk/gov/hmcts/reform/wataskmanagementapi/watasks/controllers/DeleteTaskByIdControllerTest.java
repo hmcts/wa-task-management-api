@@ -139,6 +139,14 @@ public class DeleteTaskByIdControllerTest {
         );
         result.prettyPrint();
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
+        taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
+            taskVariables.getTaskId(),
+            "termination_process",
+            "EXUI_CASE_EVENT_CANCELLATION",
+            caseWorkerWithCftOrgRoles.getHeaders()
+        );
+
+
     }
 
     private void checkHistoryVariable(String taskId, String variable, String value) {
