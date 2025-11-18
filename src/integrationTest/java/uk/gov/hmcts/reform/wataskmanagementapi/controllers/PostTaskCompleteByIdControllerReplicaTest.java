@@ -11,6 +11,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
@@ -108,6 +111,8 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
     TaskTestUtils taskTestUtils;
 
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
+
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"replica");
@@ -139,7 +144,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
         mockServices.mockUserInfo();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
@@ -152,7 +157,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
