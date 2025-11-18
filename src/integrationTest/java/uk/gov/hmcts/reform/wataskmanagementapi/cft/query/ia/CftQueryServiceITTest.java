@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +39,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestIndexUtils;
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -53,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,6 +81,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
+    IntegrationTestIndexUtils integrationTestIndexUtils = new IntegrationTestIndexUtils();
+
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
 
     @Autowired
@@ -98,7 +98,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
     }
 
-    @Disabled
     @ParameterizedTest()
     @MethodSource({
         "withAllGrantTypesHappyPath",
@@ -123,7 +122,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(scenario.userInfo,
             scenario.roleAssignments);
         SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
-        indexRecord();
+        integrationTestIndexUtils.indexRecord(taskResourceRepository);
         //when
         final GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             scenario.firstResult,
@@ -310,7 +309,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignmentWithAllGrantTypes(Classification.RESTRICTED))
             .expectedAmountOfTasksInResponse(10)
-            .expectedTotalRecords(14)
+            .expectedTotalRecords(13)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005", "TestCase3",
@@ -321,8 +320,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 "Taylor House", "title", null,
                 "8d6cc5cf-c973-11eb-bdba-0242ac111024", "1623278362431024", "TestCase2",
                 "Taylor House", "title", null,
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003", "TestCase2",
-                "Taylor House", "title", null,
                 "8d6cc5cf-c973-11eb-bdba-0242ac111023", "1623278362431023", "TestCase2",
                 "Taylor House", "title", null,
                 "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007", "TestCase4",
@@ -332,6 +329,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
                 "8d6cc5cf-c973-11eb-bdba-0242ac111009", "1623278362431009", "TestCase4",
                 "Taylor House", "title", null,
                 "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006", "TestCase",
+                "Taylor House", "title", null,
+                "8d6cc5cf-c973-11eb-bdba-0242ac111027", "1623278362431027", "TestCase4",
                 "Taylor House", "title", null
             ))
             .expectedDueDates(newArrayList(ZonedDateTime.parse("2022-10-09T20:15:45.345875+01:00"),
@@ -882,9 +881,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .build();
         roleAssignments.add(roleAssignment);
 
+        final Map<String, String> excludeddAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
-            .attributes(Collections.emptyMap())
+            .attributes(excludeddAttributes)
             .grantType(GrantType.EXCLUDED)
             .roleType(RoleType.CASE)
             .beginTime(OffsetDateTime.now().minusYears(1))
@@ -929,16 +931,5 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             return scenarioName;
         }
 
-    }
-
-    private void indexRecord() {
-        List<String> ids = new ArrayList<>();
-        taskResourceRepository.findAll().forEach(taskResource -> ids.add(taskResource.getTaskId()));
-        ids.forEach(id -> {
-            Optional<TaskResource> taskResource = taskResourceRepository.findById(id);
-            TaskResource task = taskResource.get();
-            task.setIndexed(true);
-            taskResourceRepository.save(task);
-        });
     }
 }
