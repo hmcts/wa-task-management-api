@@ -91,7 +91,7 @@ public class RoleAssignmentHelper {
     public static class RoleAssignmentRequest {
 
         private TestRolesWithGrantType testRolesWithGrantType;
-        private RoleAssignmentAttribute roleAssignmentAttribute;
+        public RoleAssignmentAttribute roleAssignmentAttribute;
         private List<String> authorisations;
         private OffsetDateTime beginTime;
         private OffsetDateTime endTime;

@@ -16,6 +16,8 @@ import org.zalando.problem.Status;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -146,11 +148,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roles = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -195,11 +196,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roles = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_JUDGE_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -243,11 +243,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roles = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -483,11 +482,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roles = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -681,11 +679,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         List<RoleAssignment> roles = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")
@@ -695,11 +692,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         roleAssignmentHelper.createRoleAssignment(roles, roleAssignmentRequest);
 
-        RoleAssignmentHelper.RoleAssignmentRequest caseRoleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest caseRoleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.SPECIFIC_CASE_MANAGER)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction("WA")
                     .caseType("WaCaseType")
                     .caseId("caseId1")

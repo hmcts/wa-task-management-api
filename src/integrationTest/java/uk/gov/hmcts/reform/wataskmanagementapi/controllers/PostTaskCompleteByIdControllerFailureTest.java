@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -124,11 +126,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -180,11 +181,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -244,11 +244,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -306,11 +305,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -364,11 +362,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -428,11 +425,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -667,11 +663,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -722,11 +717,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
             mockServices.mockUserInfo();
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")
@@ -783,11 +777,10 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-                .RoleAssignmentRequest.builder()
+            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
                 .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
                 .roleAssignmentAttribute(
-                    RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                    RoleAssignmentAttribute.builder()
                         .jurisdiction("IA")
                         .caseType("Asylum")
                         .caseId("completeFailureCaseId1")

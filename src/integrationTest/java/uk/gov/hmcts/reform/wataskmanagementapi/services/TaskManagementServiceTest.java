@@ -19,6 +19,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
@@ -288,11 +290,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     }
 
-    private RoleAssignmentHelper.RoleAssignmentRequest prepareRoleAssignmentRequest() {
-        return RoleAssignmentHelper.RoleAssignmentRequest.builder()
+    private RoleAssignmentRequest prepareRoleAssignmentRequest() {
+        return RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -334,7 +336,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
             roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             when(camundaServiceApi.searchHistory(any(), any()))
@@ -374,7 +376,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
             roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
@@ -408,7 +410,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
             roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
@@ -453,7 +455,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
             roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
@@ -480,7 +482,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
             roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
@@ -501,7 +503,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-            RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
             roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
@@ -538,7 +540,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-                RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+                RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
                 roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
@@ -578,7 +580,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-                RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+                RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
                 roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
