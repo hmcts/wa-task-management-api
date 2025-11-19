@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.opentest4j.AssertionFailedError;
@@ -23,6 +24,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ReplicationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskRoleResourceRepository;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +56,26 @@ public class DBCleanupTest extends ReplicaBaseTest {
 
     @Autowired
     SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
+
+    @BeforeAll
+    public void setup() {
+        PrimaryDBDao primaryDBDao = new PrimaryDBDao(container.getJdbcUrl(),
+                                                     container.getUsername(),
+                                                     container.getPassword());
+
+        String primaryCleanupFunction =
+            readSqlFileToString("src/integrationTest/resources/cleanup/non_prod_primary_cleanup.sql");
+        primaryDBDao.insertPrimaryCleanupFunction(primaryCleanupFunction);
+
+
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
+                                                           containerReplica.getUsername(),
+                                                           containerReplica.getPassword());
+
+        String replicaCleanupFunction =
+            readSqlFileToString("src/integrationTest/resources/cleanup/non_prod_replica_cleanup.sql");
+        miReplicaDBDao.inserReplicaCleanUpFunction(replicaCleanupFunction);
+    }
 
     @Test
     public void when_cleanup_scripts_invoked_should_clear_old_tasks_from_primary_and_replica() {
@@ -290,5 +314,13 @@ public class DBCleanupTest extends ReplicaBaseTest {
             OffsetDateTime.parse("2023-04-05T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2023-03-29T20:15:45.345875+01:00")
         );
+    }
+
+    public static String readSqlFileToString(String filePath) {
+        try {
+            return Files.readString(Paths.get(filePath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

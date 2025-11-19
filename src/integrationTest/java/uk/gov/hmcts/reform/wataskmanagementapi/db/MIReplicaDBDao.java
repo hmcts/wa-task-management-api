@@ -119,4 +119,23 @@ public class MIReplicaDBDao {
         }
     }
 
+    public void inserReplicaCleanUpFunction(String insertFunction) {
+
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, userName, password);
+             PreparedStatement preparedStatement = conn.prepareStatement(insertFunction)) {
+            preparedStatement.execute();
+
+            log.info("Primary insert function inserted. ");
+
+        } catch (SQLException e) {
+            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
+                      e.getSQLState(), e.getMessage());
+            throw new ReplicationException("An error occurred while executing mark_report_tasks_for_refresh", e);
+        } catch (Exception e) {
+            log.error("Procedure call callMarkReportTasksForRefresh failed with SQL State : {}, {} ",
+                      e.getCause(), e.getMessage());
+            throw new ReplicationException("An error occurred while executing mark_report_tasks_for_refresh", e);
+        }
+    }
+
 }
