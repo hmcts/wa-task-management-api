@@ -2,21 +2,26 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.time.LocalTime;
@@ -33,17 +38,35 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_ROLE_COMPLETION_DISABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_ROLE_COMPLETION_ENABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
 @Import(AwaitilityTestConfig.class)
 @SuppressWarnings("checkstyle:LineLength")
+@RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
-public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
+@ActiveProfiles("functional")
+@Slf4j
+public class PostTaskReplicationMIControllerTest {
 
     @Autowired
     TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
 
     @Autowired
     TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
+
+    @Autowired
+    AuthorizationProvider authorizationProvider;
 
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED_HISTORY = "/task/{task-id}/history";
@@ -67,19 +90,19 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     @Before
     public void setUp() {
         caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_WA_ORG_ROLES2);
+            .getTestUser(USER_WITH_WA_ORG_ROLES2);
         caseWorkerWithTribRole = taskFunctionalTestsUserUtils.getTestUser(
-            TaskFunctionalTestsUserUtils.USER_WITH_TRIB_CASEWORKER_ROLE);
+            USER_WITH_TRIB_CASEWORKER_ROLE);
         userWithTaskSupervisorRole = taskFunctionalTestsUserUtils.getTestUser(
-            TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE);
+            CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE);
         caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_CFT_ORG_ROLES);
+            .getTestUser(USER_WITH_CFT_ORG_ROLES);
         tribCaseworkerWithCompletionEnabled = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_TRIB_ROLE_COMPLETION_ENABLED);
+            .getTestUser(USER_WITH_TRIB_ROLE_COMPLETION_ENABLED);
         tribCaseworkerWithCompletionDisabled = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.USER_WITH_TRIB_ROLE_COMPLETION_DISABLED);
+            .getTestUser(USER_WITH_TRIB_ROLE_COMPLETION_DISABLED);
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils
-            .getTestUser(TaskFunctionalTestsUserUtils.CASE_WORKER_WITH_JUDGE_ROLE);
+            .getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
     }
 
     @Test
@@ -92,7 +115,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         );
         String taskId = taskVariables.getTaskId();
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_TASK,
@@ -178,8 +201,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
 
         AtomicReference<JsonPath> configureJsonPathEvaluator = new AtomicReference<>();
@@ -311,8 +333,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
         Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
@@ -627,7 +648,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     @Test
     public void user_should_claim_and_delete_task_action_recorded_in_replicate_db() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
@@ -833,8 +854,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
         Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
@@ -1071,8 +1091,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -1300,8 +1319,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -1409,7 +1427,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
             tribCaseworkerWithCompletionDisabled.getHeaders(),
@@ -1513,7 +1531,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             WA_JURISDICTION
         );
 
-        initiateTask(taskVariables, caseWorkerWithJudgeRole.getHeaders());
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseWorkerWithJudgeRole.getHeaders());
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
@@ -1608,8 +1626,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,

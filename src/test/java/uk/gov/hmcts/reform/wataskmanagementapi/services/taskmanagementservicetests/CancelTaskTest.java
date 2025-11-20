@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationP
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -120,7 +121,7 @@ class CancelTaskTest extends CamundaHelpers {
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource));
 
         when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResources);
-        taskManagementService.cancelTask(taskId, accessControlResponse);
+        taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>());
 
         assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
         verify(camundaService, times(1)).cancelTask(taskId);
@@ -138,7 +139,8 @@ class CancelTaskTest extends CamundaHelpers {
 
         assertThatThrownBy(() -> taskManagementService.cancelTask(
             taskId,
-            accessControlResponse
+            accessControlResponse,
+            new HashMap<>()
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
@@ -154,7 +156,8 @@ class CancelTaskTest extends CamundaHelpers {
         when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
         assertThatThrownBy(() -> taskManagementService.cancelTask(
             taskId,
-            accessControlResponse
+            accessControlResponse,
+            new HashMap<>()
         ))
             .isInstanceOf(NullPointerException.class)
             .hasNoCause()
@@ -170,7 +173,7 @@ class CancelTaskTest extends CamundaHelpers {
 
         TaskResource taskResource = spy(TaskResource.class);
 
-        assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+        assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>()))
             .isInstanceOf(TaskNotFoundException.class)
             .hasNoCause()
             .hasMessage("Task Not Found Error: The task could not be found.");
