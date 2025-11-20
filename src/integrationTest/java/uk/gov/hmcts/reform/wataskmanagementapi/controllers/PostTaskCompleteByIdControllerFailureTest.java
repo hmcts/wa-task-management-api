@@ -14,6 +14,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -83,6 +86,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
     private UserInfo mockedUserInfo;
     @MockitoBean
     private ClientAccessControlService clientAccessControlService;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private ServiceMocks mockServices;
     private String taskId;
 
@@ -133,7 +137,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -188,7 +192,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -251,7 +255,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -312,7 +316,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -369,7 +373,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -432,7 +436,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -670,7 +674,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -724,7 +728,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -784,7 +788,7 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
             when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);

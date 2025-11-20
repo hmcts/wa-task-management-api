@@ -13,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.executors.ExecutorServiceConfig;
@@ -29,6 +31,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.PRIMARY_LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTION;
 
 @Slf4j
 @ActiveProfiles("integration")
@@ -37,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/get_task_data.sql")
-public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignmentHelper {
+public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
 
     @Autowired
     TaskResourceRepository taskResourceRepository;
@@ -47,6 +52,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
     ExecutorService sensitiveTaskEventLogsExecutorService;
     CFTTaskDatabaseService cftTaskDatabaseService;
     CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    static RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     @BeforeEach
     void setUp() {
@@ -88,7 +94,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
                 TestRolesWithGrantType.valueOf("STANDARD_TRIBUNAL_CASE_WORKER_" + Classification.PUBLIC.name())
             )
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .region("1")
                     .baseLocation(PRIMARY_LOCATION)
@@ -96,7 +102,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -112,7 +118,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
             .authorisations(List.of("skill2"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -127,7 +133,7 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         return roleAssignments;

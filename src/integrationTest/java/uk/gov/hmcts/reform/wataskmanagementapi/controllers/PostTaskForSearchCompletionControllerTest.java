@@ -13,6 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -87,6 +90,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private UserInfo mockedUserInfo;
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
 
@@ -244,7 +248,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -312,7 +316,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -396,7 +400,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         String roleAssignmentId = UUID.randomUUID().toString();
 
         // Task created is IA
@@ -471,7 +475,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -539,7 +543,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(

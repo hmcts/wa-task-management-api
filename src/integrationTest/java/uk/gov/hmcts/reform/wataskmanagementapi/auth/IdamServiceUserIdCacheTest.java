@@ -1,20 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+
+import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest
 @ActiveProfiles({"integration"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -26,11 +30,11 @@ public class IdamServiceUserIdCacheTest {
     @MockitoBean
     private IdamWebApi idamWebApi;
 
-    @Autowired
+    @MockitoSpyBean
     private IdamService idamService;
 
     @Test
-    void getUserIdIsCached() {
+    void getUserIdIsCached() throws IOException {
 
         when(idamWebApi.userInfo(anyString()))
             .thenReturn(UserInfo.builder()
