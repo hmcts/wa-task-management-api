@@ -38,7 +38,7 @@ public class TaskManagerDeleteTaskProviderTest extends SpringBootContractProvide
             clientAccessControlService,
             taskDeletionService,
             completionProcessValidator,
-            launchDarklyFeatureFlagProvider
+            cancellationProcessValidator
         ));
         if (context != null) {
             context.setTarget(testTarget);
