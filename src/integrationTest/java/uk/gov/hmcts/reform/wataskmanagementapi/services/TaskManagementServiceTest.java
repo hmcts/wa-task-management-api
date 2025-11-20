@@ -77,9 +77,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
@@ -228,6 +230,21 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         });
     }
 
+    private void verifyTransactionCancelledWithTerminationProcess(String taskId, String terminationProcess) {
+        transactionHelper.doInNewTransaction(() -> {
+            //Find the task
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+
+            assertNotNull(savedTaskResource);
+            assertTrue(savedTaskResource.isPresent());
+            assertEquals(taskId, savedTaskResource.get().getTaskId());
+            assertEquals("taskName", savedTaskResource.get().getTaskName());
+            assertEquals("taskType", savedTaskResource.get().getTaskType());
+            assertEquals(CANCELLED, savedTaskResource.get().getState());
+            assertEquals(terminationProcess, savedTaskResource.get().getTerminationProcess().getValue());
+        });
+    }
+
     private void createAndSaveTestTask(String taskId, CFTTaskState cftTaskState) {
         transactionHelper.doInNewTransaction(() -> {
             TaskResource taskResource = new TaskResource(
@@ -325,7 +342,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @DisplayName("cancelTask()")
     class CancelTask {
         @Test
-        void cancelTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
+        void should_rollback_transaction_when_exception_occurs_calling_camunda_for_cancel_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -348,7 +365,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>())))
                 .isInstanceOf(TaskCancelException.class)
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
@@ -359,13 +376,17 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
         @ParameterizedTest(name = "{0}")
         @CsvSource(value = {
-            "ASSIGNED",
-            "UNASSIGNED",
-            "COMPLETED",
-            "CANCELLED"
+            "ASSIGNED,",
+            "UNASSIGNED,",
+            "COMPLETED,",
+            "CANCELLED,",
+            "ASSIGNED,EXUI_USER_CANCELLATION",
+            "UNASSIGNED,EXUI_USER_CANCELLATION",
+            "COMPLETED,EXUI_USER_CANCELLATION",
+            "CANCELLED,EXUI_USER_CANCELLATION"
         })
         void should_set_task_state_terminated_when_camunda_api_throws_an_exception_and_cft_task_state_is_not_terminated(
-            String state) {
+            String state, String termnationProcess) {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -389,9 +410,13 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+            HashMap<String, Object> requestParamMap = new HashMap<>();
+            if (termnationProcess != null) {
+                requestParamMap.put(REQ_PARAM_CANCELLATION_PROCESS, termnationProcess);
+            }
 
             transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse)
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap)
             );
 
             verifyTransactionTerminated(taskId);
@@ -429,7 +454,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>())))
                 .isInstanceOf(TaskCancelException.class)
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
@@ -438,13 +463,43 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
         }
 
+        @Test
+        void should_set_termination_process_from_request_map_when_it_is_not_empty_for_cancel_task() {
+
+            List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
+
+            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            when(camundaServiceApi.searchHistory(any(), any()))
+                .thenReturn(singletonList(new HistoryVariableInstance(
+                    "someId",
+                    CFT_TASK_STATE.value(),
+                    "some state"
+                )));
+
+            createAndSaveTestTask(taskId, UNCONFIGURED);
+
+            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+
+            transactionHelper.doInNewTransaction(
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, Map.of(
+                    REQ_PARAM_CANCELLATION_PROCESS, "EXUI_USER_CANCELLATION"
+                ))
+            );
+
+            verifyTransactionCancelledWithTerminationProcess(taskId, "EXUI_USER_CANCELLATION");
+        }
+
     }
 
     @Nested
     @DisplayName("completeTask()")
     class CompleteTask {
         @Test
-        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
+        void should_rollback_transaction_when_exception_occurs_calling_camunda_for_complete_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -471,28 +526,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void completeTask_should_throw_exception_when_request_param_map_is_null() {
-
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
-
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
-            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-
-            createAndAssignTestTask(taskId);
-
-            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
-                .isInstanceOf(NullPointerException.class)
-                .hasNoCause()
-                .hasMessage("Request param map cannot be null");
-        }
-
-        @Test
-        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() {
+        void should_rollback_transaction_when_exception_occurs_calling_camunda_complete_for_complete_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
