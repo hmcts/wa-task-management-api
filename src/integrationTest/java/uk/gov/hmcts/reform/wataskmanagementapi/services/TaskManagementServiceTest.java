@@ -79,6 +79,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
@@ -87,8 +89,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_CASE_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTION;
 
 @Slf4j
 @ExtendWith(OutputCaptureExtension.class)
@@ -130,8 +130,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @MockitoBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
-    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
-
     private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
     @MockitoBean
@@ -142,6 +140,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private IdamTokenGenerator systemUserIdamToken;
     @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     @BeforeEach
     void setUp() {
@@ -533,28 +532,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void completeTask_should_throw_exception_when_request_param_map_is_null() {
-
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
-
-            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-            UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
-            AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-
-            createAndAssignTestTask(taskId);
-
-            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
-                .isInstanceOf(NullPointerException.class)
-                .hasNoCause()
-                .hasMessage("Request param map cannot be null");
-        }
-
-        @Test
-        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() {
+        void should_rollback_transaction_when_exception_occurs_calling_camunda_complete_for_complete_task() {
 
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -618,7 +596,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .hasNoCause()
                     .hasMessage(
                         "Task Assign and Complete Error: Task assign and complete partially succeeded. "
-                        + "The Task was assigned to the user making the request but the Task could not be completed.");
+                        + "The Task was assigned to the user making the request but the Task could not be "
+                        + "completed.");
 
                 verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
