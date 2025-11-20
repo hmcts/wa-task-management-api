@@ -560,10 +560,7 @@ public class TaskManagementService {
                 setSystemUserTaskActionAttributes(task, taskAction);
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
-                if (task.getTerminationProcess() == null && terminateInfo.getTerminateReason() != "completed") {
-                    terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId)
-                        .ifPresent(task::setTerminationProcess);
-                }
+                setTerminationProcessOnTerminateTask(taskId, terminateInfo, task);
                 isCamundaStateUpdated = true;
 
                 // Commit transaction
@@ -577,6 +574,40 @@ public class TaskManagementService {
                 throw ex;
             }
         }
+    }
+
+
+    /**
+     * Sets the termination process for a task during termination.
+     * If the termination reason is not "completed" and the task does not already have a termination process,
+     * this method fetches the termination process from Camunda and sets it on the task.
+     *
+     * @param taskId        The ID of the task being terminated.
+     * @param terminateInfo The termination information containing the reason for termination.
+     * @param task          The task resource to update with the termination process.
+     */
+    private void setTerminationProcessOnTerminateTask(String taskId, TerminateInfo terminateInfo, TaskResource task) {
+        terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId).ifPresent(terminationProcess -> {
+            boolean isNotCompleted = !CFTTaskState.COMPLETED.equals(task.getState())
+                || !CFTTaskState.TERMINATED.equals(task.getState());
+            log.info("Setting termination process for task {} during termination. "
+                         + "Termination Reason: {}, Is Not Completed: {}",
+                     taskId, terminateInfo.getTerminateReason(), isNotCompleted);
+
+            log.info("Current termination process for task {}: {}",
+                     taskId, task.getTerminationProcess());
+
+            log.info("State of task {}: {}",
+                     taskId, task.getState());
+
+            if (isNotCompleted && !task.getState().equals(CFTTaskState.CANCELLED)
+                && task.getTerminationProcess() == null) {
+                task.setTerminationProcess(terminationProcess);
+            } else if (isNotCompleted) {
+                log.warn("Cannot update the termination process for a Case Event Cancellation since it has" +
+                             " already been cancelled by a User for task {}", taskId);
+            }
+        });
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

@@ -242,7 +242,7 @@ public class TaskActionsController extends BaseController {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
-                 accessControlResponse.getUserInfo().getUid());
+                 accessControlResponse.getUserInfo().getEmail());
 
         String validatedCompletionProcess =
             completionProcessValidator.validate(completionProcess, taskId, accessControlResponse).orElse(null);
@@ -290,7 +290,6 @@ public class TaskActionsController extends BaseController {
             accessControlResponse.getUserInfo().getUid());
         String validatedCancellationProcess =
             cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse).orElse(null);
-
 
         taskManagementService.cancelTask(taskId, accessControlResponse, validatedCancellationProcess);
 
