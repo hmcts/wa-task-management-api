@@ -40,7 +40,7 @@ public class TaskManagerCancelTaskProviderTest extends SpringBootContractProvide
             clientAccessControlService,
             taskDeletionService,
             completionProcessValidator,
-            launchDarklyFeatureFlagProvider
+            cancellationProcessValidator
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -54,7 +54,7 @@ public class TaskManagerCancelTaskProviderTest extends SpringBootContractProvide
     }
 
     private void setInitMock() {
-        doNothing().when(taskManagementService).cancelTask(any(), any());
+        doNothing().when(taskManagementService).cancelTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         UserInfo userInfo = mock((UserInfo.class));
         when(userInfo.getUid()).thenReturn("someUserId");
