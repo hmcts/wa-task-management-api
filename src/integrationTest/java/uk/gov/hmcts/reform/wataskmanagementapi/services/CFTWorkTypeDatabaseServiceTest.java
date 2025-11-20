@@ -33,7 +33,7 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
         final List<WorkType> allWorkTypes = cftWorkTypeDatabaseService.getAllWorkTypes();
 
-        assertEquals(20, allWorkTypes.size());
+        assertEquals(27, allWorkTypes.size());
         assertEquals("hearing_work", allWorkTypes.get(0).getId());
         assertEquals("Hearing work", allWorkTypes.get(0).getLabel());
         assertEquals("upper_tribunal", allWorkTypes.get(1).getId());
@@ -74,6 +74,20 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals("Welsh translation work", allWorkTypes.get(18).getLabel());
         assertEquals("bail_work", allWorkTypes.get(19).getId());
         assertEquals("Bail work", allWorkTypes.get(19).getLabel());
+        assertEquals("stf_24w_hearing_work", allWorkTypes.get(20).getId());
+        assertEquals("Hearing Work - STF", allWorkTypes.get(20).getLabel());
+        assertEquals("stf_24w_routine_work", allWorkTypes.get(21).getId());
+        assertEquals("Routine Work - STF", allWorkTypes.get(21).getLabel());
+        assertEquals("stf_24w_decision_making_work", allWorkTypes.get(22).getId());
+        assertEquals("Decision Making Work - STF", allWorkTypes.get(22).getLabel());
+        assertEquals("stf_24w_applications", allWorkTypes.get(23).getId());
+        assertEquals("Applications - STF", allWorkTypes.get(23).getLabel());
+        assertEquals("stf_24w_upper_tribunal", allWorkTypes.get(24).getId());
+        assertEquals("Upper Tribunal - STF", allWorkTypes.get(24).getLabel());
+        assertEquals("stf_24w_access_requests", allWorkTypes.get(25).getId());
+        assertEquals("Access Requests - STF", allWorkTypes.get(25).getLabel());
+        assertEquals("stf_24w_review_case", allWorkTypes.get(26).getId());
+        assertEquals("Review Case - STF", allWorkTypes.get(26).getLabel());
     }
 
     @Test
