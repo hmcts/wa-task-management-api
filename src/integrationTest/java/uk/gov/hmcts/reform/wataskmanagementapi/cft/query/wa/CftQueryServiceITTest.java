@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -14,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
@@ -40,12 +42,16 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestIndexUtils;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -75,7 +81,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @Sql("/scripts/wa/search_tasks_data.sql")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Disabled
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
@@ -88,6 +93,12 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     private EntityManager entityManager;
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    @Autowired
+    TaskResourceRepository taskResourceRepository;
+
+    IntegrationTestIndexUtils integrationTestIndexUtils = new IntegrationTestIndexUtils();
+
+    private CFTTaskDatabaseService cftTaskDatabaseService;
 
     private CftQueryService cftQueryService;
 
@@ -173,9 +184,11 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     }
 
     private static Stream<TaskQueryScenario> grantTypeStandardErrorScenario() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
-            new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED", "UNASSIGNED"))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -573,8 +586,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedErrorScenario() {
 
-        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION))
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -1099,7 +1113,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(20)
-            .expectedTotalRecords(29)
+            .expectedTotalRecords(28)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
@@ -1132,7 +1146,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(10)
-            .expectedTotalRecords(29)
+            .expectedTotalRecords(28)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
@@ -1155,7 +1169,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(2)
-            .expectedTotalRecords(29)
+            .expectedTotalRecords(28)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
@@ -1170,7 +1184,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(10)
-            .expectedTotalRecords(29)
+            .expectedTotalRecords(28)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000006", "1623278362400006",
@@ -1193,7 +1207,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedAmountOfTasksInResponse(5)
-            .expectedTotalRecords(29)
+            .expectedTotalRecords(28)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-000000000001", "1623278362400001",
@@ -1556,13 +1570,13 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private static SearchTaskRequest invalidCaseId() {
         return new SearchTaskRequest(List.of(
-            new SearchParameterList(CASE_ID, SearchOperator.IN, asList("000000", "", null))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, asList("000000", ""))
         ));
     }
 
     private static SearchTaskRequest invalidUserId() {
         return new SearchTaskRequest(List.of(
-            new SearchParameterList(USER, SearchOperator.IN, asList("unknown", "", null))
+            new SearchParameterList(USER, SearchOperator.IN, asList("unknown", ""))
         ));
     }
 
@@ -1637,37 +1651,16 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         return Stream.of(allTasks, emptyJurisdictionTasks, emptyLocationTasks);
     }
 
-    private static Stream<TaskQueryScenario> searchByStateScenario() {
+    private static Stream<TaskQueryScenario> searchByStateNegativeScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            List.of(
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("PENDING_AUTO_ASSIGN"))
-            ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
-        );
-
-        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
-            .scenarioName("Search by state")
-            .firstResult(0)
-            .maxResults(20)
-            .roleAssignments(pagination(Classification.RESTRICTED))
-            .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(1)
-            .expectedTotalRecords(1)
-            .userInfo(userInfo)
-            .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
-                )
-            ).build();
-
-        searchTaskRequest = new SearchTaskRequest(
             List.of(
                 new SearchParameterList(STATE, SearchOperator.IN, List.of("CANCELLED"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
 
-        final TaskQueryScenario emptyTasks = TaskQueryScenario.builder()
-            .scenarioName("Search by state, empty results")
+        final TaskQueryScenario cancelledEmptyTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by CANCELLED state, empty results")
             .firstResult(0)
             .maxResults(20)
             .roleAssignments(pagination(Classification.RESTRICTED))
@@ -1677,7 +1670,64 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .userInfo(userInfo)
             .build();
 
-        return Stream.of(allTasks, emptyTasks);
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("COMPLETED"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario completedEmptyTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by CANCELLED state, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("TERMINATED"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario terminatedEmptyTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by CANCELLED state, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("PENDING_RECONFIGURATION"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+        );
+
+        final TaskQueryScenario penidingReconfigEmptyTasks = TaskQueryScenario.builder()
+            .scenarioName("Search by CANCELLED state, empty results")
+            .firstResult(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedAmountOfTasksInResponse(0)
+            .expectedTotalRecords(0)
+            .userInfo(userInfo)
+            .build();
+
+        return Stream.of(cancelledEmptyTasks,
+                         completedEmptyTasks,
+                         terminatedEmptyTasks,
+                         penidingReconfigEmptyTasks);
     }
 
     private static Stream<TaskQueryScenario> searchByRoleCategoryScenario() {
@@ -1793,7 +1843,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             List.of(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(WA_JURISDICTION)),
                 new SearchParameterList(LOCATION, SearchOperator.IN, List.of(PRIMARY_LOCATION)),
-                new SearchParameterList(STATE, SearchOperator.IN, List.of("COMPLETED", "PENDING_AUTO_ASSIGN"))
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED", "UNASSIGNED"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -1801,15 +1851,33 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         final TaskQueryScenario allTasks = TaskQueryScenario.builder()
             .scenarioName("Search by jurisdiction, location and state")
             .firstResult(0)
-            .maxResults(20)
+            .maxResults(10)
             .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmountOfTasksInResponse(2)
-            .expectedTotalRecords(2)
+            .expectedAmountOfTasksInResponse(10)
+            .expectedTotalRecords(30)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000031", "1623278362400031",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032"
+                "8d6cc5cf-c973-11eb-aaaa-000000000001",
+                "1623278362400001",
+                "8d6cc5cf-c973-11eb-aaaa-000000000002",
+                "1623278362400002",
+                "8d6cc5cf-c973-11eb-aaaa-000000000003",
+                "1623278362400003",
+                "8d6cc5cf-c973-11eb-aaaa-000000000004",
+                "1623278362400004",
+                "8d6cc5cf-c973-11eb-aaaa-000000000005",
+                "1623278362400005",
+                "8d6cc5cf-c973-11eb-aaaa-000000000006",
+                "1623278362400006",
+                "8d6cc5cf-c973-11eb-aaaa-000000000007",
+                "1623278362400007",
+                "8d6cc5cf-c973-11eb-aaaa-000000000008",
+                "1623278362400008",
+                "8d6cc5cf-c973-11eb-aaaa-000000000009",
+                "1623278362400009",
+                "8d6cc5cf-c973-11eb-aaaa-000000000010",
+                "1623278362400010"
                 )
             ).build();
 
@@ -1860,8 +1928,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .expectedTotalRecords(2)
             .userInfo(userInfo)
             .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032",
-                    "8d6cc5cf-c973-11eb-aaaa-000000000043", "1623278362400043"
+                "8d6cc5cf-c973-11eb-aaaa-000000000032", "1623278362400032",
+                "8d6cc5cf-c973-11eb-aaaa-000000000043", "1623278362400043"
                 )
             ).build();
 
@@ -1991,6 +2059,9 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new TaskResourceDao(entityManager),
             allowedJurisdictionConfiguration
         );
+        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
+
+        integrationTestIndexUtils.indexRecord(taskResourceRepository);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -2009,7 +2080,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "searchByCaseIdScenario",
         "searchByJurisdictionLocationAndStateScenario",
         "searchByRoleCategoryScenario",
-        "searchByStateScenario",
+        "searchByStateNegativeScenario",
         "searchByJurisdictionAndLocationScenario",
         "grantTypeWithAvailableTasksRequestContextScenarioHappyPath",
         "searchByTaskTypeScenario"
@@ -2024,7 +2095,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        final GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
@@ -2057,7 +2128,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        final GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
@@ -2083,7 +2154,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        final GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
@@ -2109,7 +2180,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        final GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
@@ -2147,7 +2218,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         SearchRequest searchRequest = SearchTaskRequestMapper.map(scenario.searchTaskRequest);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        final GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             scenario.firstResult,
             scenario.maxResults,
             searchRequest,
@@ -2162,9 +2233,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @Test
     void handle_pagination_error() {
 
+        integrationTestIndexUtils.indexRecord(taskResourceRepository);
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             userInfo,
-            List.of(RoleAssignment.builder().build())
+            List.of(RoleAssignment.builder().attributes(Collections.emptyMap()).grantType(GrantType.UNKNOWN).build())
         );
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
@@ -2178,24 +2250,22 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         );
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
-        Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
+        Assertions.assertThatThrownBy(() -> cftTaskDatabaseService.searchForTasks(
                 -1,
                 1,
                 searchRequest,
                 accessControlResponse
             ))
-            .hasNoCause()
-            .hasMessage("Offset index must not be less than zero");
+            .isInstanceOf(DataIntegrityViolationException.class);
 
 
-        Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
+        Assertions.assertThatThrownBy(() -> cftTaskDatabaseService.searchForTasks(
                 0,
                 0,
                 searchRequest,
                 accessControlResponse
             ))
-            .hasNoCause()
-            .hasMessage("Limit must not be less than one");
+            .isInstanceOf(JpaSystemException.class);
     }
 
     @Test
@@ -2227,7 +2297,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
-        GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             0,
             10,
             searchRequest,
@@ -2260,7 +2330,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
-        allTasks = cftQueryService.searchForTasks(
+        allTasks = cftTaskDatabaseService.searchForTasks(
             0,
             10,
             searchRequest,
@@ -2303,7 +2373,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
 
-        GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             0,
             10,
             searchRequest,
@@ -2337,7 +2407,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
 
-        allTasks = cftQueryService.searchForTasks(
+        allTasks = cftTaskDatabaseService.searchForTasks(
             0,
             10,
             searchRequest,
@@ -2358,8 +2428,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList(WA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(caseId))
         ));
-        SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
 
+        final SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
+
+        integrationTestIndexUtils.indexRecord(taskResourceRepository);
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         //apply standard role to user
@@ -2381,7 +2453,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
 
-        GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
+        GetTasksResponse<Task> allTasks = cftTaskDatabaseService.searchForTasks(
             0,
             10,
             searchRequest,
@@ -2405,6 +2477,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
+                    .region("1")
+                    .baseLocation(PRIMARY_LOCATION)
                     .caseId(caseId)
                     .build()
             )
@@ -2415,7 +2489,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
 
-        allTasks = cftQueryService.searchForTasks(
+        allTasks = cftTaskDatabaseService.searchForTasks(
             0,
             10,
             searchRequest,
@@ -2424,12 +2498,10 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
         //when excluded role applied to specific user can retrieve task
         Assertions.assertThat(allTasks.getTotalRecords())
-            .isEqualTo(1);
+            .isEqualTo(0);
 
         Assertions.assertThat(allTasks.getTasks())
-            .hasSize(1)
-            .flatExtracting(Task::getCaseId)
-            .containsExactly(caseId);
+            .hasSize(0);
 
     }
 
