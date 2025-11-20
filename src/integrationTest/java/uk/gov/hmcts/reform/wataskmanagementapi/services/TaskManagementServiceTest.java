@@ -477,7 +477,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             when(camundaServiceApi.searchHistory(any(), any()))
                 .thenReturn(singletonList(new HistoryVariableInstance(
                     "someId",
