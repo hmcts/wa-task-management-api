@@ -78,7 +78,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @BeforeAll
     void init() {
-        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService);
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
     }
 
     @BeforeEach

@@ -85,6 +85,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CAN
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
@@ -429,6 +430,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+            HashMap<String, Object> requestParamMap = new HashMap<>();
+            if (termnationProcess != null) {
+                requestParamMap.put(REQ_PARAM_CANCELLATION_PROCESS, termnationProcess);
+            }
 
             transactionHelper.doInNewTransaction(
                 () -> taskManagementService.cancelTask(taskId, accessControlResponse, termnationProcess)
