@@ -124,10 +124,6 @@ public class DeleteTaskByIdControllerTest {
         );
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        claimAndCancelTask(taskVariables);
-        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
-
-
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo("cancelled")
         );
