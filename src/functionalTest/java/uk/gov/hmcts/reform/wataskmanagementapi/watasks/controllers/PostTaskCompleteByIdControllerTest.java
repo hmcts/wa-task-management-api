@@ -225,6 +225,7 @@ public class PostTaskCompleteByIdControllerTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
             String completionProcess = data[0];
             String terminationProcess = data[1];
+            log.info("caseWorkerWithCompletionDisabled headers: {}", caseWorkerWithCompletionDisabled.getHeaders());
             result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
                 taskId,
