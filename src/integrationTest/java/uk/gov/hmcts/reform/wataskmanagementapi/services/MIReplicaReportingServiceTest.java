@@ -333,7 +333,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource taskResource = createAndSaveTask();
         taskResource.setState(CFTTaskState.valueOf(taskState));
         taskResource.setTerminationProcess(
-            terminationProcess != null ? TerminationProcess.fromValue(terminationProcess) : null);
+            TerminationProcess.fromValue(terminationProcess).orElse(null));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
 

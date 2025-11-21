@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TerminationProcessHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.util.Optional;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -65,6 +67,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @MockitoBean
     private IdamWebApi idamWebApi;
+    @MockitoBean
+    private TerminationProcessHelper terminationProcessHelper;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
@@ -264,7 +268,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
-
+            when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
+                .thenReturn(Optional.empty());
             TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("deleted"));
 
             mockMvc.perform(

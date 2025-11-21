@@ -48,9 +48,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -243,18 +241,14 @@ public class TaskActionsController extends BaseController {
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-        Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
 
-        Optional<String> validatedCompletionProcess =
-            completionProcessValidator.validate(completionProcess, taskId, accessControlResponse);
+        String validatedCompletionProcess =
+            completionProcessValidator.validate(completionProcess, taskId, accessControlResponse).orElse(null);
 
-        if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
-            requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
-        }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);
+            taskManagementService.completeTask(taskId, accessControlResponse, validatedCompletionProcess);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -264,7 +258,7 @@ public class TaskActionsController extends BaseController {
                     taskId,
                     accessControlResponse,
                     completeTaskRequest.getCompletionOptions(),
-                    requestParamMap
+                    validatedCompletionProcess
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -294,14 +288,11 @@ public class TaskActionsController extends BaseController {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
-        Optional<String> validatedCancellationProcess =
-            cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse);
-        Map<String, Object> requestParamMap = new HashMap<>();
+        String validatedCancellationProcess =
+            cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse).orElse(null);
 
-        if (validatedCancellationProcess.isPresent() && !validatedCancellationProcess.get().isBlank()) {
-            requestParamMap.put(REQ_PARAM_CANCELLATION_PROCESS, validatedCancellationProcess.get());
-        }
-        taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap);
+
+        taskManagementService.cancelTask(taskId, accessControlResponse, validatedCancellationProcess);
 
         return ResponseEntity
             .noContent()
