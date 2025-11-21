@@ -30,7 +30,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationP
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;

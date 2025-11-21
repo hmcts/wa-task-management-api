@@ -395,7 +395,6 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         CFTTaskState previousTaskState = task.getState();
         task.setState(CFTTaskState.CANCELLED);
-        task.setTerminationProcess(getTerminationProcess(requestParamMap, REQ_PARAM_CANCELLATION_PROCESS));
 
         task.setTerminationProcess(TerminationProcess.fromValue(cancellationProcess).orElse(null));
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
@@ -436,24 +435,6 @@ public class TaskManagementService {
                          + "CurrentCFTTaskState: {} Exception: {}", taskId, previousTaskState, ex.getMessage());
             throw ex;
         }
-    }
-
-    /**
-     * Retrieves the termination process from the provided request parameter map using the specified key.
-     * This method ensures that attempts to map the value associated with the given key to a `TerminationProcess`
-     * enum value.
-     *
-     * @param requestParamMap A map containing request parameters.
-     * @param key             The key used to retrieve the termination process value from the map.
-     * @return The `TerminationProcess` enum value corresponding to the key, or null if the key is not present
-     *         or the value cannot be mapped.
-     */
-    private TerminationProcess getTerminationProcess(final Map<String, Object> requestParamMap, String key) {
-        TerminationProcess terminationProcess = Optional.ofNullable(requestParamMap.get(key))
-            .map(Object::toString)
-            .map(TerminationProcess::fromValue)
-            .orElse(null);
-        return terminationProcess;
     }
 
     /**
@@ -1021,6 +1002,4 @@ public class TaskManagementService {
             }
         });
     }
-
-
 }
