@@ -858,8 +858,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @DisplayName("should_not_set_termination_process_when_termination_process_already_set_on_task")
-        void should_not_set_termination_process_when_termination_process_already_set_on_task(CapturedOutput output) {
+        @DisplayName("should_not_set_termination_process_when_task_already_cancelled_by_user")
+        void should_not_set_termination_process_when_task_already_cancelled_by_user(CapturedOutput output) {
             String taskId = UUID.randomUUID().toString();
             createAndAssignTestTask(taskId);
             Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
@@ -898,8 +898,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                          savedTaskResource.get().getTerminationProcess());
             assertTrue(
                 output.getOut()
-                    .contains("Cannot update the termination process for a Case Event Cancellation since it has" +
-                                  " already been cancelled by a User for task " + taskId));
+                    .contains("Cannot update the termination process for a Case Event Cancellation since it has"
+                                  + " already been cancelled by a User for task " + taskId));
 
         }
 

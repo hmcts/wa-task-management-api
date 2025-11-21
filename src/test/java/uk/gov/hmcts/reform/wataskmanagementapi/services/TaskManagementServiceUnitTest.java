@@ -2597,21 +2597,22 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             }
 
             @Test
-            void should_succeed_and_set_termination_process_when_valid_value_returned_from_camunda() {
+            void should_invoke_and_set_termination_process_when_valid_value_returned_from_camunda() {
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
-
+                when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
                 when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
                     .thenReturn(Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION));
 
                 taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
+                verify(taskResource, times(1))
+                    .setTerminationProcess(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION);
+                verify(cftTaskDatabaseService, times(1))
+                    .saveTask(any(TaskResource.class));
 
-                assertEquals(TERMINATED, taskResource.getState());
-                assertEquals("deleted", taskResource.getTerminationReason());
-                assertEquals(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION, taskResource.getTerminationProcess());
             }
 
             @Test
@@ -2633,21 +2634,39 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             }
 
             @Test
-            void should_not_set_termination_process_from_camunda_if_termination_process_already_exists_in_db() {
+            void should_not_set_termination_process_from_camunda_if_task_cancelled_by_user_in_db() {
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
-                when(taskResource.getTerminationProcess())
-                    .thenReturn(TerminationProcess.EXUI_CASE_EVENT_COMPLETION);
+                when(taskResource.getState()).thenReturn(CFTTaskState.CANCELLED);
+                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId)).thenReturn(
+                    Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION)
+                );
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
-                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
-                verify(terminationProcessHelper, times(0))
-                    .fetchTerminationProcessFromCamunda(anyString());
-                assertEquals(TERMINATED, taskResource.getState());
-                assertEquals("deleted", taskResource.getTerminationReason());
-                assertEquals(TerminationProcess.EXUI_CASE_EVENT_COMPLETION, taskResource.getTerminationProcess());
+                taskManagementService.terminateTask(taskId, new TerminateInfo("cancelled"));
+
+                verify(taskResource, times(0))
+                    .setTerminationProcess(any());
+            }
+
+            @Test
+            void should_not_set_termination_process_from_camunda_if_task_completed_by_user_in_db() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+                when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
+                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId)).thenReturn(
+                    Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION)
+                );
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+                taskManagementService.terminateTask(taskId, new TerminateInfo("completed"));
+
+                verify(taskResource, times(0))
+                    .setTerminationProcess(any());
             }
 
             @Test
