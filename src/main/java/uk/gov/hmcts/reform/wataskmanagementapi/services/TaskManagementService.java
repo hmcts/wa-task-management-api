@@ -560,7 +560,7 @@ public class TaskManagementService {
                 setSystemUserTaskActionAttributes(task, taskAction);
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
-                if (task.getTerminationProcess() == null && terminateInfo.getTerminateReason() != "completed") {
+                if (task.getTerminationProcess() == null && terminateInfo.getTerminateReason().equals("completed")) {
                     terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId)
                         .ifPresent(task::setTerminationProcess);
                 }
