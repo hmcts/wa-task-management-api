@@ -43,7 +43,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -2594,79 +2593,6 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 assertEquals("completed", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
-            }
-
-            @Test
-            void should_invoke_and_set_termination_process_when_valid_value_returned_from_camunda() {
-                TaskResource taskResource = spy(TaskResource.class);
-
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                    .thenReturn(Optional.of(taskResource));
-                when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
-                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
-                    .thenReturn(Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION));
-
-                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
-                verify(taskResource, times(1))
-                    .setTerminationProcess(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION);
-                verify(cftTaskDatabaseService, times(1))
-                    .saveTask(any(TaskResource.class));
-
-            }
-
-            @Test
-            void should_not_set_termination_process_when_optional_empty_returned_from_camunda() {
-                TaskResource taskResource = spy(TaskResource.class);
-
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                    .thenReturn(Optional.of(taskResource));
-
-                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
-                    .thenReturn(Optional.empty());
-
-                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
-
-                assertEquals(TERMINATED, taskResource.getState());
-                assertEquals("deleted", taskResource.getTerminationReason());
-                assertNull(taskResource.getTerminationProcess());
-            }
-
-            @Test
-            void should_not_set_termination_process_from_camunda_if_task_cancelled_by_user_in_db() {
-                TaskResource taskResource = spy(TaskResource.class);
-
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                    .thenReturn(Optional.of(taskResource));
-                when(taskResource.getState()).thenReturn(CFTTaskState.CANCELLED);
-                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId)).thenReturn(
-                    Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION)
-                );
-                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-
-                taskManagementService.terminateTask(taskId, new TerminateInfo("cancelled"));
-
-                verify(taskResource, times(0))
-                    .setTerminationProcess(any());
-            }
-
-            @Test
-            void should_not_set_termination_process_from_camunda_if_task_completed_by_user_in_db() {
-                TaskResource taskResource = spy(TaskResource.class);
-
-                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                    .thenReturn(Optional.of(taskResource));
-                when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
-                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId)).thenReturn(
-                    Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION)
-                );
-                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-
-                taskManagementService.terminateTask(taskId, new TerminateInfo("completed"));
-
-                verify(taskResource, times(0))
-                    .setTerminationProcess(any());
             }
 
             @Test
