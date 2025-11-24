@@ -17,6 +17,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -38,6 +40,8 @@ import java.util.Optional;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
@@ -54,7 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SECONDA
 @Testcontainers
 @Sql("/scripts/wa/assign_task_data.sql")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
+public class CftQueryServiceAssignTaskTest {
 
     @Mock
     private UserInfo assignerUserInfo;
@@ -72,6 +76,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     private EntityManager entityManager;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     private CftQueryService cftQueryService;
     private ServiceMocks mockServices;
@@ -129,7 +134,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -156,7 +161,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -189,7 +194,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         //exclude
         assignerRoleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -204,7 +209,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -229,7 +234,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         //exclude
         assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -244,7 +249,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -275,7 +280,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -302,7 +307,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -337,7 +342,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         //exclude
         assignerRoleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -352,7 +357,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -377,7 +382,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         //exclude
         assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -392,7 +397,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -424,7 +429,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -451,7 +456,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> ownAssigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -478,7 +483,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> executeAssigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -512,7 +517,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         //exclude
         assignerRoleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -527,7 +532,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -554,7 +559,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         //exclude
         assigneeRoleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -569,7 +574,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -603,7 +608,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -628,7 +633,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
 
         final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
@@ -661,7 +666,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -686,7 +691,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> assigneeTaskResponse = cftQueryService.getTask(
             taskId,
@@ -718,7 +723,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoleAssignments, assignerRoleAssignmentRequest);
 
         final Optional<TaskResource> assignerTaskResponse = cftQueryService.getTask(
             taskId,
@@ -743,7 +748,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoleAssignments, assigneeRoleAssignmentRequest);
 
         final Optional<TaskResource> ownAssigneeTaskResponse = cftQueryService.getTask(
             taskId,
