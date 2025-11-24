@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtil
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.awaitility.Awaitility.await;
@@ -41,6 +42,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_DISABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_ROLE_COMPLETION_DISABLED;
@@ -85,6 +88,8 @@ public class PostTaskReplicationMIControllerTest {
     TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
     TestAuthenticationCredentials tribCaseworkerWithCompletionEnabled;
     TestAuthenticationCredentials tribCaseworkerWithCompletionDisabled;
+    TestAuthenticationCredentials caseworkerWithCancellationEnabled;
+    TestAuthenticationCredentials caseworkerWithCancellationDisabled;
     TestAuthenticationCredentials caseWorkerWithJudgeRole;
 
     @Before
@@ -101,6 +106,10 @@ public class PostTaskReplicationMIControllerTest {
             .getTestUser(USER_WITH_TRIB_ROLE_COMPLETION_ENABLED);
         tribCaseworkerWithCompletionDisabled = taskFunctionalTestsUserUtils
             .getTestUser(USER_WITH_TRIB_ROLE_COMPLETION_DISABLED);
+        caseworkerWithCancellationEnabled = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_CANCELLATION_ENABLED);
+        caseworkerWithCancellationDisabled = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_CANCELLATION_DISABLED);
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils
             .getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
     }
@@ -1313,6 +1322,82 @@ public class PostTaskReplicationMIControllerTest {
     }
 
     @Test
+    public void should_record_termination_process_when_task_terminated_and_cancellation_value_available_in_camunda() {
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskWithCancellationProcessAndRetrieveIds(
+                Map.of(
+                    "cancellationProcess", "CASE_EVENT_CANCELLATION"
+                ),
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                "processApplication"
+            );
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseworkerWithCancellationEnabled.getHeaders());
+        String taskId = taskVariables.getTaskId();
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("deleted")
+        );
+
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            caseworkerWithCancellationEnabled.getHeaders()
+        );
+
+        resultDelete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        AtomicReference<Response> resultHistory = new AtomicReference<>();
+
+        await()
+            .untilAsserted(() -> {
+
+                resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_HISTORY,
+                    taskId,
+                    caseworkerWithCancellationEnabled.getHeaders()
+                ));
+
+                resultHistory.get().prettyPrint();
+                resultHistory.get().then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_history_list.get(1).state", equalTo("TERMINATED"))
+                    .body("task_history_list.get(1).termination_process", equalTo("EXUI_CASE_EVENT_CANCELLATION"))
+                    .body("task_history_list.get(1).termination_process_label", equalTo("Automated Cancellation"));
+            });
+
+
+        await()
+            .untilAsserted(() -> {
+
+            });
+
+        await()
+            .untilAsserted(() -> {
+
+                Response resultTerminateReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    caseWorkerWithTribRole.getHeaders()
+                );
+
+                resultTerminateReportable.prettyPrint();
+                resultTerminateReportable.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1))
+                    .body("reportable_task_list.get(0).task_id", equalTo(taskId))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
+                    .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_CANCELLATION"))
+                    .body("reportable_task_list.get(0).termination_process_label", equalTo("Automated Cancellation"));
+
+
+            });
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerWithCancellationEnabled.getHeaders());
+    }
+
+    @Test
     public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
@@ -1412,7 +1497,9 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
                     .body("reportable_task_list.get(0).termination_process",
-                          equalTo("EXUI_CASE_EVENT_COMPLETION"));
+                          equalTo("EXUI_CASE_EVENT_COMPLETION"))
+                    .body("reportable_task_list.get(0).termination_process_label",
+                      equalTo("Automated Completion"));
             });
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
@@ -1610,13 +1697,119 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).wait_time_days", nullValue())
                     .body("reportable_task_list.get(0).wait_time", nullValue())
                     .body("reportable_task_list.get(0).first_assigned_date", nullValue())
-                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue());
+                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
+                    .body("reportable_task_list.get(0).termination_process", nullValue());
 
             });
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
         taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(leadJudgeForSpecificAccess.getHeaders());
         authorizationProvider.deleteAccount(leadJudgeForSpecificAccess.getAccount().getUsername());
+    }
+
+    @Test
+    public void should_cancel_task_and_set_termination_process_when_valid_cancellation_process_is_passed() {
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+            "reviewSpecificAccessRequestJudiciary",
+            "Review Specific Access Request Judiciary"
+        );
+
+        taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
+            caseworkerWithCancellationEnabled.getHeaders(),
+            taskVariables.getCaseId(),
+            WA_JURISDICTION
+        );
+
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseworkerWithCancellationEnabled.getHeaders());
+
+        String taskId = taskVariables.getTaskId();
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
+            ENDPOINT_BEING_TESTED_CANCEL + "?cancellation_process=" + "EXUI_USER_CANCELLATION",
+            taskId,
+            caseworkerWithCancellationEnabled.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("cancelled")
+        );
+
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            caseworkerWithCancellationEnabled.getHeaders()
+        );
+
+        resultDelete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        await()
+            .untilAsserted(() -> {
+
+                Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_HISTORY,
+                    taskId,
+                    caseworkerWithCancellationEnabled.getHeaders()
+                );
+
+                resultHistory.prettyPrint();
+                resultHistory.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_history_list.size()", equalTo(4))
+                    .body("task_history_list.get(2).state", equalTo("CANCELLED"))
+                    .body("task_history_list.get(2).assignee", equalTo(null))
+                    .body("task_history_list.get(2).updated_by", notNullValue())
+                    .body("task_history_list.get(2).updated", notNullValue())
+                    .body("task_history_list.get(2).update_action", equalTo("Cancel"))
+                    .body("task_history_list.get(2).due_date_time", notNullValue())
+                    .body("task_history_list.get(2).updated", notNullValue())
+                    .body("task_history_list.get(2).completed_date", nullValue())
+                    .body("task_history_list.get(2).completed_date_time", nullValue())
+                    .body("task_history_list.get(2).wait_time_days", nullValue())
+                    .body("task_history_list.get(2).wait_time", nullValue())
+                    .body("task_history_list.get(2).first_assigned_date", nullValue())
+                    .body("task_history_list.get(2).first_assigned_date_time", nullValue())
+                    .body("task_history_list.get(2).termination_process", equalTo("EXUI_USER_CANCELLATION"));
+
+
+
+                Response resultCancelReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    caseworkerWithCancellationEnabled.getHeaders()
+                );
+
+                resultCancelReport.prettyPrint();
+                resultCancelReport.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
+                    .body("reportable_task_list.get(0).assignee", equalTo(null))
+                    .body("reportable_task_list.get(0).updated_by", notNullValue())
+                    .body("reportable_task_list.get(0).updated", notNullValue())
+                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
+                    .body("reportable_task_list.get(0).due_date", notNullValue())
+                    .body("reportable_task_list.get(0).last_updated_date", notNullValue())
+                    .body("reportable_task_list.get(0).completed_date", nullValue())
+                    .body("reportable_task_list.get(0).completed_date_time", nullValue())
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
+                    .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+                    .body("reportable_task_list.get(0).wait_time_days", nullValue())
+                    .body("reportable_task_list.get(0).wait_time", nullValue())
+                    .body("reportable_task_list.get(0).first_assigned_date", nullValue())
+                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
+                    .body("reportable_task_list.get(0).termination_process",
+                          equalTo("EXUI_USER_CANCELLATION"))
+                    .body("reportable_task_list.get(0).termination_process_label",
+                          equalTo("Manual Cancellation"));
+
+            });
+
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerWithCancellationEnabled.getHeaders());
     }
 
     @Test
