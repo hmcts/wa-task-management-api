@@ -14,17 +14,16 @@ import java.util.Map;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
+public class RoleAssignmentHelper {
 
-public abstract class RoleAssignmentHelper {
+    public static final String IA_JURISDICTION = "IA";
+    public static final String IA_CASE_TYPE = "Asylum";
+    public static final String WA_JURISDICTION = "WA";
+    public static final String WA_CASE_TYPE = "WaCaseType";
+    public static final String SSCS_JURISDICTION = "SSCS";
+    public static final String PRIMARY_LOCATION = "765324";
 
-    protected static final String IA_JURISDICTION = "IA";
-    protected static final String IA_CASE_TYPE = "Asylum";
-    protected static final String WA_JURISDICTION = "WA";
-    protected static final String WA_CASE_TYPE = "WaCaseType";
-    protected static final String SSCS_JURISDICTION = "SSCS";
-    protected static final String PRIMARY_LOCATION = "765324";
-
-    public static List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
+    public List<RoleAssignment> createRoleAssignment(List<RoleAssignment> roleAssignments,
                                                             RoleAssignmentRequest roleAssignmentRequest) {
 
         Map<String, String> attributes = createAttributes(roleAssignmentRequest.getRoleAssignmentAttribute());
@@ -92,7 +91,7 @@ public abstract class RoleAssignmentHelper {
     public static class RoleAssignmentRequest {
 
         private TestRolesWithGrantType testRolesWithGrantType;
-        private RoleAssignmentAttribute roleAssignmentAttribute;
+        public RoleAssignmentAttribute roleAssignmentAttribute;
         private List<String> authorisations;
         private OffsetDateTime beginTime;
         private OffsetDateTime endTime;
