@@ -4,17 +4,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -22,7 +27,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -50,6 +54,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -63,6 +68,7 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -87,10 +93,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @Sql(scripts = "/scripts/search_task_work_types.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
+class PostTaskSearchControllerTest {
 
     @MockitoBean
     private IdamWebApi idamWebApi;
@@ -110,6 +120,10 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;
+    @Autowired
+    protected MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
@@ -183,7 +197,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             post(uri)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
+                .content(integrationTestUtils.asJsonString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             ResultMatcher.matchAll(
@@ -232,7 +246,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
+                .content(integrationTestUtils.asJsonString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -298,7 +312,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
+                .content(integrationTestUtils.asJsonString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -364,7 +378,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             post("/task?first_result=0&max_results=2")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
+                .content(integrationTestUtils.asJsonString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -410,7 +424,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchTaskRequest))
+                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             ).andDo(MockMvcResultHandlers.print())
             .andExpectAll(
@@ -465,7 +479,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchTaskRequest))
+                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -512,7 +526,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchTaskRequest))
+                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -560,7 +574,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchTaskRequest))
+                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -600,7 +614,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchTaskRequest))
+                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -785,7 +799,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(new SearchTaskRequest(emptyList())))
+                    .content(integrationTestUtils.asJsonString(new SearchTaskRequest(emptyList())))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1816,7 +1830,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchTaskRequest))
+                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -1840,7 +1854,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchTaskRequest))
+                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpectAll(
