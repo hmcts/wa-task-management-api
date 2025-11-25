@@ -43,6 +43,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -2593,6 +2594,60 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 assertEquals("completed", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+            }
+
+            @Test
+            void should_succeed_and_set_termination_process_when_valid_value_returned_from_camunda() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
+                    .thenReturn(Optional.of(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION));
+
+                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
+
+                assertEquals(TERMINATED, taskResource.getState());
+                assertEquals("deleted", taskResource.getTerminationReason());
+                assertEquals(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION, taskResource.getTerminationProcess());
+            }
+
+            @Test
+            void should_not_set_termination_process_when_optional_empty_returned_from_camunda() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+                when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
+                    .thenReturn(Optional.empty());
+
+                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
+
+                assertEquals(TERMINATED, taskResource.getState());
+                assertEquals("deleted", taskResource.getTerminationReason());
+                assertNull(taskResource.getTerminationProcess());
+            }
+
+            @Test
+            void should_not_set_termination_process_from_camunda_if_termination_process_already_exists_in_db() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+                when(taskResource.getTerminationProcess())
+                    .thenReturn(TerminationProcess.EXUI_CASE_EVENT_COMPLETION);
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
+                verify(terminationProcessHelper, times(0))
+                    .fetchTerminationProcessFromCamunda(anyString());
+                assertEquals(TERMINATED, taskResource.getState());
+                assertEquals("deleted", taskResource.getTerminationReason());
+                assertEquals(TerminationProcess.EXUI_CASE_EVENT_COMPLETION, taskResource.getTerminationProcess());
             }
 
             @Test

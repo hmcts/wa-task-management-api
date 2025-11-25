@@ -18,6 +18,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
@@ -80,6 +83,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
@@ -140,6 +145,15 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private IdamTokenGenerator systemUserIdamToken;
     @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
+
+    @MockitoBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
+    private CancellationProcessValidator cancellationProcessValidator;
+
+    public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
+    public static final String USER_WITH_CANCELLATION_FLAG_DISABLED = "wa-user-with-cancellation-process-disabled";
 
     @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -367,7 +381,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             when(camundaServiceApi.searchHistory(any(), any()))
                 .thenReturn(singletonList(new HistoryVariableInstance(
                     "someId",
@@ -411,7 +425,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -445,7 +459,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -485,7 +499,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
             when(camundaServiceApi.searchHistory(any(), any()))
                 .thenReturn(singletonList(new HistoryVariableInstance(
                     "someId",
@@ -518,7 +532,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -545,7 +559,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -582,7 +596,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-                createRoleAssignment(roleAssignments, roleAssignmentRequest);
+                roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
                 UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
                 AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -603,7 +617,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .hasNoCause()
                     .hasMessage(
                         "Task Assign and Complete Error: Task assign and complete partially succeeded. "
-                        + "The Task was assigned to the user making the request but the Task could not be completed.");
+                        + "The Task was assigned to the user making the request but the Task could not be "
+                        + "completed.");
 
                 verifyTransactionWasRolledBack(taskId, ASSIGNED);
 
@@ -622,7 +637,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 RoleAssignmentRequest roleAssignmentRequest = prepareRoleAssignmentRequest();
 
-                createRoleAssignment(roleAssignments, roleAssignmentRequest);
+                roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
                 UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
                 AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
