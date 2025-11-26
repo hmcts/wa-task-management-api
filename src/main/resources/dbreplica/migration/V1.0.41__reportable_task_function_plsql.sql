@@ -262,15 +262,16 @@ FETCH NEXT FROM task_history_cursor INTO
           l_rt_due_date_to_completed_diff_days = (l_updated::date - l_due_date_time::date);
           l_rt_due_date_to_completed_diff_time = (date_trunc('second', l_due_date_time) - date_trunc('second', l_updated));
           l_rt_is_within_sla = case when (l_updated <= l_due_date_time) then 'Yes' else 'No' end;
-          l_rt_outcome = 'Completed';
-          l_rt_agent_name = l_updated_by;
+          l_rt_outcome    := 'Completed';
+          l_rt_agent_name := l_updated_by;
         end if;
 
-        if l_state = 'CANCELLED' and l_update_action = 'Cancel' then
+        if l_update_action = 'Cancel' then
           l_rt_outcome    := 'Cancelled';
           l_rt_agent_name := l_updated_by;
+        end if;
 
-        elsif l_state = 'TERMINATED' then
+        if l_state = 'TERMINATED' then
           if l_rt_agent_name is null then
               l_rt_agent_name := l_updated_by;
           end if;
@@ -346,7 +347,7 @@ FETCH NEXT FROM task_history_cursor INTO
               last_reconfiguration_time = l_last_reconfiguration_time,
               termination_process = l_termination_process,
               termination_process_label = l_termination_process_label,
-              report_refresh_time = current_timestamp
+              report_refresh_time = current_timestamp,
               outcome = l_rt_outcome,
               agent_name = l_rt_agent_name
         where reportable_task.task_id = l_task_id;

@@ -14,6 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -39,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
@@ -71,6 +74,8 @@ public class PostTaskReplicationMIControllerTest {
     @Autowired
     AuthorizationProvider authorizationProvider;
 
+    @Autowired
+    IdamService idamService;
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED_HISTORY = "/task/{task-id}/history";
     private static final String ENDPOINT_BEING_TESTED_REPORTABLE = "/task/{task-id}/reportable";
@@ -1736,11 +1741,16 @@ public class PostTaskReplicationMIControllerTest {
             new TerminateInfo("cancelled")
         );
 
+        TestAuthenticationCredentials caseWorkerWithCancellationEnabled2 =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-cancellation-process-enabled-2-");
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            caseWorkerWithCancellationEnabled2.getHeaders());
+
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            caseworkerWithCancellationEnabled.getHeaders()
+            caseWorkerWithCancellationEnabled2.getHeaders()
         );
 
         resultDelete.then().assertThat()
@@ -1783,6 +1793,8 @@ public class PostTaskReplicationMIControllerTest {
                 );
 
                 resultCancelReport.prettyPrint();
+                UserInfo userInfo = idamService.getUserInfo(caseworkerWithCancellationEnabled.getHeaders().getValue(AUTHORIZATION));
+
                 resultCancelReport.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
@@ -1804,7 +1816,9 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).termination_process",
                           equalTo("EXUI_USER_CANCELLATION"))
                     .body("reportable_task_list.get(0).termination_process_label",
-                          equalTo("Manual Cancellation"));
+                          equalTo("Manual Cancellation"))
+                    .body("reportable_task_list.get(0).outcome", equalTo("Cancelled"))
+                    .body("reportable_task_list.get(0).agent_name", equalTo(userInfo.getUid()));
 
             });
 
