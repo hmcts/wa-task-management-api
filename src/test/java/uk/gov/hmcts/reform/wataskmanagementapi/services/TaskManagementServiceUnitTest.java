@@ -2595,6 +2595,24 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
 
+
+
+            @Test
+            void should_invoke_set_termination_process_from_helper_when_task_termination_runs() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
+                verify(terminationProcessHelper, times(1))
+                    .setTerminationProcessOnTerminateTask(anyString(), any());
+                assertEquals(TERMINATED, taskResource.getState());
+                assertEquals("deleted", taskResource.getTerminationReason());
+            }
+
             @Test
             void should_handle_when_task_resource_not_found_and_delete_task_in_camunda() {
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))

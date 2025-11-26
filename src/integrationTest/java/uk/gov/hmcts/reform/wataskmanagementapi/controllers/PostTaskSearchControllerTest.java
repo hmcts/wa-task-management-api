@@ -19,6 +19,9 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -107,6 +110,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
 
@@ -151,7 +155,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -257,7 +261,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             roleAssignments
@@ -328,7 +332,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             roleAssignments
@@ -617,7 +621,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                                + "error_management, review_case, evidence, follow_up, pre_hearing, post_hearing, "
                                + "intermediate_track_hearing_work, multi_track_hearing_work, "
                                + "intermediate_track_decision_making_work, multi_track_decision_making_work, "
-                               + "query_work, welsh_translation_work, bail_work]")
+                               + "query_work, welsh_translation_work, bail_work, stf_24w_hearing_work, "
+                               + "stf_24w_routine_work, stf_24w_decision_making_work, stf_24w_applications, "
+                               + "stf_24w_upper_tribunal, stf_24w_access_requests, stf_24w_review_case]")
                 ));
     }
 
@@ -1254,7 +1260,14 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         "intermediate_track_decision_making_work",
         "multi_track_decision_making_work",
         "welsh_translation_work",
-        "bail_work"
+        "bail_work",
+        "stf_24w_hearing_work",
+        "stf_24w_routine_work",
+        "stf_24w_decision_making_work",
+        "stf_24w_applications",
+        "stf_24w_upper_tribunal",
+        "stf_24w_access_requests",
+        "stf_24w_review_case"
     })
     void should_return_200_and_filter_by_each_work_type(String workType) throws Exception {
 
