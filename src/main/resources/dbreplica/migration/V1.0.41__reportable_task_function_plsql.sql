@@ -156,12 +156,7 @@ FETCH NEXT FROM task_history_cursor INTO
             else l_termination_process
         end;
 
-    RAISE INFO 'Inserting sample data into table X';
-    RAISE NOTICE 'Inserting sample data into table X2';
-
-
     if (l_new_task) then
-        RAISE INFO 'Attempting to insert reportable task record for : %', l_task_id;
         if ((l_update_action = 'Configure' and l_state = 'UNASSIGNED')
             or (l_update_action = 'AutoAssign' and l_state = 'ASSIGNED')) then
           RAISE INFO 'Insert reportable task record for : %', l_task_id;
@@ -177,7 +172,7 @@ FETCH NEXT FROM task_history_cursor INTO
             l_wait_time = 0;
             l_number_of_reassignments = 0;
        end if;
-        RAISE INFO 'Inserting reportable task record for : %', l_task_id;
+
         insert into cft_task_db.reportable_task
             (task_id, task_name, task_type, due_date_time,
              state, task_system, security_classification,
@@ -215,7 +210,6 @@ FETCH NEXT FROM task_history_cursor INTO
               l_next_hearing_id, l_next_hearing_date, l_priority_date,
               l_last_reconfiguration_time, l_termination_process, l_termination_process_label, current_timestamp)
         returning update_id into l_update_id;
-        RAISE INFO 'Inserted reportable task record for : %', l_task_id;
         l_new_task = false;
     else
         RAISE INFO 'Attempting to update reportable task record for : %', l_task_id;
