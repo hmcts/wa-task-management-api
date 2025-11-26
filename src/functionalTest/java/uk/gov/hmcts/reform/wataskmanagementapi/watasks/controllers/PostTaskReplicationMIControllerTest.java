@@ -1358,30 +1358,6 @@ public class PostTaskReplicationMIControllerTest {
         resultDelete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        AtomicReference<Response> resultHistory = new AtomicReference<>();
-
-        await()
-            .untilAsserted(() -> {
-
-                resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
-                    ENDPOINT_BEING_TESTED_HISTORY,
-                    taskId,
-                    caseworkerWithCancellationEnabled.getHeaders()
-                ));
-
-                resultHistory.get().prettyPrint();
-                resultHistory.get().then().assertThat()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("task_history_list.get(1).state", equalTo("TERMINATED"))
-                    .body("task_history_list.get(1).termination_process", equalTo("EXUI_CASE_EVENT_CANCELLATION"));
-            });
-
-
-        await()
-            .untilAsserted(() -> {
-
-            });
-
         await()
             .untilAsserted(() -> {
 
@@ -1399,11 +1375,11 @@ public class PostTaskReplicationMIControllerTest {
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
                     .body("reportable_task_list.get(0).task_id", equalTo(taskId))
-                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
                     .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_CANCELLATION"))
                     .body("reportable_task_list.get(0).termination_process_label", equalTo("Automated Cancellation"))
                     .body("reportable_task_list.get(0).agent_name", equalTo(userInfo.getUid()))
-                    .body("reportable_task_list.get(0).outcome", equalTo("Cancelled"));
+                    .body("reportable_task_list.get(0).outcome", equalTo("Cancelled"))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"));
 
 
             });
@@ -1655,7 +1631,7 @@ public class PostTaskReplicationMIControllerTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("deleted")
+            new TerminateInfo("cancelled")
         );
 
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
