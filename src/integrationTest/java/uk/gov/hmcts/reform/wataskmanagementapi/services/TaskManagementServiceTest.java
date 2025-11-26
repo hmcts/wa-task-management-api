@@ -153,15 +153,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private CancellationProcessValidator cancellationProcessValidator;
 
     public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
-    public static final String USER_WITH_CANCELLATION_FLAG_DISABLED = "wa-user-with-cancellation-process-disabled";
-
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    private CancellationProcessValidator cancellationProcessValidator;
-
-    public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
-    public static final String USER_WITH_CANCELLATION_FLAG_DISABLED = "wa-user-with-cancellation-process-disabled";
 
     @BeforeEach
     void setUp() {
