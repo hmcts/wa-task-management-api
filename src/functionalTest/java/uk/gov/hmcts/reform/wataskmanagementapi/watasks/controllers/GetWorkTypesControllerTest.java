@@ -134,14 +134,7 @@ public class GetWorkTypesControllerTest {
                    "Multi track decision making work"),
             Map.of("id", "query_work", "label", "Query work"),
             Map.of("id", "welsh_translation_work", "label", "Welsh translation work"),
-            Map.of("id", "bail_work", "label", "Bail work"),
-            Map.of("id", "stf_24w_hearing_work", "label", "Hearing Work - STF"),
-            Map.of("id", "stf_24w_routine_work", "label", "Routine Work - STF"),
-            Map.of("id", "stf_24w_decision_making_work", "label", "Decision Making Work - STF"),
-            Map.of("id", "stf_24w_applications", "label", "Applications - STF"),
-            Map.of("id", "stf_24w_upper_tribunal", "label", "Upper Tribunal - STF"),
-            Map.of("id", "stf_24w_access_requests", "label", "Access Requests - STF"),
-            Map.of("id", "stf_24w_review_case", "label", "Review Case - STF")
+            Map.of("id", "bail_work", "label", "Bail work")
         );
         Assertions.assertEquals(expectedWorkTypes, workTypes);
 
