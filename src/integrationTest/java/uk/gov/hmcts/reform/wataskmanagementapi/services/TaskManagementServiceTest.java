@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -36,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
@@ -69,10 +71,12 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -86,7 +90,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CAN
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
@@ -123,8 +126,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
+    private TerminationProcessHelper terminationProcessHelper;
     @MockitoBean
     private ConfigureTaskService configureTaskService;
     @MockitoBean
@@ -134,6 +137,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ServiceMocks mockServices;
     @MockitoBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
+
+
     @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @Autowired
@@ -141,6 +146,14 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
+
+    @MockitoBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
+    private CancellationProcessValidator cancellationProcessValidator;
+
+    public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
+    public static final String USER_WITH_CANCELLATION_FLAG_DISABLED = "wa-user-with-cancellation-process-disabled";
 
     @BeforeEach
     void setUp() {
@@ -156,6 +169,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             cftTaskDatabaseService,
             cftQueryService,
             cftSensitiveTaskEventLogsDatabaseService);
+        cancellationProcessValidator = new CancellationProcessValidator(launchDarklyFeatureFlagProvider);
+        terminationProcessHelper = new TerminationProcessHelper(
+            camundaService,
+            systemUserIdamToken,
+            cancellationProcessValidator);
         taskManagementService = new TaskManagementService(
             camundaService,
             cftTaskDatabaseService,
@@ -166,7 +184,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             entityManager,
             systemUserIdamToken,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator,
+            terminationProcessHelper);
 
         mockServices.mockServiceAPIs();
     }
@@ -371,7 +390,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCancelException.class)
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
@@ -416,13 +435,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
-            HashMap<String, Object> requestParamMap = new HashMap<>();
-            if (termnationProcess != null) {
-                requestParamMap.put(REQ_PARAM_CANCELLATION_PROCESS, termnationProcess);
-            }
 
             transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, requestParamMap)
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, termnationProcess)
             );
 
             verifyTransactionTerminated(taskId);
@@ -460,7 +475,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCancelException.class)
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
@@ -491,9 +506,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
             transactionHelper.doInNewTransaction(
-                () -> taskManagementService.cancelTask(taskId, accessControlResponse, Map.of(
-                    REQ_PARAM_CANCELLATION_PROCESS, "EXUI_USER_CANCELLATION"
-                ))
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse, "EXUI_USER_CANCELLATION")
             );
 
             verifyTransactionCancelledWithTerminationProcess(taskId, "EXUI_USER_CANCELLATION");
@@ -522,7 +535,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
@@ -549,7 +562,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
             assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
-                () -> taskManagementService.completeTask(taskId, accessControlResponse, new HashMap<>())))
+                () -> taskManagementService.completeTask(taskId, accessControlResponse, null)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
@@ -590,7 +603,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        new HashMap<>()
+                        null
                     )))
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
@@ -631,7 +644,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        new HashMap<>()
+                        null
                     )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
@@ -813,6 +826,109 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             assertTrue(success.get());
             verify(camundaServiceApi, atMostOnce()).searchHistory(any(), any());
             verify(camundaServiceApi, atMostOnce()).deleteVariableFromHistory(any(), any());
+        }
+
+        @Test
+        @DisplayName("should_set_termination_process_when_termination_process_from_camunda_returns_value_and_flag_on")
+        void should_set_termination_process_when_termination_process_from_camunda_returns_value_and_flag_on() {
+            String taskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(taskId);
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "id",
+                "cancellationProcess",
+                "CASE_EVENT_CANCELLATION"
+            );
+
+            when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
+                .thenReturn(Optional.of(historyVariableInstance));
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
+
+            AtomicBoolean success = new AtomicBoolean(false);
+
+            transactionHelper.doInNewTransaction(
+                () -> {
+                    taskManagementService.terminateTask(
+                        taskId,
+                        new TerminateInfo("deleted")
+
+                    );
+                    success.set(true);
+
+                }
+            );
+            assertTrue(success.get());
+            verify(cftTaskDatabaseService, times(1)).saveTask(any());
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            assertTrue(savedTaskResource.isPresent());
+            assertEquals(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION,
+                         savedTaskResource.get().getTerminationProcess());
+        }
+
+        @Test
+        @DisplayName("should_not_set_termination_process_when_termination_process_from_camunda_returns_value_flag_off")
+        void should_not_set_termination_process_when_termination_process_from_camunda_returns_value_and_flag_off() {
+            String taskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(taskId);
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "id",
+                "cancellationProcess",
+                "CASE_EVENT_CANCELLATION"
+            );
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(false);
+            when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
+                .thenReturn(Optional.of(historyVariableInstance));
+            AtomicBoolean success = new AtomicBoolean(false);
+
+            transactionHelper.doInNewTransaction(
+                () -> {
+                    taskManagementService.terminateTask(
+                        taskId,
+                        new TerminateInfo("completed")
+
+                    );
+                    success.set(true);
+
+                }
+            );
+            assertTrue(success.get());
+            verify(cftTaskDatabaseService, times(1)).saveTask(any());
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            assertTrue(savedTaskResource.isPresent());
+            assertNull(savedTaskResource.get().getTerminationProcess());
+        }
+
+        @Test
+        @DisplayName("should_not_set_termination_process_when_termination_process_from_camunda_returns_empty")
+        void should_not_set_termination_process_when_termination_process_from_camunda_returns_empty_and_flag_on() {
+            String taskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(taskId);
+            UserInfo mockedUserInfo =
+                UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
+            when(systemUserIdamToken.getUserInfo(anyString())).thenReturn(mockedUserInfo);
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
+
+
+            when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
+                .thenReturn(Optional.empty());
+            AtomicBoolean success = new AtomicBoolean(false);
+
+            transactionHelper.doInNewTransaction(
+                () -> {
+                    taskManagementService.terminateTask(
+                        taskId,
+                        new TerminateInfo("completed")
+
+                    );
+                    success.set(true);
+
+                }
+            );
+            assertTrue(success.get());
+            verify(cftTaskDatabaseService, times(1)).saveTask(any());
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            assertTrue(savedTaskResource.isPresent());
+            assertNull(savedTaskResource.get().getTerminationProcess());
+
         }
     }
 }

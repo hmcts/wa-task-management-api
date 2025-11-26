@@ -102,6 +102,53 @@ public class DeleteTaskByIdControllerTest {
 
     }
 
+    @Test
+    public void should_succeed_and_set_termination_process_when_cancellation_process_variable_available_in_camunda() {
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskWithCancellationProcessAndRetrieveIds(
+            Map.of(
+                "cancellationProcess", "CASE_EVENT_CANCELLATION"
+            ),
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
+            "processApplication"
+        );
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+
+        claimAndCancelTask(taskVariables);
+        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
+
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("cancelled")
+        );
+
+        Response result =  taskFunctionalTestsApiUtils.getRestApiActions().delete(
+            ENDPOINT_BEING_TESTED,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            caseWorkerWithCftOrgRoles.getHeaders()
+        );
+        result.prettyPrint();
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        result =  taskFunctionalTestsApiUtils.getRestApiActions().get(
+            "task/{task-id}",
+            taskVariables.getTaskId(),
+            caseWorkerWithCftOrgRoles.getHeaders()
+        );
+        result.prettyPrint();
+        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
+        taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
+            taskVariables.getTaskId(),
+            "termination_process",
+            "CASE_EVENT_CANCELLATION",
+            caseWorkerWithCftOrgRoles.getHeaders()
+        );
+
+
+    }
+
     private void checkHistoryVariable(String taskId, String variable, String value) {
 
         Map<String, Object> request = Map.of(
