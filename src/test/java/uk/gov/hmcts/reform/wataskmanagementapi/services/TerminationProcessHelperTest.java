@@ -6,9 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
 import java.util.Optional;
 
@@ -16,6 +18,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,6 +103,75 @@ public class TerminationProcessHelperTest {
         assertTrue(result.isEmpty());
     }
 
+    @Test
+    void should_not_set_termination_process_when_optional_empty_returned_from_camunda() {
+        TaskResource taskResource = spy(TaskResource.class);
 
+        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
+            .thenReturn(false);
+
+        terminationProcessHelper.setTerminationProcessOnTerminateTask(taskResource.getTaskId(),
+                                                                      taskResource);
+
+        verify(taskResource, times(0))
+            .setTerminationProcess(any());
+    }
+
+    @Test
+    void should_not_set_termination_process_from_camunda_if_task_completed_by_user_in_db() {
+        TaskResource taskResource = spy(TaskResource.class);
+
+        String cancellationProcess = "CASE_EVENT_CANCELLATION";
+        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
+            .thenReturn(true);
+        when(cancellationProcessValidator.validate(any(), any(), any()))
+            .thenReturn(Optional.of(cancellationProcess));
+        when(camundaService.getVariableFromHistory(taskResource.getTaskId(), "cancellationProcess"))
+            .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));
+        when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
+
+
+        terminationProcessHelper.setTerminationProcessOnTerminateTask(taskResource.getTaskId(), taskResource);
+        verify(taskResource, times(0))
+            .setTerminationProcess(any());
+    }
+
+    @Test
+    void should_not_set_termination_process_from_camunda_if_task_cancelled_by_user_in_db() {
+        TaskResource taskResource = spy(TaskResource.class);
+        String cancellationProcess = "CASE_EVENT_CANCELLATION";
+        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
+            .thenReturn(true);
+        when(cancellationProcessValidator.validate(any(), any(), any()))
+            .thenReturn(Optional.of(cancellationProcess));
+        when(camundaService.getVariableFromHistory(taskResource.getTaskId(), "cancellationProcess"))
+            .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));
+
+        when(taskResource.getState()).thenReturn(CFTTaskState.CANCELLED);
+
+        terminationProcessHelper.setTerminationProcessOnTerminateTask(taskResource.getTaskId(), taskResource);
+        verify(taskResource, times(0))
+            .setTerminationProcess(any());
+    }
+
+    @Test
+    void should_invoke_and_set_termination_process_when_valid_value_returned_from_camunda() {
+        TaskResource taskResource = spy(TaskResource.class);
+        String cancellationProcess = "CASE_EVENT_CANCELLATION";
+        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
+            .thenReturn(true);
+        when(cancellationProcessValidator.validate(any(), any(), any()))
+            .thenReturn(Optional.of(cancellationProcess));
+        when(camundaService.getVariableFromHistory(taskResource.getTaskId(), "cancellationProcess"))
+            .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));
+
+        when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+
+
+        terminationProcessHelper.setTerminationProcessOnTerminateTask(taskResource.getTaskId(),
+                                                                      taskResource);
+        verify(taskResource, times(1))
+            .setTerminationProcess(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION);
+    }
 
 }

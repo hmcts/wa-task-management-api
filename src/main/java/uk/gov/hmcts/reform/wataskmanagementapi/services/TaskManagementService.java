@@ -548,7 +548,6 @@ public class TaskManagementService {
         //Terminate the task if found in the database
         if (task != null) {
             //Update cft task and terminate reason
-            task.setState(CFTTaskState.TERMINATED);
             task.setTerminationReason(terminateInfo.getTerminateReason());
             boolean isCamundaStateUpdated = false;
             try {
@@ -560,10 +559,8 @@ public class TaskManagementService {
                 setSystemUserTaskActionAttributes(task, taskAction);
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
-                if (task.getTerminationProcess() == null && !terminateInfo.getTerminateReason().equals("completed")) {
-                    terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId)
-                        .ifPresent(task::setTerminationProcess);
-                }
+                terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
+                task.setState(CFTTaskState.TERMINATED);
                 isCamundaStateUpdated = true;
 
                 // Commit transaction

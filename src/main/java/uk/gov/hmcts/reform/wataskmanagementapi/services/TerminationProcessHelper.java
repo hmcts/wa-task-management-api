@@ -7,9 +7,11 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -108,5 +110,30 @@ public class TerminationProcessHelper {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Sets the termination process for a task during termination.
+     * this method fetches the termination process from Camunda and sets it on the task.
+     *
+     * @param taskId        The ID of the task being terminated.
+     * @param task          The task resource to update with the termination process.
+     */
+    public void setTerminationProcessOnTerminateTask(String taskId, TaskResource task) {
+        this.fetchTerminationProcessFromCamunda(taskId).ifPresent(terminationProcess -> {
+            CFTTaskState state = task.getState();
+            if (state == CFTTaskState.COMPLETED || state == CFTTaskState.TERMINATED) {
+                return;
+            }
+
+            if (state == CFTTaskState.CANCELLED || task.getTerminationProcess() != null) {
+                log.warn("Cannot update the termination process for a Case Event Cancellation since it has"
+                             + " already been cancelled by a User for task {}", taskId);
+                return;
+            }
+
+
+            task.setTerminationProcess(terminationProcess);
+        });
     }
 }

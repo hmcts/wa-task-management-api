@@ -153,7 +153,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private CancellationProcessValidator cancellationProcessValidator;
 
     public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
-    public static final String USER_WITH_CANCELLATION_FLAG_DISABLED = "wa-user-with-cancellation-process-disabled";
 
     @BeforeEach
     void setUp() {
@@ -862,6 +861,52 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             assertTrue(savedTaskResource.isPresent());
             assertEquals(TerminationProcess.EXUI_CASE_EVENT_CANCELLATION,
                          savedTaskResource.get().getTerminationProcess());
+        }
+
+        @Test
+        @DisplayName("should_not_set_termination_process_when_task_already_cancelled_by_user")
+        void should_not_set_termination_process_when_task_already_cancelled_by_user(CapturedOutput output) {
+            String taskId = UUID.randomUUID().toString();
+            createAndAssignTestTask(taskId);
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            savedTaskResource.ifPresent(task -> {
+                task.setTerminationProcess(TerminationProcess.EXUI_USER_CANCELLATION);
+                taskResourceRepository.save(task);
+            });
+            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
+                "id",
+                "cancellationProcess",
+                "CASE_EVENT_CANCELLATION"
+            );
+
+            when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
+                .thenReturn(Optional.of(historyVariableInstance));
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
+
+            AtomicBoolean success = new AtomicBoolean(false);
+
+            transactionHelper.doInNewTransaction(
+                () -> {
+                    taskManagementService.terminateTask(
+                        taskId,
+                        new TerminateInfo("deleted")
+
+                    );
+                    success.set(true);
+
+                }
+            );
+            assertTrue(success.get());
+            verify(cftTaskDatabaseService, times(1)).saveTask(any());
+            savedTaskResource = taskResourceRepository.findById(taskId);
+            assertTrue(savedTaskResource.isPresent());
+            assertEquals(TerminationProcess.EXUI_USER_CANCELLATION,
+                         savedTaskResource.get().getTerminationProcess());
+            assertTrue(
+                output.getOut()
+                    .contains("Cannot update the termination process for a Case Event Cancellation since it has"
+                                  + " already been cancelled by a User for task " + taskId));
+
         }
 
         @Test
