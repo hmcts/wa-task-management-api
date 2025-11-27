@@ -15,7 +15,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -74,6 +76,9 @@ public class PostTaskReplicationMIControllerTest {
 
     @Autowired
     AuthorizationProvider authorizationProvider;
+
+    @Autowired
+    IdamTokenGenerator idamTokenGenerator;
 
     @Autowired
     IdamService idamService;
@@ -1368,20 +1373,18 @@ public class PostTaskReplicationMIControllerTest {
                 );
 
                 resultTerminateReportable.prettyPrint();
-                UserInfo userInfo = idamService.getUserInfo(
-                    caseworkerWithCancellationEnabled.getHeaders().getValue(AUTHORIZATION)
-                );
+                String systemUserToken = idamTokenGenerator.generate();
+                String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+
                 resultTerminateReportable.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
                     .body("reportable_task_list.get(0).task_id", equalTo(taskId))
                     .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_CANCELLATION"))
                     .body("reportable_task_list.get(0).termination_process_label", equalTo("Automated Cancellation"))
-                    .body("reportable_task_list.get(0).agent_name", equalTo(userInfo.getUid()))
+                    .body("reportable_task_list.get(0).agent_name", equalTo(systemUserId))
                     .body("reportable_task_list.get(0).outcome", equalTo("Cancelled"))
-                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"));
-
-
+                    .body("reportable_task_list.get(0).state", equalTo(CFTTaskState.TERMINATED.getValue()));
             });
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
         taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerWithCancellationEnabled.getHeaders());
@@ -1634,6 +1637,9 @@ public class PostTaskReplicationMIControllerTest {
             new TerminateInfo("cancelled")
         );
 
+        taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
+            caseworkerWithCancellationEnabled.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskVariables.getTaskId(),
@@ -1658,7 +1664,6 @@ public class PostTaskReplicationMIControllerTest {
                 resultHistory.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("task_history_list.size()", equalTo(4))
-                    .body("task_history_list.get(2).state", equalTo("CANCELLED"))
                     .body("task_history_list.get(2).assignee", equalTo(null))
                     .body("task_history_list.get(2).updated_by", notNullValue())
                     .body("task_history_list.get(2).updated", notNullValue())
@@ -1670,7 +1675,8 @@ public class PostTaskReplicationMIControllerTest {
                     .body("task_history_list.get(2).wait_time_days", nullValue())
                     .body("task_history_list.get(2).wait_time", nullValue())
                     .body("task_history_list.get(2).first_assigned_date", nullValue())
-                    .body("task_history_list.get(2).first_assigned_date_time", nullValue());
+                    .body("task_history_list.get(2).first_assigned_date_time", nullValue())
+                    .body("task_history_list.get(2).state", equalTo("CANCELLED"));
 
 
 
