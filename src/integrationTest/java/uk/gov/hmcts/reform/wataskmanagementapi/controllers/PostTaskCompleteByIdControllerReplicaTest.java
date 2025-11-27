@@ -1,15 +1,22 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
@@ -23,6 +30,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -35,9 +45,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
@@ -59,6 +71,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -79,9 +92,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @ActiveProfiles("replica")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Transactional//@Testcontainers
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@SpringBootTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @Slf4j
-public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
+public class PostTaskCompleteByIdControllerReplicaTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
 
@@ -114,6 +131,21 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
     @Autowired
     IntegrationTestUtils integrationTestUtils;
 
+    @Autowired
+    protected TaskResourceRepository taskResourceRepository;
+    @Autowired
+    protected TaskHistoryResourceRepository taskHistoryResourceRepository;
+    @Autowired
+    protected ReportableTaskRepository reportableTaskRepository;
+    @Autowired
+    protected TaskAssignmentsRepository taskAssignmentsRepository;
+    @Autowired
+    protected MIReportingService miReportingService;
+    @Value("${spring.datasource.jdbcUrl}")
+    protected String primaryJdbcUrl;
+    @Value("${spring.datasource-replica.jdbcUrl}")
+    private String replicaJdbcUrl;
+
     @Mock
     private UserInfo mockedUserInfo;
 
@@ -121,9 +153,26 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
+    ReplicaIntegrationTestUtils replicaIntegrationTestUtils;
+
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"replica");
+        replicaIntegrationTestUtils = new ReplicaIntegrationTestUtils(
+            taskResourceRepository,
+            taskHistoryResourceRepository,
+            reportableTaskRepository,
+            taskAssignmentsRepository,
+            miReportingService,
+            primaryJdbcUrl,
+            replicaJdbcUrl
+        );
+        replicaIntegrationTestUtils.setUp();
+    }
+
+    @AfterAll
+    void tearDown() {
+        replicaIntegrationTestUtils.tearDown();
     }
 
     @Test
@@ -216,7 +265,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
             .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 List<ReportableTaskResource> reportableTaskList2
-                    = miReportingServiceForTest.findByReportingTaskId(taskId);
+                    = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
                 assertEquals(1, reportableTaskList2.size());
             });
 
@@ -235,7 +284,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
             .untilAsserted(() -> {
 
                 List<TaskHistoryResource> taskHistoryResourceList
-                    = miReportingServiceForTest.findByTaskId(taskId);
+                    = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByTaskId(taskId);
 
                 assertEquals(2, taskHistoryResourceList.size());
                 assertEquals("COMPLETED", taskHistoryResourceList.get(1).getState());
@@ -261,7 +310,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
             .untilAsserted(() -> {
 
                 List<ReportableTaskResource> reportableTaskList
-                    = miReportingServiceForTest.findByReportingTaskId(taskId);
+                    = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                 assertEquals(1, reportableTaskList.size());
                 assertEquals("COMPLETED", reportableTaskList.get(0).getState());

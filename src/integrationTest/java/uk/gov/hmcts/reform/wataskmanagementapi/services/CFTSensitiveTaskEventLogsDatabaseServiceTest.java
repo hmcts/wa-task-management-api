@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -42,6 +43,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTI
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/get_task_data.sql")
+@Transactional
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
 
     @Autowired
