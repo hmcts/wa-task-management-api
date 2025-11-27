@@ -1335,7 +1335,7 @@ public class PostTaskReplicationMIControllerTest {
     }
 
     @Test
-    public void should_record_termination_process_when_task_terminated_and_cancellation_value_available_in_camunda() {
+    public void should_update_termination_process_agent_name_and_outcome_when_task_cancelled_on_event_and_terminated() {
         TestVariables taskVariables =
             taskFunctionalTestsApiUtils.getCommon().setupWATaskWithCancellationProcessAndRetrieveIds(
                 Map.of(
@@ -1373,6 +1373,7 @@ public class PostTaskReplicationMIControllerTest {
                 );
 
                 resultTerminateReportable.prettyPrint();
+                // Get system user details so that it will be the agent_name on task termination
                 String systemUserToken = idamTokenGenerator.generate();
                 String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
 
@@ -1391,7 +1392,7 @@ public class PostTaskReplicationMIControllerTest {
     }
 
     @Test
-    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
+    public void should_update_termination_process_agent_name_and_outcome_when_task_completed_and_terminated() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
@@ -1505,7 +1506,7 @@ public class PostTaskReplicationMIControllerTest {
 
 
     @Test
-    public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
+    public void should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
@@ -1606,7 +1607,7 @@ public class PostTaskReplicationMIControllerTest {
 
 
     @Test
-    public void user_should_cancel_task_when_role_assignment_verification_passed() {
+    public void should_cancel_task_and_update_agent_name_and_outcome_when_role_assignment_verification_passed() {
         TestAuthenticationCredentials leadJudgeForSpecificAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
@@ -1835,7 +1836,7 @@ public class PostTaskReplicationMIControllerTest {
     }
 
     @Test
-    public void user_should_configure_claim_unclaim_multiple_times_for_reassignments_check() {
+    public void should_configure_claim_unclaim_multiple_times_for_reassignments_check() {
 
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
