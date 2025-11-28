@@ -1,13 +1,18 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 
 import java.io.IOException;
 
@@ -15,9 +20,17 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAME
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
+class RoleAssignmentTest {
+
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
 
     @Test
     void deserialize_as_expected_for_unknown_values() throws IOException {
@@ -39,7 +52,7 @@ class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
                              + "}";
 
         //ObjectMapper has default configuration as set in JacksonConfiguration.class
-        final RoleAssignment expected = objectMapper
+        final RoleAssignment expected = integrationTestUtils.getObjectMapper()
             .setPropertyNamingStrategy(LOWER_CAMEL_CASE)
             .readValue(jsonContent, RoleAssignment.class);
 

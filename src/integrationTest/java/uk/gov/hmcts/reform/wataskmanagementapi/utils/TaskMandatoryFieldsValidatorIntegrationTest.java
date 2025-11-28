@@ -13,8 +13,10 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -38,7 +40,10 @@ import static org.mockito.Mockito.doReturn;
 
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
-public class TaskMandatoryFieldsValidatorIntegrationTest extends SpringBootIntegrationBaseTest {
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+public class TaskMandatoryFieldsValidatorIntegrationTest {
 
     @Autowired
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
