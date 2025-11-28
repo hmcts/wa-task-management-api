@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import junit.framework.AssertionFailedError;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
