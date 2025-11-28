@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -75,6 +76,8 @@ class DeleteTerminateByIdControllerTest {
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
     @MockitoBean
     private IdamWebApi idamWebApi;
+    @MockitoBean
+    private TerminationProcessHelper terminationProcessHelper;
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
     @Autowired
@@ -278,7 +281,8 @@ class DeleteTerminateByIdControllerTest {
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
-
+            when(terminationProcessHelper.fetchTerminationProcessFromCamunda(anyString()))
+                .thenReturn(Optional.empty());
             TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("deleted"));
 
             mockMvc.perform(

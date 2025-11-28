@@ -681,7 +681,8 @@ class PostTaskCompleteByIdControllerTest {
             if (completionProcess == null || completionProcess.isBlank()) {
                 assertNull(taskResource.get().getTerminationProcess());
             } else {
-                assertEquals(TerminationProcess.fromValue(completionProcess), taskResource.get().getTerminationProcess());
+                assertEquals(TerminationProcess.fromValue(completionProcess).get(),
+                             taskResource.get().getTerminationProcess());
             }
         }
 

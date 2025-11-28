@@ -24,6 +24,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_DISABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_CASE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
@@ -50,6 +52,9 @@ public class PostTaskCancelByIdControllerTest {
 
     TestAuthenticationCredentials caseWorkerWithJudgeRole;
     TestAuthenticationCredentials hearingPanelJudgeForStandardAccess;
+    TestAuthenticationCredentials userWithCancellationDisabled;
+    TestAuthenticationCredentials userWithCancellationEnabled;
+
 
     @Before
     public void setUp() {
@@ -57,6 +62,11 @@ public class PostTaskCancelByIdControllerTest {
             .getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
         hearingPanelJudgeForStandardAccess = taskFunctionalTestsUserUtils
             .getTestUser(CASE_WORKER_WITH_JUDGE_ROLE_STD_ACCESS);
+        userWithCancellationDisabled =
+            taskFunctionalTestsUserUtils.getTestUser(USER_WITH_CANCELLATION_DISABLED);
+        userWithCancellationEnabled =
+            taskFunctionalTestsUserUtils.getTestUser(USER_WITH_CANCELLATION_ENABLED);
+
     }
 
     @Test
@@ -138,8 +148,7 @@ public class PostTaskCancelByIdControllerTest {
             {"", null}
         };
 
-        cancelTaskAndAssertTerminationProcess(testData, caseworkerForReadCredentials,
-                                              "wa-user-with-cancellation-process-enabled-");
+        cancelTaskAndAssertTerminationProcess(testData, caseworkerForReadCredentials, userWithCancellationEnabled);
     }
 
     @Test
@@ -157,13 +166,12 @@ public class PostTaskCancelByIdControllerTest {
             {"", null}
         };
 
-        cancelTaskAndAssertTerminationProcess(testData, caseworkerForReadCredentials,
-                                              "wa-user-with-cancellation-process-disabled-");
+        cancelTaskAndAssertTerminationProcess(testData, caseworkerForReadCredentials, userWithCancellationDisabled);
     }
 
     private void cancelTaskAndAssertTerminationProcess(String[][] testData,
                                                        TestAuthenticationCredentials caseworkerForReadCredentials,
-                                                       String userEmailPrefix) {
+                                                       TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess) {
 
         for (String[] data : testData) {
             TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
@@ -172,8 +180,7 @@ public class PostTaskCancelByIdControllerTest {
             taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
             String taskId = taskVariables.getTaskId();
-            TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
-                authorizationProvider.getNewTribunalCaseworker(userEmailPrefix);
+
             taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
                 caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
             String cancellationProcess = data[0];

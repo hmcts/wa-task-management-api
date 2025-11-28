@@ -121,7 +121,7 @@ class WorkTypesControllerTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(20)
+            jsonPath("$.work_types.length()").value(27)
         ).andReturn();
 
 
@@ -145,7 +145,7 @@ class WorkTypesControllerTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(20)
+            jsonPath("$.work_types.length()").value(27)
         );
     }
 
@@ -364,13 +364,23 @@ class WorkTypesControllerTest {
                                                    "Welsh translation work");
         WorkType expectedWorkType20 = new WorkType("bail_work",
                                                    "Bail work");
+        WorkType expectedWorkType21 = new WorkType("stf_24w_hearing_work", "Hearing Work - STF");
+        WorkType expectedWorkType22 = new WorkType("stf_24w_routine_work", "Routine Work - STF");
+        WorkType expectedWorkType23 = new WorkType("stf_24w_decision_making_work",
+                                                   "Decision Making Work - STF");
+        WorkType expectedWorkType24 = new WorkType("stf_24w_applications", "Applications - STF");
+        WorkType expectedWorkType25 = new WorkType("stf_24w_upper_tribunal", "Upper Tribunal - STF");
+        WorkType expectedWorkType26 = new WorkType("stf_24w_access_requests", "Access Requests - STF");
+        WorkType expectedWorkType27 = new WorkType("stf_24w_review_case", "Review Case - STF");
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
             expectedWorkType7, expectedWorkType8, expectedWorkType9,
             expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13,
             expectedWorkType14, expectedWorkType15, expectedWorkType16, expectedWorkType17,
-            expectedWorkType18, expectedWorkType19,expectedWorkType20
+            expectedWorkType18, expectedWorkType19, expectedWorkType20, expectedWorkType21,
+            expectedWorkType22, expectedWorkType23, expectedWorkType24, expectedWorkType25,
+            expectedWorkType26, expectedWorkType27
         ));
     }
 

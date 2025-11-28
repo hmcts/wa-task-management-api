@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TerminationProcessHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
@@ -70,6 +71,8 @@ class GetTaskTest extends CamundaHelpers {
     IdamTokenGenerator idamTokenGenerator;
     @Mock
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    @Mock
+    TerminationProcessHelper terminationProcessHelper;
 
     @Test
     void getTask_should_succeed_and_return_mapped_task() {
@@ -122,7 +125,8 @@ class GetTaskTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator,
+            terminationProcessHelper);
 
 
         taskId = UUID.randomUUID().toString();
