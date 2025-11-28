@@ -20,7 +20,6 @@ public class FlywayReplicaMigrationConfiguration {
     @Qualifier("replicaDataSource")
     private DataSource replicaDataSource;
 
-
     @Bean
     public FlywayMigrationStrategy multiDBMigrateStrategy() {
         return new FlywayMigrationStrategy() {
@@ -30,7 +29,7 @@ public class FlywayReplicaMigrationConfiguration {
                 flywayBase.migrate();
 
                 Flyway flywayReplica = modifyConfigForDataSource(flyway, replicaDataSource,
-                    "dbreplica/migration");
+                                                                 "dbreplica/migration");
                 flywayReplica.migrate();
 
             }
