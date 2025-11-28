@@ -992,7 +992,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
+        await()
             .until(
                 () -> {
                     List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -1053,7 +1053,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
+        await()
             .pollInterval(1, SECONDS)
             .atMost(10, SECONDS)
             .until(

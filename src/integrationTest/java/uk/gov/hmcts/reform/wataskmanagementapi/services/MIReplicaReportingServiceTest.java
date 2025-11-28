@@ -792,7 +792,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         createAndSaveThisTask(taskId, "someTaskName",
             CFTTaskState.valueOf(initialState), lastAction);
 
-        await().ignoreException(AssertionFailedError.class)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -1681,7 +1681,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
 
     private void checkHistory(String id, int records) {
-        await().ignoreException(AssertionFailedError.class)
+        await()
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList

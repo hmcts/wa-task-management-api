@@ -364,7 +364,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
+        await()
             .until(
                 () -> {
                     Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);
