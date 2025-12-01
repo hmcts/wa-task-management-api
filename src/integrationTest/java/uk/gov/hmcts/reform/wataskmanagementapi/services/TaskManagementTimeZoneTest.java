@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
@@ -62,7 +64,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -103,6 +104,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
+@Import(AwaitilityIntegrationTestConfig.class)
 class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     @MockitoBean
@@ -186,9 +188,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                 ZoneOffset.of("+01:00")).toZonedDateTime());
         }
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
@@ -364,9 +364,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);

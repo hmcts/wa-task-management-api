@@ -5,10 +5,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskReconfigurationTransactionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.time.LocalDate;
@@ -81,6 +82,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 @ExtendWith(OutputCaptureExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Import(AwaitilityIntegrationTestConfig.class)
 class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
 
     public static final String SYSTEM_USER_1 = "system_user1";
@@ -489,9 +491,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .untilAsserted(() -> {
                 List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
                 assertEquals(1, taskResourcesAfter.size());
@@ -754,9 +754,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .untilAsserted(() -> {
                 List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
@@ -993,9 +991,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -1056,9 +1052,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
@@ -1348,9 +1342,7 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .untilAsserted(() -> {
                 List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
                 taskResourcesAfter.forEach(task -> {
