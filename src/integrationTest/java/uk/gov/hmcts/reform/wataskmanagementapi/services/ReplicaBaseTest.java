@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDri
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
