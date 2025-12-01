@@ -1053,8 +1053,6 @@ class ExecuteReconfigurationTaskOperationControllerTest extends SpringBootIntegr
         );
 
         await()
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
             .until(
                 () -> {
                     List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
