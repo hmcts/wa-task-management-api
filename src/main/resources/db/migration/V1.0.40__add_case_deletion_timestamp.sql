@@ -1,0 +1,1 @@
+alter table tasks add column case_deletion_timestamp TIMESTAMP;
