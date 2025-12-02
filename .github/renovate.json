@@ -1,107 +1,24 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "schedule": "after 7am and before 11am every weekday",
-  "extends": [
-    "local>hmcts/.github:renovate-config"
-  ],
   "labels": [
     "dependencies"
   ],
-  "helmv3": {
-    "bumpVersion": "patch"
-  },
-  "regexManagers": [
-    {
-      "fileMatch": [
-        "^Dockerfile$"
-      ],
-      "matchStrings": [
-        "datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sARG .*?_VERSION=(?<currentValue>.*)\\s"
-      ]
+  "helm-requirements": {
+    "fileMatch": [
+      "\\Chart.yaml|requirements.yaml$"
+    ],
+    "aliases": {
+      "hmctspublic": "https://hmctspublic.azurecr.io/helm/v1/repo/"
     }
+  },
+  "extends": [
+    "local>hmcts/.github:renovate-config",
+    "local>hmcts/.github//renovate/automerge-minor"
   ],
-  "automergeSchedule": "after 8:30am and before 10:30am Monday to Thursday",
-  "prCreation": "not-pending",
-  "automergeType": "pr",
   "packageRules": [
     {
-      "matchDatasources": [
-        "terraform-module",
-        "terraform-provider"
-      ],
-      "prPriority": 10,
-      "automerge": false,
-      "groupName": "Terraform Upgrades",
-      "automergeSchedule": "after 8am and before 11am every fifth of Month"
-    },
-    {
-      "matchPackagePrefixes": [
-        "org.springframework",
-        "io.spring"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "prPriority": 80,
-      "automerge": false,
-      "groupName": "Spring Upgrade - Non Major",
-      "automergeSchedule": "after 8am and before 11am every Tuesday"
-    },
-    {
-      "matchPackagePatterns": [
-        "serenity",
-        "pitest",
-        "pact"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "prPriority": 20,
-      "automerge": false,
-      "groupName": "QA & Nightly Checks - Non Major",
-      "automergeSchedule": "after 8am and before 11am every first day of month"
-    },
-    {
-      "matchPackagePatterns": [
-        "hmcts:java-logging",
-        "log4j",
-        "slf4j"
-      ],
-      "prPriority": 30,
-      "groupName": "Logging Dependencies"
-    },
-    {
-      "matchPackagePatterns": [
-        "dependencycheck",
-        "sonarqube",
-        "checkstyle",
-        "jacoco"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "prPriority": 20,
-      "groupName": "Automated Checks - Non Major",
-      "automergeSchedule": "after 8am and before 11am every first day of month"
-    },
-    {
-      "matchPackagePrefixes": [
-        "org.assertj",
-        "org.junit",
-        "org.mockito",
-        "com.h2database",
-        "org.testcontainers"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "prPriority": 20,
-      "groupName": "Testing Dependencies - Non Major",
-      "automergeSchedule": "after 8am and before 11am every Monday"
+      "matchPackagePatterns": ["serenity", "pitest", "pact"],
+      "enabled": false
     }
   ]
 }
