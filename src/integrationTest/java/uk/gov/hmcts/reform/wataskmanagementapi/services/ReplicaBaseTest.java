@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReplicaTaskResourceRepository;
@@ -19,8 +20,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignm
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
@@ -29,6 +30,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
+@Import(AwaitilityIntegrationTestConfig.class)
 public abstract class ReplicaBaseTest {
     protected static final String TEST_REPLICA_DB_USER = "repl_user";
     protected static final String TEST_REPLICA_DB_PASS = "repl_user";
@@ -101,10 +103,7 @@ public abstract class ReplicaBaseTest {
 
     private boolean waitForReplication() {
 
-        await().ignoreException(AssertionFailedError.class)
-            .atLeast(5, SECONDS)
-            .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
+        await()
             .until(() -> miReportingService.hasReplicationStarted());
         return true;
     }

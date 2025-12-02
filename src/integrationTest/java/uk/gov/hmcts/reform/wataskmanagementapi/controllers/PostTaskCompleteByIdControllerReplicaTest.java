@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -37,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
@@ -52,7 +54,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
@@ -81,6 +82,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
+@Import(AwaitilityIntegrationTestConfig.class)
 public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
@@ -212,8 +214,6 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         );
 
         await()
-            .pollDelay(5, SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 List<ReportableTaskResource> reportableTaskList2
                     = miReportingServiceForTest.findByReportingTaskId(taskId);
@@ -230,8 +230,6 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         assertEquals(TaskAction.COMPLETED.getValue(), taskResourcePostComplete.get().getLastUpdatedAction());
 
         await()
-            .pollDelay(3, SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 List<TaskHistoryResource> taskHistoryResourceList
@@ -256,8 +254,6 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
             });
 
         await()
-            .pollDelay(3, SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 List<ReportableTaskResource> reportableTaskList

@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -55,6 +56,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -70,8 +72,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertNull;
@@ -103,6 +103,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.ID
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
+@Import(AwaitilityIntegrationTestConfig.class)
 class TaskManagementServiceTest {
 
     @Autowired
@@ -689,8 +690,6 @@ class TaskManagementServiceTest {
             verify(cftTaskDatabaseService).saveTask(taskResource);
 
             await()
-                .pollInterval(100, MILLISECONDS)
-                .atMost(5, SECONDS)
                 .untilAsserted(
                     () -> assertTrue(
                         output.getOut()
@@ -720,9 +719,6 @@ class TaskManagementServiceTest {
             verify(cftTaskDatabaseService, never()).saveTask(taskResource);
 
             await()
-                .pollDelay(100, MILLISECONDS)
-                .pollInterval(500, MILLISECONDS)
-                .atMost(5, SECONDS)
                 .untilAsserted(
                     () -> assertTrue(
                         output.getOut()
