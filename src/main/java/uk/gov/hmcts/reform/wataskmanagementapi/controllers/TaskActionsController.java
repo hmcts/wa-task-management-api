@@ -390,7 +390,7 @@ public class TaskActionsController extends BaseController {
                 deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef()
             );
 
-            status(HttpStatus.CREATED.value())
+            return status(HttpStatus.CREATED.value())
                     .cacheControl(CacheControl.noCache())
                     .build();
 
