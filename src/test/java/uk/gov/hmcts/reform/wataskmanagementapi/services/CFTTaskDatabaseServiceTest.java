@@ -445,18 +445,6 @@ class CFTTaskDatabaseServiceTest {
         assertEquals(1, actualTaskResource.size());
     }
 
-
-    @Test
-    void should_delete_tasks_by_task_ids() {
-        final List<String> taskIds = List.of("123", "456");
-        doNothing().when(taskResourceRepository).deleteAllById(taskIds);
-
-        cftTaskDatabaseService.deleteTasks(taskIds);
-
-        verify(taskResourceRepository, times(1))
-            .deleteAllById(taskIds);
-    }
-
     @Test
     void should_return_successfully_when_user_has_large_number_of_role_assignments() {
         final int logThreshold = 100;

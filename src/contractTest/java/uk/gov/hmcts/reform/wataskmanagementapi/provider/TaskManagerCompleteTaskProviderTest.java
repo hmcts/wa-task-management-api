@@ -58,7 +58,6 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService,
             completionProcessValidator,
             cancellationProcessValidator));
         if (context != null) {

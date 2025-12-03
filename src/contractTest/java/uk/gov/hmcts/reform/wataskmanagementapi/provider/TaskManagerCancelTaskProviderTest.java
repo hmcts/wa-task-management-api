@@ -38,7 +38,6 @@ public class TaskManagerCancelTaskProviderTest extends SpringBootContractProvide
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService,
             completionProcessValidator,
             cancellationProcessValidator
         ));

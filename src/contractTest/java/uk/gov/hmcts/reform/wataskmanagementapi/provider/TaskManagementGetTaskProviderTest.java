@@ -71,7 +71,6 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService,
             completionProcessValidator,
             cancellationProcessValidator
         ));

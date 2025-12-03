@@ -38,7 +38,6 @@ public class TaskManagerUnClaimTaskProviderTest extends SpringBootContractProvid
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService,
             completionProcessValidator,
             cancellationProcessValidator
         ));
