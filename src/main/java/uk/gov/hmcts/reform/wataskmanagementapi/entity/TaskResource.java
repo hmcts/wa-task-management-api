@@ -117,10 +117,6 @@ public class TaskResource implements Serializable {
     private String caseName;
     @Schema(name = "case_category")
     private String caseCategory;
-    @Schema(name = "case_deletion_timestamp")
-    @Column(name = "case_deletion_timestamp", columnDefinition = TIMESTAMP)
-    @JdbcTypeCode(Types.TIMESTAMP)
-    private OffsetDateTime caseDeletionTimestamp;
     private String jurisdiction;
     private String region;
     @Schema(name = "region_name")
