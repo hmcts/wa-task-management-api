@@ -70,4 +70,8 @@ class TaskDeletionServiceTest {
 
         assertThat(output.getOut().contains(String.format("Exception occurred:: %s", "some exception")));
     }
+
+    //TODO implement markTasksToDeleteByCaseId positive test method for new method in TasksDeletionService
+
+
 }

@@ -385,15 +385,14 @@ public class TaskActionsController extends BaseController {
             }
 
             verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
-            
+
             taskDeletionService.markTasksToDeleteByCaseId(
                 deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef()
             );
 
-            return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .cacheControl(CacheControl.noCache())
-                .build();
+            status(HttpStatus.CREATED.value())
+                    .cacheControl(CacheControl.noCache())
+                    .build();
 
         } catch (final Exception exception) {
             return buildErrorResponseEntityAndLogError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception);
