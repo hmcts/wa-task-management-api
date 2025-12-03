@@ -104,7 +104,7 @@ public class CFTTaskDatabaseService {
     }
 
     public void markTasksToDeleteByTaskId(final List<String> taskIds, OffsetDateTime timestamp) {
-        tasksRepository.updateTaskDeletionTimestampByTaskIds(taskIds, timestamp);
+        tasksRepository.updateTaskDeletionTimestampByTaskId(taskIds, timestamp);
     }
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {

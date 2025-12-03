@@ -41,7 +41,7 @@ public class TaskDeletionService {
                                    final String caseId,
                                    final OffsetDateTime timestamp) {
         try {
-            cftTaskDatabaseService.updateCaseDeletionTimestampByTaskIds(
+            cftTaskDatabaseService.markTasksToDeleteByTaskId(
                     getTaskIds(taskResourceCaseQueryBuilders), timestamp);
         } catch (final Exception exception) {
             log.error(String.format("Unable to mark to delete all tasks for case id: %s", caseId));
