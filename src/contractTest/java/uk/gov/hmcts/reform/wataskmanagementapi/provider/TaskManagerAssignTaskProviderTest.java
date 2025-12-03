@@ -38,7 +38,6 @@ public class TaskManagerAssignTaskProviderTest extends SpringBootContractProvide
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService,
             completionProcessValidator,
             cancellationProcessValidator
         ));
