@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureB
 import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSignatureBuilder;
 
 import java.sql.SQLException;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -103,8 +102,8 @@ public class CFTTaskDatabaseService {
         tasksRepository.deleteAllById(taskIds);
     }
 
-    public void markTasksToDeleteByTaskId(final List<String> taskIds) {
-        tasksRepository.updateTaskDeletionTimestampByTaskIds(taskIds, OffsetDateTime.now());
+    public void markTasksToDeleteByTaskId(final List<String> taskIds, OffsetDateTime timestamp) {
+        tasksRepository.updateTaskDeletionTimestampByTaskIds(taskIds, timestamp);
     }
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
