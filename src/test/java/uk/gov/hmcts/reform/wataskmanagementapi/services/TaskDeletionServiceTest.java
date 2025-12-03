@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBu
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -71,7 +72,41 @@ class TaskDeletionServiceTest {
         assertThat(output.getOut().contains(String.format("Exception occurred:: %s", "some exception")));
     }
 
-    //TODO implement markTasksToDeleteByCaseId positive test method for new method in TasksDeletionService
+    @Test
+    void shouldMarkTasksToDeleteByCaseId() {
+        final String caseId = "123";
+        final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder1 = mock(TaskResourceCaseQueryBuilder.class);
+        final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder2 = mock(TaskResourceCaseQueryBuilder.class);
 
+        when(cftTaskDatabaseService.findByTaskIdsByCaseId(caseId)).thenReturn(List.of(
+                taskResourceCaseQueryBuilder1,
+                taskResourceCaseQueryBuilder2
+        ));
 
+        when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
+        when(taskResourceCaseQueryBuilder2.getTaskId()).thenReturn("567");
+
+        taskDeletionService.markTasksToDeleteByCaseId(caseId);
+
+        verify(cftTaskDatabaseService, times(1)).findByTaskIdsByCaseId(caseId);
+        verify(cftTaskDatabaseService, times(1)).updateCaseDeletionTimestampByTaskIds(
+                List.of("234", "567"), any());
+    }
+
+    @Test
+    void shouldLogWhenMarkTasksToDeleteFails(CapturedOutput output) {
+        final String caseId = "123";
+        final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder1 = mock(TaskResourceCaseQueryBuilder.class);
+
+        when(cftTaskDatabaseService.findByTaskIdsByCaseId(caseId)).thenReturn(List.of(taskResourceCaseQueryBuilder1));
+        when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
+        doThrow(new RuntimeException("some exception"))
+                .when(cftTaskDatabaseService).updateCaseDeletionTimestampByTaskIds(List.of("234"), any());
+
+        taskDeletionService.markTasksToDeleteByCaseId(caseId);
+
+        assertThat(output.getOut()).contains(String.format(
+                "Unable to mark to delete all tasks for case id: %s", caseId));
+        assertThat(output.getOut()).contains("Exception occurred: some exception");
+    }
 }
