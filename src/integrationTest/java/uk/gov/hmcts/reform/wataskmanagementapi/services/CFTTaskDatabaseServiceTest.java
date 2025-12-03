@@ -91,7 +91,8 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals(taskResource.getTaskName(), updatedTaskResource.get().getTaskName());
         assertEquals(taskResource.getTaskType(), updatedTaskResource.get().getTaskType());
         assertEquals(ASSIGNED, updatedTaskResource.get().getState());
-        cftTaskDatabaseService.deleteTasks(List.of(taskResource.getTaskId()));
+        //cftTaskDatabaseService.deleteTasks(List.of(taskResource.getTaskId()));
+        //Need to understand why line above is there, delete logic is being removed
     }
 
     @Test

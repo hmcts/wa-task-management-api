@@ -13,9 +13,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+//TODO: remove entire class if there isn't a use for it with the new update action behavior
 
 @Provider("wa_task_management_api_delete_task_by_id")
 public class TaskManagerDeleteTaskProviderTest extends SpringBootContractProviderBaseTest {
@@ -36,7 +37,6 @@ public class TaskManagerDeleteTaskProviderTest extends SpringBootContractProvide
             accessControlService,
             systemDateProvider,
             clientAccessControlService,
-            taskDeletionService,
             completionProcessValidator,
             cancellationProcessValidator
         ));
@@ -51,7 +51,6 @@ public class TaskManagerDeleteTaskProviderTest extends SpringBootContractProvide
     }
 
     private void setInitMock() {
-        doNothing().when(taskDeletionService).deleteTasksByCaseId(any());
         UserInfo userInfo = mock((UserInfo.class));
         when(userInfo.getUid()).thenReturn("someUserId");
         when(clientAccessControlService.hasPrivilegedAccess(any())).thenReturn(true);
