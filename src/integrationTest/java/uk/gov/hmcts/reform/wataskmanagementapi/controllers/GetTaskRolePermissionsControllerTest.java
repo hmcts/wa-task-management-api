@@ -152,7 +152,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
             ));
     }
 
-    @Disabled
+    @Disabled("Bad interaction with new task table columnms - to be investigated separately")
     @Test
     void should_return_403_with_role_assignment_verification_problem_when_task_does_not_have_required_permissions()
         throws Exception {
