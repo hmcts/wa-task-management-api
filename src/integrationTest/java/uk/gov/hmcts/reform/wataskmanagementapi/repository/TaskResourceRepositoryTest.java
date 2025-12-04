@@ -10,6 +10,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -56,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Import(AwaitilityIntegrationTestConfig.class)
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
@@ -140,7 +143,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         ));
 
         await()
-            .atMost(10, SECONDS)
             .untilAsserted(() -> {
                 checkTaskWasSaved(taskResource.getTaskId());
                 checkTaskWasSaved(otherTaskResource.getTaskId());
@@ -258,26 +260,25 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     @CsvSource(value = {
         "EXUI_CASE-EVENT_COMPLETION, EXUI_CASE_EVENT_COMPLETION",
         "EXUI_USER_COMPLETION, EXUI_USER_COMPLETION",
+        "EXUI_USER_CANCELLATION, EXUI_USER_CANCELLATION",
+        "CASE_EVENT_CANCELLATION, EXUI_CASE_EVENT_CANCELLATION",
         "NULL,NULL"
     }, nullValues = "NULL")
-    void given_task_is_created_when_find_by_id_and_return_termination_process(String terminationProcess,
-                                                                              String expectedTerminationProcess) {
-
-        log.info("Termination Process: {}", terminationProcess);
-        log.info("Expected Termination Process: {}", expectedTerminationProcess);
+    void should_return_termination_process_when_task_is_created_and_by_id(
+        String terminationProcess, TerminationProcess expectedTerminationProcess) {
         String taskId = UUID.randomUUID().toString();
-        TerminationProcess terminationProcessEnum;
+        Optional<TerminationProcess> terminationProcessEnum;
         if (terminationProcess != null) {
             terminationProcessEnum = TerminationProcess.fromValue(terminationProcess);
         } else {
-            terminationProcessEnum = null;
+            terminationProcessEnum = Optional.empty();
         }
 
         TaskResource taskResource = createTask(taskId, "tribunal-caseofficer", "IA",
                                                "startAppeal", "someAssignee", "1623278362430412",
                                                CFTTaskState.ASSIGNED);
 
-        taskResource.setTerminationProcess(terminationProcessEnum);
+        taskResource.setTerminationProcess(terminationProcessEnum.orElse(null));
 
         taskResourceRepository.save(taskResource);
 
@@ -286,7 +287,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertAll(
             () -> assertTrue(taskResourceInDb.isPresent()),
             () -> assertEquals(taskId, taskResourceInDb.get().getTaskId()),
-            () -> assertEquals(terminationProcessEnum, taskResourceInDb.get().getTerminationProcess())
+            () -> assertEquals(expectedTerminationProcess, taskResourceInDb.get().getTerminationProcess())
         );
 
     }

@@ -225,6 +225,27 @@ public class Common {
 
     }
 
+    public TestVariables setupWATaskWithCancellationProcessAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        Map<String, CamundaValue<?>> processVariables =
+            given.createDefaultTaskVariables(caseId, WA_JURISDICTION,
+                                             WA_CASE_TYPE, taskType, DEFAULT_TASK_NAME, additionalProperties);
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType,
+                                 DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
+
+    }
+
     public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType, String taskName) {
 
         String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");

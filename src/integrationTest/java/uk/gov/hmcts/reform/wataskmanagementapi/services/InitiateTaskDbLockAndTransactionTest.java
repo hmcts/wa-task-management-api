@@ -10,6 +10,7 @@ import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -22,13 +23,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -41,7 +42,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -63,6 +63,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Import(AwaitilityIntegrationTestConfig.class)
 public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationBaseTest {
 
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
@@ -108,7 +109,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private TerminationProcessHelper terminationProcessHelper;
     @MockitoBean
     private ConfigureTaskService configureTaskService;
     @MockitoBean
@@ -149,7 +150,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator,
+            terminationProcessHelper);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());
@@ -222,9 +224,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         //expect one call to succeed and the another to fail
         await()
-            .ignoreExceptions()
-            .pollInterval(2, TimeUnit.SECONDS)
-            .atMost(10, TimeUnit.SECONDS)
             .until(() -> expectedFailureCalls(
                 futureResults,
                 1,
