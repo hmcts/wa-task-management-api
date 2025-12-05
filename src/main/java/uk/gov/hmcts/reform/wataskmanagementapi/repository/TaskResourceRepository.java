@@ -143,12 +143,14 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     @Query(value = SHOW_WAL_LEVEL, nativeQuery = true)
     String showWalLevel();
- 
+
     @Modifying
     @Transactional
-    @Query("update TaskResource t " +
-           "set t.caseDeletionTimestamp = :timestamp " +
-           "where t.taskId in :taskIds")
-    int updateTaskDeletionTimestampByTaskIds(@Param("taskIds") List<String> taskIds,
-                                             @Param("timestamp") OffsetDateTime timestamp);
+    @Query("""
+    update tasks t
+    set t.case_deletion_timestamp = CURRENT_TIMESTAMP
+    where t.taskId in :taskIds
+    """)
+    void updateCaseDeletionTimestamp(@Param("taskIds") List<Long> taskIds);
+    int updateTaskDeletionTimestampByTaskIds(@Param("taskIds") List<String> taskIds);
 }

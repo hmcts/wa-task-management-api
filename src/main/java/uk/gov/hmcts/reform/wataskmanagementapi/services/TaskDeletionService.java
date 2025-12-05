@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBuilder;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
@@ -31,18 +30,16 @@ public class TaskDeletionService {
     }
 
     public void markTasksToDeleteByCaseId(String caseId) {
-        OffsetDateTime timestamp = OffsetDateTime.now();
         final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders = cftTaskDatabaseService
                 .findByTaskIdsByCaseId(caseId);
-        markToDeleteTasks(taskResourceCaseQueryBuilders, caseId, timestamp);
+        markToDeleteTasks(taskResourceCaseQueryBuilders, caseId);
     }
 
     private void markToDeleteTasks(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders,
-                                   final String caseId,
-                                   final OffsetDateTime timestamp) {
+                                   final String caseId) {
         try {
             cftTaskDatabaseService.markTasksToDeleteByTaskId(
-                    getTaskIds(taskResourceCaseQueryBuilders), timestamp);
+                    getTaskIds(taskResourceCaseQueryBuilders));
         } catch (final Exception exception) {
             log.error(String.format("Unable to mark to delete all tasks for case id: %s", caseId));
             log.error("Exception occurred: {}", exception.getMessage(), exception);

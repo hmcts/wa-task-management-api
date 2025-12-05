@@ -10,6 +10,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBuilder;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -90,7 +91,7 @@ class TaskDeletionServiceTest {
 
         verify(cftTaskDatabaseService, times(1)).findByTaskIdsByCaseId(caseId);
         verify(cftTaskDatabaseService, times(1)).markTasksToDeleteByTaskId(
-                List.of("234", "567"), any());
+                List.of("234", "567"));
     }
 
     @Test
@@ -101,7 +102,7 @@ class TaskDeletionServiceTest {
         when(cftTaskDatabaseService.findByTaskIdsByCaseId(caseId)).thenReturn(List.of(taskResourceCaseQueryBuilder1));
         when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
         doThrow(new RuntimeException("some exception"))
-                .when(cftTaskDatabaseService).markTasksToDeleteByTaskId(List.of("234"), any());
+                .when(cftTaskDatabaseService).markTasksToDeleteByTaskId(List.of("234"));
 
         taskDeletionService.markTasksToDeleteByCaseId(caseId);
 
