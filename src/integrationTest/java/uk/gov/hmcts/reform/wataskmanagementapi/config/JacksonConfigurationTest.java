@@ -8,10 +8,10 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 
 import java.io.IOException;
 
@@ -26,12 +26,12 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public class JacksonConfigurationTest {
 
     @Autowired
-    protected Jackson2ObjectMapperBuilder mapperBuilder;
+    protected IntegrationTestUtils integrationTestUtils;
 
     @Test
     void default_object_mapper_should_read_snake_case() throws IOException {
 
-        ObjectMapper objectMapper = mapperBuilder.build();
+        ObjectMapper objectMapper = integrationTestUtils.getObjectMapper();
 
         String jsonContent = "{"
                              + "\"id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","
@@ -51,7 +51,7 @@ public class JacksonConfigurationTest {
     @Test
     void default_object_mapper_should_convert_enums_to_defaults() throws IOException {
 
-        ObjectMapper objectMapper = mapperBuilder.build();
+        ObjectMapper objectMapper = integrationTestUtils.getObjectMapper();
 
         String jsonContent = "{"
                              + "\"id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","

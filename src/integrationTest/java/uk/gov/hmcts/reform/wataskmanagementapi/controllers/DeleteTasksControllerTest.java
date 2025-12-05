@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,7 +89,6 @@ public class DeleteTasksControllerTest {
     }
 
     @Test
-    @Disabled
     void shouldDeleteTasksByCaseId(final CapturedOutput output) throws Exception {
         final String caseId = "1615817621013640";
 
