@@ -386,7 +386,9 @@ public class TaskActionsController extends BaseController {
 
             verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
 
-            taskDeletionService.deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+            taskDeletionService.markTasksToDeleteByCaseId(
+                deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef()
+            );
 
             return status(HttpStatus.CREATED.value())
                     .cacheControl(CacheControl.noCache())

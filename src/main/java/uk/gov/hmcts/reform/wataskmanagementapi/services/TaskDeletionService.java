@@ -29,6 +29,23 @@ public class TaskDeletionService {
         filterAllUnterminatedTasksAndLogError(taskResourceCaseQueryBuilders, caseId);
     }
 
+    public void markTasksToDeleteByCaseId(String caseId) {
+        final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders = cftTaskDatabaseService
+                .findByTaskIdsByCaseId(caseId);
+        markToDeleteTasks(taskResourceCaseQueryBuilders, caseId);
+    }
+
+    private void markToDeleteTasks(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders,
+                                   final String caseId) {
+        try {
+            cftTaskDatabaseService.markTasksToDeleteByTaskId(
+                    getTaskIds(taskResourceCaseQueryBuilders));
+        } catch (final Exception exception) {
+            log.error(String.format("Unable to mark to delete all tasks for case id: %s", caseId));
+            log.error("Exception occurred: {}", exception.getMessage(), exception);
+        }
+    }
+
     private void deleteTasks(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders,
                              final String caseId) {
         try {
