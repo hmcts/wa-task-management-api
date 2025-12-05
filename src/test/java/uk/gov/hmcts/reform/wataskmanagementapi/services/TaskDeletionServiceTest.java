@@ -89,7 +89,7 @@ class TaskDeletionServiceTest {
         taskDeletionService.markTasksToDeleteByCaseId(caseId);
 
         verify(cftTaskDatabaseService, times(1)).findByTaskIdsByCaseId(caseId);
-        verify(cftTaskDatabaseService, times(1)).updateCaseDeletionTimestampByTaskIds(
+        verify(cftTaskDatabaseService, times(1)).markTasksToDeleteByTaskId(
                 List.of("234", "567"), any());
     }
 
@@ -101,7 +101,7 @@ class TaskDeletionServiceTest {
         when(cftTaskDatabaseService.findByTaskIdsByCaseId(caseId)).thenReturn(List.of(taskResourceCaseQueryBuilder1));
         when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
         doThrow(new RuntimeException("some exception"))
-                .when(cftTaskDatabaseService).updateCaseDeletionTimestampByTaskIds(List.of("234"), any());
+                .when(cftTaskDatabaseService).markTasksToDeleteByTaskId(List.of("234"), any());
 
         taskDeletionService.markTasksToDeleteByCaseId(caseId);
 
