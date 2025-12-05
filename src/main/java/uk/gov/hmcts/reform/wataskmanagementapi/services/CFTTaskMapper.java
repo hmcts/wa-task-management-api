@@ -218,7 +218,9 @@ public class CFTTaskMapper {
             taskResource.getReconfigureRequestTime() == null ? null
                 : taskResource.getReconfigureRequestTime().toZonedDateTime(),
             taskResource.getLastReconfigurationTime() == null ? null
-                : taskResource.getLastReconfigurationTime().toZonedDateTime()
+                : taskResource.getLastReconfigurationTime().toZonedDateTime(),
+            taskResource.getCaseDeletionTimestamp() == null ? null
+                : taskResource.getCaseDeletionTimestamp().toZonedDateTime()
         );
 
         if (taskResource.getTerminationProcess() != null) {
