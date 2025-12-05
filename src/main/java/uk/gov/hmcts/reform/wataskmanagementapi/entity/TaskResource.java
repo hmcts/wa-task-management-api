@@ -196,6 +196,11 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "termination_process_enum")
     private TerminationProcess terminationProcess;
 
+    @Schema(name = "case_deletion_timestamp")
+    @Column(columnDefinition = TIMESTAMP)
+    @JdbcTypeCode(Types.TIMESTAMP)
+    private OffsetDateTime caseDeletionTimestamp;
+
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
     }
@@ -568,6 +573,10 @@ public class TaskResource implements Serializable {
 
     public void setTerminationProcess(TerminationProcess terminationProcess) {
         this.terminationProcess = terminationProcess;
+    }
+
+    public void setCaseDeletionTimestamp(OffsetDateTime caseDeletionTimestamp) {
+        this.caseDeletionTimestamp = caseDeletionTimestamp;
     }
 
     public TaskResource(String taskId,

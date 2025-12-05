@@ -232,6 +232,9 @@ public class Task {
     @Schema(name = "termination_process", description = "Termination Process")
     private String terminationProcess;
 
+    @Schema(name = "case_deletion_timestamp", description = "Case deletion timestamp")
+    private ZonedDateTime caseDeletionTimestamp;
+
     public Task(String id,
                 String name,
                 String type,
@@ -265,7 +268,8 @@ public class Task {
                 ZonedDateTime nextHearingDate,
                 Integer minorPriority,
                 Integer majorPriority,
-                ZonedDateTime priorityDate) {
+                ZonedDateTime priorityDate,
+                ZonedDateTime caseDeletionTimestamp) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -302,6 +306,7 @@ public class Task {
         this.minorPriority = minorPriority;
         this.majorPriority = majorPriority;
         this.priorityDate = priorityDate;
+        this.caseDeletionTimestamp = caseDeletionTimestamp;
     }
 
     public Task(String id,
@@ -339,7 +344,8 @@ public class Task {
                 Integer majorPriority,
                 ZonedDateTime priorityDate,
                 ZonedDateTime reconfigureRequestTime,
-                ZonedDateTime lastReconfigurationTime) {
+                ZonedDateTime lastReconfigurationTime,
+                ZonedDateTime caseDeletionTimestamp) {
         this(id,
             name,
             type,
@@ -373,7 +379,8 @@ public class Task {
             nextHearingDate,
             minorPriority,
             majorPriority,
-            priorityDate
+            priorityDate,
+            caseDeletionTimestamp
         );
         this.reconfigureRequestTime = reconfigureRequestTime;
         this.lastReconfigurationTime = lastReconfigurationTime;
@@ -529,6 +536,14 @@ public class Task {
 
     public void setTerminationProcess(String terminationProcess) {
         this.terminationProcess = terminationProcess;
+    }
+
+    public ZonedDateTime getCaseDeletionTimestamp() {
+        return caseDeletionTimestamp;
+    }
+
+    public void setCaseDeletionTimestamp(ZonedDateTime caseDeletionTimestamp) {
+        this.caseDeletionTimestamp = caseDeletionTimestamp;
     }
 }
 
