@@ -394,6 +394,8 @@ public class TaskActionsController extends BaseController {
                     .cacheControl(CacheControl.noCache())
                     .build();
 
+        } catch (final InvalidRequestException invalidRequestException) {
+            return buildErrorResponseEntityAndLogError(HttpStatus.BAD_REQUEST.value(), invalidRequestException);
         } catch (final Exception exception) {
             return buildErrorResponseEntityAndLogError(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception);
         }
