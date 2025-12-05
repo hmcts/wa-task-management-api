@@ -1,11 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -15,9 +21,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@ExtendWith(SpringExtension.class)
+@EnableCaching
+@Import({IdamService.class})
 @ActiveProfiles({"integration"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class IdamServiceUserInfoCacheTest {
 
     private final String bearerAccessToken1 = "some bearer access token1";
@@ -49,5 +56,13 @@ public class IdamServiceUserInfoCacheTest {
 
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken1);
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken2);
+    }
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public CacheManager cacheManager() {
+            return new ConcurrentMapCacheManager("idam_user_info_cache");
+        }
     }
 }

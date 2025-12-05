@@ -1,21 +1,37 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class JacksonConfigurationTest extends SpringBootIntegrationBaseTest {
+public class JacksonConfigurationTest {
+
+    @Autowired
+    protected IntegrationTestUtils integrationTestUtils;
 
     @Test
     void default_object_mapper_should_read_snake_case() throws IOException {
+
+        ObjectMapper objectMapper = integrationTestUtils.getObjectMapper();
 
         String jsonContent = "{"
                              + "\"id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","
@@ -24,7 +40,8 @@ public class JacksonConfigurationTest extends SpringBootIntegrationBaseTest {
                              + "}";
 
         //ObjectMapper has default configuration as set in JacksonConfiguration.class
-        final ObjectMapperTestObject actual = objectMapper.readValue(jsonContent, ObjectMapperTestObject.class);
+        final ObjectMapperTestObject actual =
+            objectMapper.readValue(jsonContent, ObjectMapperTestObject.class);
 
         assertEquals("00d1ebd4-06ef-4b53-9571-b138981dc8e0", actual.getId());
         assertEquals(ActorIdType.IDAM, actual.getActorIdType());
@@ -34,6 +51,8 @@ public class JacksonConfigurationTest extends SpringBootIntegrationBaseTest {
     @Test
     void default_object_mapper_should_convert_enums_to_defaults() throws IOException {
 
+        ObjectMapper objectMapper = integrationTestUtils.getObjectMapper();
+
         String jsonContent = "{"
                              + "\"id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","
                              + "\"actor_id_type\":\"testUnkownValue\","
@@ -41,7 +60,8 @@ public class JacksonConfigurationTest extends SpringBootIntegrationBaseTest {
                              + "}";
 
         //ObjectMapper has default configuration as set in JacksonConfiguration.class
-        final ObjectMapperTestObject actual = objectMapper.readValue(jsonContent, ObjectMapperTestObject.class);
+        final ObjectMapperTestObject actual =
+            objectMapper.readValue(jsonContent, ObjectMapperTestObject.class);
 
         assertEquals("00d1ebd4-06ef-4b53-9571-b138981dc8e0", actual.getId());
         assertEquals(ActorIdType.UNKNOWN, actual.getActorIdType());
