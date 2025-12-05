@@ -106,8 +106,8 @@ class TaskDeletionServiceTest {
 
         taskDeletionService.markTasksToDeleteByCaseId(caseId);
 
-        assertThat(output.getOut()).contains(String.format(
+        assertThat(output.getErr()).contains(String.format(
                 "Unable to mark to delete all tasks for case id: %s", caseId));
-        assertThat(output.getOut()).contains(": some exception");
+        assertThat(output.getErr()).contains(": some exception");
     }
 }
