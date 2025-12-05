@@ -146,11 +146,6 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     @Modifying
     @Transactional
-    @Query("""
-    update tasks t
-    set t.case_deletion_timestamp = CURRENT_TIMESTAMP
-    where t.taskId in :taskIds
-    """)
-    void updateCaseDeletionTimestamp(@Param("taskIds") List<Long> taskIds);
-    int updateTaskDeletionTimestampByTaskIds(@Param("taskIds") List<String> taskIds);
+    @Query("update tasks t set t.case_deletion_timestamp = CURRENT_TIMESTAMP where t.taskId in :taskIds")
+    void updateTaskDeletionTimestampByTaskIds(@Param("taskIds") List<String> taskIds);
 }
