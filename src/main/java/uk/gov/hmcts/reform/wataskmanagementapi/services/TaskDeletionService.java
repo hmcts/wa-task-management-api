@@ -30,7 +30,7 @@ public class TaskDeletionService {
         filterAllUnterminatedTasksAndLogError(taskResourceCaseQueryBuilders, caseId);
     }
 
-    public int markTasksToDeleteByCaseId(String caseId) {
+    public void markTasksToDeleteByCaseId(String caseId) {
         OffsetDateTime timestamp = OffsetDateTime.now();
         final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders = cftTaskDatabaseService
                 .findByTaskIdsByCaseId(caseId);
