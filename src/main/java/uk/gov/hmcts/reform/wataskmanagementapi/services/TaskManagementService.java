@@ -545,17 +545,13 @@ public class TaskManagementService {
             camundaService.deleteCftTaskState(taskId);
             return;
         }
-        //Terminate the task if found in the database
+        //Terminate the task if found in the databasef
         if (task != null) {
             //Update cft task and terminate reason
-            task.setTerminationReason(terminateInfo.getTerminateReason());
             boolean isCamundaStateUpdated = false;
             try {
-                TaskAction taskAction = switch (terminateInfo.getTerminateReason()) {
-                    case "cancelled" -> AUTO_CANCEL;
-                    case "completed" -> TERMINATE;
-                    default -> TERMINATE_EXCEPTION;
-                };
+                task.setTerminationReason(terminateInfo.getTerminateReason());
+                TaskAction taskAction = TERMINATE;
                 setSystemUserTaskActionAttributes(task, taskAction);
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
