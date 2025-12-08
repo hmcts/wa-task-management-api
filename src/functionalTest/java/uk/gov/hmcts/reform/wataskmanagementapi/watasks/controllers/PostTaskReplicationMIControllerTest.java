@@ -768,7 +768,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("Terminate"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo(null))
                     .body("reportable_task_list.get(0).termination_reason", equalTo("cancelled"))
                     .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time", notNullValue())
@@ -1237,7 +1237,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("Terminate"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
                     .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time", notNullValue())
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
@@ -1506,7 +1506,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.size()", equalTo(1))
                     .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
                     .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("Terminate"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
                     .body("reportable_task_list.get(0).termination_process", nullValue());
             });
 
@@ -1605,7 +1605,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).completed_date", nullValue())
                     .body("reportable_task_list.get(0).completed_date_time", nullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("Terminate"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("USER_CANCELLED"))
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time_days", nullValue())
                     .body("reportable_task_list.get(0).wait_time", nullValue())
