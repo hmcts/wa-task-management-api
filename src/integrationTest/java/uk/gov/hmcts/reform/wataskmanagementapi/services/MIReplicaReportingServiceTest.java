@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.opentest4j.AssertionFailedError;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.replica.ReplicaTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -38,7 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
@@ -59,6 +59,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
+@Import(AwaitilityIntegrationTestConfig.class)
 class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
 
@@ -66,9 +67,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
@@ -94,9 +93,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     void should_save_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveTask();
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -143,9 +140,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
         log.info("Operation {} and saved taskResource", operation);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
@@ -203,9 +198,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -265,9 +258,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
         checkHistory(savedTaskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     log.info("Found reportable task");
@@ -397,9 +388,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
         checkHistory(taskId, 2);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -430,9 +419,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -462,9 +449,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                         CFTTaskState.valueOf(taskState), lastUpdatedAction, "someAssignee");
         checkHistory(taskId, 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(20, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -492,10 +477,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     }
                 });
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollDelay(2, SECONDS)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -522,9 +504,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource taskResource = createAndSaveAndAssignTask();
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -563,9 +543,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResourceRepository.save(taskResource);
         checkHistory(taskId, 2);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(2, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -591,9 +569,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-06-09T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -616,9 +592,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                         "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -643,9 +617,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             null, "someRoleCategory", "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -670,9 +642,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                         "someLocation", "someRoleCategory", null);
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -714,9 +684,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResource.setState(ASSIGNED);
         taskResourceRepository.save(taskResource);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -752,9 +720,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         checkHistory(taskId, 3);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -775,9 +741,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -807,9 +771,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
 
         if (lastAction.equals("Complete")) {
-            await().ignoreException(AssertionFailedError.class)
-                .pollInterval(1, SECONDS)
-                .atMost(10, SECONDS)
+            await()
                 .until(
                     () -> {
                         List<ReportableTaskResource> reportableTaskList
@@ -849,9 +811,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResourceRepository.save(taskResource);
         checkHistory(taskResource.getTaskId(), 4);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -895,9 +855,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             reportableTaskRepository,
             taskAssignmentsRepository,
             subscriptionCreatorForTest);
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
+        await()
             .until(() -> {
                 assertFalse(service.isPublicationPresent());
                 return true;
@@ -926,9 +884,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         createAndSaveThisTask(taskId, "someTaskName",
             CFTTaskState.valueOf(initialState), lastAction);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -1168,9 +1124,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         createAndSaveTaskWithLastReconfigurationTime(taskId,
             "SecondTask", CFTTaskState.valueOf(state), lastAction);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -1196,9 +1150,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                         "someTaskName");
 
         List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
@@ -1218,9 +1170,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
 
         List<OffsetDateTime> origReportableTaskReportRefreshTimes = new ArrayList<>();
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -1247,9 +1197,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         Assertions.assertTrue(optionalReplicaTaskResource.isPresent());
         OffsetDateTime taskRequestRefreshTime = optionalReplicaTaskResource.get().getReportRefreshRequestTime();
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -1310,9 +1258,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
 
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        tasks.forEach(task -> await()
             .until(
                 () -> {
 
@@ -1335,9 +1281,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 }));
 
         List<OffsetDateTime> origReportableTaskReportRefreshTimes = new ArrayList<>();
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        tasks.forEach(task -> await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -1452,9 +1396,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     .orElse(OffsetDateTime.now().minusYears(1L));
 
             expectedMarkedTasks.forEach(taskId ->
-                await().ignoreException(AssertionFailedError.class)
-                .pollInterval(1, SECONDS)
-                .atMost(30, SECONDS)
+                await()
                 .until(
                     () -> {
                         List<ReportableTaskResource> reportableTaskList
@@ -1831,9 +1773,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
 
     private void checkHistory(String id, int records) {
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
@@ -1865,9 +1805,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             tasks.add(taskResource);
         });
 
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(30, SECONDS)
+        tasks.forEach(task -> await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -1916,9 +1854,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         miReplicaDBDao.callRefreshReportTasks(maxRowsToProcess);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(5, SECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReplicaTaskResource> replicaTaskResourceList =
