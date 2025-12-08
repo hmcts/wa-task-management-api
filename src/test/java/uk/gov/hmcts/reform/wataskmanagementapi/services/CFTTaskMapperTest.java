@@ -1436,7 +1436,8 @@ class CFTTaskMapperTest {
             Set.of("lastUpdatedUser", "taskName", "dueDateTime", "caseCategory", "securityClassification",
                    "lastReconfigurationTime", "reconfigureRequestTime", "autoAssigned", "state", "taskSystem",
                    "indexed", "lastUpdatedTimestamp", "lastUpdatedAction", "taskRoleResources", "executionTypeCode",
-                   "businessContext", "terminationReason", "notes", "assignmentExpiry", "workTypeResource","caseDeletionTimestamp");
+                   "businessContext", "terminationReason", "notes", "assignmentExpiry", "workTypeResource",
+                   "caseDeletionTimestamp");
         expectedOnlyInDbTaskAttributes.forEach(s -> {
             assertTrue(dbTaskAttributes.containsKey(s));
         }
