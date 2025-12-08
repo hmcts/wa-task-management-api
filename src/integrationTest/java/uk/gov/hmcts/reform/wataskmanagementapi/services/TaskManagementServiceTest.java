@@ -699,7 +699,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(randomTaskId);
             TaskResource taskResource = savedTaskResource.orElse(null);
             assertNotNull(taskResource);
-            TerminateInfo terminateInfo = new TerminateInfo(null);
+            TerminateInfo terminateInfo = null;
             assertThatThrownBy(() -> taskManagementService.terminateTask(
                 randomTaskId,
                 terminateInfo
