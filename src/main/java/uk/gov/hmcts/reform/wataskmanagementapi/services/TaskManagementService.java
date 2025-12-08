@@ -85,9 +85,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE_EXCEPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
