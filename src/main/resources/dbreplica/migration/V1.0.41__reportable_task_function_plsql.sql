@@ -271,19 +271,16 @@ FETCH NEXT FROM task_history_cursor INTO
           l_rt_agent_name := l_updated_by;
         end if;
 
-        if l_state = 'TERMINATED' then
+        if l_update_action = 'Terminate' then
           if l_rt_agent_name is null then
               l_rt_agent_name := l_updated_by;
           end if;
-
           if l_rt_outcome is null then
-              l_rt_outcome :=
-                  case l_termination_reason
-                      when 'completed' then 'Completed'
-                      else 'Cancelled'
-                  end;
-           end if;
+              l_rt_outcome := 'Cancelled';
+          end if;
         end if;
+
+
 
         update cft_task_db.reportable_task
         set   task_name = l_task_name,
