@@ -297,9 +297,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                         UNASSIGNED, "Configure", "someAssignee");
         checkHistory(taskId, 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -322,9 +320,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         log.info("Updated task Resource {}", savedTaskResource);
 
         checkHistory(taskId, 2);
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
@@ -345,9 +341,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         savedTaskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         taskResourceRepository.save(savedTaskResource);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
