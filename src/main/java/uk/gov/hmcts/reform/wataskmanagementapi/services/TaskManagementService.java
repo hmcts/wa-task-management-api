@@ -543,7 +543,7 @@ public class TaskManagementService {
             camundaService.deleteCftTaskState(taskId);
             return;
         }
-        //Terminate the task if found in the databasef
+        //Terminate the task if found in the database
         if (task != null) {
             //Update cft task and terminate reason
             boolean isCamundaStateUpdated = false;
