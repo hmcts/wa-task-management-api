@@ -827,7 +827,7 @@ public class PostTaskReplicationMIControllerTest {
             .body("task_assignments_list.get(0).location", equalTo("765324"))
             .body("task_assignments_list.get(0).assignment_start", notNullValue())
             .body("task_assignments_list.get(0).assignment_end", notNullValue())
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("CANCELLED"))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("TERMINATED"))
             .body("task_assignments_list.get(0).assignee", notNullValue())
             .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"));
 
