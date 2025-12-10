@@ -1814,7 +1814,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).completed_date", nullValue())
                     .body("reportable_task_list.get(0).completed_date_time", nullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("CANCELLED"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("USER_CANCELLED"))
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time_days", nullValue())
                     .body("reportable_task_list.get(0).wait_time", nullValue())
