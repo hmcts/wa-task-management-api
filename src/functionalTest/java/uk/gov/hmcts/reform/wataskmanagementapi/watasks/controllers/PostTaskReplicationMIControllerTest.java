@@ -704,7 +704,7 @@ public class PostTaskReplicationMIControllerTest {
                                                           .get("reportable_task_list.get(0).updated"))));
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
@@ -740,7 +740,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("task_history_list.get(3).updated_by", notNullValue())
                     .body("task_history_list.get(3).updated", notNullValue())
                     .body("task_history_list.get(3).update_action", equalTo("Terminate"))
-                    .body("task_history_list.get(3).termination_reason", equalTo("cancelled"));
+                    .body("task_history_list.get(3).termination_reason", equalTo("deleted"));
 
             });
 
@@ -769,7 +769,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
                     .body("reportable_task_list.get(0).final_state_label", equalTo(null))
-                    .body("reportable_task_list.get(0).termination_reason", equalTo("cancelled"))
+                    .body("reportable_task_list.get(0).termination_reason", equalTo("deleted"))
                     .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time", notNullValue())
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
@@ -1169,7 +1169,7 @@ public class PostTaskReplicationMIControllerTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
@@ -1465,7 +1465,7 @@ public class PostTaskReplicationMIControllerTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
@@ -1544,7 +1544,7 @@ public class PostTaskReplicationMIControllerTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(

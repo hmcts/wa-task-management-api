@@ -20,7 +20,7 @@ begin
             then 'UNCLAIMED'
         when l_update_action in ('AutoUnassign','Unassign')
             then 'UNASSIGNED'
-        when l_update_action in ('AutoCancel','Cancel')
+        when l_update_action in ('Cancel')
             then 'CANCELLED'
         else l_state
     end;
