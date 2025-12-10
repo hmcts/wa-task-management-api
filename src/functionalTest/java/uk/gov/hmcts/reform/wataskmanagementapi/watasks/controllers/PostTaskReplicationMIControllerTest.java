@@ -1809,7 +1809,7 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).assignee", equalTo(null))
                     .body("reportable_task_list.get(0).updated_by", notNullValue())
                     .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("Terminated"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).due_date", notNullValue())
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).completed_date", nullValue())
