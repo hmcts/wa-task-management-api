@@ -281,10 +281,10 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @ParameterizedTest
     @CsvSource(value = {
         "COMPLETED, completedUserId, Complete, terminatedUserId, Terminate, completed, completedUserId, Completed",
-        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, TerminateException, deleted, cancelledUserId, Cancelled",
-        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, TerminateException, cancelled, cancelledUserId,"
+        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, Terminate, deleted, cancelledUserId, Cancelled",
+        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, Terminate, cancelled, cancelledUserId,"
             + "Cancelled",
-        "UNCONFIGURED, userId, TerminateException, terminatedUserId, TerminateException, deleted, terminatedUserId,"
+        "UNCONFIGURED, userId, Unconfigured, terminatedUserId, Terminate, deleted, terminatedUserId,"
             + "Cancelled"
     })
     void should_save_task_and_get_outcome_and_agent_name_from_reportable_task(
