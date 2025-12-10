@@ -1744,7 +1744,7 @@ public class PostTaskReplicationMIControllerTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
         TestAuthenticationCredentials caseWorkerWithCancellationEnabled2 =
@@ -1809,12 +1809,12 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).assignee", equalTo(null))
                     .body("reportable_task_list.get(0).updated_by", notNullValue())
                     .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminated"))
                     .body("reportable_task_list.get(0).due_date", notNullValue())
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).completed_date", nullValue())
                     .body("reportable_task_list.get(0).completed_date_time", nullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("CANCELLED"))
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time_days", nullValue())
                     .body("reportable_task_list.get(0).wait_time", nullValue())
