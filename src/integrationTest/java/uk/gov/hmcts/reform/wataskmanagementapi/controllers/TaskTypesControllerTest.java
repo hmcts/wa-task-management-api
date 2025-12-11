@@ -6,16 +6,19 @@ import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
@@ -29,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -49,8 +53,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles({"integration"})
+@SpringBootTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
+class TaskTypesControllerTest {
     private static final String ENDPOINT_PATH = "/task/task-types";
     private static final String DMN_NAME = "Task Types DMN";
 
@@ -71,6 +78,9 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private DmnEvaluationService dmnEvaluationService;
+
+    @Autowired
+    protected MockMvc mockMvc;
 
     private ServiceMocks mockServices;
     private UserInfo mockedUserInfo;

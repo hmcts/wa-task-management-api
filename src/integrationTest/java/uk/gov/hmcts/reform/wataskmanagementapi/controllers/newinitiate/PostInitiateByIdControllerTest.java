@@ -6,19 +6,23 @@ import feign.RequestTemplate;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -40,6 +44,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -63,6 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -93,8 +99,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
+class PostInitiateByIdControllerTest {
     private static final String ENDPOINT_PATH = "/task/%s/initiation";
     private static String ENDPOINT_BEING_TESTED;
     @MockitoBean
@@ -118,6 +128,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     private CaseDetails caseDetails;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
     private String taskId;
 
     @BeforeEach
@@ -165,7 +179,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
+                .content(integrationTestUtils.asJsonString(req))
         ).andExpectAll(
             status().isForbidden(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -251,7 +265,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(asJsonString(req))
+                        .content(integrationTestUtils.asJsonString(req))
                 ).andExpectAll(
                     status().isCreated(),
                     content().contentType(APPLICATION_JSON_VALUE)
@@ -282,7 +296,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(someOtherReq)))
+                .content(integrationTestUtils.asJsonString(someOtherReq)))
             .andExpectAll(
                 status().isServiceUnavailable(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
@@ -324,7 +338,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(print())
             .andExpectAll(status().isInternalServerError());
 
@@ -372,7 +386,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andDo(print())
             .andExpectAll(
                 status().isBadGateway(),
@@ -456,7 +470,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -564,7 +578,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().is(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -654,7 +668,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -775,7 +789,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -895,7 +909,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1014,7 +1028,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1130,7 +1144,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1253,7 +1267,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1362,7 +1376,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -1437,7 +1451,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(
                 status().isBadRequest(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -1513,7 +1527,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(status().isCreated(),
                           content().contentType(APPLICATION_JSON_VALUE),
                           jsonPath("$.task_id").value(taskId),
