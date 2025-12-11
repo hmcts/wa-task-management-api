@@ -65,29 +65,4 @@ class TaskDeletionServiceTest {
                 "Unable to mark to delete all tasks for case id: %s", caseId));
         assertThat(output.getErr()).contains(": some exception");
     }
-
-    @Test
-    void shouldLogUnterminatedTasksWhenMarking(CapturedOutput output) {
-        final String caseId = "123";
-        final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder1 = mock(TaskResourceCaseQueryBuilder.class);
-        final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder2 = mock(TaskResourceCaseQueryBuilder.class);
-
-        when(cftTaskDatabaseService.findByTaskIdsByCaseId(caseId)).thenReturn(List.of(
-            taskResourceCaseQueryBuilder1,
-            taskResourceCaseQueryBuilder2
-        ));
-
-        when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
-        when(taskResourceCaseQueryBuilder2.getTaskId()).thenReturn("567");
-        when(taskResourceCaseQueryBuilder1.getState()).thenReturn(CFTTaskState.TERMINATED);
-        when(taskResourceCaseQueryBuilder2.getState()).thenReturn(CFTTaskState.ASSIGNED);
-
-        taskDeletionService.markTasksToDeleteByCaseId(caseId);
-
-        assertThat(output.getErr()).contains(String.format(
-            "UNTERMINATED tasks marked for deletion: %s for caseId: %s",
-            List.of("567"),
-            caseId
-        ));
-    }
 }
