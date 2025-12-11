@@ -367,7 +367,7 @@ public class TaskActionsController extends BaseController {
     }
 
 
-    @Operation(description = "Deletes all tasks related to a case.")
+    @Operation(description = "Marks all tasks related to a case for deletion.")
     @ApiResponse(responseCode = "201", description = CREATED)
     @ApiResponse(responseCode = "400", description = BAD_REQUEST)
     @ApiResponse(responseCode = "403", description = FORBIDDEN)

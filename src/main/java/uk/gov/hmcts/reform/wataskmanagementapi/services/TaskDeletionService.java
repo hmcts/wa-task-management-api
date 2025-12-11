@@ -21,18 +21,11 @@ public class TaskDeletionService {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
     }
 
-    public void deleteTasksByCaseId(final String caseId) {
-        final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders = cftTaskDatabaseService
-                .findByTaskIdsByCaseId(caseId);
-
-        deleteTasks(taskResourceCaseQueryBuilders, caseId);
-        filterAllUnterminatedTasksAndLogError(taskResourceCaseQueryBuilders, caseId);
-    }
-
     public void markTasksToDeleteByCaseId(String caseId) {
         final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders = cftTaskDatabaseService
                 .findByTaskIdsByCaseId(caseId);
         markToDeleteTasks(taskResourceCaseQueryBuilders, caseId);
+        filterAllUnterminatedTasksAndLogError(taskResourceCaseQueryBuilders, caseId);
     }
 
     private void markToDeleteTasks(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders,
@@ -42,16 +35,6 @@ public class TaskDeletionService {
                     getTaskIds(taskResourceCaseQueryBuilders));
         } catch (final Exception exception) {
             log.error(String.format("Unable to mark to delete all tasks for case id: %s", caseId));
-            log.error("Exception occurred: {}", exception.getMessage(), exception);
-        }
-    }
-
-    private void deleteTasks(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders,
-                             final String caseId) {
-        try {
-            cftTaskDatabaseService.deleteTasks(getTaskIds(taskResourceCaseQueryBuilders));
-        } catch (final Exception exception) {
-            log.error(String.format("Unable to delete all tasks for case id: %s", caseId));
             log.error("Exception occurred: {}", exception.getMessage(), exception);
         }
     }
@@ -66,7 +49,11 @@ public class TaskDeletionService {
                 .toList();
 
         if (!unterminatedTaskIds.isEmpty()) {
-            log.error(String.format("Deleted some UNTERMINATED tasks: %s for caseId: %s", unterminatedTaskIds, caseId));
+            log.error(String.format(
+                "UNTERMINATED tasks marked for deletion: %s for caseId: %s",
+                unterminatedTaskIds,
+                caseId
+            ));
         }
     }
 }

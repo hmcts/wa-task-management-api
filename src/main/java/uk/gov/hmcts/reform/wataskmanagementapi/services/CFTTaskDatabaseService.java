@@ -99,10 +99,6 @@ public class CFTTaskDatabaseService {
         return tasksRepository.save(task);
     }
 
-    public void deleteTasks(final List<String> taskIds) {
-        tasksRepository.deleteAllById(taskIds);
-    }
-
     public void markTasksToDeleteByTaskId(final List<String> taskIds) {
         tasksRepository.updateTaskDeletionTimestampByTaskIds(taskIds);
     }
