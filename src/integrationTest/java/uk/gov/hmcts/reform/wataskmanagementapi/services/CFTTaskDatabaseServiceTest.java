@@ -77,8 +77,6 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals(UNCONFIGURED, updatedTaskResource.get().getState());
     }
 
-    /* Need to discuss why the delete endpoint is used at the end
-    *
     @Test
     void should_succeed_and_find_a_task_by_id_and_state() {
         TaskResource taskResource = createAndSaveTask(ASSIGNED);
@@ -93,9 +91,8 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals(taskResource.getTaskName(), updatedTaskResource.get().getTaskName());
         assertEquals(taskResource.getTaskType(), updatedTaskResource.get().getTaskType());
         assertEquals(ASSIGNED, updatedTaskResource.get().getState());
-        cftTaskDatabaseService.deleteTasks(List.of(taskResource.getTaskId()));
     }
-    */
+
 
     @Test
     void should_return_empty_task_when_state_not_in_assigned_or_unassigned_find_by_id_and_state() {

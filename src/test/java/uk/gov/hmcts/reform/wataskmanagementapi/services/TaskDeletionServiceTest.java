@@ -43,6 +43,9 @@ class TaskDeletionServiceTest {
         when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
         when(taskResourceCaseQueryBuilder2.getTaskId()).thenReturn("567");
 
+        when(taskResourceCaseQueryBuilder1.getState()).thenReturn(CFTTaskState.TERMINATED);
+        when(taskResourceCaseQueryBuilder2.getState()).thenReturn(CFTTaskState.CANCELLED);
+
         doNothing().when(cftTaskDatabaseService).markTasksToDeleteByTaskId(List.of("234", "567"));
 
         taskDeletionService.markTasksToDeleteByCaseId(caseId);
