@@ -15,7 +15,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
@@ -66,7 +65,6 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Import(AwaitilityIntegrationTestConfig.class)
 @Slf4j
 class TaskResourceRepositoryTest {

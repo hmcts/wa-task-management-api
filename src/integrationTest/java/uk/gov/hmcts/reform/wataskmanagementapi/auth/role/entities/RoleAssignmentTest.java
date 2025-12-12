@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -22,7 +22,6 @@ import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
@@ -52,7 +51,8 @@ class RoleAssignmentTest {
                              + "}";
 
         //ObjectMapper has default configuration as set in JacksonConfiguration.class
-        final RoleAssignment expected = integrationTestUtils.getObjectMapper()
+        ObjectMapper localObjectMapper = integrationTestUtils.getObjectMapper().copy();
+        final RoleAssignment expected = localObjectMapper
             .setPropertyNamingStrategy(LOWER_CAMEL_CASE)
             .readValue(jsonContent, RoleAssignment.class);
 

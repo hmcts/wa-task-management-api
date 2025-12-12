@@ -15,7 +15,7 @@ public class AwaitilityIntegrationTestConfig {
     public void configureAwaitility() {
         Awaitility.ignoreExceptionByDefault(AssertionFailedError.class);
         Awaitility.setDefaultTimeout(Duration.ofSeconds(60));
-        Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
+        Awaitility.setDefaultPollInterval(Duration.ofMillis(100));
         Awaitility.setDefaultPollDelay(Duration.ZERO);
     }
 }

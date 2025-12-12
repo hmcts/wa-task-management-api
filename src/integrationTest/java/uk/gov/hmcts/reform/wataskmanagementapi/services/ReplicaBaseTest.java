@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,12 +104,6 @@ public abstract class ReplicaBaseTest {
         await()
             .until(() -> miReportingService.hasReplicationStarted());
         return true;
-    }
-
-    @AfterAll
-    void tearDown() {
-        container.stop();
-        containerReplica.stop();
     }
 
 }

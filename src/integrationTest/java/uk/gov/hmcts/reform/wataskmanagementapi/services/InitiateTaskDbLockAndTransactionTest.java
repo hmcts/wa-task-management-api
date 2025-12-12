@@ -6,15 +6,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -25,12 +22,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 
@@ -70,7 +65,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Import(AwaitilityIntegrationTestConfig.class)
 public class InitiateTaskDbLockAndTransactionTest {
 
@@ -124,8 +118,6 @@ public class InitiateTaskDbLockAndTransactionTest {
     private TaskAutoAssignmentService taskAutoAssignmentService;
     @Autowired
     private TransactionHelper transactionHelper;
-    @Captor
-    private ArgumentCaptor<TaskResource> taskResourceCaptor;
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
     private RoleAssignmentVerificationService roleAssignmentVerification;
@@ -133,11 +125,7 @@ public class InitiateTaskDbLockAndTransactionTest {
     private EntityManager entityManager;
     @Mock
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-    @Mock
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
-    @Mock
-    private List<TaskOperationPerformService> taskOperationPerformServices;
     @Mock
     private IdamTokenGenerator idamTokenGenerator;
 
