@@ -105,9 +105,9 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
 
         final List<TaskResourceCaseQueryBuilder> deletedTasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
 
-        assertThat(deletedTasks.size()).isEqualTo(0);
-        assertTrue(output.getOut().contains(String.format("Deleted some UNTERMINATED tasks: %s for caseId: %s",
-                Arrays.asList(taskId1, taskId3), caseId)));
+        assertThat(deletedTasks.size()).isEqualTo(3);
+        assertTrue(output.getOut().contains(String.format("UNTERMINATED tasks marked for deletion: %s for caseId: %s",
+                Arrays.asList(taskId1,taskId3), caseId)));
     }
 
     @Test
