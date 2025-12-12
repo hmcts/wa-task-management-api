@@ -47,6 +47,7 @@ class CFTTaskDatabaseServiceTest {
     @BeforeEach
     void setUp() {
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
+        taskResourceRepository.deleteAll();
     }
 
     @Test
