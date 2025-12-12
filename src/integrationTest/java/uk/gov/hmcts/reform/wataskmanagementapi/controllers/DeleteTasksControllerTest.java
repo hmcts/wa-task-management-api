@@ -2,15 +2,19 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBuilder;
@@ -24,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassifica
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -34,6 +39,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -43,8 +49,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @ExtendWith(OutputCaptureExtension.class)
-public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
+public class DeleteTasksControllerTest {
     @MockitoBean
     private IdamWebApi idamWebApi;
     @MockitoBean
@@ -61,6 +71,10 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
 
     private ServiceMocks mockServices;
 
@@ -97,8 +111,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc.perform(
                         post("/task/delete")
-                                .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
-                                        caseId))))
+                                .content(integrationTestUtils
+                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpectAll(status().isCreated()).andReturn();
@@ -119,8 +133,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(true);
         mockMvc.perform(
                         post("/task/delete")
-                                .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
-                                        caseId))))
+                                .content(integrationTestUtils
+                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
@@ -136,8 +150,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(false);
         mockMvc.perform(
                         post("/task/delete")
-                                .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
-                                        caseId))))
+                                .content(integrationTestUtils
+                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isForbidden())
@@ -151,8 +165,8 @@ public class DeleteTasksControllerTest extends SpringBootIntegrationBaseTest {
 
         mockMvc.perform(
                         post("/task/delete")
-                                .content(asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(
-                                        caseId))))
+                                .content(integrationTestUtils
+                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isServiceUnavailable())
