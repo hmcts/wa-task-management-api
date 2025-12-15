@@ -97,11 +97,7 @@ public class ReplicaIntegrationTestUtils {
 
     private boolean waitForReplication() {
 
-        await().ignoreException(AssertionFailedError.class)
-            .atLeast(5, SECONDS)
-            .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
-            .until(() -> miReportingService.hasReplicationStarted());
+        await().until(() -> miReportingService.hasReplicationStarted());
         return true;
     }
 
