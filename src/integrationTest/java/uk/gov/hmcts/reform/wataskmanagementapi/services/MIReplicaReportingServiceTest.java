@@ -63,6 +63,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.ENVIRONMENT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.TEST_PRIMARY_DB_PASS;
@@ -327,6 +328,8 @@ class MIReplicaReportingServiceTest {
         await()
             .until(
                 () -> {
+                    log.info("Found reportable task");
+
                     List<ReportableTaskResource> reportableTaskList
                         = replicaIntegrationTestUtils.getMiReportingServiceForTest()
                         .findByReportingTaskId(savedTaskResource.getTaskId());
@@ -341,6 +344,88 @@ class MIReplicaReportingServiceTest {
                     assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
                     return true;
                 });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "COMPLETED, completedUserId, Complete, terminatedUserId, Terminate, completed, completedUserId, Completed",
+        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, Terminate, deleted, cancelledUserId, Cancelled",
+        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, Terminate, cancelled, cancelledUserId,"
+            + "Cancelled",
+        "UNCONFIGURED, userId, Unconfigured, terminatedUserId, Terminate, deleted, terminatedUserId,"
+            + "Cancelled"
+    })
+    void should_save_task_and_get_outcome_and_agent_name_from_reportable_task(
+        String stateBeforeTermination, String lastUpdatedUserBeforeTermination, String updateActionBeforeTermination,
+        String lastUpdatedUser, String finalUpdateAction, String terminationReason,
+        String expectedAgentName, String expectedOutcome) {
+        String taskId = UUID.randomUUID().toString();
+        // Create and save initial task resource with UNASSIGNED state
+        TaskResource savedTaskResource = createAndSaveThisTask(taskId, "someTaskName",
+                                        UNASSIGNED, "Configure", "someAssignee");
+        checkHistory(taskId, 1);
+
+        await()
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(UNASSIGNED.getValue(), reportableTaskList.get(0).getState());
+                    return true;
+                });
+        log.info("Updating task to state: {}", stateBeforeTermination);
+        savedTaskResource.setState(CFTTaskState.valueOf(stateBeforeTermination));
+        savedTaskResource.setLastUpdatedUser(lastUpdatedUserBeforeTermination);
+        savedTaskResource.setLastUpdatedAction(updateActionBeforeTermination);
+        savedTaskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+
+        taskResourceRepository.save(savedTaskResource);
+        log.info("Updated task Resource {}", savedTaskResource);
+
+        checkHistory(taskId, 2);
+        await()
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(stateBeforeTermination, reportableTaskList.get(0).getState());
+                    return true;
+                });
+
+        savedTaskResource.setState(TERMINATED);
+        savedTaskResource.setLastUpdatedUser(lastUpdatedUser);
+        savedTaskResource.setLastUpdatedAction(finalUpdateAction);
+        savedTaskResource.setTerminationReason(terminationReason);
+        savedTaskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        taskResourceRepository.save(savedTaskResource);
+
+        await()
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(TERMINATED.getValue(), reportableTaskList.get(0).getState());
+                    assertEquals(expectedAgentName, reportableTaskList.get(0).getAgentName());
+                    assertEquals(expectedOutcome, reportableTaskList.get(0).getOutcome());
+                    return true;
+                });
+
+
     }
 
     @ParameterizedTest
@@ -382,8 +467,10 @@ class MIReplicaReportingServiceTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "COMPLETED,EXUI_CASE-EVENT_COMPLETION,Automated",
-        "COMPLETED,EXUI_USER_COMPLETION,Manual",
+        "COMPLETED,EXUI_CASE-EVENT_COMPLETION,Automated Completion",
+        "COMPLETED,EXUI_USER_COMPLETION,Manual Completion",
+        "CANCELLED,CASE_EVENT_CANCELLATION,Automated Cancellation",
+        "CANCELLED,EXUI_USER_CANCELLATION,Manual Cancellation",
         "COMPLETED,,"
     })
     void should_save_task_and_get_transformed_termination_process_label_from_reportable_task(
