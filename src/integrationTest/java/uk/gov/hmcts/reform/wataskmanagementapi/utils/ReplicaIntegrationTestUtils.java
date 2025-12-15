@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.opentest4j.AssertionFailedError;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
@@ -13,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDri
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j

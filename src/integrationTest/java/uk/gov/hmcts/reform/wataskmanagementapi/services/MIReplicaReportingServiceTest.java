@@ -369,7 +369,7 @@ class MIReplicaReportingServiceTest {
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -392,7 +392,7 @@ class MIReplicaReportingServiceTest {
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -413,7 +413,7 @@ class MIReplicaReportingServiceTest {
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
