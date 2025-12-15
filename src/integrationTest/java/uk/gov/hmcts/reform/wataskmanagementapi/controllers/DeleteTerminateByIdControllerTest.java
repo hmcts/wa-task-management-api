@@ -164,7 +164,7 @@ class DeleteTerminateByIdControllerTest {
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
             assertEquals("cancelled", taskInDb.get().getTerminationReason());
             assertEquals(SYSTEM_USER_1, taskInDb.get().getLastUpdatedUser());
-            assertEquals(TaskAction.AUTO_CANCEL.getValue(), taskInDb.get().getLastUpdatedAction());
+            assertEquals(TaskAction.TERMINATE.getValue(), taskInDb.get().getLastUpdatedAction());
             assertNotNull(taskInDb.get().getLastUpdatedTimestamp());
         }
 
@@ -302,7 +302,7 @@ class DeleteTerminateByIdControllerTest {
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
             assertEquals("deleted", taskInDb.get().getTerminationReason());
             assertEquals(SYSTEM_USER_1, taskInDb.get().getLastUpdatedUser());
-            assertEquals(TaskAction.TERMINATE_EXCEPTION.getValue(), taskInDb.get().getLastUpdatedAction());
+            assertEquals(TaskAction.TERMINATE.getValue(), taskInDb.get().getLastUpdatedAction());
             assertNotNull(taskInDb.get().getLastUpdatedTimestamp());
         }
     }

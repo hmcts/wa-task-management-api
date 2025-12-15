@@ -162,7 +162,7 @@ class TerminateTaskTest extends CamundaHelpers {
             assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
             assertEquals("cancelled", taskResource.getTerminationReason());
             assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
-            assertEquals(TaskAction.AUTO_CANCEL.getValue(), taskResource.getLastUpdatedAction());
+            assertEquals(TaskAction.TERMINATE.getValue(), taskResource.getLastUpdatedAction());
             assertNotNull(taskResource.getLastUpdatedTimestamp());
             verify(camundaService, times(1)).deleteCftTaskState(taskId);
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
