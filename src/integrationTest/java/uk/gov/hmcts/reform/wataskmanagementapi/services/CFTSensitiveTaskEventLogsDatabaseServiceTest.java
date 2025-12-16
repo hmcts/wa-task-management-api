@@ -40,7 +40,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTI
 @DataJpaTest
 @Import(ExecutorServiceConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
 @Sql("/scripts/wa/get_task_data.sql")
 public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
 

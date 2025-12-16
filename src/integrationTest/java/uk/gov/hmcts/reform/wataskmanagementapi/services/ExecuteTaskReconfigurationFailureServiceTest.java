@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
 @Sql("/scripts/wa/reconfigure_task_data.sql")
 @ExtendWith(OutputCaptureExtension.class)
 public class ExecuteTaskReconfigurationFailureServiceTest {

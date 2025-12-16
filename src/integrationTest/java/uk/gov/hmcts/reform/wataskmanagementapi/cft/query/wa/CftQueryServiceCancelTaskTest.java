@@ -39,9 +39,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JU
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(AllowedJurisdictionConfiguration.class)
-@Testcontainers
 @Sql("/scripts/wa/cancel_task_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceCancelTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.CANCEL);

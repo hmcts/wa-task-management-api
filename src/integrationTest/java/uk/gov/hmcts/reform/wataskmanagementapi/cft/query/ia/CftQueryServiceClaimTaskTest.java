@@ -41,9 +41,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JU
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(AllowedJurisdictionConfiguration.class)
-@Testcontainers
 @Sql("/scripts/ia/task_claim_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceClaimTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();

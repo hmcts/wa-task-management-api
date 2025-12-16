@@ -46,9 +46,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(AllowedJurisdictionConfiguration.class)
-@Testcontainers
 @Sql("/scripts/wa/complete_task_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceCompleteTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = List.of(OWN, EXECUTE);

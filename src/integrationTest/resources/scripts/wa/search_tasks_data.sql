@@ -1,3 +1,6 @@
+delete from cft_task_db.tasks;
+delete from cft_task_db.task_roles;
+
 /*
 GrantType.STANDARD - Classification.PUBLIC - roleName: tribunal-caseworker
  */

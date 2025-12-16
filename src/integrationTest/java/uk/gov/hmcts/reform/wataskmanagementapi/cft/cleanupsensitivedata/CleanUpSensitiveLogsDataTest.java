@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutorService;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(ExecutorServiceConfig.class)
-@Testcontainers
 @Sql("/scripts/cleanup/data.sql")
 @Slf4j
 public class CleanUpSensitiveLogsDataTest {

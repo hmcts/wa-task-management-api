@@ -98,7 +98,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Sql(scripts = "/scripts/search_task_work_types.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class PostTaskSearchControllerTest {
 

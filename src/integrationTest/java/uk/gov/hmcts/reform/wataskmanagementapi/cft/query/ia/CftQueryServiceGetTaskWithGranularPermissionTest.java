@@ -54,9 +54,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @DataJpaTest
 @Import(AllowedJurisdictionConfiguration.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
 @Sql("/scripts/ia/get_task_granular_permission_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceGetTaskWithGranularPermissionTest {
 
     @MockitoBean

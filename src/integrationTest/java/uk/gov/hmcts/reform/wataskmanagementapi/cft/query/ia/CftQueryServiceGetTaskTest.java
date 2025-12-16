@@ -50,9 +50,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @DataJpaTest
 @Import(AllowedJurisdictionConfiguration.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
 @Sql("/scripts/ia/get_task_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceGetTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();

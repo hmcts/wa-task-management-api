@@ -41,17 +41,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JU
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(AllowedJurisdictionConfiguration.class)
-@Testcontainers
 @Sql("/scripts/ia/complete_task_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceCompleteTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
     @MockitoBean
     private CamundaService camundaService;
-    @Autowired
-    private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
     @Autowired

@@ -40,9 +40,7 @@ import static java.util.Collections.emptyList;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(AllowedJurisdictionConfiguration.class)
-@Testcontainers
 @Sql("/scripts/authorise_user_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceAuthoriseUserTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();

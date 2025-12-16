@@ -1,3 +1,6 @@
+delete from cft_task_db.tasks;
+delete from cft_task_db.task_roles;
+
 insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id,
                                case_name, case_type_id, created,
                                description, due_date_time, has_warnings, jurisdiction, location, location_name,

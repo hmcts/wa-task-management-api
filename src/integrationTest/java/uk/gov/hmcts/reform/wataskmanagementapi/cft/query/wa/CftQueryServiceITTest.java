@@ -77,10 +77,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 @DataJpaTest
 @Import(AllowedJurisdictionConfiguration.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
 @Slf4j
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Disabled
 public class CftQueryServiceITTest {
 

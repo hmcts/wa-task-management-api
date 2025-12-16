@@ -55,9 +55,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SECONDA
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(AllowedJurisdictionConfiguration.class)
-@Testcontainers
 @Sql("/scripts/wa/assign_task_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceAssignTaskTest {
 
     @Mock
