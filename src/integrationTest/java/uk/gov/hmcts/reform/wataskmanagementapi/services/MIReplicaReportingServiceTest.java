@@ -577,7 +577,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         "UNASSIGNED,Unassign,UNASSIGNED, null",
         "UNASSIGNED,AutoUnassign,UNASSIGNED, null",
         "UNASSIGNED,Unclaim,UNCLAIMED, null",
-        "ASSIGNED,AutoCancel,CANCELLED, AUTO_CANCELLED",
+        "TERMINATED,Terminate,TERMINATED, TERMINATED",
         "ASSIGNED,Cancel,CANCELLED, USER_CANCELLED",
     })
     void should_save_task_and_check_task_assignments(String newState, String lastAction, String endReason,
