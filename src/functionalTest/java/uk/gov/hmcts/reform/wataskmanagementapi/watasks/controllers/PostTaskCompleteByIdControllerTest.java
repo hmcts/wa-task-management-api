@@ -182,13 +182,24 @@ public class PostTaskCompleteByIdControllerTest {
             result.then().assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
 
+            TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+                new TerminateInfo("completed")
+            );
+            result = taskFunctionalTestsApiUtils.getRestApiActions().delete(
+                "/task/{task-id}",
+                taskId,
+                terminateTaskRequest,
+                caseWorkerWithCompletionEnabled.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+
             taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
                 taskId, "termination_process", terminationProcess, caseWorkerWithCompletionEnabled.getHeaders()
             );
-            taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
-                taskVariables.getProcessInstanceId(), "taskState", "completed");
             taskFunctionalTestsApiUtils.getAssertions().taskStateWasUpdatedInDatabase(
-                taskId, "completed", caseWorkerWithCompletionEnabled.getHeaders());
+                taskId, "terminated", caseWorkerWithCompletionEnabled.getHeaders());
 
             taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
         }
