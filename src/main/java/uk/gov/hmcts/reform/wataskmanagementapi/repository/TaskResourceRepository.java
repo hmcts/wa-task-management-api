@@ -44,8 +44,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     String GET_TASK_ID_BY_CASE_ID = "select c.task_id AS taskid, c.state AS state from {h-schema}tasks c where "
            + "c.case_id=:caseId";
 
-    String MARK_TASK_FOR_DELETION = "update tasks t set t.case_deletion_timestamp = CURRENT_TIMESTAMP"
-            + "where t.taskId in :taskIds";
+    String MARK_TASK_FOR_DELETION = "update {h-schema}tasks t set case_deletion_timestamp = CURRENT_TIMESTAMP"
+            + " where t.task_id in :taskIds";
 
     String SHOW_WAL_LEVEL = "SHOW wal_level;";
 

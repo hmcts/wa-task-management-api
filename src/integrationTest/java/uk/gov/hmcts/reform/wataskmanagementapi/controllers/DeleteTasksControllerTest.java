@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
@@ -78,6 +80,8 @@ public class DeleteTasksControllerTest {
     MockMvc mockMvc;
     @Autowired
     IntegrationTestUtils integrationTestUtils;
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
 
     private ServiceMocks mockServices;
 
@@ -89,6 +93,11 @@ public class DeleteTasksControllerTest {
                 camundaServiceApi,
                 roleAssignmentServiceApi
         );
+    }
+
+    @AfterEach
+    void tearDown() {
+        taskResourceRepository.deleteAll();
     }
 
     @Test
@@ -104,9 +113,12 @@ public class DeleteTasksControllerTest {
         insertDummyTaskInDb(taskId3, caseId, TERMINATED);
 
         final List<TaskResourceCaseQueryBuilder> tasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
-        assertThat(tasks.get(0).getTaskId()).isEqualTo(taskId1);
-        assertThat(tasks.get(1).getTaskId()).isEqualTo(taskId2);
-        assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
+
+        assertThat(tasks.size()).isEqualTo(3);
+
+        assertThat(tasks.get(0).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(1).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(2).getTaskId()).isIn(taskId1, taskId2, taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -135,7 +147,7 @@ public class DeleteTasksControllerTest {
     }
 
     @Test
-    void shouldLogErrorForUnassignedTasksWhenDeleteIsCalled(final CapturedOutput output) throws Exception {
+    void shouldLogErrorForNonTerminatedTasksWhenDeleteIsCalled(final CapturedOutput output) throws Exception {
         final String caseId = "1615817621013640";
 
         final String taskId1 = UUID.randomUUID().toString();
@@ -147,9 +159,12 @@ public class DeleteTasksControllerTest {
         insertDummyTaskInDb(taskId3, caseId, UNASSIGNED);
 
         final List<TaskResourceCaseQueryBuilder> tasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
-        assertThat(tasks.get(0).getTaskId()).isEqualTo(taskId1);
-        assertThat(tasks.get(1).getTaskId()).isEqualTo(taskId2);
-        assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
+
+        assertThat(tasks.size()).isEqualTo(3);
+
+        assertThat(tasks.get(0).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(1).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(2).getTaskId()).isIn(taskId1, taskId2, taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
