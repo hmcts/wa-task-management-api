@@ -28,7 +28,7 @@ public class TaskDeletionService {
         filterAllUnterminatedTasksAndLogError(taskResourceCaseQueryBuilders, caseId);
     }
 
-    public void markToDeleteTasks(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders,
+    private void markToDeleteTasks(final List<TaskResourceCaseQueryBuilder> taskResourceCaseQueryBuilders,
                                   final String caseId) {
         try {
             cftTaskDatabaseService.markTasksToDeleteByTaskId(
