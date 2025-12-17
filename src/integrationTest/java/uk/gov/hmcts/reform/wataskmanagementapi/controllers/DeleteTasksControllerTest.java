@@ -101,7 +101,7 @@ public class DeleteTasksControllerTest {
     }
 
     @Test
-    void shouldCaseDeletionTimestampPopulatedWhenDeleteIsCalled() throws Exception {
+    void shouldPopulateCaseDeletionTimestampWhenDeleteByCaseIdIsCalled() throws Exception {
         final String caseId = "1615817621013640";
 
         final String taskId1 = UUID.randomUUID().toString();
