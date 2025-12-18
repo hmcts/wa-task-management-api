@@ -16,13 +16,13 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 public class ReplicaIntegrationTestUtils {
-    protected static final String TEST_REPLICA_DB_USER = "repl_user";
-    protected static final String TEST_REPLICA_DB_PASS = "repl_user";
+    public static final String TEST_REPLICA_DB_USER = "repl_user";
+    public static final String TEST_REPLICA_DB_PASS = "repl_user";
 
-    protected static final String TEST_PRIMARY_DB_USER = "wa_user";
-    protected static final String TEST_PRIMARY_DB_PASS = "wa_password";
-    protected static final String TEST_PUBLICATION_URL = "postgresql://cft_task_db:5432";
-    protected static final String ENVIRONMENT = "local-arm-arch";
+    public static final String TEST_PRIMARY_DB_USER = "wa_user";
+    public static final String TEST_PRIMARY_DB_PASS = "wa_password";
+    public static final String TEST_PUBLICATION_URL = "postgresql://cft_task_db:5432";
+    public static final String ENVIRONMENT = "local-arm-arch";
 
     protected TaskResourceRepository taskResourceRepository;
     protected TaskHistoryResourceRepository taskHistoryResourceRepository;

@@ -65,12 +65,12 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.ENVIRONMENT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.TEST_PRIMARY_DB_PASS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.TEST_PRIMARY_DB_USER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.TEST_PUBLICATION_URL;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.TEST_REPLICA_DB_PASS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest.TEST_REPLICA_DB_USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.ENVIRONMENT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_PRIMARY_DB_PASS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_PRIMARY_DB_USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_PUBLICATION_URL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_REPLICA_DB_PASS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_REPLICA_DB_USER;
 
 /**
  * We test logical replication in here.
