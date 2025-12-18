@@ -47,6 +47,7 @@ class CFTTaskDatabaseServiceTest {
     @BeforeEach
     void setUp() {
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
+        taskResourceRepository.deleteAll();
     }
 
     @Test
@@ -99,8 +100,8 @@ class CFTTaskDatabaseServiceTest {
         assertEquals(taskResource.getTaskName(), updatedTaskResource.get().getTaskName());
         assertEquals(taskResource.getTaskType(), updatedTaskResource.get().getTaskType());
         assertEquals(ASSIGNED, updatedTaskResource.get().getState());
-        cftTaskDatabaseService.deleteTasks(List.of(taskResource.getTaskId()));
     }
+
 
     @Test
     void should_return_empty_task_when_state_not_in_assigned_or_unassigned_find_by_id_and_state() {

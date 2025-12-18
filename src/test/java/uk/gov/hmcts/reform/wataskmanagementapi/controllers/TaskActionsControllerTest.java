@@ -634,7 +634,7 @@ class TaskActionsControllerTest {
                 .thenReturn(true);
 
         doThrow(new RuntimeException("some exception")).when(taskDeletionService)
-                .deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+                .markTasksToDeleteByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
 
         final ResponseEntity<Void> responseEntity = taskActionsController.deleteTasks(deleteTasksRequest,
                 SERVICE_AUTHORIZATION_TOKEN);
