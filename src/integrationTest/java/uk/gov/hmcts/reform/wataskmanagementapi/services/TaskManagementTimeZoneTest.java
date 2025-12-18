@@ -8,6 +8,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -46,6 +49,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
@@ -62,7 +67,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -103,6 +107,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
+@Import(AwaitilityIntegrationTestConfig.class)
 class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     @MockitoBean
@@ -151,6 +156,12 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
     @MockitoBean
     private RoleAssignmentService roleAssignmentService;
 
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
+
     TaskTestUtils taskTestUtils;
 
     private String bearerAccessToken1;
@@ -186,9 +197,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                 ZoneOffset.of("+01:00")).toZonedDateTime());
         }
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
@@ -301,7 +310,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskTestUtils.taskOperationRequest(
+                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
                     MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -356,7 +365,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskTestUtils.taskOperationRequest(
+                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -364,9 +373,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);
@@ -515,7 +522,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
