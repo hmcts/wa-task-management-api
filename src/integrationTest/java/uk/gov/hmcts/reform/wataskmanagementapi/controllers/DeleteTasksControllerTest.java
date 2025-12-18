@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -27,17 +28,21 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,6 +80,8 @@ public class DeleteTasksControllerTest {
     MockMvc mockMvc;
     @Autowired
     IntegrationTestUtils integrationTestUtils;
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
 
     private ServiceMocks mockServices;
 
@@ -88,8 +95,59 @@ public class DeleteTasksControllerTest {
         );
     }
 
+    @AfterEach
+    void tearDown() {
+        taskResourceRepository.deleteAll();
+    }
+
     @Test
-    void shouldDeleteTasksByCaseId(final CapturedOutput output) throws Exception {
+    void shouldPopulateCaseDeletionTimestampWhenDeleteByCaseIdIsCalled() throws Exception {
+        final String caseId = "1615817621013640";
+
+        final String taskId1 = UUID.randomUUID().toString();
+        final String taskId2 = UUID.randomUUID().toString();
+        final String taskId3 = UUID.randomUUID().toString();
+
+        insertDummyTaskInDb(taskId1, caseId, TERMINATED);
+        insertDummyTaskInDb(taskId2, caseId, TERMINATED);
+        insertDummyTaskInDb(taskId3, caseId, TERMINATED);
+
+        final List<TaskResourceCaseQueryBuilder> tasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
+
+        assertThat(tasks.size()).isEqualTo(3);
+
+        assertThat(tasks.get(0).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(1).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(2).getTaskId()).isIn(taskId1, taskId2, taskId3);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
+        when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        mockMvc.perform(
+                post("/task/delete")
+                    .content(integrationTestUtils
+                                 .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpectAll(status().isCreated()).andReturn();
+
+        final List<TaskResourceCaseQueryBuilder> deletedTasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
+
+        assertThat(deletedTasks.size()).isEqualTo(3);
+
+        final List<TaskResource> taskResourceList = cftTaskDatabaseService.findByCaseIdOnly(caseId);
+        OffsetDateTime expected = OffsetDateTime.now(ZoneOffset.UTC);
+        taskResourceList.forEach(
+            taskResource -> {
+                assertThat(taskResource.getCaseDeletionTimestamp()).isNotNull();
+                assertThat(taskResource.getCaseDeletionTimestamp())
+                    .isCloseTo(expected, within(5, ChronoUnit.SECONDS));
+            });
+    }
+
+    @Test
+    void shouldLogErrorForNonTerminatedTasksWhenDeleteIsCalled(final CapturedOutput output) throws Exception {
         final String caseId = "1615817621013640";
 
         final String taskId1 = UUID.randomUUID().toString();
@@ -101,27 +159,41 @@ public class DeleteTasksControllerTest {
         insertDummyTaskInDb(taskId3, caseId, UNASSIGNED);
 
         final List<TaskResourceCaseQueryBuilder> tasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
-        assertThat(tasks.get(0).getTaskId()).isEqualTo(taskId1);
-        assertThat(tasks.get(1).getTaskId()).isEqualTo(taskId2);
-        assertThat(tasks.get(2).getTaskId()).isEqualTo(taskId3);
+
+        assertThat(tasks.size()).isEqualTo(3);
+
+        assertThat(tasks.get(0).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(1).getTaskId()).isIn(taskId1, taskId2, taskId3);
+        assertThat(tasks.get(2).getTaskId()).isIn(taskId1, taskId2, taskId3);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(true);
         when(clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
         mockMvc.perform(
-                        post("/task/delete")
-                                .content(integrationTestUtils
-                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
-                                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                                .contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpectAll(status().isCreated()).andReturn();
+                post("/task/delete")
+                    .content(integrationTestUtils
+                                 .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpectAll(status().isCreated()).andReturn();
 
         final List<TaskResourceCaseQueryBuilder> deletedTasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
 
-        assertThat(deletedTasks.size()).isEqualTo(0);
-        assertTrue(output.getOut().contains(String.format("Deleted some UNTERMINATED tasks: %s for caseId: %s",
-                Arrays.asList(taskId1, taskId3), caseId)));
+        assertThat(deletedTasks.size()).isEqualTo(3);
+        assertTrue(output.getOut().contains(String.format(
+            "UNTERMINATED tasks marked for deletion: %s for caseId: %s",
+            Arrays.asList(taskId1, taskId3), caseId
+        )));
+
+        final List<TaskResource> taskResourceList = cftTaskDatabaseService.findByCaseIdOnly(caseId);
+        OffsetDateTime expected = OffsetDateTime.now(ZoneOffset.UTC);
+        taskResourceList.forEach(
+            taskResource -> {
+                assertThat(taskResource.getCaseDeletionTimestamp()).isNotNull();
+                assertThat(taskResource.getCaseDeletionTimestamp())
+                    .isCloseTo(expected, within(5, ChronoUnit.SECONDS));
+            });
     }
 
     @Test
