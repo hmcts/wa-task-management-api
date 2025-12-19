@@ -30,9 +30,9 @@ public class ReplicaIntegrationTestUtils {
     protected TaskAssignmentsRepository taskAssignmentsRepository;
     protected MIReportingService miReportingService;
 
-    protected String primaryJdbcUrl;
+    private final String primaryJdbcUrl;
 
-    private String replicaJdbcUrl;
+    private final String replicaJdbcUrl;
 
     @Getter
     protected MIReportingService miReportingServiceForTest;
