@@ -367,7 +367,7 @@ public class TaskActionsController extends BaseController {
     }
 
 
-    @Operation(description = "Deletes all tasks related to a case.")
+    @Operation(description = "Marks all tasks related to a case for deletion.")
     @ApiResponse(responseCode = "201", description = CREATED)
     @ApiResponse(responseCode = "400", description = BAD_REQUEST)
     @ApiResponse(responseCode = "403", description = FORBIDDEN)
@@ -386,7 +386,9 @@ public class TaskActionsController extends BaseController {
 
             verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
 
-            taskDeletionService.deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+            taskDeletionService.markTasksToDeleteByCaseId(
+                deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef()
+            );
 
             return status(HttpStatus.CREATED.value())
                     .cacheControl(CacheControl.noCache())
