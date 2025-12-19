@@ -96,7 +96,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
-@Import(AwaitilityIntegrationTestConfig.class)
 public class PostTaskCompleteByIdControllerReplicaTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";

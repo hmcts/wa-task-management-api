@@ -81,7 +81,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTe
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
-@Import(AwaitilityIntegrationTestConfig.class)
 class MIReplicaReportingServiceTest {
 
     @Autowired
