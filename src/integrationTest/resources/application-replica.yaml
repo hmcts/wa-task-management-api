@@ -57,6 +57,8 @@ idam:
     username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
     password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
 
+environment: ${ENVIRONMENT:local-arm-arch}
+
 role-assignment-service:
   url: http://localhost:8888
 
