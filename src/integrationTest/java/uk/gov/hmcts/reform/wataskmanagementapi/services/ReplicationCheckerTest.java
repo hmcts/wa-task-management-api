@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.ReplicationChecker;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils;
 
 import java.time.OffsetDateTime;
@@ -39,25 +41,26 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNA
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
-@ActiveProfiles({"integration","replica"})
+@ActiveProfiles({"replica"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Import(AwaitilityIntegrationTestConfig.class)
 public class ReplicationCheckerTest {
 
     @Autowired
     ReplicationChecker replicationChecker;
 
     @Autowired
-    protected TaskResourceRepository taskResourceRepository;
+    private TaskResourceRepository taskResourceRepository;
     @Autowired
-    protected TaskHistoryResourceRepository taskHistoryResourceRepository;
+    private TaskHistoryResourceRepository taskHistoryResourceRepository;
     @Autowired
-    protected ReportableTaskRepository reportableTaskRepository;
+    private ReportableTaskRepository reportableTaskRepository;
     @Autowired
-    protected TaskAssignmentsRepository taskAssignmentsRepository;
+    private TaskAssignmentsRepository taskAssignmentsRepository;
     @Autowired
-    protected MIReportingService miReportingService;
+    private MIReportingService miReportingService;
     @Value("${spring.datasource.jdbcUrl}")
-    protected String primaryJdbcUrl;
+    private String primaryJdbcUrl;
     @Value("${spring.datasource-replica.jdbcUrl}")
     private String replicaJdbcUrl;
 

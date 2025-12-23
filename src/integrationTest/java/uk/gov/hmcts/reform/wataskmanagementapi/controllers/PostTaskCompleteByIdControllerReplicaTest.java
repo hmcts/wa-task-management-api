@@ -90,7 +90,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-@ActiveProfiles({"integration","replica"})
+@ActiveProfiles({"replica"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -131,17 +131,17 @@ public class PostTaskCompleteByIdControllerReplicaTest {
     IntegrationTestUtils integrationTestUtils;
 
     @Autowired
-    protected TaskResourceRepository taskResourceRepository;
+    private TaskResourceRepository taskResourceRepository;
     @Autowired
-    protected TaskHistoryResourceRepository taskHistoryResourceRepository;
+    private TaskHistoryResourceRepository taskHistoryResourceRepository;
     @Autowired
-    protected ReportableTaskRepository reportableTaskRepository;
+    private ReportableTaskRepository reportableTaskRepository;
     @Autowired
-    protected TaskAssignmentsRepository taskAssignmentsRepository;
+    private TaskAssignmentsRepository taskAssignmentsRepository;
     @Autowired
-    protected MIReportingService miReportingService;
+    private MIReportingService miReportingService;
     @Value("${spring.datasource.jdbcUrl}")
-    protected String primaryJdbcUrl;
+    private String primaryJdbcUrl;
     @Value("${spring.datasource-replica.jdbcUrl}")
     private String replicaJdbcUrl;
 

@@ -75,7 +75,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTe
 /**
  * We test logical replication in here.
  */
-@ActiveProfiles({"integration","replica"})
+@ActiveProfiles({"replica"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -85,25 +85,25 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTe
 class MIReplicaReportingServiceTest {
 
     @Autowired
-    protected TaskResourceRepository taskResourceRepository;
+    private TaskResourceRepository taskResourceRepository;
 
     @Autowired
-    protected TaskHistoryResourceRepository taskHistoryResourceRepository;
+    private TaskHistoryResourceRepository taskHistoryResourceRepository;
     @Autowired
-    protected ReportableTaskRepository reportableTaskRepository;
+    private ReportableTaskRepository reportableTaskRepository;
     @Autowired
-    protected TaskAssignmentsRepository taskAssignmentsRepository;
+    private TaskAssignmentsRepository taskAssignmentsRepository;
     @Autowired
-    protected MIReportingService miReportingService;
+    private MIReportingService miReportingService;
 
     @Value("${spring.datasource.jdbcUrl}")
-    protected String primaryJdbcUrl;
+    private String primaryJdbcUrl;
 
     @Value("${spring.datasource-replica.jdbcUrl}")
     private String replicaJdbcUrl;
 
     @Autowired
-    protected ReplicaTaskResourceRepository replicaTaskResourceRepository;
+    private ReplicaTaskResourceRepository replicaTaskResourceRepository;
 
     ReplicaIntegrationTestUtils replicaIntegrationTestUtils;
 
