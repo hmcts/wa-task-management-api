@@ -8,6 +8,15 @@ spring:
       connectionTimeout: 10000
       idleTimeout: 30000
       maxLifetime: 60000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://idam-web-public.aat.platform.hmcts.net/o/jwks
+      client:
+        provider:
+          oidc:
+            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect

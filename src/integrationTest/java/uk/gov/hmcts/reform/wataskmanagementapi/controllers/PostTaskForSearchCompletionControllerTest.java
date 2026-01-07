@@ -7,13 +7,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -33,6 +40,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -46,6 +54,7 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.doThrow;
@@ -66,8 +75,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-
-class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBaseTest {
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
+class PostTaskForSearchCompletionControllerTest {
 
     @MockitoBean
     private IdamWebApi idamWebApi;
@@ -87,6 +99,11 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private UserInfo mockedUserInfo;
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    @Autowired
+    protected MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
 
@@ -142,7 +159,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             ).andExpect(status().is5xxServerError())
             .andExpect(result -> assertEquals(
@@ -198,7 +215,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -214,7 +231,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -244,7 +261,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -280,7 +297,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -312,7 +329,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -351,7 +368,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             post("/task/search-for-completable")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchEventAndCase))
+                .content(integrationTestUtils.asJsonString(searchEventAndCase))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -396,7 +413,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
         String roleAssignmentId = UUID.randomUUID().toString();
 
         // Task created is IA
@@ -435,7 +452,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -471,7 +488,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -495,7 +512,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -539,7 +556,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .build()
             )
             .build();
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         // Task created is IA
         TaskRoleResource taskRoleResource = new TaskRoleResource(
@@ -572,7 +589,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -602,7 +619,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -648,7 +665,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(asJsonString(searchEventAndCase))
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpectAll(

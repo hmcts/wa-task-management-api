@@ -83,12 +83,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE_EXCEPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
@@ -110,7 +107,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
     "PMD.CognitiveComplexity"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
-    public static final String REQUEST_PARAM_MAP_CANNOT_BE_NULL = "Request param map cannot be null";
     private final CamundaService camundaService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
@@ -120,6 +116,9 @@ public class TaskManagementService {
     private final IdamTokenGenerator idamTokenGenerator;
     private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
+    private final TerminationProcessHelper terminationProcessHelper;
+
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -133,7 +132,8 @@ public class TaskManagementService {
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
                                  CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
-                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
+                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator,
+                                 TerminationProcessHelper terminationProcessHelper) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -144,6 +144,7 @@ public class TaskManagementService {
         this.idamTokenGenerator = idamTokenGenerator;
         this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
         this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
+        this.terminationProcessHelper = terminationProcessHelper;
     }
 
     protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
@@ -359,11 +360,13 @@ public class TaskManagementService {
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
+     * @param cancellationProcess   the termination process using which task is cancelled
      */
     @Transactional
     public void cancelTask(String taskId,
-                           AccessControlResponse accessControlResponse) {
+                           AccessControlResponse accessControlResponse, String cancellationProcess) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
+
         PermissionRequirements permissionsRequired;
 
         String userId = accessControlResponse.getUserInfo().getUid();
@@ -391,6 +394,7 @@ public class TaskManagementService {
         CFTTaskState previousTaskState = task.getState();
         task.setState(CFTTaskState.CANCELLED);
 
+        task.setTerminationProcess(TerminationProcess.fromValue(cancellationProcess).orElse(null));
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
         log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
@@ -437,19 +441,13 @@ public class TaskManagementService {
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
-     * @param requestParamMap       the termination process using which task is completed
+     * @param completionProcess     the termination process using which task is completed
      */
     @Transactional
     public void completeTask(String taskId, AccessControlResponse accessControlResponse,
-                             Map<String, Object> requestParamMap) {
-        TerminationProcess terminationProcess = null;
+                             String completionProcess) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
-        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(completionProcess);
-        }
         boolean taskHasCompleted;
 
         checkCompletePermissions(taskId, accessControlResponse, userId);
@@ -469,7 +467,8 @@ public class TaskManagementService {
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
-                task.setTerminationProcess(terminationProcess);
+                task.setTerminationProcess(TerminationProcess.fromValue(completionProcess).orElse(null));
+
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
@@ -483,21 +482,15 @@ public class TaskManagementService {
      * @param taskId                The task id to complete.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @param completionOptions     The completion options to orchestrate how this completion should be handled.
-     * @param requestParamMap       the termination process using which task is completed
+     * @param completionProcess     the termination process using which task is completed
      */
     @Transactional
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions,
-                                                              Map<String, Object> requestParamMap) {
+                                                              String completionProcess) {
         String userId = accessControlResponse.getUserInfo().getUid();
-        TerminationProcess terminationProcess = null;
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
-        requireNonNull(requestParamMap, REQUEST_PARAM_MAP_CANNOT_BE_NULL);
-        if (requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS) != null) {
-            final String completionProcess = requestParamMap.get(REQ_PARAM_COMPLETION_PROCESS).toString();
-            terminationProcess = TerminationProcess.fromValue(completionProcess);
-        }
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
             .buildSingleRequirementWithOr(OWN, EXECUTE);
         boolean taskStateIsAssignedAlready;
@@ -521,12 +514,12 @@ public class TaskManagementService {
                 userId,
                 taskStateIsAssignedAlready
             );
-            task.setTerminationProcess(terminationProcess);
+            task.setTerminationProcess(TerminationProcess.fromValue(completionProcess).orElse(null));
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
         } else {
-            completeTask(taskId, accessControlResponse, requestParamMap);
+            completeTask(taskId, accessControlResponse, completionProcess);
         }
     }
 
@@ -553,19 +546,17 @@ public class TaskManagementService {
         //Terminate the task if found in the database
         if (task != null) {
             //Update cft task and terminate reason
-            task.setState(CFTTaskState.TERMINATED);
-            task.setTerminationReason(terminateInfo.getTerminateReason());
             boolean isCamundaStateUpdated = false;
             try {
-                TaskAction taskAction = switch (terminateInfo.getTerminateReason()) {
-                    case "cancelled" -> AUTO_CANCEL;
-                    case "completed" -> TERMINATE;
-                    default -> TERMINATE_EXCEPTION;
-                };
+                task.setTerminationReason(terminateInfo.getTerminateReason());
+                TaskAction taskAction = TERMINATE;
                 setSystemUserTaskActionAttributes(task, taskAction);
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
+                terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
+                task.setState(CFTTaskState.TERMINATED);
                 isCamundaStateUpdated = true;
+
                 // Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             } catch (Exception ex) {

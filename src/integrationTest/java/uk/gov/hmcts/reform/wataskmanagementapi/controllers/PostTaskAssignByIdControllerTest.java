@@ -3,18 +3,25 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -31,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantTy
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -44,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -75,8 +84,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.THIRD_IDAM_USER_ID;
 
 @SuppressWarnings("checkstyle:LineLength")
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
+class PostTaskAssignByIdControllerTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/assign";
     private static String ENDPOINT_BEING_TESTED;
@@ -98,6 +111,11 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
     private IdamService idamService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private ServiceMocks mockServices;
     private String taskId;
 
@@ -162,7 +180,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -191,7 +209,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -215,7 +233,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+                .content(integrationTestUtils.asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpect(
             ResultMatcher.matchAll(
                 status().is5xxServerError(),
@@ -245,7 +263,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+                .content(integrationTestUtils.asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_JSON_VALUE),
@@ -279,8 +297,8 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(request))
-                .content(asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+                .content(integrationTestUtils.asJsonString(request))
+                .content(integrationTestUtils.asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -334,7 +352,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -392,7 +410,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -438,7 +456,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -464,7 +482,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
 
@@ -489,7 +507,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -536,7 +554,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -562,7 +580,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         //Excluded role
         assigneeTaskRoleResource = new TaskRoleResource(
@@ -584,7 +602,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -609,7 +627,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -654,7 +672,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -682,7 +700,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
 
@@ -707,7 +725,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -754,7 +772,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         //assignee permissions : own, execute
@@ -779,7 +797,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         //assignee excluded role
         assigneeTaskRoleResource = new TaskRoleResource(
@@ -801,7 +819,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -825,7 +843,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -873,7 +891,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -905,7 +923,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -923,7 +941,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -983,7 +1001,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         //assignee permissions : own, execute
         roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -997,7 +1015,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
@@ -1016,7 +1034,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1079,7 +1097,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         //assignee permissions : own, execute
         roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -1093,7 +1111,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
@@ -1112,7 +1130,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1162,7 +1180,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -1196,7 +1214,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -1215,7 +1233,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1267,7 +1285,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -1301,7 +1319,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assigneeRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
 
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
 
@@ -1320,7 +1338,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1372,7 +1390,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -1401,7 +1419,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1453,7 +1471,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
         assignerRoleAssignmentResource = new RoleAssignmentResource(assignerRoles);
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -1472,7 +1490,7 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(assignTaskRequest))
+                .content(integrationTestUtils.asJsonString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );

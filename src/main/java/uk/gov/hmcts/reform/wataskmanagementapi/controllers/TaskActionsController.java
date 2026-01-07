@@ -27,8 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -36,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.DeleteTasksRe
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.TaskRolePermissions;
@@ -49,9 +48,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskDeletionService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -72,6 +69,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.ResponseEnt
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals","PMD.LawOfDemeter"})
 public class TaskActionsController extends BaseController {
     public static final String REQ_PARAM_COMPLETION_PROCESS = "completion_process";
+    public static final String REQ_PARAM_CANCELLATION_PROCESS = "cancellation_process";
+
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private final TaskManagementService taskManagementService;
@@ -83,7 +82,7 @@ public class TaskActionsController extends BaseController {
 
     private final CompletionProcessValidator completionProcessValidator;
 
-    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private final CancellationProcessValidator cancellationProcessValidator;
 
     @Autowired
     public TaskActionsController(TaskManagementService taskManagementService,
@@ -92,7 +91,7 @@ public class TaskActionsController extends BaseController {
                                  ClientAccessControlService clientAccessControlService,
                                  TaskDeletionService taskDeletionService,
                                  CompletionProcessValidator completionProcessValidator,
-                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                                 CancellationProcessValidator cancellationProcessValidator) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
@@ -100,7 +99,7 @@ public class TaskActionsController extends BaseController {
         this.clientAccessControlService = clientAccessControlService;
         this.taskDeletionService = taskDeletionService;
         this.completionProcessValidator = completionProcessValidator;
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.cancellationProcessValidator = cancellationProcessValidator;
     }
 
     @Operation(description = "Retrieve a Task Resource identified by its unique id.",
@@ -126,7 +125,7 @@ public class TaskActionsController extends BaseController {
             accessControlResponse
         );
 
-        if (!isUpdateCompletionProcessFlagEnabled(accessControlResponse)) {
+        if (!completionProcessValidator.isCompletionProcessFeatureEnabled(accessControlResponse)) {
             task.setTerminationProcess(null);
         }
 
@@ -242,21 +241,14 @@ public class TaskActionsController extends BaseController {
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-        Map<String, Object> requestParamMap = new HashMap<>();
         LOG.info("Task Action: Complete task request for task-id {}, user {}", taskId,
                  accessControlResponse.getUserInfo().getUid());
 
+        String validatedCompletionProcess =
+            completionProcessValidator.validate(completionProcess, taskId, accessControlResponse).orElse(null);
 
-
-        Optional<String> validatedCompletionProcess =
-            completionProcessValidator.validate(completionProcess, taskId,
-                                                isUpdateCompletionProcessFlagEnabled(accessControlResponse));
-
-        if (validatedCompletionProcess.isPresent() && !validatedCompletionProcess.get().isBlank()) {
-            requestParamMap.put(REQ_PARAM_COMPLETION_PROCESS, validatedCompletionProcess.get());
-        }
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);
+            taskManagementService.completeTask(taskId, accessControlResponse, validatedCompletionProcess);
         } else {
             boolean isPrivilegedRequest =
                 clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
@@ -266,7 +258,7 @@ public class TaskActionsController extends BaseController {
                     taskId,
                     accessControlResponse,
                     completeTaskRequest.getCompletionOptions(),
-                    requestParamMap
+                    validatedCompletionProcess
                 );
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
@@ -290,12 +282,17 @@ public class TaskActionsController extends BaseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
     public ResponseEntity<Void> cancelTask(@Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
-                                           @PathVariable(TASK_ID) String taskId) {
+                                           @PathVariable(TASK_ID) String taskId,
+                                           @RequestParam(name = REQ_PARAM_CANCELLATION_PROCESS, required = false)
+                                               String cancellationProcess) {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
+        String validatedCancellationProcess =
+            cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse).orElse(null);
 
-        taskManagementService.cancelTask(taskId, accessControlResponse);
+
+        taskManagementService.cancelTask(taskId, accessControlResponse, validatedCancellationProcess);
 
         return ResponseEntity
             .noContent()
@@ -370,7 +367,7 @@ public class TaskActionsController extends BaseController {
     }
 
 
-    @Operation(description = "Deletes all tasks related to a case.")
+    @Operation(description = "Marks all tasks related to a case for deletion.")
     @ApiResponse(responseCode = "201", description = CREATED)
     @ApiResponse(responseCode = "400", description = BAD_REQUEST)
     @ApiResponse(responseCode = "403", description = FORBIDDEN)
@@ -389,7 +386,9 @@ public class TaskActionsController extends BaseController {
 
             verifyCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
 
-            taskDeletionService.deleteTasksByCaseId(deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef());
+            taskDeletionService.markTasksToDeleteByCaseId(
+                deleteTasksRequest.getDeleteCaseTasksAction().getCaseRef()
+            );
 
             return status(HttpStatus.CREATED.value())
                     .cacheControl(CacheControl.noCache())
@@ -424,18 +423,5 @@ public class TaskActionsController extends BaseController {
             assignTaskRequest.getUserId(),
             assignerAuthToken
         ));
-    }
-
-    /**
-     Checks if the "WA_COMPLETION_PROCESS_UPDATE" feature flag is enabled for the given user.
-
-     @param accessControlResponse The access control response containing user information.
-     @return true if the feature flag is enabled, false otherwise. */
-    private boolean isUpdateCompletionProcessFlagEnabled(AccessControlResponse accessControlResponse) {
-        return  launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
     }
 }

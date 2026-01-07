@@ -8,16 +8,21 @@ import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -28,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.io.UnsupportedEncodingException;
@@ -41,6 +47,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -57,9 +64,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@SpringBootTest
+@ActiveProfiles({"integration"})
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @ExtendWith(MockitoExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
+class WorkTypesControllerTest {
     private static final String ENDPOINT_PATH = "/work-types";
 
     @MockitoBean
@@ -74,6 +85,10 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockitoBean
     private AuthTokenGenerator serviceAuthTokenGenerator;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
     private ServiceMocks mockServices;
     private UserInfo mockedUserInfo;
 
@@ -106,7 +121,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(20)
+            jsonPath("$.work_types.length()").value(27)
         ).andReturn();
 
 
@@ -130,7 +145,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(20)
+            jsonPath("$.work_types.length()").value(27)
         );
     }
 
@@ -349,13 +364,23 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                                                    "Welsh translation work");
         WorkType expectedWorkType20 = new WorkType("bail_work",
                                                    "Bail work");
+        WorkType expectedWorkType21 = new WorkType("stf_24w_hearing_work", "Hearing Work - STF");
+        WorkType expectedWorkType22 = new WorkType("stf_24w_routine_work", "Routine Work - STF");
+        WorkType expectedWorkType23 = new WorkType("stf_24w_decision_making_work",
+                                                   "Decision Making Work - STF");
+        WorkType expectedWorkType24 = new WorkType("stf_24w_applications", "Applications - STF");
+        WorkType expectedWorkType25 = new WorkType("stf_24w_upper_tribunal", "Upper Tribunal - STF");
+        WorkType expectedWorkType26 = new WorkType("stf_24w_access_requests", "Access Requests - STF");
+        WorkType expectedWorkType27 = new WorkType("stf_24w_review_case", "Review Case - STF");
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
             expectedWorkType7, expectedWorkType8, expectedWorkType9,
             expectedWorkType10, expectedWorkType11, expectedWorkType12, expectedWorkType13,
             expectedWorkType14, expectedWorkType15, expectedWorkType16, expectedWorkType17,
-            expectedWorkType18, expectedWorkType19,expectedWorkType20
+            expectedWorkType18, expectedWorkType19, expectedWorkType20, expectedWorkType21,
+            expectedWorkType22, expectedWorkType23, expectedWorkType24, expectedWorkType25,
+            expectedWorkType26, expectedWorkType27
         ));
     }
 
@@ -367,7 +392,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         assertNotNull(response.getResponse().getContentAsString());
 
         assertEquals(
-            asJsonString(expectedResponse),
+            integrationTestUtils.asJsonString(expectedResponse),
             response.getResponse().getContentAsString()
         );
     }
