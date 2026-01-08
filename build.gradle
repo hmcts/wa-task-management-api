@@ -185,7 +185,7 @@ task tests {
 
 project.tasks['pitest'].group = "Verification"
 
-project.tasks['sonarqube'].dependsOn test, integration, jacocoTestReport
+project.tasks['sonarqube'].dependsOn test, jacocoTestReport
 
 
 // Ensures that functional tests index page is generated
