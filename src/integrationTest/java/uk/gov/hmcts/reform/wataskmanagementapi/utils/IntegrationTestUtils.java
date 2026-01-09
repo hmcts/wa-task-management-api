@@ -10,7 +10,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("integration")
+@Profile({"integration","replica"})
 public class IntegrationTestUtils {
 
     public static final int MAX_ROLE_ASSIGNMENT_RECORDS = 50;
