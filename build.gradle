@@ -156,6 +156,7 @@ jacocoTestCoverageVerification {
 }
 
 jacocoTestReport {
+  dependsOn test, integration
   executionData(test, integration)
   reports {
     xml.required = true
@@ -185,7 +186,7 @@ task tests {
 
 project.tasks['pitest'].group = "Verification"
 
-project.tasks['sonarqube'].dependsOn test, jacocoTestReport
+project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 
 // Ensures that functional tests index page is generated
