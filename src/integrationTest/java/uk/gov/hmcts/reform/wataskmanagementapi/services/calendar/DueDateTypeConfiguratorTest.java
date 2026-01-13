@@ -73,7 +73,8 @@ public class DueDateTypeConfiguratorTest {
         }
 
         @Bean
-        public DueDateOriginEarliestCalculator dueDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
+        public DueDateOriginEarliestCalculator dueDateOriginEarliestCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new DueDateOriginEarliestCalculator(workingDayIndicator);
         }
 
@@ -93,22 +94,26 @@ public class DueDateTypeConfiguratorTest {
         }
 
         @Bean
-        public PriorityDateIntervalCalculator priorityDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
+        public PriorityDateIntervalCalculator priorityDateIntervalCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new PriorityDateIntervalCalculator(workingDayIndicator);
         }
 
         @Bean
-        public PriorityDateOriginRefCalculator priorityDateOriginRefCalculator(WorkingDayIndicator workingDayIndicator) {
+        public PriorityDateOriginRefCalculator priorityDateOriginRefCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new PriorityDateOriginRefCalculator(workingDayIndicator);
         }
 
         @Bean
-        public PriorityDateOriginEarliestCalculator priorityDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
+        public PriorityDateOriginEarliestCalculator priorityDateOriginEarliestCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new PriorityDateOriginEarliestCalculator(workingDayIndicator);
         }
 
         @Bean
-        public PriorityDateOriginLatestCalculator priorityDateOriginLatestCalculator(WorkingDayIndicator workingDayIndicator) {
+        public PriorityDateOriginLatestCalculator priorityDateOriginLatestCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new PriorityDateOriginLatestCalculator(workingDayIndicator);
         }
 
@@ -118,22 +123,26 @@ public class DueDateTypeConfiguratorTest {
         }
 
         @Bean
-        public NextHearingDateIntervalCalculator nextHearingDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
+        public NextHearingDateIntervalCalculator nextHearingDateIntervalCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new NextHearingDateIntervalCalculator(workingDayIndicator);
         }
 
         @Bean
-        public NextHearingDateOriginRefCalculator nextHearingDateOriginRefCalculator(WorkingDayIndicator workingDayIndicator) {
+        public NextHearingDateOriginRefCalculator nextHearingDateOriginRefCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new NextHearingDateOriginRefCalculator(workingDayIndicator);
         }
 
         @Bean
-        public NextHearingDateOriginEarliestCalculator nextHearingDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
+        public NextHearingDateOriginEarliestCalculator nextHearingDateOriginEarliestCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new NextHearingDateOriginEarliestCalculator(workingDayIndicator);
         }
 
         @Bean
-        public NextHearingDateOriginLatestCalculator nextHearingDateOriginLatestCalculator(WorkingDayIndicator workingDayIndicator) {
+        public NextHearingDateOriginLatestCalculator nextHearingDateOriginLatestCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new NextHearingDateOriginLatestCalculator(workingDayIndicator);
         }
 
@@ -143,22 +152,26 @@ public class DueDateTypeConfiguratorTest {
         }
 
         @Bean
-        public IntermediateDateIntervalCalculator intermediateDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
+        public IntermediateDateIntervalCalculator intermediateDateIntervalCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new IntermediateDateIntervalCalculator(workingDayIndicator);
         }
 
         @Bean
-        public IntermediateDateOriginRefCalculator intermediateDateOriginRefCalculator(WorkingDayIndicator workingDayIndicator) {
+        public IntermediateDateOriginRefCalculator intermediateDateOriginRefCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new IntermediateDateOriginRefCalculator(workingDayIndicator);
         }
 
         @Bean
-        public IntermediateDateOriginEarliestCalculator intermediateDateOriginEarliestCalculator(WorkingDayIndicator workingDayIndicator) {
+        public IntermediateDateOriginEarliestCalculator intermediateDateOriginEarliestCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new IntermediateDateOriginEarliestCalculator(workingDayIndicator);
         }
 
         @Bean
-        public IntermediateDateOriginLatestCalculator intermediateDateOriginLatestCalculator(WorkingDayIndicator workingDayIndicator) {
+        public IntermediateDateOriginLatestCalculator intermediateDateOriginLatestCalculator(
+                WorkingDayIndicator workingDayIndicator) {
             return new IntermediateDateOriginLatestCalculator(workingDayIndicator);
         }
 
