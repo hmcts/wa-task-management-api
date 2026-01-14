@@ -119,6 +119,8 @@ task integration(type: Test) {
   failFast = true
 }
 
+build.dependsOn integration
+
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
@@ -154,6 +156,7 @@ jacocoTestCoverageVerification {
 }
 
 jacocoTestReport {
+  dependsOn test, integration
   executionData(test, integration)
   reports {
     xml.required = true
@@ -183,7 +186,7 @@ task tests {
 
 project.tasks['pitest'].group = "Verification"
 
-project.tasks['sonarqube'].dependsOn test, integration, jacocoTestReport
+project.tasks['sonarqube'].dependsOn jacocoTestReport
 
 
 // Ensures that functional tests index page is generated
