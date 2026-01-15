@@ -1,65 +1,26 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import lombok.Builder;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.zalando.problem.violations.ConstraintViolationProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING;
-import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = JacksonConfigurationTest.MinimalTestConfig.class)
-@TestInstance(PER_CLASS)
+@ContextConfiguration(classes = {JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 public class JacksonConfigurationTest {
 
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssXXX";
-
-    @TestConfiguration
-    static class MinimalTestConfig {
-        @Bean
-        public ObjectMapper objectMapper() {
-            SimpleDateFormat df = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH);
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_ABSENT);
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-            mapper.configure(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true);
-            mapper.configure(READ_ENUMS_USING_TO_STRING, true);
-            mapper.configure(WRITE_ENUMS_USING_TO_STRING, true);
-            mapper.setDateFormat(df);
-            mapper.registerModule(new ParameterNamesModule());
-            mapper.registerModule(new JavaTimeModule());
-            mapper.registerModule(new Jdk8Module());
-            mapper.registerModule(new ConstraintViolationProblemModule());
-            return mapper;
-        }
-    }
-
     @Autowired
-    protected ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @Test
     void default_object_mapper_should_read_snake_case() throws IOException {

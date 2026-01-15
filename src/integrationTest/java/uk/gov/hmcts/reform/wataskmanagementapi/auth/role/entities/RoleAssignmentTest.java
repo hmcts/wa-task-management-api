@@ -1,14 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -16,32 +11,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
 import java.io.IOException;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = RoleAssignmentTest.MinimalTestConfig.class)
-@TestInstance(PER_CLASS)
+@ContextConfiguration(classes = {JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 class RoleAssignmentTest {
-
-    @TestConfiguration
-    static class MinimalTestConfig {
-        @Bean
-        public ObjectMapper objectMapper() {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true);
-            mapper.registerModule(new JavaTimeModule());
-            mapper.registerModule(new Jdk8Module());
-            return mapper;
-        }
-    }
 
     @Autowired
     ObjectMapper objectMapper;
@@ -65,9 +47,10 @@ class RoleAssignmentTest {
                              + "\"authorisations\":[]"
                              + "}";
 
-        //ObjectMapper has default configuration as set in JacksonConfiguration.class
-        final RoleAssignment expected = objectMapper
-            .setPropertyNamingStrategy(LOWER_CAMEL_CASE)
+        ObjectMapper camelCaseMapper = objectMapper.copy()
+            .setPropertyNamingStrategy(LOWER_CAMEL_CASE);
+
+        final RoleAssignment expected = camelCaseMapper
             .readValue(jsonContent, RoleAssignment.class);
 
         RoleAssignment actual = getAssignmentForUnknownValues();

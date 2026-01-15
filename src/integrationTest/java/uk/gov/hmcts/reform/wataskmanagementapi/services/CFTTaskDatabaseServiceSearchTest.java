@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
@@ -45,7 +47,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JU
 
 @ActiveProfiles("integration")
 @DataJpaTest
-@Import(AllowedJurisdictionConfiguration.class)
+@Import({AllowedJurisdictionConfiguration.class, JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
@@ -55,13 +57,16 @@ class CFTTaskDatabaseServiceSearchTest {
     @Autowired
     TaskResourceRepository taskResourceRepository;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     CFTTaskDatabaseService cftTaskDatabaseService;
 
     static RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     @BeforeEach
     void setUp() {
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
     }
 

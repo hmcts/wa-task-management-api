@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -37,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -58,7 +60,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 
 @ActiveProfiles("integration")
 @DataJpaTest
-@Import(AllowedJurisdictionConfiguration.class)
+@Import({AllowedJurisdictionConfiguration.class, JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/ia/data.sql")
@@ -75,11 +77,14 @@ public class CftQueryServiceITTest {
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
 
     @BeforeEach
     void setUp() {
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
             allowedJurisdictionConfiguration
         );

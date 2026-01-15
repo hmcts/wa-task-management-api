@@ -6,10 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -24,7 +21,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
-import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DATE_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
@@ -32,154 +28,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = DueDateTypeConfiguratorTest.MinimalTestConfig.class)
+@ContextConfiguration(classes = DueDateTypeConfiguratorTestConfig.class)
 @TestInstance(PER_CLASS)
 public class DueDateTypeConfiguratorTest {
-
-    @TestConfiguration
-    static class MinimalTestConfig {
-        @Bean
-        public PublicHolidaysCollection publicHolidaysCollection() {
-            PublicHolidaysCollection mockCollection = Mockito.mock(PublicHolidaysCollection.class);
-            // Return empty set of public holidays by default
-            when(mockCollection.getPublicHolidays(Mockito.anyList()))
-                .thenReturn(java.util.Collections.emptySet());
-            return mockCollection;
-        }
-
-        @Bean
-        public WorkingDayIndicator workingDayIndicator(PublicHolidaysCollection publicHolidaysCollection) {
-            return new WorkingDayIndicator(publicHolidaysCollection);
-        }
-
-        @Bean
-        public DueDateCalculator dueDateCalculator() {
-            return new DueDateCalculator();
-        }
-
-        @Bean
-        public DueDateTimeCalculator dueDateTimeCalculator() {
-            return new DueDateTimeCalculator();
-        }
-
-        @Bean
-        public DueDateIntervalCalculator dueDateIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
-            return new DueDateIntervalCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public DueDateOriginRefCalculator dueDateOriginRefCalculator(WorkingDayIndicator workingDayIndicator) {
-            return new DueDateOriginRefCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public DueDateOriginEarliestCalculator dueDateOriginEarliestCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new DueDateOriginEarliestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public DueDateOriginLatestCalculator dueDateOriginLatestCalculator(WorkingDayIndicator workingDayIndicator) {
-            return new DueDateOriginLatestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public PriorityDateCalculator priorityDateCalculator() {
-            return new PriorityDateCalculator();
-        }
-
-        @Bean
-        public PriorityDateTimeCalculator priorityDateTimeCalculator() {
-            return new PriorityDateTimeCalculator();
-        }
-
-        @Bean
-        public PriorityDateIntervalCalculator priorityDateIntervalCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new PriorityDateIntervalCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public PriorityDateOriginRefCalculator priorityDateOriginRefCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new PriorityDateOriginRefCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public PriorityDateOriginEarliestCalculator priorityDateOriginEarliestCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new PriorityDateOriginEarliestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public PriorityDateOriginLatestCalculator priorityDateOriginLatestCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new PriorityDateOriginLatestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public NextHearingDateCalculator nextHearingDateCalculator() {
-            return new NextHearingDateCalculator();
-        }
-
-        @Bean
-        public NextHearingDateIntervalCalculator nextHearingDateIntervalCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new NextHearingDateIntervalCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public NextHearingDateOriginRefCalculator nextHearingDateOriginRefCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new NextHearingDateOriginRefCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public NextHearingDateOriginEarliestCalculator nextHearingDateOriginEarliestCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new NextHearingDateOriginEarliestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public NextHearingDateOriginLatestCalculator nextHearingDateOriginLatestCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new NextHearingDateOriginLatestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public IntermediateDateCalculator intermediateDateCalculator() {
-            return new IntermediateDateCalculator();
-        }
-
-        @Bean
-        public IntermediateDateIntervalCalculator intermediateDateIntervalCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new IntermediateDateIntervalCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public IntermediateDateOriginRefCalculator intermediateDateOriginRefCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new IntermediateDateOriginRefCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public IntermediateDateOriginEarliestCalculator intermediateDateOriginEarliestCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new IntermediateDateOriginEarliestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public IntermediateDateOriginLatestCalculator intermediateDateOriginLatestCalculator(
-                WorkingDayIndicator workingDayIndicator) {
-            return new IntermediateDateOriginLatestCalculator(workingDayIndicator);
-        }
-
-        @Bean
-        public DateTypeConfigurator dateTypeConfigurator(List<DateCalculator> dateCalculators) {
-            return new DateTypeConfigurator(dateCalculators);
-        }
-    }
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 

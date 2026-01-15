@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.launchdarkly.sdk.LDValue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -14,14 +13,14 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
@@ -42,42 +41,12 @@ import static org.mockito.Mockito.doReturn;
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TaskMandatoryFieldsValidatorIntegrationTest.MinimalTestConfig.class)
+@ContextConfiguration(classes = {
+    JacksonConfiguration.class,
+    SearchRequestCustomDeserializer.class,
+    TaskMandatoryFieldsValidatorTestConfig.class
+})
 public class TaskMandatoryFieldsValidatorIntegrationTest {
-
-    @TestConfiguration
-    static class MinimalTestConfig {
-
-        @Bean
-        public ObjectMapper objectMapper() {
-            return new ObjectMapper();
-        }
-
-        @Bean
-        public JsonParserUtils jsonParserUtils(ObjectMapper objectMapper) {
-            return new JsonParserUtils(objectMapper);
-        }
-
-        @Bean
-        public LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider() {
-            return Mockito.mock(LaunchDarklyFeatureFlagProvider.class);
-        }
-
-        @Bean
-        public TaskMandatoryFieldsValidator taskMandatoryFieldsValidator(
-                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                JsonParserUtils jsonParserUtils) {
-            return new TaskMandatoryFieldsValidator(
-                launchDarklyFeatureFlagProvider,
-                true,  // taskMandatoryFieldCheckEnabled
-                List.of("taskName", "taskId", "taskType", "dueDateTime", "state",
-                    "securityClassification", "title", "majorPriority", "minorPriority",
-                    "executionTypeCode", "caseId", "caseTypeId", "caseCategory", "caseName",
-                    "jurisdiction", "region", "location", "created", "roleCategory", "workTypeResource"),
-                jsonParserUtils
-            );
-        }
-    }
 
     @Autowired
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
