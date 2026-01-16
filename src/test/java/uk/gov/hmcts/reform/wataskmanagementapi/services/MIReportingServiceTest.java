@@ -538,7 +538,7 @@ class MIReportingServiceTest {
         NullPointerException exception = assertThrows(NullPointerException.class,
             () -> miReportingService.logicalReplicationCheck());
 
-        assertEquals("Task History repo is null.", exception.getMessage());
+        assertEquals("Replica Task DB repo is null.", exception.getMessage());
     }
 
     @Test
