@@ -65,7 +65,7 @@ public class MIReportingService {
         log.info("Postgresql logical replication check executed . . .");
 
         Objects.requireNonNull(taskResourceRepository, "Primary Task DB repo is null.");
-        Objects.requireNonNull(taskResourceRepository, "Replica Task DB repo is null.");
+        Objects.requireNonNull(taskHistoryRepository, "Replica Task DB repo is null.");
 
         if (!taskResourceRepository.showWalLevel().equals(WAL_LEVEL)) {
             log.error("WAL LEVEL for primaryDB: {}. This must be set to logical for replication to work.",
@@ -73,22 +73,30 @@ public class MIReportingService {
             return;
         }
 
+        ensureReplicationSlotExists();
+        ensurePublicationConfigured();
+        ensureSubscriptionExists();
+    }
 
-        if (isReplicationSlotPresent()) {
-            if (isPublicationPresent()) {
-                if (!isWorkTypesInPublication()) {
-                    addWorkTypesToPublication();
-                    subscriptionCreator.refreshSubscription();
-                }
-            } else {
-                createPublication();
-            }
-            if (!isSubscriptionPresent()) {
-                subscriptionCreator.createSubscription();
-            }
-        } else {
+    private void ensureReplicationSlotExists() {
+        if (!isReplicationSlotPresent()) {
             log.info("Creating logical replication slot");
             createReplicationSlot();
+        }
+    }
+
+    private void ensurePublicationConfigured() {
+        if (!isPublicationPresent()) {
+            createPublication();
+        } else if (!isWorkTypesInPublication()) {
+            addWorkTypesToPublication();
+            subscriptionCreator.refreshSubscription();
+        }
+    }
+
+    private void ensureSubscriptionExists() {
+        if (!isSubscriptionPresent()) {
+            subscriptionCreator.createSubscription();
         }
     }
 
