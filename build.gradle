@@ -139,6 +139,10 @@ openApiGenerate {
   ]
 }
 
+tasks.named("compileJava") {
+  dependsOn 'openApiGenerate'
+}
+
 build.dependsOn integration
 
 task smoke(type: Test) {
