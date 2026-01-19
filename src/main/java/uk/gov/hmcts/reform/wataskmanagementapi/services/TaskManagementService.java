@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
+
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -51,6 +52,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.sql.SQLException;
@@ -607,6 +609,15 @@ public class TaskManagementService {
 
         lockTaskId(taskId, dueDate);
         return initiateTaskProcess(taskId, taskAttributes);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public TaskResource addTask(CreateTaskRequestTask task) {
+        //Get DueDatetime or throw exception
+        //Map taskPayload to taskResource
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(task);
+
+        return cftTaskDatabaseService.saveTask(taskResource);
     }
 
     @Transactional
