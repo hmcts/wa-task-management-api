@@ -163,7 +163,8 @@ logging:
     com.github.dockerjava: INFO
 
 logbook:
-  include: /task/**
+  include:
+    - /task/**
 
 caffeine:
   timeout:
