@@ -51,6 +51,8 @@ public class TaskResource implements Serializable {
     @EqualsAndHashCode.Include()
     @Schema(name = "task_id")
     private String taskId;
+    @Schema(name = "external_task_id")
+    private String externalTaskId;
     @Schema(name = "task_name")
     private String taskName;
     @Schema(name = "task_type")
@@ -577,6 +579,10 @@ public class TaskResource implements Serializable {
 
     public void setCaseDeletionTimestamp(OffsetDateTime caseDeletionTimestamp) {
         this.caseDeletionTimestamp = caseDeletionTimestamp;
+    }
+
+    public void setExternalTaskId(String externalTaskId) {
+        this.externalTaskId = externalTaskId;
     }
 
     public TaskResource(String taskId,

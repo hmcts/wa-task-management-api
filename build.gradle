@@ -139,9 +139,9 @@ openApiGenerate {
   ]
 }
 
-tasks.named("compileJava") {
-  dependsOn 'openApiGenerate'
-}
+//tasks.named("compileJava") {
+//  dependsOn 'openApiGenerate'
+//}
 
 build.dependsOn integration
 

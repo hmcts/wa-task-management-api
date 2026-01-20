@@ -49,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -166,9 +167,8 @@ public class CFTTaskMapper {
                     e -> String.valueOf(e.getValue())
                 ));
         }
-        return new TaskResource(
-            request.getTaskId().toString(),
-
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
             request.getName(),
             request.getType(),
             request.getDueDateTime(),
@@ -208,6 +208,12 @@ public class CFTTaskMapper {
 
             request.getPriorityDate()
         );
+        taskResource.setExternalTaskId(
+            Optional.ofNullable(request.getExternalTaskId())
+                .map(Object::toString)
+                .orElse(null)
+        );
+        return taskResource;
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
