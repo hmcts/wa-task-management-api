@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -26,7 +28,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.List;
@@ -81,13 +82,15 @@ class PostUpdateTaskWithNotesControllerFailureTest {
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
 
     private ServiceMocks mockServices;
     private String taskId;
 
     @BeforeEach
     void setUp() {
+        objectMapper = jackson2ObjectMapperBuilder.build();
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
         when(authTokenGenerator.generate())
@@ -118,7 +121,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(addNotes()))
+                .content(objectMapper.writeValueAsString(addNotes()))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -142,7 +145,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(addNotes()))
+                .content(objectMapper.writeValueAsString(addNotes()))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -201,7 +204,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(notesRequest))
+                .content(objectMapper.writeValueAsString(notesRequest))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -238,7 +241,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(notesRequest))
+                .content(objectMapper.writeValueAsString(notesRequest))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -267,7 +270,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(notesRequest))
+                .content(objectMapper.writeValueAsString(notesRequest))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -303,7 +306,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(notesRequest))
+                .content(objectMapper.writeValueAsString(notesRequest))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -342,7 +345,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(notesRequest))
+                .content(objectMapper.writeValueAsString(notesRequest))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),

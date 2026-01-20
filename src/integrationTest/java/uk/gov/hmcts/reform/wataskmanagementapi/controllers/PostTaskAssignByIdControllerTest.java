@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -38,7 +40,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantTy
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -114,7 +115,8 @@ class PostTaskAssignByIdControllerTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private ServiceMocks mockServices;
     private String taskId;
@@ -124,6 +126,7 @@ class PostTaskAssignByIdControllerTest {
 
     @BeforeEach
     void setUp() {
+        objectMapper = jackson2ObjectMapperBuilder.build();
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
@@ -233,7 +236,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+                .content(objectMapper.writeValueAsString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpect(
             ResultMatcher.matchAll(
                 status().is5xxServerError(),
@@ -263,7 +266,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+                .content(objectMapper.writeValueAsString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_JSON_VALUE),
@@ -297,8 +300,8 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(request))
-                .content(integrationTestUtils.asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
+                .content(objectMapper.writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -352,7 +355,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -410,7 +413,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -507,7 +510,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -627,7 +630,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -725,7 +728,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -843,7 +846,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(HttpStatus.NO_CONTENT.value())
         );
@@ -941,7 +944,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1034,7 +1037,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1130,7 +1133,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1233,7 +1236,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1338,7 +1341,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1419,7 +1422,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );
@@ -1490,7 +1493,7 @@ class PostTaskAssignByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(assignTaskRequest))
+                .content(objectMapper.writeValueAsString(assignTaskRequest))
         ).andExpectAll(
             status().is(status.value())
         );

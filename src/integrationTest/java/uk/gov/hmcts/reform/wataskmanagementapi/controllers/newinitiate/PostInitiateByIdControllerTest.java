@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.newinitiate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -44,7 +46,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -131,11 +132,13 @@ class PostInitiateByIdControllerTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     private String taskId;
 
     @BeforeEach
     void setUp() {
+        objectMapper = jackson2ObjectMapperBuilder.build();
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
@@ -179,7 +182,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req))
+                .content(objectMapper.writeValueAsString(req))
         ).andExpectAll(
             status().isForbidden(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -265,7 +268,7 @@ class PostInitiateByIdControllerTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(integrationTestUtils.asJsonString(req))
+                        .content(objectMapper.writeValueAsString(req))
                 ).andExpectAll(
                     status().isCreated(),
                     content().contentType(APPLICATION_JSON_VALUE)
@@ -296,7 +299,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(someOtherReq)))
+                .content(objectMapper.writeValueAsString(someOtherReq)))
             .andExpectAll(
                 status().isServiceUnavailable(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
@@ -338,7 +341,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(print())
             .andExpectAll(status().isInternalServerError());
 
@@ -386,7 +389,7 @@ class PostInitiateByIdControllerTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(APPLICATION_JSON_VALUE)
-                         .content(integrationTestUtils.asJsonString(req)))
+                         .content(objectMapper.writeValueAsString(req)))
             .andDo(print())
             .andExpectAll(
                 status().isBadGateway(),
@@ -470,7 +473,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -578,7 +581,7 @@ class PostInitiateByIdControllerTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(integrationTestUtils.asJsonString(req)))
+                         .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().is(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -668,7 +671,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -789,7 +792,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -909,7 +912,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1028,7 +1031,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1144,7 +1147,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1267,7 +1270,7 @@ class PostInitiateByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1376,7 +1379,7 @@ class PostInitiateByIdControllerTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(integrationTestUtils.asJsonString(req)))
+                         .content(objectMapper.writeValueAsString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -1451,7 +1454,7 @@ class PostInitiateByIdControllerTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(integrationTestUtils.asJsonString(req)))
+                         .content(objectMapper.writeValueAsString(req)))
             .andExpectAll(
                 status().isBadRequest(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -1527,7 +1530,7 @@ class PostInitiateByIdControllerTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(integrationTestUtils.asJsonString(req)))
+                         .content(objectMapper.writeValueAsString(req)))
             .andExpectAll(status().isCreated(),
                           content().contentType(APPLICATION_JSON_VALUE),
                           jsonPath("$.task_id").value(taskId),

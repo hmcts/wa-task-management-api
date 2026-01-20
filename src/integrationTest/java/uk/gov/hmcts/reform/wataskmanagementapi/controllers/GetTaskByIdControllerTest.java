@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -44,7 +46,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
@@ -116,7 +117,8 @@ class GetTaskByIdControllerTest {
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     TaskTestUtils taskTestUtils;
@@ -126,6 +128,7 @@ class GetTaskByIdControllerTest {
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
+        objectMapper = jackson2ObjectMapperBuilder.build();
     }
 
 
@@ -389,7 +392,7 @@ class GetTaskByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(request))
+                .content(objectMapper.writeValueAsString(request))
         ).andExpectAll(
             status().is4xxClientError(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -607,7 +610,7 @@ class GetTaskByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(initiateTaskRequest)))
+                .content(objectMapper.writeValueAsString(initiateTaskRequest)))
             //.andDo(print())
             .andExpectAll(
                 status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),
@@ -626,7 +629,7 @@ class GetTaskByIdControllerTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(initiateTaskRequest)))
+                .content(objectMapper.writeValueAsString(initiateTaskRequest)))
             //.andDo(print())
             .andExpectAll(
                 status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()),

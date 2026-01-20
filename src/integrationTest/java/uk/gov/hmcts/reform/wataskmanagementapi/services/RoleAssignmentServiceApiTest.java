@@ -36,7 +36,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils.MAX_ROLE_ASSIGNMENT_RECORDS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TestConstants.MAX_ROLE_ASSIGNMENT_RECORDS;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})

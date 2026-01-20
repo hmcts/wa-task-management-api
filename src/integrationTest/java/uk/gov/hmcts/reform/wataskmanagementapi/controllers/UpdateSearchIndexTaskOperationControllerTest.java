@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -22,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperation
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.util.List;
@@ -65,13 +66,15 @@ class UpdateSearchIndexTaskOperationControllerTest {
     MockMvc mockMvc;
 
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
 
     TaskTestUtils taskTestUtils;
 
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
+        objectMapper = jackson2ObjectMapperBuilder.build();
     }
 
     @BeforeEach
@@ -91,7 +94,7 @@ class UpdateSearchIndexTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskOperationRequest()))
+                .content(objectMapper.writeValueAsString(taskOperationRequest()))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );

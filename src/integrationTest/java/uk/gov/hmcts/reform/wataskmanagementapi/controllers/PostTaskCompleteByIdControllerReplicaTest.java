@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -48,7 +50,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
@@ -128,7 +129,8 @@ public class PostTaskCompleteByIdControllerReplicaTest {
     MockMvc mockMvc;
 
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
@@ -157,6 +159,7 @@ public class PostTaskCompleteByIdControllerReplicaTest {
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"replica");
+        objectMapper = jackson2ObjectMapperBuilder.build();
         replicaIntegrationTestUtils = new ReplicaIntegrationTestUtils(
             taskResourceRepository,
             taskHistoryResourceRepository,
@@ -254,7 +257,7 @@ public class PostTaskCompleteByIdControllerReplicaTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(request))
+                .content(objectMapper.writeValueAsString(request))
         ).andExpectAll(
             status().isNoContent()
         );

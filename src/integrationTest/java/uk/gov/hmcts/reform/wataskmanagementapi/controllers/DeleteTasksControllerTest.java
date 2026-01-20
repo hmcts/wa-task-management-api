@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,7 +32,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -79,7 +80,8 @@ public class DeleteTasksControllerTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
 
@@ -87,6 +89,7 @@ public class DeleteTasksControllerTest {
 
     @BeforeEach
     void setUp() {
+        objectMapper = jackson2ObjectMapperBuilder.build();
         mockServices = new ServiceMocks(
                 idamWebApi,
                 serviceAuthorisationApi,
@@ -126,8 +129,8 @@ public class DeleteTasksControllerTest {
 
         mockMvc.perform(
                 post("/task/delete")
-                    .content(integrationTestUtils
-                                 .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
+                    .content(objectMapper
+                                 .writeValueAsString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpectAll(status().isCreated()).andReturn();
@@ -172,8 +175,8 @@ public class DeleteTasksControllerTest {
 
         mockMvc.perform(
                 post("/task/delete")
-                    .content(integrationTestUtils
-                                 .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
+                    .content(objectMapper
+                                 .writeValueAsString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpectAll(status().isCreated()).andReturn();
@@ -205,8 +208,8 @@ public class DeleteTasksControllerTest {
             .thenReturn(true);
         mockMvc.perform(
                         post("/task/delete")
-                                .content(integrationTestUtils
-                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
+                                .content(objectMapper.writeValueAsString(
+                                    new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
@@ -222,8 +225,8 @@ public class DeleteTasksControllerTest {
             .thenReturn(false);
         mockMvc.perform(
                         post("/task/delete")
-                                .content(integrationTestUtils
-                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
+                                .content(objectMapper.writeValueAsString(
+                                    new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isForbidden())
@@ -237,8 +240,8 @@ public class DeleteTasksControllerTest {
 
         mockMvc.perform(
                         post("/task/delete")
-                                .content(integrationTestUtils
-                                             .asJsonString(new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
+                                .content(objectMapper.writeValueAsString(
+                                    new DeleteTasksRequest(new DeleteCaseTasksAction(caseId))))
                                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isServiceUnavailable())

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -59,7 +60,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
@@ -174,7 +174,7 @@ class TaskManagementTimeZoneTest {
     MockMvc mockMvc;
 
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    ObjectMapper objectMapper;
 
     @Autowired
     protected TaskResourceRepository taskResourceRepository;
@@ -360,7 +360,7 @@ class TaskManagementTimeZoneTest {
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -415,7 +415,7 @@ class TaskManagementTimeZoneTest {
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -573,7 +573,7 @@ class TaskManagementTimeZoneTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(req)))
+                .content(objectMapper.writeValueAsString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),

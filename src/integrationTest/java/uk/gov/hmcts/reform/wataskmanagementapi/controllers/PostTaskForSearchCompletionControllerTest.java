@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,7 +42,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -102,7 +103,8 @@ class PostTaskForSearchCompletionControllerTest {
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
@@ -116,6 +118,7 @@ class PostTaskForSearchCompletionControllerTest {
 
     @BeforeEach
     void setUp() {
+        objectMapper = jackson2ObjectMapperBuilder.build();
         taskId = UUID.randomUUID().toString();
 
         when(authTokenGenerator.generate())
@@ -159,7 +162,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             ).andExpect(status().is5xxServerError())
             .andExpect(result -> assertEquals(
@@ -215,7 +218,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -231,7 +234,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -297,7 +300,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -368,7 +371,7 @@ class PostTaskForSearchCompletionControllerTest {
             post("/task/search-for-completable")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                .content(objectMapper.writeValueAsString(searchEventAndCase))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -452,7 +455,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -512,7 +515,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -589,7 +592,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -619,7 +622,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -665,7 +668,7 @@ class PostTaskForSearchCompletionControllerTest {
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .content(objectMapper.writeValueAsString(searchEventAndCase))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpectAll(

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -54,7 +56,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -123,7 +124,8 @@ class PostTaskSearchControllerTest {
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
@@ -131,6 +133,7 @@ class PostTaskSearchControllerTest {
 
     @BeforeEach
     void setUp() {
+        objectMapper = jackson2ObjectMapperBuilder.build();
         taskId = UUID.randomUUID().toString();
 
         when(authTokenGenerator.generate())
@@ -197,7 +200,7 @@ class PostTaskSearchControllerTest {
             post(uri)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                .content(objectMapper.writeValueAsString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             ResultMatcher.matchAll(
@@ -246,7 +249,7 @@ class PostTaskSearchControllerTest {
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                .content(objectMapper.writeValueAsString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -312,7 +315,7 @@ class PostTaskSearchControllerTest {
             post("/task")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                .content(objectMapper.writeValueAsString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -378,7 +381,7 @@ class PostTaskSearchControllerTest {
             post("/task?first_result=0&max_results=2")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                .content(objectMapper.writeValueAsString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpectAll(
             status().isOk(),
@@ -424,7 +427,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                    .content(objectMapper.writeValueAsString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             ).andDo(MockMvcResultHandlers.print())
             .andExpectAll(
@@ -479,7 +482,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                    .content(objectMapper.writeValueAsString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -526,7 +529,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                    .content(objectMapper.writeValueAsString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -574,7 +577,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                    .content(objectMapper.writeValueAsString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -614,7 +617,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                    .content(objectMapper.writeValueAsString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -801,7 +804,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(new SearchTaskRequest(emptyList())))
+                    .content(objectMapper.writeValueAsString(new SearchTaskRequest(emptyList())))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
@@ -1839,7 +1842,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                    .content(objectMapper.writeValueAsString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
@@ -1863,7 +1866,7 @@ class PostTaskSearchControllerTest {
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN_FOR_EXCEPTION)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
+                    .content(objectMapper.writeValueAsString(searchTaskRequest))
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpectAll(

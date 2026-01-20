@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,7 +31,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TerminationProcessHelper;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.util.Optional;
@@ -82,7 +83,8 @@ class DeleteTerminateByIdControllerTest {
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     @Autowired
     protected MockMvc mockMvc;
 
@@ -93,6 +95,7 @@ class DeleteTerminateByIdControllerTest {
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
+        objectMapper = jackson2ObjectMapperBuilder.build();
     }
 
     @BeforeEach
@@ -122,7 +125,7 @@ class DeleteTerminateByIdControllerTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(req))
+                    .content(objectMapper.writeValueAsString(req))
             ).andExpectAll(
                 status().isForbidden(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -153,7 +156,7 @@ class DeleteTerminateByIdControllerTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(req))
+                    .content(objectMapper.writeValueAsString(req))
             ).andExpectAll(
                 status().isNoContent()
             );
@@ -191,7 +194,7 @@ class DeleteTerminateByIdControllerTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(req))
+                    .content(objectMapper.writeValueAsString(req))
             ).andExpectAll(
 
                 status().isForbidden(),
@@ -224,7 +227,7 @@ class DeleteTerminateByIdControllerTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(req))
+                    .content(objectMapper.writeValueAsString(req))
             ).andExpectAll(
                 status().isNoContent()
             );
@@ -258,7 +261,7 @@ class DeleteTerminateByIdControllerTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(req))
+                    .content(objectMapper.writeValueAsString(req))
             ).andExpectAll(
 
                 status().isForbidden(),
@@ -291,7 +294,7 @@ class DeleteTerminateByIdControllerTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(req))
+                    .content(objectMapper.writeValueAsString(req))
             ).andExpectAll(
                 status().isNoContent()
             );

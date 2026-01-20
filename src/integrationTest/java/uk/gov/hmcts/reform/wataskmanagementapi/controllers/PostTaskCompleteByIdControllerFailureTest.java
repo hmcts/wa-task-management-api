@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -38,7 +40,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantTy
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -99,13 +100,15 @@ class PostTaskCompleteByIdControllerFailureTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private ServiceMocks mockServices;
     private String taskId;
 
     @BeforeEach
     void setUp() {
+        objectMapper = jackson2ObjectMapperBuilder.build();
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
@@ -298,7 +301,7 @@ class PostTaskCompleteByIdControllerFailureTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
+                    .content(objectMapper.writeValueAsString(new CompleteTaskRequest(new CompletionOptions(true))))
             ).andExpectAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -356,7 +359,7 @@ class PostTaskCompleteByIdControllerFailureTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
+                    .content(objectMapper.writeValueAsString(new CompleteTaskRequest(new CompletionOptions(true))))
             ).andExpectAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -417,7 +420,7 @@ class PostTaskCompleteByIdControllerFailureTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
+                    .content(objectMapper.writeValueAsString(new CompleteTaskRequest(new CompletionOptions(true))))
             ).andExpectAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -480,7 +483,7 @@ class PostTaskCompleteByIdControllerFailureTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(integrationTestUtils.asJsonString(new CompleteTaskRequest(null)))
+                        .content(objectMapper.writeValueAsString(new CompleteTaskRequest(null)))
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpectAll(
@@ -609,7 +612,7 @@ class PostTaskCompleteByIdControllerFailureTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(request))
+                    .content(objectMapper.writeValueAsString(request))
             ).andExpectAll(
                 status().is4xxClientError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -648,7 +651,7 @@ class PostTaskCompleteByIdControllerFailureTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(integrationTestUtils.asJsonString(request))
+                    .content(objectMapper.writeValueAsString(request))
             ).andExpectAll(
                 status().is4xxClientError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -815,7 +818,7 @@ class PostTaskCompleteByIdControllerFailureTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(integrationTestUtils.asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
+                        .content(objectMapper.writeValueAsString(new CompleteTaskRequest(new CompletionOptions(true))))
                 )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpectAll(

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -42,7 +44,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskReconfigurationTransactionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.time.LocalDate;
@@ -123,7 +124,8 @@ class ExecuteReconfigurationTaskOperationControllerTest {
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
-    IntegrationTestUtils integrationTestUtils;
+    Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
+    private ObjectMapper objectMapper;
 
     @MockitoSpyBean
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
@@ -141,6 +143,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
+        objectMapper = jackson2ObjectMapperBuilder.build();
     }
 
     @BeforeEach
@@ -194,7 +197,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -225,7 +228,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -252,7 +255,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -296,7 +299,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -343,7 +346,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -385,7 +388,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -465,7 +468,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -498,7 +501,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -544,7 +547,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -589,7 +592,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -666,7 +669,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -699,7 +702,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(reconfigureDateTime)
                 )))
@@ -727,7 +730,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -760,7 +763,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -793,7 +796,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -831,7 +834,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -883,7 +886,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -922,7 +925,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -975,7 +978,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -998,7 +1001,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -1033,7 +1036,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
                                                                          taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -1059,7 +1062,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -1094,7 +1097,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
                                                                          taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -1135,7 +1138,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -1188,7 +1191,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -1229,7 +1232,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -1282,7 +1285,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
                                                                          taskTestUtils.markTaskFilters(caseIdToday))))
 
         ).andExpectAll(
@@ -1300,7 +1303,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().plusDays(1))
                 )))
@@ -1329,7 +1332,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
                                                                          taskTestUtils.markTaskFilters(caseIdToday))))
 
         ).andExpectAll(
@@ -1346,7 +1349,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -1378,7 +1381,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(MARK_TO_RECONFIGURE,
                                                                          taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -1429,7 +1432,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusMinutes(30L))
                 )))
@@ -1441,7 +1444,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
+                .content(objectMapper.writeValueAsString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE_FAILURES,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusMinutes(30L))
                 )))
