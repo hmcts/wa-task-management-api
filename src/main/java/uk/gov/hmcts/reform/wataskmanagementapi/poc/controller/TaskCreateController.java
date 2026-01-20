@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.api.TaskApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.api.TasksApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
@@ -20,7 +20,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-public class TaskCreateController implements TaskApi {
+public class TaskCreateController implements TasksApi {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;

@@ -65,7 +65,7 @@ components:
             external_task_id:
               type: string
               format: uuid
-              description: Unique task identifier.
+              description: external task identifier.
             type:
               type: string
               description: Service-defined task type identifier.
