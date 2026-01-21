@@ -5,13 +5,11 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.time.OffsetDateTime;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 
@@ -22,78 +20,16 @@ import jakarta.annotation.Generated;
  * CreateTaskRequestTaskPermissionsInner
  */
 @JsonTypeName("CreateTaskRequest_task_permissions_inner")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-20T11:14:16.521508Z[Europe/London]")public class CreateTaskRequestTaskPermissionsInner {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T13:27:51.996306Z[Europe/London]")public class CreateTaskRequestTaskPermissionsInner {
 
   private String roleName;
 
   private String roleCategory;
 
-  /**
-   * Gets or Sets permissions
-   */
-  public enum PermissionsEnum {
-    READ("Read"),
-    
-    OWN("Own"),
-    
-    EXECUTE("Execute"),
-    
-    MANAGE("Manage"),
-    
-    CANCEL("Cancel"),
-    
-    REFER("Refer"),
-    
-    COMPLETE("Complete"),
-    
-    COMPLETEOWN("CompleteOwn"),
-    
-    CANCELOWN("CancelOwn"),
-    
-    CLAIM("Claim"),
-    
-    UNCLAIM("Unclaim"),
-    
-    ASSIGN("Assign"),
-    
-    UNASSIGN("Unassign"),
-    
-    UNCLAIMASSIGN("UnclaimAssign"),
-    
-    UNASSIGNCLAIM("UnassignClaim"),
-    
-    UNASSIGNASSIGN("UnassignAssign");
+  
+  private List<uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes> permissions = new ArrayList<>();
 
-    private String value;
-
-    PermissionsEnum(String value) {
-      this.value = value;
-    }
-
-    @JsonValue
-    public String getValue() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return String.valueOf(value);
-    }
-
-    @JsonCreator
-    public static PermissionsEnum fromValue(String value) {
-      for (PermissionsEnum b : PermissionsEnum.values()) {
-        if (b.value.equals(value)) {
-          return b;
-        }
-      }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
-    }
-  }
-  @Valid
-  private List<PermissionsEnum> permissions = new ArrayList<>();
-
-  @Valid
+  
   private List<String> authorisations;
 
   private Integer assignmentPriority;
@@ -107,7 +43,7 @@ import jakarta.annotation.Generated;
   /**
    * Constructor with only required parameters
    */
-  public CreateTaskRequestTaskPermissionsInner(String roleName, String roleCategory, List<PermissionsEnum> permissions) {
+  public CreateTaskRequestTaskPermissionsInner(String roleName, String roleCategory, List<uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes> permissions) {
     this.roleName = roleName;
     this.roleCategory = roleCategory;
     this.permissions = permissions;
@@ -122,7 +58,8 @@ import jakarta.annotation.Generated;
    * Role name.
    * @return roleName
   */
-  @NotNull   @Schema(name = "role_name", description = "Role name.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "role_name", description = "Role name.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("role_name")
   public String getRoleName() {
     return roleName;
@@ -141,7 +78,8 @@ import jakarta.annotation.Generated;
    * Role category.
    * @return roleCategory
   */
-  @NotNull   @Schema(name = "role_category", description = "Role category.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "role_category", description = "Role category.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("role_category")
   public String getRoleCategory() {
     return roleCategory;
@@ -151,12 +89,12 @@ import jakarta.annotation.Generated;
     this.roleCategory = roleCategory;
   }
 
-  public CreateTaskRequestTaskPermissionsInner permissions(List<PermissionsEnum> permissions) {
+  public CreateTaskRequestTaskPermissionsInner permissions(List<uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes> permissions) {
     this.permissions = permissions;
     return this;
   }
 
-  public CreateTaskRequestTaskPermissionsInner addPermissionsItem(PermissionsEnum permissionsItem) {
+  public CreateTaskRequestTaskPermissionsInner addPermissionsItem(uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes permissionsItem) {
     if (this.permissions == null) {
       this.permissions = new ArrayList<>();
     }
@@ -165,16 +103,17 @@ import jakarta.annotation.Generated;
   }
 
   /**
-   * Supported permission values.
+   * Get permissions
    * @return permissions
   */
-  @NotNull   @Schema(name = "permissions", description = "Supported permission values.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "permissions", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("permissions")
-  public List<PermissionsEnum> getPermissions() {
+  public List<uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes> getPermissions() {
     return permissions;
   }
 
-  public void setPermissions(List<PermissionsEnum> permissions) {
+  public void setPermissions(List<uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes> permissions) {
     this.permissions = permissions;
   }
 
@@ -195,7 +134,8 @@ import jakarta.annotation.Generated;
    * Authorisations for the role.
    * @return authorisations
   */
-    @Schema(name = "authorisations", description = "Authorisations for the role.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "authorisations", description = "Authorisations for the role.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("authorisations")
   public List<String> getAuthorisations() {
     return authorisations;
@@ -214,7 +154,8 @@ import jakarta.annotation.Generated;
    * Assignment priority.
    * @return assignmentPriority
   */
-    @Schema(name = "assignment_priority", description = "Assignment priority.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "assignment_priority", description = "Assignment priority.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("assignment_priority")
   public Integer getAssignmentPriority() {
     return assignmentPriority;
@@ -233,7 +174,8 @@ import jakarta.annotation.Generated;
    * Whether the role is auto-assignable.
    * @return autoAssignable
   */
-    @Schema(name = "auto_assignable", description = "Whether the role is auto-assignable.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "auto_assignable", description = "Whether the role is auto-assignable.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("auto_assignable")
   public Boolean getAutoAssignable() {
     return autoAssignable;

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Optional;
@@ -43,6 +44,12 @@ public enum PermissionTypes {
 
     public String value() {
         return value;
+    }
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static PermissionTypes fromJson(String value) {
+        return from(value)
+            .orElseThrow(() -> new IllegalArgumentException("Unknown PermissionTypes: " + value));
     }
 
     public String taskRoleResourceField() {
