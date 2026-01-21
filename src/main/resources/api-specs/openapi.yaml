@@ -69,7 +69,6 @@ components:
           required:
             - type
             - name
-            - state
             - created
             - execution_type
             - case_id

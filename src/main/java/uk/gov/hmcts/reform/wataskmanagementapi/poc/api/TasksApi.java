@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import jakarta.annotation.Generated;
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T11:27:37.331356Z[Europe/London]")@Tag(name = "tasks", description = "the tasks API")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T13:27:51.996306Z[Europe/London]")@Tag(name = "tasks", description = "the tasks API")
 public interface TasksApi {
 
     default Optional<NativeWebRequest> getRequest() {

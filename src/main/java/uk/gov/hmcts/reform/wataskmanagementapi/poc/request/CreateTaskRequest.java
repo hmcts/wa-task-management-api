@@ -16,7 +16,7 @@ import jakarta.annotation.Generated;
 /**
  * CreateTaskRequest
  */
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T11:27:37.331356Z[Europe/London]")public class CreateTaskRequest {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T13:27:51.996306Z[Europe/London]")public class CreateTaskRequest {
 
   private CreateTaskRequestTask task;
 

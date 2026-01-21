@@ -27,7 +27,7 @@ import jakarta.annotation.Generated;
  * CreateTaskRequestTask
  */
 @JsonTypeName("CreateTaskRequest_task")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T11:27:37.331356Z[Europe/London]")public class CreateTaskRequestTask {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T13:27:51.996306Z[Europe/London]")public class CreateTaskRequestTask {
 
   private UUID externalTaskId;
 

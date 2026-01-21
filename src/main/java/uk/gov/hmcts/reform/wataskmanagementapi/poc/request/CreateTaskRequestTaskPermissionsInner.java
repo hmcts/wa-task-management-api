@@ -20,7 +20,7 @@ import jakarta.annotation.Generated;
  * CreateTaskRequestTaskPermissionsInner
  */
 @JsonTypeName("CreateTaskRequest_task_permissions_inner")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T11:27:37.331356Z[Europe/London]")public class CreateTaskRequestTaskPermissionsInner {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T13:27:51.996306Z[Europe/London]")public class CreateTaskRequestTaskPermissionsInner {
 
   private String roleName;
 
