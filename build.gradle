@@ -128,16 +128,6 @@ sourceSets {
   }
 }
 
-tasks.named("openApiGenerate").configure {
-  doFirst {
-    println "===== openApiGenerate debug ====="
-    println "rootDir    = $rootDir"
-    println "projectDir = $projectDir"
-    println "buildDir = $buildDir"
-    println "inputSpec  = ${inputSpec}"
-    println "inputSpec exists? ${file(inputSpec).exists()}"
-  }
-}
 openApiGenerate {
   generatorName = "spring"
   inputSpec = file("$rootDir/wa-task-management-api/src/main/resources/api-specs/openapi.yaml").path
@@ -163,6 +153,12 @@ openApiGenerate {
 }
 
 tasks.named("compileJava") {
+
+    println "===== openApiGenerate debug ====="
+    println "rootDir    = $rootDir"
+    println "projectDir = $projectDir"
+    println "buildDir = $buildDir"
+
   dependsOn 'openApiGenerate'
 }
 
