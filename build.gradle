@@ -129,8 +129,8 @@ sourceSets {
 }
 openApiGenerate {
   generatorName = "spring"
-  inputSpec = "$rootDir/wa-task-management-api/src/main/resources/api-specs/openapi.yaml"
-  outputDir = "$buildDir/wa-task-management-api/"
+  inputSpec = file("$rootDir/wa-task-management-api/src/main/resources/api-specs/openapi.yaml").path
+  outputDir = file("$buildDir/wa-task-management-api/").path
   apiPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.api"
   modelPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.request"
   schemaMappings = [
