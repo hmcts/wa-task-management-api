@@ -33,7 +33,7 @@ public class TaskCreateController implements TasksApi {
     @Override
     @PostMapping(value = "/tasks", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource> createTask(
-        @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
+        @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
         @Valid @RequestBody CreateTaskRequest createTaskRequest
     ) {
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthorization);
@@ -42,6 +42,7 @@ public class TaskCreateController implements TasksApi {
         }
 
         TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
         return ResponseEntity
             .status(HttpStatus.CREATED)

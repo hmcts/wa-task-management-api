@@ -20,20 +20,16 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import jakarta.annotation.Generated;
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-20T11:14:16.521508Z[Europe/London]")@Validated
-@Tag(name = "tasks", description = "the tasks API")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T13:27:51.996306Z[Europe/London]")@Tag(name = "tasks", description = "the tasks API")
 public interface TasksApi {
 
     default Optional<NativeWebRequest> getRequest() {
@@ -74,8 +70,8 @@ public interface TasksApi {
     )
     
     default ResponseEntity<uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource> createTask(
-        @NotNull @Parameter(name = "ServiceAuthorization", description = "Service-to-service authorization token", required = true, in = ParameterIn.HEADER) @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
-        @Parameter(name = "CreateTaskRequest", description = "", required = true) @Valid @RequestBody CreateTaskRequest createTaskRequest
+        @Parameter(name = "ServiceAuthorization", description = "Service-to-service authorization token", required = true, in = ParameterIn.HEADER) @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
+        @Parameter(name = "CreateTaskRequest", description = "", required = true) @RequestBody CreateTaskRequest createTaskRequest
     ) {
                         getRequest().ifPresent(request -> {
                     for (MediaType mediaType: MediaType.parseMediaTypes(request.getHeader("Accept"))) {
