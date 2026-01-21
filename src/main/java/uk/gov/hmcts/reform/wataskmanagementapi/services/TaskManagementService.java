@@ -616,7 +616,7 @@ public class TaskManagementService {
         //Get DueDatetime or throw exception
         //Map taskPayload to taskResource
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(task);
-
+        taskResource = taskAutoAssignmentService.performAutoAssignment(taskResource.getTaskId(), taskResource);
         return cftTaskDatabaseService.saveTask(taskResource);
     }
 
