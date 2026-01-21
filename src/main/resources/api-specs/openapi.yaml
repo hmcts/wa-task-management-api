@@ -1,0 +1,217 @@
+openapi: 3.0.3
+info:
+  title: Task Management API
+  description: API for creating fully formed tasks directly in Task Management.
+  version: 1.0.0
+servers:
+  - url: /
+    description: Local development server
+paths:
+  /tasks:
+    post:
+      summary: Create a new task
+      description: Create fully formed tasks directly in Task Management without relying on Camunda or DMN evaluation.
+      operationId: createTask
+      parameters:
+        - name: ServiceAuthorization
+          in: header
+          required: true
+          description: Service-to-service authorization token
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResource'
+        '204':
+          description: Task already exists with the same payload
+        '400':
+          description: Validation errors
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+components:
+  schemas:
+    CreateTaskRequest:
+      type: object
+      properties:
+        task:
+          type: object
+          required:
+            - type
+            - name
+            - state
+            - created
+            - execution_type
+            - case_id
+            - case_type_id
+            - jurisdiction
+            - work_type
+            - role_category
+            - security_classification
+            - due_date_time
+            - permissions
+          properties:
+            external_task_id:
+              type: string
+              format: uuid
+              description: external task identifier.
+            type:
+              type: string
+              description: Service-defined task type identifier.
+            name:
+              type: string
+              description: User-facing task name.
+            title:
+              type: string
+              description: Optional display title.
+            state:
+              type: string
+              enum: [UNASSIGNED, ASSIGNED]
+              description: Initial task state.
+            created:
+              type: string
+              format: date-time
+              description: Creation timestamp.
+            execution_type:
+              type: string
+              enum: [Manual, Built In, Case Management Task]
+              description: Execution category.
+            case_id:
+              type: string
+              description: CCD case reference.
+            case_type_id:
+              type: string
+              description: CCD case type identifier.
+            case_category:
+              type: string
+              description: Primary case management category.
+            case_name:
+              type: string
+              description: Human-readable case name.
+            jurisdiction:
+              type: string
+              description: CCD jurisdiction identifier.
+            region:
+              type: string
+              description: Case management region identifier.
+            location:
+              type: string
+              description: Base location identifier.
+            work_type:
+              type: string
+              description: Work type identifier.
+            role_category:
+              type: string
+              description: Role category for the task.
+            security_classification:
+              type: string
+              enum: [PUBLIC, PRIVATE, RESTRICTED]
+              description: Security classification.
+            description:
+              type: string
+              description: Task description text.
+            due_date_time:
+              type: string
+              format: date-time
+              description: Target due date/time.
+            priority_date:
+              type: string
+              format: date-time
+              description: Business priority date/time.
+            major_priority:
+              type: integer
+              description: Major priority level.
+            minor_priority:
+              type: integer
+              description: Minor priority level.
+            location_name:
+              type: string
+              description: Location display name.
+            region_name:
+              type: string
+              description: Region display name.
+            task_system:
+              type: string
+              enum: [SELF, CTSC]
+              description: Task origin system.
+            additional_properties:
+              type: object
+              additionalProperties:
+                type: string
+              description: Free-form metadata.
+            permissions:
+              type: array
+              items:
+                type: object
+                required:
+                  - role_name
+                  - role_category
+                  - permissions
+                properties:
+                  role_name:
+                    type: string
+                    description: Role name.
+                  role_category:
+                    type: string
+                    description: Role category.
+                  permissions:
+                    type: array
+                    items:
+                      type: string
+                      enum: [Read, Own, Execute, Manage, Cancel, Refer, Complete, CompleteOwn, CancelOwn, Claim, Unclaim, Assign, Unassign, UnclaimAssign, UnassignClaim, UnassignAssign]
+                    description: Supported permission values.
+                  authorisations:
+                    type: array
+                    items:
+                      type: string
+                    description: Authorisations for the role.
+                  assignment_priority:
+                    type: integer
+                    description: Assignment priority.
+                  auto_assignable:
+                    type: boolean
+                    description: Whether the role is auto-assignable.
+    TaskResource:
+      type: object
+      properties:
+        task_id:
+          type: string
+          format: uuid
+          description: Unique task identifier.
+        external_task_id:
+          type: string
+          format: uuid
+          description: external task identifier.
+        task_name:
+          type: string
+          description: Task name.
+        task_type:
+          type: string
+          description: Task type.
+        state:
+          type: string
+          description: Task state.
+        case_id:
+          type: string
+          description: CCD case reference.
+        case_type_id:
+          type: string
+          description: CCD case type identifier.
+        jurisdiction:
+          type: string
+          description: CCD jurisdiction identifier.
+        created:
+          type: string
+          format: date-time
+          description: Creation timestamp.
