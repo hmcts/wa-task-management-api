@@ -152,8 +152,9 @@ public class CFTTaskMapper {
             ExecutionType.CASE_EVENT.getDescription()
         );;
         OffsetDateTime createdDate =  ZonedDateTime.now().toOffsetDateTime();
+        String taskId = UUID.randomUUID().toString();
 
-
+        Set<TaskRoleResource> taskRoleResources = mapPermissions(request, taskId);
 
         WorkTypeResource workTypeResource = new WorkTypeResource(
             request.getWorkType()
@@ -167,8 +168,9 @@ public class CFTTaskMapper {
                     e -> String.valueOf(e.getValue())
                 ));
         }
+
         TaskResource taskResource = new TaskResource(
-            UUID.randomUUID().toString(),
+            taskId,
             request.getName(),
             request.getType(),
             request.getDueDateTime(),
@@ -200,7 +202,7 @@ public class CFTTaskMapper {
             null, //termination_reason
             createdDate,
 
-            null, //task_roles
+            taskRoleResources, //task_roles
             request.getCaseCategory(),
             additionalProperties,
             null, //next_hearing_id
@@ -515,6 +517,60 @@ public class CFTTaskMapper {
                     autoAssignable,
                     roleCategory,
                     taskResource.getTaskId(),
+                    ZonedDateTime.now().toOffsetDateTime(),
+                    permissionsFound.contains(PermissionTypes.COMPLETE),
+                    permissionsFound.contains(PermissionTypes.COMPLETE_OWN),
+                    permissionsFound.contains(PermissionTypes.CANCEL_OWN),
+                    permissionsFound.contains(PermissionTypes.CLAIM),
+                    permissionsFound.contains(PermissionTypes.UNCLAIM),
+                    permissionsFound.contains(PermissionTypes.ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNCLAIM_ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_CLAIM),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_ASSIGN)
+                );
+            }).collect(Collectors.toSet());
+    }
+
+    private Set<TaskRoleResource> mapPermissions(
+        CreateTaskRequestTask requestTask, String taskId
+    ) {
+
+        return requestTask.getPermissions().stream()
+            .map(permission -> {
+
+                final String roleName = permission.getRoleName();
+                log.info("Permission found: {}", permission.getPermissions());
+                final Set<PermissionTypes> permissionsFound = permission.getPermissions().stream()
+                    .map(p -> PermissionTypes.from(p.value()).orElseThrow(() -> new IllegalArgumentException(
+                        "Invalid Permission Type:" + p)))
+                    .collect(Collectors.toSet());
+
+
+                List<String> authorisations = permission.getAuthorisations();
+
+
+                Integer assignmentPriority = permission.getAssignmentPriority();
+
+                boolean autoAssignable = permission.getAutoAssignable();
+
+
+                String roleCategory = permission.getRoleCategory();
+
+
+                return new TaskRoleResource(
+                    roleName,
+                    permissionsFound.contains(PermissionTypes.READ),
+                    permissionsFound.contains(PermissionTypes.OWN),
+                    permissionsFound.contains(PermissionTypes.EXECUTE),
+                    permissionsFound.contains(PermissionTypes.MANAGE),
+                    permissionsFound.contains(PermissionTypes.CANCEL),
+                    permissionsFound.contains(PermissionTypes.REFER),
+                    authorisations.toArray(new String[0]),
+                    assignmentPriority,
+                    autoAssignable,
+                    roleCategory,
+                    taskId,
                     ZonedDateTime.now().toOffsetDateTime(),
                     permissionsFound.contains(PermissionTypes.COMPLETE),
                     permissionsFound.contains(PermissionTypes.COMPLETE_OWN),

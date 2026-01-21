@@ -16,8 +16,7 @@ import java.util.UUID;
 import org.springframework.format.annotation.DateTimeFormat;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTaskPermissionsInner;
 import java.time.OffsetDateTime;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 
@@ -28,7 +27,7 @@ import jakarta.annotation.Generated;
  * CreateTaskRequestTask
  */
 @JsonTypeName("CreateTaskRequest_task")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-20T11:14:16.521508Z[Europe/London]")public class CreateTaskRequestTask {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T11:27:37.331356Z[Europe/London]")public class CreateTaskRequestTask {
 
   private UUID externalTaskId;
 
@@ -38,41 +37,7 @@ import jakarta.annotation.Generated;
 
   private String title;
 
-  /**
-   * Initial task state.
-   */
-  public enum StateEnum {
-    UNASSIGNED("UNASSIGNED"),
-    
-    ASSIGNED("ASSIGNED");
-
-    private String value;
-
-    StateEnum(String value) {
-      this.value = value;
-    }
-
-    @JsonValue
-    public String getValue() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return String.valueOf(value);
-    }
-
-    @JsonCreator
-    public static StateEnum fromValue(String value) {
-      for (StateEnum b : StateEnum.values()) {
-        if (b.value.equals(value)) {
-          return b;
-        }
-      }
-      throw new IllegalArgumentException("Unexpected value '" + value + "'");
-    }
-  }
-  private StateEnum state;
+  private String assignee;
 
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private OffsetDateTime created;
@@ -223,11 +188,11 @@ import jakarta.annotation.Generated;
   }
   private TaskSystemEnum taskSystem;
 
-  @Valid
+  
   private Map<String, String> additionalProperties = new HashMap<>();
 
-  @Valid
-  private List<@Valid CreateTaskRequestTaskPermissionsInner> permissions = new ArrayList<>();
+  
+  private List<CreateTaskRequestTaskPermissionsInner> permissions = new ArrayList<>();
 
   public CreateTaskRequestTask() {
     super();
@@ -236,10 +201,9 @@ import jakarta.annotation.Generated;
   /**
    * Constructor with only required parameters
    */
-  public CreateTaskRequestTask(String type, String name, StateEnum state, OffsetDateTime created, ExecutionTypeEnum executionType, String caseId, String caseTypeId, String jurisdiction, String workType, String roleCategory, SecurityClassificationEnum securityClassification, OffsetDateTime dueDateTime, List<@Valid CreateTaskRequestTaskPermissionsInner> permissions) {
+  public CreateTaskRequestTask(String type, String name, OffsetDateTime created, ExecutionTypeEnum executionType, String caseId, String caseTypeId, String jurisdiction, String workType, String roleCategory, SecurityClassificationEnum securityClassification, OffsetDateTime dueDateTime, List<CreateTaskRequestTaskPermissionsInner> permissions) {
     this.type = type;
     this.name = name;
-    this.state = state;
     this.created = created;
     this.executionType = executionType;
     this.caseId = caseId;
@@ -261,7 +225,8 @@ import jakarta.annotation.Generated;
    * external task identifier.
    * @return externalTaskId
   */
-  @Valid   @Schema(name = "external_task_id", description = "external task identifier.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "external_task_id", description = "external task identifier.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("external_task_id")
   public UUID getExternalTaskId() {
     return externalTaskId;
@@ -280,7 +245,8 @@ import jakarta.annotation.Generated;
    * Service-defined task type identifier.
    * @return type
   */
-  @NotNull   @Schema(name = "type", description = "Service-defined task type identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "type", description = "Service-defined task type identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("type")
   public String getType() {
     return type;
@@ -299,7 +265,8 @@ import jakarta.annotation.Generated;
    * User-facing task name.
    * @return name
   */
-  @NotNull   @Schema(name = "name", description = "User-facing task name.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "name", description = "User-facing task name.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("name")
   public String getName() {
     return name;
@@ -318,7 +285,8 @@ import jakarta.annotation.Generated;
    * Optional display title.
    * @return title
   */
-    @Schema(name = "title", description = "Optional display title.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "title", description = "Optional display title.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("title")
   public String getTitle() {
     return title;
@@ -328,23 +296,24 @@ import jakarta.annotation.Generated;
     this.title = title;
   }
 
-  public CreateTaskRequestTask state(StateEnum state) {
-    this.state = state;
+  public CreateTaskRequestTask assignee(String assignee) {
+    this.assignee = assignee;
     return this;
   }
 
   /**
-   * Initial task state.
-   * @return state
+   * Initial Assignee IDAM ID.
+   * @return assignee
   */
-  @NotNull   @Schema(name = "state", description = "Initial task state.", requiredMode = Schema.RequiredMode.REQUIRED)
-  @JsonProperty("state")
-  public StateEnum getState() {
-    return state;
+  
+  @Schema(name = "assignee", description = "Initial Assignee IDAM ID.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("assignee")
+  public String getAssignee() {
+    return assignee;
   }
 
-  public void setState(StateEnum state) {
-    this.state = state;
+  public void setAssignee(String assignee) {
+    this.assignee = assignee;
   }
 
   public CreateTaskRequestTask created(OffsetDateTime created) {
@@ -356,7 +325,8 @@ import jakarta.annotation.Generated;
    * Creation timestamp.
    * @return created
   */
-  @NotNull @Valid   @Schema(name = "created", description = "Creation timestamp.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "created", description = "Creation timestamp.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("created")
   public OffsetDateTime getCreated() {
     return created;
@@ -375,7 +345,8 @@ import jakarta.annotation.Generated;
    * Execution category.
    * @return executionType
   */
-  @NotNull   @Schema(name = "execution_type", description = "Execution category.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "execution_type", description = "Execution category.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("execution_type")
   public ExecutionTypeEnum getExecutionType() {
     return executionType;
@@ -394,7 +365,8 @@ import jakarta.annotation.Generated;
    * CCD case reference.
    * @return caseId
   */
-  @NotNull   @Schema(name = "case_id", description = "CCD case reference.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "case_id", description = "CCD case reference.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("case_id")
   public String getCaseId() {
     return caseId;
@@ -413,7 +385,8 @@ import jakarta.annotation.Generated;
    * CCD case type identifier.
    * @return caseTypeId
   */
-  @NotNull   @Schema(name = "case_type_id", description = "CCD case type identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "case_type_id", description = "CCD case type identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("case_type_id")
   public String getCaseTypeId() {
     return caseTypeId;
@@ -432,7 +405,8 @@ import jakarta.annotation.Generated;
    * Primary case management category.
    * @return caseCategory
   */
-    @Schema(name = "case_category", description = "Primary case management category.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "case_category", description = "Primary case management category.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("case_category")
   public String getCaseCategory() {
     return caseCategory;
@@ -451,7 +425,8 @@ import jakarta.annotation.Generated;
    * Human-readable case name.
    * @return caseName
   */
-    @Schema(name = "case_name", description = "Human-readable case name.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "case_name", description = "Human-readable case name.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("case_name")
   public String getCaseName() {
     return caseName;
@@ -470,7 +445,8 @@ import jakarta.annotation.Generated;
    * CCD jurisdiction identifier.
    * @return jurisdiction
   */
-  @NotNull   @Schema(name = "jurisdiction", description = "CCD jurisdiction identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "jurisdiction", description = "CCD jurisdiction identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("jurisdiction")
   public String getJurisdiction() {
     return jurisdiction;
@@ -489,7 +465,8 @@ import jakarta.annotation.Generated;
    * Case management region identifier.
    * @return region
   */
-    @Schema(name = "region", description = "Case management region identifier.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "region", description = "Case management region identifier.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("region")
   public String getRegion() {
     return region;
@@ -508,7 +485,8 @@ import jakarta.annotation.Generated;
    * Base location identifier.
    * @return location
   */
-    @Schema(name = "location", description = "Base location identifier.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "location", description = "Base location identifier.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("location")
   public String getLocation() {
     return location;
@@ -527,7 +505,8 @@ import jakarta.annotation.Generated;
    * Work type identifier.
    * @return workType
   */
-  @NotNull   @Schema(name = "work_type", description = "Work type identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "work_type", description = "Work type identifier.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("work_type")
   public String getWorkType() {
     return workType;
@@ -546,7 +525,8 @@ import jakarta.annotation.Generated;
    * Role category for the task.
    * @return roleCategory
   */
-  @NotNull   @Schema(name = "role_category", description = "Role category for the task.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "role_category", description = "Role category for the task.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("role_category")
   public String getRoleCategory() {
     return roleCategory;
@@ -565,7 +545,8 @@ import jakarta.annotation.Generated;
    * Security classification.
    * @return securityClassification
   */
-  @NotNull   @Schema(name = "security_classification", description = "Security classification.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "security_classification", description = "Security classification.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("security_classification")
   public SecurityClassificationEnum getSecurityClassification() {
     return securityClassification;
@@ -584,7 +565,8 @@ import jakarta.annotation.Generated;
    * Task description text.
    * @return description
   */
-    @Schema(name = "description", description = "Task description text.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "description", description = "Task description text.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("description")
   public String getDescription() {
     return description;
@@ -603,7 +585,8 @@ import jakarta.annotation.Generated;
    * Target due date/time.
    * @return dueDateTime
   */
-  @NotNull @Valid   @Schema(name = "due_date_time", description = "Target due date/time.", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "due_date_time", description = "Target due date/time.", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("due_date_time")
   public OffsetDateTime getDueDateTime() {
     return dueDateTime;
@@ -622,7 +605,8 @@ import jakarta.annotation.Generated;
    * Business priority date/time.
    * @return priorityDate
   */
-  @Valid   @Schema(name = "priority_date", description = "Business priority date/time.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "priority_date", description = "Business priority date/time.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("priority_date")
   public OffsetDateTime getPriorityDate() {
     return priorityDate;
@@ -641,7 +625,8 @@ import jakarta.annotation.Generated;
    * Major priority level.
    * @return majorPriority
   */
-    @Schema(name = "major_priority", description = "Major priority level.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "major_priority", description = "Major priority level.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("major_priority")
   public Integer getMajorPriority() {
     return majorPriority;
@@ -660,7 +645,8 @@ import jakarta.annotation.Generated;
    * Minor priority level.
    * @return minorPriority
   */
-    @Schema(name = "minor_priority", description = "Minor priority level.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "minor_priority", description = "Minor priority level.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("minor_priority")
   public Integer getMinorPriority() {
     return minorPriority;
@@ -679,7 +665,8 @@ import jakarta.annotation.Generated;
    * Location display name.
    * @return locationName
   */
-    @Schema(name = "location_name", description = "Location display name.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "location_name", description = "Location display name.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("location_name")
   public String getLocationName() {
     return locationName;
@@ -698,7 +685,8 @@ import jakarta.annotation.Generated;
    * Region display name.
    * @return regionName
   */
-    @Schema(name = "region_name", description = "Region display name.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "region_name", description = "Region display name.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("region_name")
   public String getRegionName() {
     return regionName;
@@ -717,7 +705,8 @@ import jakarta.annotation.Generated;
    * Task origin system.
    * @return taskSystem
   */
-    @Schema(name = "task_system", description = "Task origin system.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "task_system", description = "Task origin system.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("task_system")
   public TaskSystemEnum getTaskSystem() {
     return taskSystem;
@@ -744,7 +733,8 @@ import jakarta.annotation.Generated;
    * Free-form metadata.
    * @return additionalProperties
   */
-    @Schema(name = "additional_properties", description = "Free-form metadata.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "additional_properties", description = "Free-form metadata.", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("additional_properties")
   public Map<String, String> getAdditionalProperties() {
     return additionalProperties;
@@ -754,7 +744,7 @@ import jakarta.annotation.Generated;
     this.additionalProperties = additionalProperties;
   }
 
-  public CreateTaskRequestTask permissions(List<@Valid CreateTaskRequestTaskPermissionsInner> permissions) {
+  public CreateTaskRequestTask permissions(List<CreateTaskRequestTaskPermissionsInner> permissions) {
     this.permissions = permissions;
     return this;
   }
@@ -771,13 +761,14 @@ import jakarta.annotation.Generated;
    * Get permissions
    * @return permissions
   */
-  @NotNull @Valid   @Schema(name = "permissions", requiredMode = Schema.RequiredMode.REQUIRED)
+  @NotNull
+  @Schema(name = "permissions", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("permissions")
-  public List<@Valid CreateTaskRequestTaskPermissionsInner> getPermissions() {
+  public List<CreateTaskRequestTaskPermissionsInner> getPermissions() {
     return permissions;
   }
 
-  public void setPermissions(List<@Valid CreateTaskRequestTaskPermissionsInner> permissions) {
+  public void setPermissions(List<CreateTaskRequestTaskPermissionsInner> permissions) {
     this.permissions = permissions;
   }
   @Override
@@ -793,7 +784,7 @@ import jakarta.annotation.Generated;
         Objects.equals(this.type, createTaskRequestTask.type) &&
         Objects.equals(this.name, createTaskRequestTask.name) &&
         Objects.equals(this.title, createTaskRequestTask.title) &&
-        Objects.equals(this.state, createTaskRequestTask.state) &&
+        Objects.equals(this.assignee, createTaskRequestTask.assignee) &&
         Objects.equals(this.created, createTaskRequestTask.created) &&
         Objects.equals(this.executionType, createTaskRequestTask.executionType) &&
         Objects.equals(this.caseId, createTaskRequestTask.caseId) &&
@@ -820,7 +811,7 @@ import jakarta.annotation.Generated;
 
   @Override
   public int hashCode() {
-    return Objects.hash(externalTaskId, type, name, title, state, created, executionType, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, workType, roleCategory, securityClassification, description, dueDateTime, priorityDate, majorPriority, minorPriority, locationName, regionName, taskSystem, additionalProperties, permissions);
+    return Objects.hash(externalTaskId, type, name, title, assignee, created, executionType, caseId, caseTypeId, caseCategory, caseName, jurisdiction, region, location, workType, roleCategory, securityClassification, description, dueDateTime, priorityDate, majorPriority, minorPriority, locationName, regionName, taskSystem, additionalProperties, permissions);
   }
 
   @Override
@@ -831,7 +822,7 @@ import jakarta.annotation.Generated;
     sb.append("    type: ").append(toIndentedString(type)).append("\n");
     sb.append("    name: ").append(toIndentedString(name)).append("\n");
     sb.append("    title: ").append(toIndentedString(title)).append("\n");
-    sb.append("    state: ").append(toIndentedString(state)).append("\n");
+    sb.append("    assignee: ").append(toIndentedString(assignee)).append("\n");
     sb.append("    created: ").append(toIndentedString(created)).append("\n");
     sb.append("    executionType: ").append(toIndentedString(executionType)).append("\n");
     sb.append("    caseId: ").append(toIndentedString(caseId)).append("\n");

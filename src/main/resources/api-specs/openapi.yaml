@@ -42,6 +42,25 @@ paths:
           description: Forbidden
 components:
   schemas:
+    PermissionTypes:
+      type: string
+      enum:
+        - Read
+        - Own
+        - Execute
+        - Manage
+        - Cancel
+        - Refer
+        - Complete
+        - CompleteOwn
+        - CancelOwn
+        - Claim
+        - Unclaim
+        - Assign
+        - Unassign
+        - UnclaimAssign
+        - UnassignClaim
+        - UnassignAssign
     CreateTaskRequest:
       type: object
       properties:
@@ -75,10 +94,9 @@ components:
             title:
               type: string
               description: Optional display title.
-            state:
+            assignee:
               type: string
-              enum: [UNASSIGNED, ASSIGNED]
-              description: Initial task state.
+              description: Initial Assignee IDAM ID.
             created:
               type: string
               format: date-time
@@ -168,9 +186,7 @@ components:
                   permissions:
                     type: array
                     items:
-                      type: string
-                      enum: [Read, Own, Execute, Manage, Cancel, Refer, Complete, CompleteOwn, CancelOwn, Claim, Unclaim, Assign, Unassign, UnclaimAssign, UnassignClaim, UnassignAssign]
-                    description: Supported permission values.
+                      $ref: '#/components/schemas/PermissionTypes'
                   authorisations:
                     type: array
                     items:

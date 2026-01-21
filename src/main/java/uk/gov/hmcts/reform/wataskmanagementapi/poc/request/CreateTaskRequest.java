@@ -6,8 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
 import java.time.OffsetDateTime;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 
@@ -17,7 +16,7 @@ import jakarta.annotation.Generated;
 /**
  * CreateTaskRequest
  */
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-20T11:14:16.521508Z[Europe/London]")public class CreateTaskRequest {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-01-21T11:27:37.331356Z[Europe/London]")public class CreateTaskRequest {
 
   private CreateTaskRequestTask task;
 
@@ -30,7 +29,8 @@ import jakarta.annotation.Generated;
    * Get task
    * @return task
   */
-  @Valid   @Schema(name = "task", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  
+  @Schema(name = "task", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   @JsonProperty("task")
   public CreateTaskRequestTask getTask() {
     return task;
