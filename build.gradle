@@ -127,10 +127,23 @@ sourceSets {
 
   }
 }
+
+tasks.named("openApiGenerate").configure {
+  doFirst {
+    println "===== openApiGenerate debug ====="
+    println "rootDir    = $rootDir"
+    println "projectDir = $projectDir"
+    println "buildDir = $buildDir"
+    println "inputSpec  = ${inputSpec}"
+    println "inputSpec exists? ${file(inputSpec).exists()}"
+  }
+}
 openApiGenerate {
   generatorName = "spring"
   inputSpec = file("$rootDir/wa-task-management-api/src/main/resources/api-specs/openapi.yaml").path
   outputDir = file("$buildDir/wa-task-management-api/").path
+
+
   apiPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.api"
   modelPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.request"
   schemaMappings = [
