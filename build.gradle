@@ -15,6 +15,7 @@ plugins {
   id 'au.com.dius.pact' version '4.6.17'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.33'
   id 'org.flywaydb.flyway' version '9.3.0'
+  id "org.openapi.generator" version "7.2.0"
 }
 
 group = 'uk.gov.hmcts.reform'
@@ -118,6 +119,29 @@ task integration(type: Test) {
   classpath = sourceSets.integrationTest.runtimeClasspath
   failFast = true
 }
+
+openApiGenerate {
+  generatorName = "spring"
+  inputSpec = "$rootDir/wa-task-management-api/src/main/resources/api-specs/openapi.yaml"
+  outputDir = "$rootDir/wa-task-management-api/"
+  apiPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.api"
+  modelPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.request"
+  schemaMappings = [
+    TaskResource: "uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource"
+  ]
+  importMappings = [
+    TaskResource: "uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource"
+  ]
+  configOptions = [
+    interfaceOnly: "true",
+    useSpringBoot3: "true",
+    openApiNullable : "false"
+  ]
+}
+
+//tasks.named("compileJava") {
+//  dependsOn 'openApiGenerate'
+//}
 
 build.dependsOn integration
 

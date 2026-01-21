@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
+
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -47,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -138,6 +141,79 @@ public class CFTTaskMapper {
             readDate(attributes, CamundaVariableDefinition.NEXT_HEARING_DATE, null),
             priorityDate
         );
+    }
+
+    public TaskResource mapToTaskResource(CreateTaskRequestTask request) {
+        log.info("mapping task attributes to taskResource");
+
+        ExecutionTypeResource executionTypeResource = new ExecutionTypeResource(
+            ExecutionType.CASE_EVENT,
+            ExecutionType.CASE_EVENT.getName(),
+            ExecutionType.CASE_EVENT.getDescription()
+        );;
+        OffsetDateTime createdDate =  ZonedDateTime.now().toOffsetDateTime();
+
+
+
+        WorkTypeResource workTypeResource = new WorkTypeResource(
+            request.getWorkType()
+        );
+        Map<String, String> additionalProperties = Collections.emptyMap();
+        if (request.getAdditionalProperties() != null) {
+            additionalProperties = request.getAdditionalProperties().entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> String.valueOf(e.getValue())
+                ));
+        }
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            request.getName(),
+            request.getType(),
+            request.getDueDateTime(),
+
+            CFTTaskState.UNCONFIGURED,
+            TaskSystem.valueOf(request.getTaskSystem().getValue()),
+            SecurityClassification.valueOf(request.getSecurityClassification().getValue()),
+            request.getTitle(),
+            request.getDescription(),
+            new ArrayList<NoteResource>(),
+            request.getMajorPriority(),
+            request.getMinorPriority(),
+            null, //Need to get from taskPayload assignee
+            false, //autoAssigned
+            executionTypeResource,
+            workTypeResource,
+            request.getRoleCategory(),
+            false, //has_warnings
+            null, //assignment_expiry
+            request.getCaseId(),
+            request.getCaseTypeId(),
+            request.getCaseName(),
+            request.getJurisdiction(),
+            request.getRegion(),
+            request.getRegionName(),
+            request.getLocation(),
+            request.getLocationName(),
+            null, //business_context
+            null, //termination_reason
+            createdDate,
+
+            null, //task_roles
+            request.getCaseCategory(),
+            additionalProperties,
+            null, //next_hearing_id
+            null, //next_hearing_date
+
+            request.getPriorityDate()
+        );
+        taskResource.setExternalTaskId(
+            Optional.ofNullable(request.getExternalTaskId())
+                .map(Object::toString)
+                .orElse(null)
+        );
+        return taskResource;
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
