@@ -133,6 +133,14 @@ openApiGenerate {
   inputSpec = file("$projectDir/src/main/resources/api-specs/openapi.yaml").path
   outputDir = file("$buildDir/wa-task-management-api/").path
 
+  globalProperties = [
+    apis: "",
+    models: "",
+    // comment this out if you *do* want docs
+    apiDocs: "false",
+    modelDocs: "false",
+    supportingFiles: "false"
+  ]
 
   apiPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.api"
   modelPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.request"
