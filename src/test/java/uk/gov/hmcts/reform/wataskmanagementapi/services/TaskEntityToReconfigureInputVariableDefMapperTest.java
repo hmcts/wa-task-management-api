@@ -126,7 +126,7 @@ class TaskEntityToReconfigureInputVariableDefMapperTest {
                   "caseCategory", "securityClassification", "lastReconfigurationTime", "reconfigureRequestTime",
                   "autoAssigned", "state", "taskSystem", "indexed", "lastUpdatedTimestamp", "lastUpdatedAction",
                   "taskRoleResources", "executionTypeCode", "businessContext", "terminationReason", "notes",
-                  "assignmentExpiry", "workTypeResource", "caseDeletionTimestamp");
+                  "assignmentExpiry", "workTypeResource", "caseDeletionTimestamp", "externalTaskId");
         assertEquals(expectedOnlyInDbTaskAttributes, dbTaskAttributeKeys);
 
         assertEquals("aTaskName", reconfigureInputVarDef.getName());
