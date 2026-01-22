@@ -109,7 +109,7 @@ class TaskEntityToReconfigureInputVariableDefMapperTest {
         Map<String, Object> reconfigInputAttributes =
             objectMapper.convertValue(reconfigureInputVarDef, new TypeReference<HashMap<String, Object>>() {});
         //Removed 16 attributes from reconfigInputAttributes as they are not required for reconfiguration
-        assertEquals(dbTaskAttributes.size() - 16, reconfigInputAttributes.size());
+        assertEquals(dbTaskAttributes.size() - 17, reconfigInputAttributes.size());//Added external_task_id as part of poc work
 
         Set<String> dbTaskAttributeKeys = dbTaskAttributes.keySet();
         Set<String> reconfigInputAttributeKeys = reconfigInputAttributes.keySet();
