@@ -129,6 +129,7 @@ sourceSets {
 }
 tasks.withType(Checkstyle).configureEach {
   exclude("**/open-api/generated/**")
+  exclude("**/poc/**")
 }
 
 openApiGenerate {
