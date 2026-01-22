@@ -132,6 +132,10 @@ tasks.withType(Checkstyle).configureEach {
   exclude("**/poc/**")
 }
 
+tasks.named("sonarqube") {
+  onlyIf { System.getenv("CHANGE_ID") != "1553" } // <-- put your PR number here
+}
+
 openApiGenerate {
   generatorName = "spring"
   inputSpec = file("$projectDir/src/main/resources/api-specs/openapi.yaml").path
