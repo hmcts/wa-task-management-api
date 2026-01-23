@@ -119,11 +119,23 @@ task integration(type: Test) {
   classpath = sourceSets.integrationTest.runtimeClasspath
   failFast = true
 }
+sourceSets {
+  main {
+    java {
+      srcDir("$buildDir/open-api/generated/")
+    }
+
+  }
+}
+tasks.withType(Checkstyle).configureEach {
+  exclude("**/open-api/generated/**")
+  exclude("**/poc/**")
+}
 
 openApiGenerate {
   generatorName = "spring"
-  inputSpec = "$rootDir/wa-task-management-api/src/main/resources/api-specs/openapi.yaml"
-  outputDir = "$rootDir/wa-task-management-api/"
+  inputSpec = file("$projectDir/src/main/resources/api-specs/openapi.yaml").path
+  outputDir = file("$buildDir/open-api/generated").path
   apiPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.api"
   modelPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.request"
   schemaMappings = [
@@ -142,9 +154,9 @@ openApiGenerate {
   ]
 }
 
-//tasks.named("compileJava") {
-//  dependsOn 'openApiGenerate'
-//}
+tasks.named("compileJava") {
+  dependsOn 'openApiGenerate'
+}
 
 build.dependsOn integration
 
