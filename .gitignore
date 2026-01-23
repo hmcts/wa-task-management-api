@@ -24,3 +24,7 @@ bin/main/application.yaml
 
 /pacts/
 /bin/
+
+.openapi-generator-ignore
+.openapi-generator/
+
