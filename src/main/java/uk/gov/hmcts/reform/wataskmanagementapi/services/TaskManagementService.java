@@ -8,6 +8,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskSecondaryKeyConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
@@ -108,6 +110,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
     "PMD.CognitiveComplexity"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
+    private static final String TASK_CREATION_IDEMPOTENCY_KEY_CONSTRAINT_NAME =
+        "uq_tasks_external_task_id_case_type_id";
     private final CamundaService camundaService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
@@ -617,7 +621,16 @@ public class TaskManagementService {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(task);
         log.info("Task Resource is " + taskResource);
         taskResource = taskAutoAssignmentService.performAutoAssignment(taskResource.getTaskId(), taskResource);
-        return cftTaskDatabaseService.saveTask(taskResource);
+        try {
+            TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+            entityManager.flush();
+            return savedTask;
+        } catch (ConstraintViolationException ex) {
+            if (TASK_CREATION_IDEMPOTENCY_KEY_CONSTRAINT_NAME.equalsIgnoreCase(ex.getConstraintName())) {
+                throw new TaskSecondaryKeyConflictException(task.getExternalTaskId(), task.getCaseTypeId(), ex);
+            }
+            throw ex;
+        }
     }
 
     @Transactional
