@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import java.util.Optional;
 
 import static java.util.Arrays.stream;
@@ -51,5 +53,19 @@ public enum ExecutionType {
 
     public String getDescription() {
         return description;
+    }
+
+    @JsonCreator
+    public static ExecutionType fromJson(String value) {
+        return stream(values())
+            .filter(v ->
+                        v.getValue().equalsIgnoreCase(value)
+                            || v.getName().equalsIgnoreCase(value)
+                            || v.name().equalsIgnoreCase(value)
+            )
+            .findFirst()
+            .orElseThrow(() ->
+                             new IllegalArgumentException("Unknown ExecutionType: " + value)
+            );
     }
 }

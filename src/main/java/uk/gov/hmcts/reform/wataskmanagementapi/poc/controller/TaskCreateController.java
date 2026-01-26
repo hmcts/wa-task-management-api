@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.poc.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,16 +34,17 @@ public class TaskCreateController implements TasksApi {
     private final ClientAccessControlService clientAccessControlService;
 
     @Override
+
     @PostMapping(value = "/tasks", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource> createTask(
-        @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
-        @Valid @RequestBody CreateTaskRequest createTaskRequest
+        @Parameter(name = "ServiceAuthorization", description = "Service-to-service authorization token", required = true, in = ParameterIn.HEADER) @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
+        @Parameter(name = "CreateTaskRequest", description = "", required = true) @RequestBody CreateTaskRequest createTaskRequest
     ) {
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthorization);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
-
+        log.info("Creating task with request: {}", createTaskRequest.getTask());
         TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
         taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
