@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskSecondaryKeyConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.api.TasksApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequest;
@@ -42,7 +43,16 @@ public class TaskCreateController implements TasksApi {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
 
-        TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
+        TaskResource savedTask;
+        try {
+            savedTask = taskManagementService.addTask(createTaskRequest.getTask());
+        } catch (TaskSecondaryKeyConflictException ex) {
+            return ResponseEntity
+                .noContent()
+                .cacheControl(CacheControl.noCache())
+                .build();
+        }
+
         taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
         return ResponseEntity

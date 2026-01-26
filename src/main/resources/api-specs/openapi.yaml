@@ -33,7 +33,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TaskResource'
         '204':
-          description: Task already exists with the same payload
+          description: Task already exists for the same external_task_id and case_type_id.
         '400':
           description: Validation errors
         '401':
