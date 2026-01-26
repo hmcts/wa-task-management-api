@@ -110,7 +110,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.TaskActionAttribu
     "PMD.CognitiveComplexity"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
-    private static final String TASK_CREATION_IDEMPOTENCY_KEY_CONSTRAINT_NAME = "uq_tasks_external_task_id_case_type_id";
+    private static final String TASK_CREATION_IDEMPOTENCY_KEY_CONSTRAINT_NAME =
+        "uq_tasks_external_task_id_case_type_id";
     private final CamundaService camundaService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
