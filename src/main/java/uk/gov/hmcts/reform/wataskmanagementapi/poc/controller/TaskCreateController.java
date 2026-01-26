@@ -44,7 +44,6 @@ public class TaskCreateController implements TasksApi {
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
-        log.info("Creating task with request: {}", createTaskRequest.getTask());
         TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
         taskManagementService.updateTaskIndex(savedTask.getTaskId());
 
