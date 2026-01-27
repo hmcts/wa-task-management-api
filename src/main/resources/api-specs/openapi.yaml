@@ -40,6 +40,39 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
+
+  /tasks/terminate:
+    post:
+      summary: Terminate tasks in bulk
+      description: >
+        Cancel or complete tasks directly in Task Management. Termination is idempotent per task_id and action;
+        repeating the same request for an already-terminated task returns 204 No Content.
+      operationId: terminateTasks
+      parameters:
+        - name: ServiceAuthorization
+          in: header
+          required: true
+          description: Service-to-service authorization token
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminateTasksRequest'
+      responses:
+        '204':
+          description: Tasks terminated successfully or already terminated.
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: One or more task IDs do not exist.
+
 components:
   schemas:
     PermissionTypes:
@@ -81,6 +114,30 @@ components:
       enum:
         - SELF
         - CTSC
+
+    TerminationAction:
+      type: string
+      enum:
+        - Cancel
+        - Complete
+      description: Termination action.
+
+    TerminateTasksRequest:
+      type: object
+      required:
+        - action
+        - task_ids
+      properties:
+        action:
+          $ref: '#/components/schemas/TerminationAction'
+        task_ids:
+          type: array
+          description: List of task IDs to terminate.
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
 
     CreateTaskRequest:
       required:
