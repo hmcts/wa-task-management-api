@@ -145,12 +145,13 @@ public class CFTTaskMapper {
     public TaskResource mapToTaskResource(CreateTaskRequestTask request) {
         log.info("mapping task attributes to taskResource");
 
+        ExecutionType executionType = ExecutionType.fromJson(request.getExecutionType().getValue());
         ExecutionTypeResource executionTypeResource = new ExecutionTypeResource(
-            ExecutionType.CASE_EVENT,
-            ExecutionType.CASE_EVENT.getName(),
-            ExecutionType.CASE_EVENT.getDescription()
-        );;
-        OffsetDateTime createdDate =  ZonedDateTime.now().toOffsetDateTime();
+            executionType,
+            executionType.getName(),
+            executionType.getDescription()
+
+        );
         String taskId = UUID.randomUUID().toString();
 
         Set<TaskRoleResource> taskRoleResources = mapPermissions(request, taskId);
@@ -167,21 +168,23 @@ public class CFTTaskMapper {
                     e -> String.valueOf(e.getValue())
                 ));
         }
-
+        String taskTitle = request.getTitle();
+        String taskName = request.getName();
+        Integer majorPriority = request.getMajorPriority();
+        Integer minorPriority = request.getMinorPriority();
         TaskResource taskResource = new TaskResource(
             taskId,
-            request.getName(),
+            taskName,
             request.getType(),
             request.getDueDateTime(),
-
             CFTTaskState.UNCONFIGURED,
             TaskSystem.valueOf(request.getTaskSystem().getValue()),
             SecurityClassification.valueOf(request.getSecurityClassification().getValue()),
-            request.getTitle(),
+            taskTitle != null ? taskTitle : taskName,
             request.getDescription(),
             new ArrayList<NoteResource>(),
-            request.getMajorPriority(),
-            request.getMinorPriority(),
+            majorPriority != null ? majorPriority : 5000,
+            minorPriority != null ? minorPriority : 500,
             null, //Need to get from taskPayload assignee
             false, //autoAssigned
             executionTypeResource,
@@ -199,8 +202,7 @@ public class CFTTaskMapper {
             request.getLocationName(),
             null, //business_context
             null, //termination_reason
-            createdDate,
-
+            request.getCreated(), // We set created time from request, can change it to now() if needed
             taskRoleResources, //task_roles
             request.getCaseCategory(),
             additionalProperties,

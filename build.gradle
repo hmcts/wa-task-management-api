@@ -138,19 +138,20 @@ openApiGenerate {
   outputDir = file("$buildDir/open-api/generated").path
   apiPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.api"
   modelPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.request"
-  schemaMappings = [
-    TaskResource: "uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource",
-    PermissionTypes: "uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes"
-  ]
   importMappings = [
     TaskResource: "uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource",
-    PermissionTypes: "uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes"
+    PermissionTypes: "uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes",
+    SecurityClassification: "uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.SecurityClassification" ,
+    TaskSystem: "uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem",
+    ExecutionType: "uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType"
   ]
+
+
   configOptions = [
     interfaceOnly: "true",
     useSpringBoot3: "true",
     openApiNullable : "false",
-    useBeanValidation: "false"
+    useBeanValidation: "true"
   ]
 }
 
