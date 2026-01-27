@@ -61,7 +61,30 @@ components:
         - UnclaimAssign
         - UnassignClaim
         - UnassignAssign
+
+    ExecutionType:
+      type: string
+      enum:
+        - Manual
+        - Built In
+        - Case Management Task
+
+    SecurityClassification:
+      type: string
+      enum:
+        - PUBLIC
+        - PRIVATE
+        - RESTRICTED
+
+    TaskSystem:
+      type: string
+      enum:
+        - SELF
+        - CTSC
+
     CreateTaskRequest:
+      required:
+        - task
       type: object
       properties:
         task:
@@ -79,6 +102,10 @@ components:
             - security_classification
             - due_date_time
             - permissions
+            - case_category
+            - case_name
+            - region
+            - location
           properties:
             external_task_id:
               type: string
@@ -86,9 +113,11 @@ components:
               description: external task identifier.
             type:
               type: string
+              pattern: '.*\S.*'
               description: Service-defined task type identifier.
             name:
               type: string
+              pattern: '.*\S.*'
               description: User-facing task name.
             title:
               type: string
@@ -101,40 +130,44 @@ components:
               format: date-time
               description: Creation timestamp.
             execution_type:
-              type: string
-              enum: [Manual, Built In, Case Management Task]
-              description: Execution category.
+              $ref: '#/components/schemas/ExecutionType'
             case_id:
               type: string
+              pattern: '.*\S.*'
               description: CCD case reference.
             case_type_id:
               type: string
+              pattern: '.*\S.*'
               description: CCD case type identifier.
             case_category:
               type: string
+              pattern: '.*\S.*'
               description: Primary case management category.
             case_name:
               type: string
+              pattern: '.*\S.*'
               description: Human-readable case name.
             jurisdiction:
               type: string
+              pattern: '.*\S.*'
               description: CCD jurisdiction identifier.
             region:
               type: string
+              pattern: '.*\S.*'
               description: Case management region identifier.
             location:
               type: string
+              pattern: '.*\S.*'
               description: Base location identifier.
             work_type:
               type: string
+              pattern: '.*\S.*'
               description: Work type identifier.
             role_category:
               type: string
               description: Role category for the task.
             security_classification:
-              type: string
-              enum: [PUBLIC, PRIVATE, RESTRICTED]
-              description: Security classification.
+              $ref: '#/components/schemas/SecurityClassification'
             description:
               type: string
               description: Task description text.
@@ -159,9 +192,7 @@ components:
               type: string
               description: Region display name.
             task_system:
-              type: string
-              enum: [SELF, CTSC]
-              description: Task origin system.
+              $ref: '#/components/schemas/TaskSystem'
             additional_properties:
               type: object
               additionalProperties:
@@ -178,9 +209,11 @@ components:
                 properties:
                   role_name:
                     type: string
+                    pattern: '.*\S.*'
                     description: Role name.
                   role_category:
                     type: string
+                    pattern: '.*\S.*'
                     description: Role category.
                   permissions:
                     type: array
