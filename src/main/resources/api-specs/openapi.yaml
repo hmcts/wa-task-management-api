@@ -113,12 +113,10 @@ components:
               description: external task identifier.
             type:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: Service-defined task type identifier.
             name:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: User-facing task name.
             title:
@@ -135,42 +133,34 @@ components:
               $ref: '#/components/schemas/ExecutionType'
             case_id:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: CCD case reference.
             case_type_id:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: CCD case type identifier.
             case_category:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: Primary case management category.
             case_name:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: Human-readable case name.
             jurisdiction:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: CCD jurisdiction identifier.
             region:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: Case management region identifier.
             location:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: Base location identifier.
             work_type:
               type: string
-              minLength: 1
               pattern: '.*\S.*'
               description: Work type identifier.
             role_category:
@@ -219,12 +209,10 @@ components:
                 properties:
                   role_name:
                     type: string
-                    minLength: 1
                     pattern: '.*\S.*'
                     description: Role name.
                   role_category:
                     type: string
-                    minLength: 1
                     pattern: '.*\S.*'
                     description: Role category.
                   permissions:
