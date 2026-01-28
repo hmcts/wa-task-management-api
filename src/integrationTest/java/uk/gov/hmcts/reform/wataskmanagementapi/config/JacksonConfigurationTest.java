@@ -4,34 +4,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
-@SpringBootTest
-@ActiveProfiles({"integration"})
-@AutoConfigureMockMvc(addFilters = false)
-@TestInstance(PER_CLASS)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 public class JacksonConfigurationTest {
 
     @Autowired
-    protected IntegrationTestUtils integrationTestUtils;
+    ObjectMapper objectMapper;
 
     @Test
     void default_object_mapper_should_read_snake_case() throws IOException {
-
-        ObjectMapper objectMapper = integrationTestUtils.getObjectMapper();
 
         String jsonContent = "{"
                              + "\"id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","
@@ -50,8 +42,6 @@ public class JacksonConfigurationTest {
 
     @Test
     void default_object_mapper_should_convert_enums_to_defaults() throws IOException {
-
-        ObjectMapper objectMapper = integrationTestUtils.getObjectMapper();
 
         String jsonContent = "{"
                              + "\"id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","
