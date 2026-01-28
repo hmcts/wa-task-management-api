@@ -57,7 +57,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -304,31 +303,32 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
-        taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-        taskResources.forEach(task -> {
-            assertNotNull(task.getLastReconfigurationTime());
-            assertNull(task.getReconfigureRequestTime());
-            await().timeout(5, SECONDS);
-            assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
-            assertNull(task.getMinorPriority());
-            assertNull(task.getMajorPriority());
-            assertNull(task.getDescription());
-            assertNull(task.getCaseName());
-            assertEquals("765324", task.getLocation());
-            assertEquals("Taylor House", task.getLocationName());
-            assertNull(task.getCaseCategory());
-            assertNull(task.getWorkTypeResource());
-            assertNull(task.getRoleCategory());
-            assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
-            assertNull(task.getNextHearingDate());
-            assertNull(task.getNextHearingId());
-            assertEquals(ASSIGNEE_USER, task.getAssignee());
-            assertEquals(CFTTaskState.ASSIGNED, task.getState());
-            assertNotNull(task.getLastUpdatedTimestamp());
-            assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-            assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
-            assertNotNull(task.getDueDateTime());
+
+        await().untilAsserted(() -> {
+            List<TaskResource> updatedTaskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            updatedTaskResources.forEach(task -> {
+                assertNotNull(task.getLastReconfigurationTime());
+                assertNull(task.getReconfigureRequestTime());
+                assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
+                assertNull(task.getMinorPriority());
+                assertNull(task.getMajorPriority());
+                assertNull(task.getDescription());
+                assertNull(task.getCaseName());
+                assertEquals("765324", task.getLocation());
+                assertEquals("Taylor House", task.getLocationName());
+                assertNull(task.getCaseCategory());
+                assertNull(task.getWorkTypeResource());
+                assertNull(task.getRoleCategory());
+                assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate());
+                assertNull(task.getNextHearingDate());
+                assertNull(task.getNextHearingId());
+                assertEquals(ASSIGNEE_USER, task.getAssignee());
+                assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                assertNotNull(task.getLastUpdatedTimestamp());
+                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                assertNotNull(task.getDueDateTime());
+            });
         });
     }
 
@@ -392,11 +392,10 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
-        taskResourcesAfter
-            .forEach(task -> {
+        await().untilAsserted(() -> {
+            List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
@@ -424,6 +423,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
             });
+        });
     }
 
     /**
@@ -596,60 +596,60 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
 
-
-        taskResourcesAfter
-            .stream().filter(taskResource -> !taskResource.getTaskId().equals(secondTaskId))
-            .forEach(task -> {
-                assertEquals(1, task.getMinorPriority());
-                assertEquals(1, task.getMajorPriority());
-                assertEquals("description", task.getDescription());
-                assertEquals("TestCase", task.getCaseName());
-                assertEquals("512401", task.getLocation());
-                assertEquals("Manchester", task.getLocationName());
-                assertEquals("caseCategory", task.getCaseCategory());
-                assertEquals("routine_work", task.getWorkTypeResource().getId());
-                assertEquals("JUDICIAL", task.getRoleCategory());
-                assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getPriorityDate().toLocalDate()
-                );
-                assertEquals(
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
-                    task.getNextHearingDate().toLocalDate()
-                );
-                assertEquals("nextHearingId1", task.getNextHearingId());
-                assertEquals(ASSIGNEE_USER, task.getAssignee());
-                assertEquals(CFTTaskState.ASSIGNED, task.getState());
-                assertNotNull(task.getLastUpdatedTimestamp());
-                assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
-                assertNull(task.getReconfigureRequestTime());
-                assertNotNull(task.getLastReconfigurationTime());
-            });
-        TaskResource task = taskResourcesAfter.stream().filter(
-            taskResource -> taskResource.getTaskId().equals(secondTaskId)).findFirst().orElseThrow();
-        assertAll(
-            () -> assertEquals(ASSIGNEE_USER, task.getAssignee()),
-            () -> assertEquals(CFTTaskState.ASSIGNED, task.getState()),
-            () -> assertNotNull(task.getReconfigureRequestTime()),
-            () -> assertNull(task.getLastReconfigurationTime()),
-            () -> assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate()),
-            () -> assertNull(task.getMinorPriority()),
-            () -> assertNull(task.getMajorPriority()),
-            () -> assertNull(task.getDescription()),
-            () -> assertNull(task.getCaseName()),
-            () -> assertEquals("765324", task.getLocation()),
-            () -> assertEquals("Taylor House", task.getLocationName()),
-            () -> assertNull(task.getCaseCategory()),
-            () -> assertNull(task.getWorkTypeResource()),
-            () -> assertNull(task.getRoleCategory()),
-            () -> assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate()),
-            () -> assertNull(task.getNextHearingDate()),
-            () -> assertNull(task.getNextHearingId()),
-            () -> assertNotNull(task.getDueDateTime())
-        );
+        await().untilAsserted(() -> {
+            List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            taskResourcesAfter
+                .stream().filter(taskResource -> !taskResource.getTaskId().equals(secondTaskId))
+                .forEach(task -> {
+                    assertEquals(1, task.getMinorPriority());
+                    assertEquals(1, task.getMajorPriority());
+                    assertEquals("description", task.getDescription());
+                    assertEquals("TestCase", task.getCaseName());
+                    assertEquals("512401", task.getLocation());
+                    assertEquals("Manchester", task.getLocationName());
+                    assertEquals("caseCategory", task.getCaseCategory());
+                    assertEquals("routine_work", task.getWorkTypeResource().getId());
+                    assertEquals("JUDICIAL", task.getRoleCategory());
+                    assertEquals(
+                        OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                        task.getPriorityDate().toLocalDate()
+                    );
+                    assertEquals(
+                        OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00").toLocalDate(),
+                        task.getNextHearingDate().toLocalDate()
+                    );
+                    assertEquals("nextHearingId1", task.getNextHearingId());
+                    assertEquals(ASSIGNEE_USER, task.getAssignee());
+                    assertEquals(CFTTaskState.ASSIGNED, task.getState());
+                    assertNotNull(task.getLastUpdatedTimestamp());
+                    assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
+                    assertNull(task.getReconfigureRequestTime());
+                    assertNotNull(task.getLastReconfigurationTime());
+                });
+            TaskResource task = taskResourcesAfter.stream().filter(
+                taskResource -> taskResource.getTaskId().equals(secondTaskId)).findFirst().orElseThrow();
+            assertAll(
+                () -> assertEquals(ASSIGNEE_USER, task.getAssignee()),
+                () -> assertEquals(CFTTaskState.ASSIGNED, task.getState()),
+                () -> assertNotNull(task.getReconfigureRequestTime()),
+                () -> assertNull(task.getLastReconfigurationTime()),
+                () -> assertEquals(OffsetDateTime.now().toLocalDate(), task.getReconfigureRequestTime().toLocalDate()),
+                () -> assertNull(task.getMinorPriority()),
+                () -> assertNull(task.getMajorPriority()),
+                () -> assertNull(task.getDescription()),
+                () -> assertNull(task.getCaseName()),
+                () -> assertEquals("765324", task.getLocation()),
+                () -> assertEquals("Taylor House", task.getLocationName()),
+                () -> assertNull(task.getCaseCategory()),
+                () -> assertNull(task.getWorkTypeResource()),
+                () -> assertNull(task.getRoleCategory()),
+                () -> assertEquals(OffsetDateTime.now().toLocalDate(), task.getPriorityDate().toLocalDate()),
+                () -> assertNull(task.getNextHearingDate()),
+                () -> assertNull(task.getNextHearingId()),
+                () -> assertNotNull(task.getDueDateTime())
+            );
+        });
         verify(taskReconfigurationTransactionHandler, times(4)).reconfigureTaskResource(secondTaskId);
     }
 
@@ -707,15 +707,13 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             status().is(HttpStatus.OK.value())
         );
 
-
-        Thread.sleep(5000);
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
-        taskResourcesAfter
-            .forEach(task -> {
+        await().untilAsserted(() -> {
+            List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            taskResourcesAfter.forEach(task -> {
                 assertEquals(CFTTaskState.CANCELLED, task.getState());
             });
-        assertTrue(output.getOut().contains("did not execute reconfigure for Task Resource: taskId: " + taskId));
+            assertTrue(output.getOut().contains("did not execute reconfigure for Task Resource: taskId: " + taskId));
+        });
     }
 
     @Test
@@ -840,9 +838,10 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-        taskResourcesAfter.forEach(task -> {
+
+        await().untilAsserted(() -> {
+            List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
@@ -869,8 +868,8 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_ASSIGN.getValue(), task.getLastUpdatedAction());
-            }
-        );
+            });
+        });
     }
 
     @Test
@@ -930,9 +929,10 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
-        Thread.sleep(5000);
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-        taskResourcesAfter.forEach(task -> {
+
+        await().untilAsserted(() -> {
+            List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
@@ -959,8 +959,8 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
-            }
-        );
+            });
+        });
     }
 
 
@@ -1143,10 +1143,9 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             status().is(HttpStatus.OK.value())
         );
 
-        Thread.sleep(5000);
-
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-        taskResourcesAfter.forEach(task -> {
+        await().untilAsserted(() -> {
+            List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
@@ -1173,8 +1172,8 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN_ASSIGN.getValue(), task.getLastUpdatedAction());
-            }
-        );
+            });
+        });
     }
 
     @Test
@@ -1238,10 +1237,9 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             status().is(HttpStatus.OK.value())
         );
 
-        Thread.sleep(5000);
-
-        List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-        taskResourcesAfter.forEach(task -> {
+        await().untilAsserted(() -> {
+            List<TaskResource> taskResourcesAfter = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            taskResourcesAfter.forEach(task -> {
                 assertNotNull(task.getLastReconfigurationTime());
                 assertNull(task.getReconfigureRequestTime());
                 assertTrue(LocalDateTime.now().isAfter(task.getLastReconfigurationTime().toLocalDateTime()));
@@ -1269,8 +1267,8 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.AUTO_UNASSIGN.getValue(), task.getLastUpdatedAction());
                 assertCloseTo(dueDateTime, task.getDueDateTime(), 2);
-            }
-        );
+            });
+        });
     }
 
     @Test
@@ -1310,13 +1308,12 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             status().is(HttpStatus.OK.value())
         );
 
-        Thread.sleep(5000);
-
-        taskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
-
-        taskResources.forEach(task -> {
-            assertNull(task.getLastReconfigurationTime());
-            assertNotNull(task.getReconfigureRequestTime());
+        await().untilAsserted(() -> {
+            List<TaskResource> updatedTaskResources = cftTaskDatabaseService.findByCaseIdOnly(caseIdToday);
+            updatedTaskResources.forEach(task -> {
+                assertNull(task.getLastReconfigurationTime());
+                assertNotNull(task.getReconfigureRequestTime());
+            });
         });
     }
 

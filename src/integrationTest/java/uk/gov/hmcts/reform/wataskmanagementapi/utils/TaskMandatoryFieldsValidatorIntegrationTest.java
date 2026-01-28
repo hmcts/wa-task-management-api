@@ -1,26 +1,26 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import com.launchdarkly.sdk.LDValue;
-import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
@@ -40,17 +40,19 @@ import static org.mockito.Mockito.doReturn;
 
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
-@SpringBootTest
-@ActiveProfiles({"integration"})
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {
+    JacksonConfiguration.class,
+    SearchRequestCustomDeserializer.class,
+    TaskMandatoryFieldsValidatorTestConfig.class
+})
 public class TaskMandatoryFieldsValidatorIntegrationTest {
 
     @Autowired
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     @Autowired
-    private LDClientInterface ldClient;
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private JsonParserUtils jsonParserUtils;
