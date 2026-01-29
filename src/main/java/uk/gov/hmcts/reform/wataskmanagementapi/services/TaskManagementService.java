@@ -224,7 +224,9 @@ public class TaskManagementService {
         task.setAssignee(userId);
         setTaskActionAttributes(task, userId, TaskAction.CLAIM);
 
-        camundaService.assignTask(taskId, userId, false);
+        if (task.isCamundaTask()) {
+            camundaService.assignTask(taskId, userId, false);
+        }
 
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
@@ -618,7 +620,7 @@ public class TaskManagementService {
     public TaskResource addTask(CreateTaskRequestTask task) {
         //Get DueDatetime or throw exception
         //Map taskPayload to taskResource
-        TaskResource taskResource = cftTaskMapper.mapToTaskResource(task);
+        TaskResource taskResource = cftTaskMapper.mapToApiFirstTaskResource(task);
         log.info("Task Resource is " + taskResource);
         taskResource = taskAutoAssignmentService.performAutoAssignment(taskResource.getTaskId(), taskResource);
         try {
