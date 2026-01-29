@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceException;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminationAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.sql.SQLException;
@@ -64,6 +67,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -707,6 +711,46 @@ public class TaskManagementService {
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .toList();
     }
+
+    @Transactional
+    public void terminateTasks(@Valid TerminateTasksRequest terminateTasksRequest) {
+        Set<String> taskIds = terminateTasksRequest.getTaskIds().stream()
+            .map(Object::toString)
+            .collect(Collectors.toSet());
+
+        TerminationAction action = terminateTasksRequest.getAction();
+        String terminationReason = action == TerminationAction.CANCEL ? "deleted" : "completed";
+
+        taskIds.forEach(taskId -> {
+            TaskResource task = findByIdAndObtainLock(taskId);
+
+            if (isTaskAlreadyTerminated(task, action)) {
+                log.info("Task with id {} is already in {} state. Skipping {}.",
+                         taskId, task.getState().getValue(), action.name().toLowerCase());
+                return;
+            }
+
+            updateTaskState(task, action, terminationReason);
+            terminateTask(taskId, new TerminateInfo(terminationReason));
+        });
+    }
+
+    private boolean isTaskAlreadyTerminated(TaskResource task, TerminationAction action) {
+        return (action == TerminationAction.CANCEL && task.getState() == CFTTaskState.CANCELLED) ||
+            (action == TerminationAction.COMPLETE && task.getState() == CFTTaskState.COMPLETED) ||
+            task.getState() == CFTTaskState.TERMINATED;
+    }
+
+    private void updateTaskState(TaskResource task, TerminationAction action, String terminationReason) {
+        task.setState(action == TerminationAction.CANCEL ? CFTTaskState.CANCELLED : CFTTaskState.COMPLETED);
+        task.setTerminationProcess(action == TerminationAction.CANCEL
+            ? TerminationProcess.EXUI_CASE_EVENT_CANCELLATION : TerminationProcess.EXUI_CASE_EVENT_COMPLETION);
+        task.setTerminationReason(terminationReason);
+        setSystemUserTaskActionAttributes(task,
+                                          action == TerminationAction.CANCEL ? TaskAction.CANCEL : TaskAction.COMPLETED);
+        cftTaskDatabaseService.saveTask(task);
+    }
+
 
     private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
         task.setLastUpdatedTimestamp(OffsetDateTime.now());

@@ -136,6 +136,7 @@ openApiGenerate {
   generatorName = "spring"
   inputSpec = file("$projectDir/src/main/resources/api-specs/openapi.yaml").path
   outputDir = file("$buildDir/open-api/generated").path
+  //outputDir = file("$projectDir/").path
   apiPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.api"
   modelPackage = "uk.gov.hmcts.reform.wataskmanagementapi.poc.request"
   importMappings = [
