@@ -148,6 +148,9 @@ class PostTaskCompleteByIdControllerTest {
             .thenReturn(IDAM_USER_ID);
         lenient().when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
+
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(false);
     }
 
     @Nested
@@ -547,14 +550,6 @@ class PostTaskCompleteByIdControllerTest {
     @Nested
     @DisplayName("with no privileged access")
     class CompleteTaskWithNoPrivilegedAccess {
-
-        @BeforeEach
-        void beforeEach() {
-
-            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
-                .thenReturn(false);
-
-        }
 
         @Test
         void should_succeed_and_return_204_and_update_cft_task_state_with_grant_type_standard() throws Exception {
@@ -1265,14 +1260,6 @@ class PostTaskCompleteByIdControllerTest {
     @Nested
     @DisplayName("without privileged access")
     class CompleteTaskWithoutPrivilegedAccess {
-
-        @BeforeEach
-        void beforeEach() {
-
-            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
-                .thenReturn(false);
-
-        }
 
         @ParameterizedTest
         @CsvSource(value = {
