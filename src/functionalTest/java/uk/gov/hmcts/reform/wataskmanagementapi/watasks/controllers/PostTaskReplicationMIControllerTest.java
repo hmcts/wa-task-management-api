@@ -557,21 +557,25 @@ public class PostTaskReplicationMIControllerTest {
             HttpStatus.NO_CONTENT
         );
 
-        Response resultAssignmentsClaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseWorkerWithTribRole.getHeaders()
-        );
-        resultAssignmentsClaim.prettyPrint();
-        resultAssignmentsClaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(2))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
-            .body("task_assignments_list.get(1).assignment_end_reason", nullValue())
-            .body("task_assignments_list.get(0).assignment_start", notNullValue())
-            .body("task_assignments_list.get(0).assignment_end", notNullValue())
-            .body("task_assignments_list.get(1).assignment_start", notNullValue())
-            .body("task_assignments_list.get(1).assignment_end", nullValue());
+        AtomicReference<Response> resultAssignmentsClaim = new AtomicReference<>();
+        await()
+            .untilAsserted(() -> {
+                resultAssignmentsClaim.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole.getHeaders()
+                ));
+                resultAssignmentsClaim.get().prettyPrint();
+                resultAssignmentsClaim.get().then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(2))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
+                    .body("task_assignments_list.get(1).assignment_end_reason", nullValue())
+                    .body("task_assignments_list.get(0).assignment_start", notNullValue())
+                    .body("task_assignments_list.get(0).assignment_end", notNullValue())
+                    .body("task_assignments_list.get(1).assignment_start", notNullValue())
+                    .body("task_assignments_list.get(1).assignment_end", nullValue());
+            });
 
         await()
             .untilAsserted(() -> {
@@ -586,7 +590,7 @@ public class PostTaskReplicationMIControllerTest {
                     .statusCode(HttpStatus.OK.value())
                     .body("task_history_list.size()", equalTo(5));
 
-                JsonPath assignmentsJsonPathEvaluator = resultAssignmentsClaim.jsonPath();
+                JsonPath assignmentsJsonPathEvaluator = resultAssignmentsClaim.get().jsonPath();
                 JsonPath resultHistoryJsonPathEvaluator = reClaimResultHistory.jsonPath();
 
                 assertEquals(
