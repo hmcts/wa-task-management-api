@@ -1,9 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -85,7 +82,7 @@ public class DeleteTasksControllerTest {
 
     private ServiceMocks mockServices;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         mockServices = new ServiceMocks(
                 idamWebApi,

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -122,19 +123,24 @@ class PostTaskAssignByIdControllerTest {
     private RoleAssignmentResource assignerRoleAssignmentResource;
     private RoleAssignmentResource assigneeRoleAssignmentResource;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        taskId = UUID.randomUUID().toString();
-        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
-        when(authTokenGenerator.generate())
-            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        taskId = UUID.randomUUID().toString();
+        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
+
+        when(authTokenGenerator.generate())
+            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         when(mockedUserInfo.getUid())
             .thenReturn(IDAM_USER_ID);
         when(mockedUserInfo.getEmail())
@@ -144,6 +150,7 @@ class PostTaskAssignByIdControllerTest {
             .thenReturn(SECONDARY_IDAM_USER_ID);
         when(mockedSecondaryUserInfo.getEmail())
             .thenReturn(SECONDARY_IDAM_USER_EMAIL);
+
         mockServices.mockUserInfo();
         mockServices.mockSecondaryUserInfo();
     }
@@ -1542,4 +1549,3 @@ class PostTaskAssignByIdControllerTest {
     }
 
 }
-

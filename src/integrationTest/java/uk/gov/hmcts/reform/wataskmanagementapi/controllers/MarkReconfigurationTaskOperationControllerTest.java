@@ -100,17 +100,19 @@ class MarkReconfigurationTaskOperationControllerTest {
     private String bearerAccessToken1;
 
     @BeforeAll
-    void init() {
+    void setUp() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
     }
 
     @BeforeEach
-    void setUp() {
+    void beforeEach() {
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
+
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
+
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(
             anyString(),
             any()
@@ -121,6 +123,7 @@ class MarkReconfigurationTaskOperationControllerTest {
                 CamundaValue.booleanValue(true)
             )
         ));
+
     }
 
     @Test

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -31,7 +32,7 @@ class CFTWorkTypeDatabaseServiceTest {
 
     CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         cftWorkTypeDatabaseService = new CFTWorkTypeDatabaseService(workTypeResourceRepository);
     }

@@ -124,20 +124,9 @@ class GetTaskByIdControllerTest {
     private ServiceMocks mockServices;
 
     @BeforeAll
-    void init() {
-        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
-    }
-
-
-    @BeforeEach
     void setUp() {
 
-        when(authTokenGenerator.generate())
-            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
-        when(mockedUserInfo.getUid())
-            .thenReturn(IDAM_USER_ID);
-        when(mockedUserInfo.getEmail())
-            .thenReturn(IDAM_USER_EMAIL);
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
 
         mockServices = new ServiceMocks(
             idamWebApi,
@@ -145,6 +134,18 @@ class GetTaskByIdControllerTest {
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+
+    }
+
+    @BeforeEach
+    void beforeEach() {
+
+        when(authTokenGenerator.generate())
+            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
+        when(mockedUserInfo.getUid())
+            .thenReturn(IDAM_USER_ID);
+        when(mockedUserInfo.getEmail())
+            .thenReturn(IDAM_USER_EMAIL);
     }
 
     @Test

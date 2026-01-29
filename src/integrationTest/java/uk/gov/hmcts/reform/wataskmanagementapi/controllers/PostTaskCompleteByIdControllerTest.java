@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -123,26 +124,30 @@ class PostTaskCompleteByIdControllerTest {
     @MockitoBean
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        taskId = UUID.randomUUID().toString();
-        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                                       anyString(), anyString())).thenReturn(false);
-        when(authTokenGenerator.generate())
-            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
-        lenient().when(mockedUserInfo.getUid())
-            .thenReturn(IDAM_USER_ID);
-        lenient().when(mockedUserInfo.getEmail())
-            .thenReturn(IDAM_USER_EMAIL);
-
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        taskId = UUID.randomUUID().toString();
+        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
+
+        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
+                                                                       anyString(), anyString())).thenReturn(false);
+
+        when(authTokenGenerator.generate())
+            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
+        lenient().when(mockedUserInfo.getUid())
+            .thenReturn(IDAM_USER_ID);
+        lenient().when(mockedUserInfo.getEmail())
+            .thenReturn(IDAM_USER_EMAIL);
     }
 
     @Nested
@@ -1459,4 +1464,3 @@ class PostTaskCompleteByIdControllerTest {
         cftTaskDatabaseService.saveTask(taskResource);
     }
 }
-

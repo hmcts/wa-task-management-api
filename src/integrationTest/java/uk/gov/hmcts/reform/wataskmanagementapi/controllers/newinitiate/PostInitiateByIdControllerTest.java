@@ -4,6 +4,7 @@ import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -134,10 +135,8 @@ class PostInitiateByIdControllerTest {
     IntegrationTestUtils integrationTestUtils;
     private String taskId;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        taskId = UUID.randomUUID().toString();
-        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
         mockServices = new ServiceMocks(
             idamWebApi,
@@ -145,6 +144,12 @@ class PostInitiateByIdControllerTest {
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        taskId = UUID.randomUUID().toString();
+        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
         mockServices.mockServiceAPIs();
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
@@ -1538,4 +1543,3 @@ class PostInitiateByIdControllerTest {
             );
     }
 }
-
