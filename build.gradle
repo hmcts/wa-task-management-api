@@ -381,8 +381,8 @@ dependencies {
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '6.6.36.Final'
   implementation group: 'org.hibernate', name: 'hibernate-validator', version: '8.0.3.Final'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.25.2'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.25.2'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.25.3'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.25.3'
   implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
