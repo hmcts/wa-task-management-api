@@ -142,7 +142,7 @@ public class CFTTaskMapper {
         );
     }
 
-    public TaskResource mapToTaskResource(CreateTaskRequestTask request) {
+    public TaskResource mapToApiFirstTaskResource(CreateTaskRequestTask request) {
         log.info("mapping task attributes to taskResource");
 
         ExecutionType executionType = ExecutionType.fromJson(request.getExecutionType().getValue());
@@ -216,6 +216,7 @@ public class CFTTaskMapper {
                 .map(Object::toString)
                 .orElse(null)
         );
+        taskResource.setCamundaTask(false);
         return taskResource;
     }
 
