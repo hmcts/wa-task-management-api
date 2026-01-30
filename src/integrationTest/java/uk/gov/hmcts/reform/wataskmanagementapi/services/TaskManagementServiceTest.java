@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import feign.FeignException;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -165,9 +166,8 @@ class TaskManagementServiceTest {
 
     public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        taskId = UUID.randomUUID().toString();
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
@@ -196,7 +196,11 @@ class TaskManagementServiceTest {
             cftSensitiveTaskEventLogsDatabaseService,
             taskMandatoryFieldsValidator,
             terminationProcessHelper);
+    }
 
+    @BeforeEach
+    void beforeEach() {
+        taskId = UUID.randomUUID().toString();
         mockServices.mockServiceAPIs();
     }
 

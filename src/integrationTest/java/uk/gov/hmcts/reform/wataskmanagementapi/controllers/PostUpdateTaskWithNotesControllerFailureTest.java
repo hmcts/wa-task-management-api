@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -86,21 +87,24 @@ class PostUpdateTaskWithNotesControllerFailureTest {
     private ServiceMocks mockServices;
     private String taskId;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        taskId = UUID.randomUUID().toString();
-        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-        when(authTokenGenerator.generate())
-            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        taskId = UUID.randomUUID().toString();
+        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
+        when(authTokenGenerator.generate())
+            .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         when(clientAccessControlService.hasExclusiveAccess(any()))
             .thenReturn(true);
-
         when(taskManagementService.getTaskById(any()))
             .thenReturn(Optional.of(taskResource));
     }

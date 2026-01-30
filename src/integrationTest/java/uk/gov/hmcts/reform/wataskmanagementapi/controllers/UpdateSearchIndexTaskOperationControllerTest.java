@@ -70,12 +70,12 @@ class UpdateSearchIndexTaskOperationControllerTest {
     TaskTestUtils taskTestUtils;
 
     @BeforeAll
-    void init() {
+    void setUp() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
     }
 
     @BeforeEach
-    void setUp() {
+    void beforeEach() {
         String bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
