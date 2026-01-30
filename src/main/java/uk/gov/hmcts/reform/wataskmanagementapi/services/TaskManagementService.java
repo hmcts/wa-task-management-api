@@ -278,8 +278,9 @@ public class TaskManagementService {
         task.setState(CFTTaskState.UNASSIGNED);
         task.setAssignee(null);
         setTaskActionAttributes(task, userId, taskAction);
-        //Perform Camunda updates
-        camundaService.unclaimTask(taskId, taskHasUnassigned);
+        if (task.isCamundaTask()) {
+            camundaService.unclaimTask(taskId, taskHasUnassigned);
+        }
         //Commit transaction
         cftTaskDatabaseService.saveTask(task);
     }
