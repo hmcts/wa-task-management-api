@@ -108,8 +108,8 @@ class TaskEntityToReconfigureInputVariableDefMapperTest {
             objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
         Map<String, Object> reconfigInputAttributes =
             objectMapper.convertValue(reconfigureInputVarDef, new TypeReference<HashMap<String, Object>>() {});
-        //Removed 17 attributes from reconfigInputAttributes as they are not required for reconfiguration
-        assertEquals(dbTaskAttributes.size() - 17, reconfigInputAttributes.size());
+        //Removed 18 attributes from reconfigInputAttributes as they are not required for reconfiguration
+        assertEquals(dbTaskAttributes.size() - 18, reconfigInputAttributes.size());
 
         Set<String> dbTaskAttributeKeys = dbTaskAttributes.keySet();
         Set<String> reconfigInputAttributeKeys = reconfigInputAttributes.keySet();
@@ -126,7 +126,7 @@ class TaskEntityToReconfigureInputVariableDefMapperTest {
                   "caseCategory", "securityClassification", "lastReconfigurationTime", "reconfigureRequestTime",
                   "autoAssigned", "state", "taskSystem", "indexed", "lastUpdatedTimestamp", "lastUpdatedAction",
                   "taskRoleResources", "executionTypeCode", "businessContext", "terminationReason", "notes",
-                  "assignmentExpiry", "workTypeResource", "caseDeletionTimestamp", "externalTaskId");
+                  "assignmentExpiry", "workTypeResource", "caseDeletionTimestamp", "externalTaskId", "camundaTask");
         assertEquals(expectedOnlyInDbTaskAttributes, dbTaskAttributeKeys);
 
         assertEquals("aTaskName", reconfigureInputVarDef.getName());

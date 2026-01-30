@@ -190,6 +190,8 @@ public class TaskResource implements Serializable {
     @Schema(name = "last_updated_action")
     private String lastUpdatedAction;
 
+    private boolean camundaTask = true;
+
     private Boolean indexed = false;
 
     @Schema(name = "termination_process")
@@ -583,6 +585,10 @@ public class TaskResource implements Serializable {
 
     public void setExternalTaskId(String externalTaskId) {
         this.externalTaskId = externalTaskId;
+    }
+
+    public void setCamundaTask(Boolean camundaTask) {
+        this.camundaTask = camundaTask;
     }
 
     public TaskResource(String taskId,
