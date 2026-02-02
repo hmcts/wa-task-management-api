@@ -414,8 +414,10 @@ public class TaskManagementService {
         );
 
         try {
-            //Perform Camunda updates
-            camundaService.cancelTask(taskId);
+            if (task.isCamundaTask()) {
+                //Perform Camunda updates
+                camundaService.cancelTask(taskId);
+            }
             log.info("{} cancelled in camunda", taskId);
 
             //set task action attributes
@@ -475,7 +477,9 @@ public class TaskManagementService {
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
             //check the state, if not complete, complete
-            completeCamundaTask(taskId, taskHasCompleted);
+            if (task.isCamundaTask()) {
+                completeCamundaTask(taskId, taskHasCompleted);
+            }
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
@@ -552,7 +556,9 @@ public class TaskManagementService {
         } catch (ResourceNotFoundException e) {
             //Perform Camunda updates
             log.warn("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
-            camundaService.deleteCftTaskState(taskId);
+           if (task.isCamundaTask()) {
+               camundaService.deleteCftTaskState(taskId);
+           }
             return;
         }
         //Terminate the task if found in the database
@@ -563,11 +569,13 @@ public class TaskManagementService {
                 task.setTerminationReason(terminateInfo.getTerminateReason());
                 TaskAction taskAction = TERMINATE;
                 setSystemUserTaskActionAttributes(task, taskAction);
+                if (task.isCamundaTask()) {
+                    camundaService.deleteCftTaskState(taskId);
+                    isCamundaStateUpdated = true;
+                }
                 //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
                 terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
                 task.setState(CFTTaskState.TERMINATED);
-                isCamundaStateUpdated = true;
 
                 // Commit transaction
                 cftTaskDatabaseService.saveTask(task);
@@ -626,7 +634,6 @@ public class TaskManagementService {
         //Get DueDatetime or throw exception
         //Map taskPayload to taskResource
         TaskResource taskResource = cftTaskMapper.mapToApiFirstTaskResource(task);
-        log.info("Task Resource is " + taskResource);
         taskResource = taskAutoAssignmentService.performAutoAssignment(taskResource.getTaskId(), taskResource);
         try {
             TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
