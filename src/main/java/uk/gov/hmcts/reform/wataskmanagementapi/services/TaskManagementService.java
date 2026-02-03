@@ -741,9 +741,12 @@ public class TaskManagementService {
     }
 
     private boolean isTaskAlreadyTerminated(TaskResource task, TerminationAction action) {
-        return (action == TerminationAction.CANCEL && task.getState() == CFTTaskState.CANCELLED)
-            || (action == TerminationAction.COMPLETE && task.getState() == CFTTaskState.COMPLETED)
-            || task.getState() == CFTTaskState.TERMINATED;
+        CFTTaskState state = task.getState();
+        return (action == TerminationAction.CANCEL && state == CFTTaskState.CANCELLED)
+            || (action == TerminationAction.COMPLETE && state == CFTTaskState.COMPLETED)
+            || (action == TerminationAction.CANCEL && state == CFTTaskState.COMPLETED)
+            || (action == TerminationAction.COMPLETE && state == CFTTaskState.CANCELLED)
+            || state == CFTTaskState.TERMINATED;
     }
 
     private void updateTaskState(TaskResource task, TerminationAction action, String terminationReason) {

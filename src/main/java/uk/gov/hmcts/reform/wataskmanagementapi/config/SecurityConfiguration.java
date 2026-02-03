@@ -62,7 +62,6 @@ public class SecurityConfiguration {
             .logout(Customizer.withDefaults())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.POST, "/tasks").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task").permitAll()
                 .requestMatchers("/task-configuration/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
                 .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
