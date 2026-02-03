@@ -556,9 +556,7 @@ public class TaskManagementService {
         } catch (ResourceNotFoundException e) {
             //Perform Camunda updates
             log.warn("Task for id {} not found in the database, trying delete the task in camunda if exist", taskId);
-           if (task.isCamundaTask()) {
-               camundaService.deleteCftTaskState(taskId);
-           }
+            camundaService.deleteCftTaskState(taskId);
             return;
         }
         //Terminate the task if found in the database
