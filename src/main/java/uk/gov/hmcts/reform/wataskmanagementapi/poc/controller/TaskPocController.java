@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.poc.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -30,7 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @Slf4j
 @RestController
 
-public class TaskCreateController implements TasksApi {
+public class TaskPocController implements TasksApi {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
@@ -48,7 +47,6 @@ public class TaskCreateController implements TasksApi {
         }
         TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
         taskManagementService.updateTaskIndex(savedTask.getTaskId());
-        log.info("Saved task  {}", savedTask);
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .cacheControl(CacheControl.noCache())
