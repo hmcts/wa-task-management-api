@@ -568,10 +568,11 @@ public class TaskManagementService {
                 setSystemUserTaskActionAttributes(task, taskAction);
                 if (task.isCamundaTask()) {
                     camundaService.deleteCftTaskState(taskId);
+                    //Perform Camunda updates
                     isCamundaStateUpdated = true;
+                    //Set termination process value from camunda
+                    terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
                 }
-                //Perform Camunda updates
-                terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
                 task.setState(CFTTaskState.TERMINATED);
 
                 // Commit transaction
