@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceException;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminationAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.sql.SQLException;
@@ -410,8 +413,10 @@ public class TaskManagementService {
         );
 
         try {
-            //Perform Camunda updates
-            camundaService.cancelTask(taskId);
+            if (task.isCamundaTask()) {
+                //Perform Camunda updates
+                camundaService.cancelTask(taskId);
+            }
             log.info("{} cancelled in camunda", taskId);
 
             //set task action attributes
@@ -471,7 +476,9 @@ public class TaskManagementService {
         if (!taskHasCompleted) {
             //scenario, task not completed anywhere
             //check the state, if not complete, complete
-            completeCamundaTask(taskId, taskHasCompleted);
+            if (task.isCamundaTask()) {
+                completeCamundaTask(taskId, taskHasCompleted);
+            }
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
@@ -559,11 +566,14 @@ public class TaskManagementService {
                 task.setTerminationReason(terminateInfo.getTerminateReason());
                 TaskAction taskAction = TERMINATE;
                 setSystemUserTaskActionAttributes(task, taskAction);
-                //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
-                terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
+                if (task.isCamundaTask()) {
+                    camundaService.deleteCftTaskState(taskId);
+                    //Perform Camunda updates
+                    isCamundaStateUpdated = true;
+                    //Set termination process value from camunda
+                    terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
+                }
                 task.setState(CFTTaskState.TERMINATED);
-                isCamundaStateUpdated = true;
 
                 // Commit transaction
                 cftTaskDatabaseService.saveTask(task);
@@ -622,7 +632,6 @@ public class TaskManagementService {
         //Get DueDatetime or throw exception
         //Map taskPayload to taskResource
         TaskResource taskResource = cftTaskMapper.mapToApiFirstTaskResource(task);
-        log.info("Task Resource is " + taskResource);
         taskResource = taskAutoAssignmentService.performAutoAssignment(taskResource.getTaskId(), taskResource);
         try {
             TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
@@ -707,6 +716,49 @@ public class TaskManagementService {
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .toList();
     }
+
+    @Transactional
+    public void terminateTasks(@Valid TerminateTasksRequest terminateTasksRequest) {
+        Set<String> taskIds = terminateTasksRequest.getTaskIds().stream()
+            .map(Object::toString)
+            .collect(Collectors.toSet());
+
+        TerminationAction action = terminateTasksRequest.getAction();
+        String terminationReason = action == TerminationAction.CANCEL ? "deleted" : "completed";
+
+        taskIds.forEach(taskId -> {
+            TaskResource task = findByIdAndObtainLock(taskId);
+
+            if (isTaskAlreadyTerminated(task, action)) {
+                log.info("Task with id {} is already in {} state. Skipping {}.",
+                         taskId, task.getState().getValue(), action.name().toLowerCase());
+                return;
+            }
+
+            updateTaskState(task, action, terminationReason);
+            terminateTask(taskId, new TerminateInfo(terminationReason));
+        });
+    }
+
+    private boolean isTaskAlreadyTerminated(TaskResource task, TerminationAction action) {
+        CFTTaskState state = task.getState();
+        return (action == TerminationAction.CANCEL && state == CFTTaskState.CANCELLED)
+            || (action == TerminationAction.COMPLETE && state == CFTTaskState.COMPLETED)
+            || (action == TerminationAction.CANCEL && state == CFTTaskState.COMPLETED)
+            || (action == TerminationAction.COMPLETE && state == CFTTaskState.CANCELLED)
+            || state == CFTTaskState.TERMINATED;
+    }
+
+    private void updateTaskState(TaskResource task, TerminationAction action, String terminationReason) {
+        task.setState(action == TerminationAction.CANCEL ? CFTTaskState.CANCELLED : CFTTaskState.COMPLETED);
+        task.setTerminationProcess(action == TerminationAction.CANCEL
+            ? TerminationProcess.EXUI_CASE_EVENT_CANCELLATION : TerminationProcess.EXUI_CASE_EVENT_COMPLETION);
+        task.setTerminationReason(terminationReason);
+        setSystemUserTaskActionAttributes(
+            task, action == TerminationAction.CANCEL ? TaskAction.CANCEL : TaskAction.COMPLETED);
+        cftTaskDatabaseService.saveTask(task);
+    }
+
 
     private void setTaskActionAttributes(TaskResource task, String userId, TaskAction action) {
         task.setLastUpdatedTimestamp(OffsetDateTime.now());

@@ -118,8 +118,8 @@ components:
     TerminationAction:
       type: string
       enum:
-        - Cancel
-        - Complete
+        - cancel
+        - complete
       description: Termination action.
 
     TerminateTasksRequest:
