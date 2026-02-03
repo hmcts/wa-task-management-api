@@ -126,11 +126,11 @@ components:
       type: object
       required:
         - action
-        - taskIds
+        - task_ids
       properties:
         action:
           $ref: '#/components/schemas/TerminationAction'
-        taskIds:
+        task_ids:
           type: array
           description: List of task IDs to terminate.
           minItems: 1
