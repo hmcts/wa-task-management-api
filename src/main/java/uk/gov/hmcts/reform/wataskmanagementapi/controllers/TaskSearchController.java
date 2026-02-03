@@ -100,9 +100,6 @@ public class TaskSearchController extends BaseController {
         @Min(value = 1, message = "max_results must not be less than one") Integer maxResults,
         @Valid @RequestBody SearchTaskRequest searchTaskRequest
     ) {
-        log.warn("POST /task - first_result: {}, max_results: {}, searchTaskRequest: {}",
-            firstResult, maxResults, searchTaskRequest);
-        log.warn("Auth token received with length: {}", authToken != null ? authToken.length() : 0);
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
