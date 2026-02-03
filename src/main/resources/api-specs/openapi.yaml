@@ -118,19 +118,19 @@ components:
     TerminationAction:
       type: string
       enum:
-        - Cancel
-        - Complete
+        - cancel
+        - complete
       description: Termination action.
 
     TerminateTasksRequest:
       type: object
       required:
         - action
-        - task_ids
+        - taskIds
       properties:
         action:
           $ref: '#/components/schemas/TerminationAction'
-        task_ids:
+        taskIds:
           type: array
           description: List of task IDs to terminate.
           minItems: 1
