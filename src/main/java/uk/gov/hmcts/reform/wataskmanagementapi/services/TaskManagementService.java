@@ -67,7 +67,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -741,9 +740,9 @@ public class TaskManagementService {
     }
 
     private boolean isTaskAlreadyTerminated(TaskResource task, TerminationAction action) {
-        return (action == TerminationAction.CANCEL && task.getState() == CFTTaskState.CANCELLED) ||
-            (action == TerminationAction.COMPLETE && task.getState() == CFTTaskState.COMPLETED) ||
-            task.getState() == CFTTaskState.TERMINATED;
+        return (action == TerminationAction.CANCEL && task.getState() == CFTTaskState.CANCELLED)
+            || (action == TerminationAction.COMPLETE && task.getState() == CFTTaskState.COMPLETED)
+            || task.getState() == CFTTaskState.TERMINATED;
     }
 
     private void updateTaskState(TaskResource task, TerminationAction action, String terminationReason) {
@@ -751,8 +750,8 @@ public class TaskManagementService {
         task.setTerminationProcess(action == TerminationAction.CANCEL
             ? TerminationProcess.EXUI_CASE_EVENT_CANCELLATION : TerminationProcess.EXUI_CASE_EVENT_COMPLETION);
         task.setTerminationReason(terminationReason);
-        setSystemUserTaskActionAttributes(task,
-                                          action == TerminationAction.CANCEL ? TaskAction.CANCEL : TaskAction.COMPLETED);
+        setSystemUserTaskActionAttributes(
+            task, action == TerminationAction.CANCEL ? TaskAction.CANCEL : TaskAction.COMPLETED);
         cftTaskDatabaseService.saveTask(task);
     }
 
