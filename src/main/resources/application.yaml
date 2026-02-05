@@ -181,3 +181,5 @@ caffeine:
 bankHolidays:
   api:
     url: "https://www.gov.uk"
+
+delayOnError: 10
