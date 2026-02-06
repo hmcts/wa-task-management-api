@@ -312,6 +312,13 @@ components:
           description: Region display name.
         task_system:
           $ref: '#/components/schemas/TaskSystem'
+        next_hearing_date:
+          type: string
+          format: date-time
+          description: Next Hearing date/time.
+        next_hearing_id:
+          type: string
+          description: Next Hearing Id.
         additional_properties:
           type: object
           additionalProperties: true
