@@ -154,7 +154,7 @@ class PostTaskCompleteByIdControllerRetry {
     }
 
     @Test
-    void should_retry_camunda_complete_call_and_succeed_on_third_attempt() throws Exception {
+    void should_retry_camunda_complete_api_when_fails() throws Exception {
         mockServices.mockUserInfo();
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -222,7 +222,7 @@ class PostTaskCompleteByIdControllerRetry {
     }
 
     @Test
-    void should_retry_camunda_complete_call_with_new_token_when_unauthorized_401() throws Exception {
+    void should_retry_camunda_complete_api_with_new_token_when_fails() throws Exception {
         mockServices.mockUserInfo();
 
         AtomicInteger tokenCounter = new AtomicInteger(1);
