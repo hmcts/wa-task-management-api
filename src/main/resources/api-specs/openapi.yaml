@@ -74,7 +74,7 @@ paths:
           description: One or more task IDs do not exist.
 
   /tasks/reconfigure:
-    post:
+    put:
       summary: Reconfigure tasks for a case
       description: >
         Replace tasks for a case using service-evaluated rules. Accepts a list of task reconfiguration payloads for the
