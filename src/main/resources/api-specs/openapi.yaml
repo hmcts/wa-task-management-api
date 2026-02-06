@@ -73,6 +73,40 @@ paths:
         '404':
           description: One or more task IDs do not exist.
 
+  /tasks/reconfigure:
+    post:
+      summary: Reconfigure tasks for a case
+      description: >
+        Replace tasks for a case using service-evaluated rules. Accepts a list of task reconfiguration payloads for the
+        target case.
+      operationId: reconfigureTasks
+      parameters:
+        - name: ServiceAuthorization
+          in: header
+          required: true
+          description: Service-to-service authorization token
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskReconfigureRequest'
+      responses:
+        '200':
+          description: Tasks reconfigured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskReconfigureResponse'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
 components:
   schemas:
     PermissionTypes:
@@ -145,148 +179,222 @@ components:
       type: object
       properties:
         task:
+          allOf:
+            - $ref: '#/components/schemas/TaskPayload'
+            - type: object
+              required:
+                - type
+                - name
+                - created
+                - execution_type
+                - case_id
+                - case_type_id
+                - jurisdiction
+                - work_type
+                - role_category
+                - security_classification
+                - due_date_time
+                - permissions
+                - case_category
+                - case_name
+                - region
+                - location
+    TaskPermission:
+      type: object
+      required:
+        - role_name
+        - role_category
+        - permissions
+      properties:
+        role_name:
+          type: string
+          pattern: '.*\S.*'
+          description: Role name.
+        role_category:
+          type: string
+          pattern: '.*\S.*'
+          description: Role category.
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionTypes'
+        authorisations:
+          type: array
+          items:
+            type: string
+          description: Authorisations for the role.
+        assignment_priority:
+          type: integer
+          description: Assignment priority.
+        auto_assignable:
+          type: boolean
+          description: Whether the role is auto-assignable.
+    TaskPayload:
+      type: object
+      properties:
+        external_task_id:
+          type: string
+          format: uuid
+          description: External task identifier.
+        id:
+          type: string
+          format: uuid
+          description: Task Management task identifier.
+        type:
+          type: string
+          description: Service-defined task type identifier.
+        name:
+          type: string
+          description: User-facing task name.
+        title:
+          type: string
+          description: Optional display title.
+        assignee:
+          type: string
+          description: Initial Assignee IDAM ID.
+        created:
+          type: string
+          format: date-time
+          description: Creation timestamp.
+        execution_type:
+          $ref: '#/components/schemas/ExecutionType'
+        case_id:
+          type: string
+          description: CCD case reference.
+        case_type_id:
+          type: string
+          description: CCD case type identifier.
+        case_category:
+          type: string
+          description: Primary case management category.
+        case_name:
+          type: string
+          description: Human-readable case name.
+        jurisdiction:
+          type: string
+          description: CCD jurisdiction identifier.
+        region:
+          type: string
+          description: Case management region identifier.
+        location:
+          type: string
+          description: Base location identifier.
+        work_type:
+          type: string
+          description: Work type identifier.
+        role_category:
+          type: string
+          description: Role category for the task.
+        security_classification:
+          $ref: '#/components/schemas/SecurityClassification'
+        description:
+          type: string
+          description: Task description text.
+        due_date_time:
+          type: string
+          format: date-time
+          description: Target due date/time.
+        priority_date:
+          type: string
+          format: date-time
+          description: Business priority date/time.
+        major_priority:
+          type: integer
+          description: Major priority level.
+        minor_priority:
+          type: integer
+          description: Minor priority level.
+        location_name:
+          type: string
+          description: Location display name.
+        region_name:
+          type: string
+          description: Region display name.
+        task_system:
+          $ref: '#/components/schemas/TaskSystem'
+        additional_properties:
           type: object
-          required:
-            - type
-            - name
-            - created
-            - execution_type
-            - case_id
-            - case_type_id
-            - jurisdiction
-            - work_type
-            - role_category
-            - security_classification
-            - due_date_time
-            - permissions
-            - case_category
-            - case_name
-            - region
-            - location
-          properties:
-            external_task_id:
-              type: string
-              format: uuid
-              description: external task identifier.
-            type:
-              type: string
-              pattern: '.*\S.*'
-              description: Service-defined task type identifier.
-            name:
-              type: string
-              pattern: '.*\S.*'
-              description: User-facing task name.
-            title:
-              type: string
-              description: Optional display title.
-            assignee:
-              type: string
-              description: Initial Assignee IDAM ID.
-            created:
-              type: string
-              format: date-time
-              description: Creation timestamp.
-            execution_type:
-              $ref: '#/components/schemas/ExecutionType'
-            case_id:
-              type: string
-              pattern: '.*\S.*'
-              description: CCD case reference.
-            case_type_id:
-              type: string
-              pattern: '.*\S.*'
-              description: CCD case type identifier.
-            case_category:
-              type: string
-              pattern: '.*\S.*'
-              description: Primary case management category.
-            case_name:
-              type: string
-              pattern: '.*\S.*'
-              description: Human-readable case name.
-            jurisdiction:
-              type: string
-              pattern: '.*\S.*'
-              description: CCD jurisdiction identifier.
-            region:
-              type: string
-              pattern: '.*\S.*'
-              description: Case management region identifier.
-            location:
-              type: string
-              pattern: '.*\S.*'
-              description: Base location identifier.
-            work_type:
-              type: string
-              pattern: '.*\S.*'
-              description: Work type identifier.
-            role_category:
-              type: string
-              description: Role category for the task.
-            security_classification:
-              $ref: '#/components/schemas/SecurityClassification'
-            description:
-              type: string
-              description: Task description text.
-            due_date_time:
-              type: string
-              format: date-time
-              description: Target due date/time.
-            priority_date:
-              type: string
-              format: date-time
-              description: Business priority date/time.
-            major_priority:
-              type: integer
-              description: Major priority level.
-            minor_priority:
-              type: integer
-              description: Minor priority level.
-            location_name:
-              type: string
-              description: Location display name.
-            region_name:
-              type: string
-              description: Region display name.
-            task_system:
-              $ref: '#/components/schemas/TaskSystem'
-            additional_properties:
-              type: object
-              additionalProperties:
-                type: string
-              description: Free-form metadata.
-            permissions:
-              type: array
-              items:
-                type: object
-                required:
-                  - role_name
-                  - role_category
-                  - permissions
-                properties:
-                  role_name:
-                    type: string
-                    pattern: '.*\S.*'
-                    description: Role name.
-                  role_category:
-                    type: string
-                    pattern: '.*\S.*'
-                    description: Role category.
-                  permissions:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PermissionTypes'
-                  authorisations:
-                    type: array
-                    items:
-                      type: string
-                    description: Authorisations for the role.
-                  assignment_priority:
-                    type: integer
-                    description: Assignment priority.
-                  auto_assignable:
-                    type: boolean
-                    description: Whether the role is auto-assignable.
+          additionalProperties: true
+          description: Free-form metadata.
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskPermission'
+    TaskReconfigurePayload:
+      type: object
+      description: Task attributes that can be updated during reconfiguration.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Task identifier to reconfigure.
+        title:
+          type: string
+          description: Optional display title.
+        case_category:
+          type: string
+          description: Primary case management category.
+        case_name:
+          type: string
+          description: Human-readable case name.
+        region:
+          type: string
+          description: Case management region identifier.
+        location:
+          type: string
+          description: Base location identifier.
+        work_type:
+          type: string
+          description: Work type identifier.
+        role_category:
+          type: string
+          description: Role category for the task.
+        description:
+          type: string
+          description: Task description text.
+        due_date_time:
+          type: string
+          format: date-time
+          description: Target due date/time.
+        priority_date:
+          type: string
+          format: date-time
+          description: Business priority date/time.
+        major_priority:
+          type: integer
+          description: Major priority level.
+        minor_priority:
+          type: integer
+          description: Minor priority level.
+        location_name:
+          type: string
+          description: Location display name.
+        additional_properties:
+          type: object
+          additionalProperties: true
+          description: Free-form metadata.
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskPermission'
+    TaskReconfigureRequest:
+      type: object
+      required:
+        - tasks
+      properties:
+        tasks:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TaskReconfigurePayload'
+          description: Tasks to reconfigure for the case.
+    TaskReconfigureResponse:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskPayload'
     TaskResource:
       type: object
       properties:
