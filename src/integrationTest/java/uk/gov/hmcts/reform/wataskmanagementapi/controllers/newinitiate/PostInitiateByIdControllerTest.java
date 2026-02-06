@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +38,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
@@ -101,6 +104,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -638,7 +642,6 @@ class PostInitiateByIdControllerTest {
                 )
             ));
 
-
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
                             .header(TOTAL_RECORDS, "1")
@@ -758,7 +761,6 @@ class PostInitiateByIdControllerTest {
                     stringValue(null)
                 )
             ));
-
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
@@ -993,7 +995,6 @@ class PostInitiateByIdControllerTest {
                 )
             ));
 
-
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(emptyList()));
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
@@ -1109,7 +1110,6 @@ class PostInitiateByIdControllerTest {
                     stringValue(null)
                 )
             ));
-
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(emptyList()));
@@ -1242,7 +1242,6 @@ class PostInitiateByIdControllerTest {
                     stringValue(null)
                 )
             ));
-
 
         when(roleAssignmentServiceApi.getRolesForUser(eq("someAssignee"), any(), any()))
             .thenReturn(new RoleAssignmentResource(emptyList()));
@@ -1465,7 +1464,6 @@ class PostInitiateByIdControllerTest {
                 jsonPath("$.status").value(400),
                 jsonPath("$.violations[0].field").value("caseId"),
                 jsonPath("$.violations[0].message").value("must not be empty"));
-
 
     }
 

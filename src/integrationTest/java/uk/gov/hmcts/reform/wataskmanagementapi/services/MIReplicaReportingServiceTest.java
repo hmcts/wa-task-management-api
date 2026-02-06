@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableT
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.MIReplicaDBDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
@@ -81,7 +82,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTe
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
-@Import(AwaitilityIntegrationTestConfig.class)
+@Import({AwaitilityIntegrationTestConfig.class, IntegrationSecurityTestConfig.class})
 class MIReplicaReportingServiceTest {
 
     @Autowired
@@ -424,7 +425,6 @@ class MIReplicaReportingServiceTest {
                     assertEquals(expectedOutcome, reportableTaskList.get(0).getOutcome());
                     return true;
                 });
-
 
     }
 
@@ -945,7 +945,6 @@ class MIReplicaReportingServiceTest {
         assertTrue(taskHistoryResourceList.isEmpty());
     }
 
-
     @ParameterizedTest
     @CsvSource(value = {
         "UNASSIGNED,Configure",
@@ -1338,7 +1337,6 @@ class MIReplicaReportingServiceTest {
             log.info(taskResource.toString());
             tasks.add(taskResource);
         });
-
 
         List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
 
@@ -1860,7 +1858,6 @@ class MIReplicaReportingServiceTest {
                 0L, Stream.empty())
         );
     }
-
 
     private void checkHistory(String id, int records) {
         await()

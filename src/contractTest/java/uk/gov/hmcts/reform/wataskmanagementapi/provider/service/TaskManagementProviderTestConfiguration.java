@@ -11,9 +11,15 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.jackson.JsonComponentModule;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.zalando.problem.jackson.ProblemModule;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
@@ -38,6 +44,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationP
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -46,6 +54,7 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
+@Configuration
 public class TaskManagementProviderTestConfiguration {
 
     @MockitoBean
@@ -81,6 +90,29 @@ public class TaskManagementProviderTestConfiguration {
     @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
+
+    @Bean
+    @Primary
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+            .oauth2Client(Customizer.withDefaults());
+        return http.build();
+    }
+
+    @Bean
+    @Primary
+    public JwtDecoder jwtDecoder() {
+        return token -> Jwt.withTokenValue(token)
+            .header("alg", "none")
+            .claim("sub", "contract-test")
+            .issuedAt(Instant.now())
+            .expiresAt(Instant.now().plusSeconds(3600))
+            .claims(claims -> claims.putAll(new HashMap<>()))
+            .build();
+    }
 
     @Bean
     @Primary

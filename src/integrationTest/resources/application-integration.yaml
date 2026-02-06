@@ -1,4 +1,7 @@
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
   datasource:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql
@@ -12,11 +15,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: https://idam-web-public.aat.platform.hmcts.net/o/jwks
+          jwk-set-uri: http://localhost:8999/o/jwks
       client:
         provider:
           oidc:
-            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
+            issuer-uri: http://localhost:8999/o
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect

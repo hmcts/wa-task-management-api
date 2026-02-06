@@ -6,7 +6,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
@@ -24,6 +27,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.INVALID_DATE_REFERENCE_FIELD;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 public class PriorityDateTypeConfiguratorTest {
 
@@ -188,7 +192,6 @@ public class PriorityDateTypeConfiguratorTest {
         String initiationPriorityDateFound
     ) {
 
-
         ConfigurationDmnEvaluationResponse defaultPriorityDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("priorityDateTime"))
             .value(CamundaValue.stringValue("16:00"))
@@ -317,7 +320,6 @@ public class PriorityDateTypeConfiguratorTest {
                 Boolean.parseBoolean(isReConfigurationRequest),
                 taskAttributes
             );
-
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()

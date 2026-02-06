@@ -6,7 +6,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
@@ -32,6 +35,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalc
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 public class IntermediateDateTypeConfiguratorTest {
 
@@ -214,7 +218,6 @@ public class IntermediateDateTypeConfiguratorTest {
             .value(stringValue("priorityIntermediateDate,nextHearingDate,dueDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
-
 
         ConfigurationDmnEvaluationResponse nextHearingDate = ConfigurationDmnEvaluationResponse.builder()
             .name(stringValue("nextHearingDate"))
@@ -628,7 +631,6 @@ public class IntermediateDateTypeConfiguratorTest {
                     .canReconfigure(CamundaValue.booleanValue(configurable))
                     .build()
             ));
-
 
     }
 

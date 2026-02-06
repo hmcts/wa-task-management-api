@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,6 +32,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
@@ -66,6 +69,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -134,7 +138,6 @@ class WorkTypesControllerTest {
             jsonPath("$.work_types.length()").value(27)
         ).andReturn();
 
-
         runWorkTypeAssertion(getExpectedWorkTypes(), response);
     }
 
@@ -163,7 +166,6 @@ class WorkTypesControllerTest {
     void should_return_a_valid_work_type_list_when_user_has_work_types() throws Exception {
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
-
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
@@ -177,7 +179,6 @@ class WorkTypesControllerTest {
                 new WorkType("upper_tribunal", "Upper Tribunal")));
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
-
 
         MvcResult response = mockMvc.perform(
             get(ENDPOINT_PATH + "?filter-by-user=true")
@@ -200,7 +201,6 @@ class WorkTypesControllerTest {
     @Test
     void should_return_a_valid_work_type_list_when_user_has_work_types_leading_spaces() throws Exception {
         final List<String> roleNames = singletonList("tribunal-caseworker");
-
 
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();

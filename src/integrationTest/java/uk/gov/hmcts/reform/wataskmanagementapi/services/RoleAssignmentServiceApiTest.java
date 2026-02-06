@@ -9,6 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.ResourceUtils;
@@ -22,6 +23,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +42,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils.MAX_ROLE_ASSIGNMENT_RECORDS;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -99,7 +103,6 @@ public class RoleAssignmentServiceApiTest {
         assertThat(roleAssignmentResource.getRoleAssignmentResponse().get(0)).isEqualTo(expectedRoleAssignment);
     }
 
-
     @Test
     void queryRoleAssignmentAndReceiveNewRolesTest() throws IOException {
 
@@ -156,7 +159,6 @@ public class RoleAssignmentServiceApiTest {
         assertThat(roleAssignmentResource.getRoleAssignmentResponse()).isNotEmpty();
         assertThat(roleAssignmentResource.getRoleAssignmentResponse()).isEqualTo(expectedRoleAssignments);
     }
-
 
     @Test
     void queryRoleAssignmentTestWhenValuesAreUnknown() throws IOException {

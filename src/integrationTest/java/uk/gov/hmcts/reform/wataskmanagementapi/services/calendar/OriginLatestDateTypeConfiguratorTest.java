@@ -4,7 +4,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
@@ -24,6 +27,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 public class OriginLatestDateTypeConfiguratorTest {
 
@@ -176,7 +180,6 @@ public class OriginLatestDateTypeConfiguratorTest {
             .name(CamundaValue.stringValue("calculatedDates"))
             .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
             .build();
-
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(
             dueDateOriginLatest, nextHearingDuration, calculatedDates);
@@ -446,7 +449,6 @@ public class OriginLatestDateTypeConfiguratorTest {
                     .build()
             ));
     }
-
 
     @Test
     public void shouldReCalculateDateWhenBothDueDateAndDueDateOriginLatestAreSetForReconfiguration() {
@@ -1017,7 +1019,6 @@ public class OriginLatestDateTypeConfiguratorTest {
         LocalDateTime taskResourceDueDate = GIVEN_DATE.plusDays(4);
         taskAttributes.put("nextHearingDate", taskResourceDueDate.atZone(ZoneId.systemDefault()).toOffsetDateTime());
 
-
         ConfigurationDmnEvaluationResponse dueDate = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDate"))
             .value(CamundaValue.stringValue(dueDateValue + "T18:00"))
@@ -1425,7 +1426,6 @@ public class OriginLatestDateTypeConfiguratorTest {
             .hasMessage(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
     }
 
-
     @Test
     public void should_not_calculate_date_when_multiple_origin_date_types_for_priority_date_exist() {
         ConfigurationDmnEvaluationResponse priorityDateOriginLatest = ConfigurationDmnEvaluationResponse.builder()
@@ -1437,7 +1437,6 @@ public class OriginLatestDateTypeConfiguratorTest {
             .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(PRIORITY_DATE_VALUE))
             .build();
-
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses
             = List.of(priorityDateOriginLatest, priorityDateOrigin);
@@ -1465,7 +1464,6 @@ public class OriginLatestDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(NEXT_HEARING_DATE_VALUE))
             .build();
 
-
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
             nextHearingDateOriginLatest, nextHearingDateOrigin);
 
@@ -1479,7 +1477,6 @@ public class OriginLatestDateTypeConfiguratorTest {
             .isInstanceOf(DateCalculationException.class)
             .hasMessage(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
     }
-
 
     @Test
     public void should_not_calculate_date_when_multiple_origin_date_types_for_intermediate_date_exist() {
@@ -1512,4 +1509,3 @@ public class OriginLatestDateTypeConfiguratorTest {
             .hasMessage(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
     }
 }
-
