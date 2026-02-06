@@ -83,6 +83,8 @@ class CamundaServiceTest extends CamundaHelpers {
     private AuthTokenGenerator authTokenGenerator;
     @Mock
     private CamundaServiceApi camundaServiceApi;
+    @Mock
+    private CamundaRetryService camundaRetryService;
     private CamundaObjectMapper camundaObjectMapper;
     private CamundaService camundaService;
     private String taskId;
@@ -92,11 +94,13 @@ class CamundaServiceTest extends CamundaHelpers {
         camundaObjectMapper = new CamundaObjectMapper();
 
         TaskMapper taskMapper = new TaskMapper(camundaObjectMapper);
+        camundaRetryService = new CamundaRetryService(camundaServiceApi,authTokenGenerator);
         camundaService = new CamundaService(
             camundaServiceApi,
             taskMapper,
             authTokenGenerator,
-            camundaObjectMapper
+            camundaObjectMapper,
+            camundaRetryService
         );
 
         lenient().when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
