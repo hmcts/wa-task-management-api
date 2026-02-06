@@ -206,8 +206,8 @@ public class CFTTaskMapper {
             taskRoleResources, //task_roles
             request.getCaseCategory(),
             additionalProperties,
-            null, //next_hearing_id
-            null, //next_hearing_date
+            request.getNextHearingId(), //next_hearing_id
+            request.getNextHearingDate(), //next_hearing_date
 
             request.getPriorityDate()
         );
