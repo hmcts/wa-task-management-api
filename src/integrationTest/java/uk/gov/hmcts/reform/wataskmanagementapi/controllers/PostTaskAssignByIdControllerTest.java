@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -31,6 +32,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -86,6 +89,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.THIRD_I
 
 @SuppressWarnings("checkstyle:LineLength")
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -430,7 +434,6 @@ class PostTaskAssignByIdControllerTest {
         );
     }
 
-
     @ParameterizedTest
     @CsvSource(value = {
         "WA, WaCaseType"
@@ -491,7 +494,6 @@ class PostTaskAssignByIdControllerTest {
 
         roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
-
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
@@ -709,7 +711,6 @@ class PostTaskAssignByIdControllerTest {
 
         roleAssignmentHelper.createRoleAssignment(assigneeRoles, roleAssignmentRequest);
         assigneeRoleAssignmentResource = new RoleAssignmentResource(assigneeRoles);
-
 
         when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
 
@@ -1197,7 +1198,6 @@ class PostTaskAssignByIdControllerTest {
             eq(IDAM_USER_ID), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
 
-
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -1229,7 +1229,6 @@ class PostTaskAssignByIdControllerTest {
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
             eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
-
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1302,7 +1301,6 @@ class PostTaskAssignByIdControllerTest {
             eq(IDAM_USER_ID), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
 
-
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -1334,7 +1332,6 @@ class PostTaskAssignByIdControllerTest {
         lenient().when(roleAssignmentServiceApi.getRolesForUser(
             eq(SECONDARY_IDAM_USER_ID), any(), any()
         )).thenReturn(assigneeRoleAssignmentResource);
-
 
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1406,7 +1403,6 @@ class PostTaskAssignByIdControllerTest {
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(assignerRoleAssignmentResource);
-
 
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -38,6 +39,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -95,6 +98,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -128,7 +132,6 @@ class PostTaskSearchControllerTest {
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
-
 
     @BeforeAll
     void setUp() {
@@ -1852,7 +1855,6 @@ class PostTaskSearchControllerTest {
 
     }
 
-
     @DisplayName("Should return 502 when idam service is down")
     @Test
     void should_return_status_code_502_when_idam_service_is_down() throws Exception {
@@ -1882,7 +1884,6 @@ class PostTaskSearchControllerTest {
                     + "and the request could not be completed. Message from downstream system: IDAM is down.")
             );
     }
-
 
     private void insertDummyTaskInDb(String caseId, String taskId, String jurisdiction, String caseType,
                                      TaskRoleResource taskRoleResource) {
@@ -1946,4 +1947,3 @@ class PostTaskSearchControllerTest {
 
     }
 }
-

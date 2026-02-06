@@ -29,6 +29,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
@@ -91,7 +93,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @TestInstance(PER_CLASS)
 @ExtendWith(OutputCaptureExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Import(AwaitilityIntegrationTestConfig.class)
+@Import({AwaitilityIntegrationTestConfig.class, IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 class ExecuteReconfigurationTaskOperationControllerTest {
 
     public static final String SYSTEM_USER_1 = "system_user1";
@@ -743,7 +745,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             assertNotNull(task.getReconfigureRequestTime());
         });
 
-
         when(dmnEvaluationService.evaluateTaskConfigurationDmn(
             anyString(),
             anyString(),
@@ -965,7 +966,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             });
         });
     }
-
 
     @Test
     void should_execute_reconfigure_set_indexed_true() throws Exception {

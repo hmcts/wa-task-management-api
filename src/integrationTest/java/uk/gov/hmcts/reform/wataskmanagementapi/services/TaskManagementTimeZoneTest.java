@@ -46,6 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -121,7 +122,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
-@Import(AwaitilityIntegrationTestConfig.class)
+@Import({AwaitilityIntegrationTestConfig.class, IntegrationSecurityTestConfig.class})
 class TaskManagementTimeZoneTest {
 
     @MockitoBean
@@ -386,7 +387,6 @@ class TaskManagementTimeZoneTest {
                 assertNotNull(taskHistoryResourceList.get(0).getReconfigureRequestTime());
                 taskHistoryResource = taskHistoryResourceList.get(0);
 
-
                 Assertions.assertThat(task.getReconfigureRequestTime())
                     .isCloseTo(now, Assertions.within(10, ChronoUnit.SECONDS));
                 Assertions.assertThat(taskHistoryResource.getReconfigureRequestTime())
@@ -460,7 +460,6 @@ class TaskManagementTimeZoneTest {
 
     }
 
-
     private String initiateTask(ZonedDateTime createdDate) throws Exception {
 
         mockServices = new ServiceMocks(
@@ -530,7 +529,6 @@ class TaskManagementTimeZoneTest {
 
         when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any())).thenReturn(null);
 
-
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
                 .header(TOTAL_RECORDS, "1")
@@ -553,7 +551,6 @@ class TaskManagementTimeZoneTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         String formattedAssignmentExpiry = CAMUNDA_DATA_TIME_FORMATTER.format(assignmentExpery);
         String formattedNextHearingDate = CAMUNDA_DATA_TIME_FORMATTER.format(nextHearingDate);
-
 
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",

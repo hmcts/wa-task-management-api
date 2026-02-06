@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,6 +34,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -81,6 +84,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -1094,7 +1098,6 @@ class PostClaimByIdControllerTest {
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
             .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
 
-
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1114,7 +1117,6 @@ class PostClaimByIdControllerTest {
                 + "The request failed the Role Assignment checks performed.")
         );
     }
-
 
     @ParameterizedTest
     @CsvSource(value = {
@@ -1743,4 +1745,3 @@ class PostClaimByIdControllerTest {
     }
 
 }
-

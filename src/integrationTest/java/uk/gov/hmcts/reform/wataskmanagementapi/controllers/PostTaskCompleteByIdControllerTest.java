@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +35,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -84,6 +87,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -430,7 +434,6 @@ class PostTaskCompleteByIdControllerTest {
             assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
             assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
         }
-
 
         @Test
         void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_true() throws Exception {
@@ -1088,7 +1091,6 @@ class PostTaskCompleteByIdControllerTest {
                 );
 
         }
-
 
         @Test
         void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() throws Exception {

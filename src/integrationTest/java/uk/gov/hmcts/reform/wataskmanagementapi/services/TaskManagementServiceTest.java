@@ -39,6 +39,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -104,7 +106,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.ID
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
-@Import(AwaitilityIntegrationTestConfig.class)
+@Import({AwaitilityIntegrationTestConfig.class, IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 class TaskManagementServiceTest {
 
     @Autowired
@@ -149,7 +151,6 @@ class TaskManagementServiceTest {
     private ServiceMocks mockServices;
     @MockitoBean
     private List<TaskOperationPerformService> taskOperationPerformServices;
-
 
     @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
@@ -961,7 +962,6 @@ class TaskManagementServiceTest {
                 UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
             when(systemUserIdamToken.getUserInfo(anyString())).thenReturn(mockedUserInfo);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
-
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.empty());

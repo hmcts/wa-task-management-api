@@ -35,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistory
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -96,7 +97,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j
-@Import(AwaitilityIntegrationTestConfig.class)
+@Import({AwaitilityIntegrationTestConfig.class, IntegrationSecurityTestConfig.class})
 public class PostTaskCompleteByIdControllerReplicaTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
@@ -216,8 +217,6 @@ public class PostTaskCompleteByIdControllerReplicaTest {
         roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-
-
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),

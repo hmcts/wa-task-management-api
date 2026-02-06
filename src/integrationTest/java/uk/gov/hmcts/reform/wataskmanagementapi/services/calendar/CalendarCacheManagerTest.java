@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
@@ -165,7 +167,7 @@ public class CalendarCacheManagerTest {
     }
 
     @Configuration
-    @Import(Application.class)
+    @Import({Application.class, IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
     public static class TestConfiguration {
 
         static FakeTicker fakeTicker = new FakeTicker();

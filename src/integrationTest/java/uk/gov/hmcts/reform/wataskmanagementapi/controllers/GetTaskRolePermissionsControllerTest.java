@@ -9,6 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,6 +27,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -61,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -202,7 +206,6 @@ class GetTaskRolePermissionsControllerTest {
 
         taskResource.setTaskRoleResources(taskRoleResourceSet);
 
-
         mockMvc.perform(
                 get("/task/" + taskId + "/roles")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -223,7 +226,6 @@ class GetTaskRolePermissionsControllerTest {
                             + "The request failed the Role Assignment checks performed.")
                 ));
     }
-
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_any_roles() throws Exception {

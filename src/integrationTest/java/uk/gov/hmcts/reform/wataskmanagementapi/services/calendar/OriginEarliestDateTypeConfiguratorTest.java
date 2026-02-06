@@ -6,7 +6,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
@@ -25,6 +28,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 public class OriginEarliestDateTypeConfiguratorTest {
 
@@ -1131,7 +1135,6 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .hasMessage(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
     }
 
-
     @Test
     public void should_not_calculate_date_when_multiple_origin_date_types_for_priority_date_exist() {
         ConfigurationDmnEvaluationResponse priorityDateOriginEarliest = ConfigurationDmnEvaluationResponse.builder()
@@ -1143,7 +1146,6 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .name(CamundaValue.stringValue("priorityDateOrigin"))
             .value(CamundaValue.stringValue(PRIORITY_DATE_VALUE))
             .build();
-
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses
             = List.of(priorityDateOriginEarliest, priorityDateOrigin);
@@ -1171,7 +1173,6 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(NEXT_HEARING_DATE_VALUE))
             .build();
 
-
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
             nextHearingDateOriginEarliest, nextHearingDateOrigin);
 
@@ -1185,7 +1186,6 @@ public class OriginEarliestDateTypeConfiguratorTest {
             .isInstanceOf(DateCalculationException.class)
             .hasMessage(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
     }
-
 
     @Test
     public void should_not_calculate_date_when_multiple_origin_date_types_for_intermediate_date_exist() {

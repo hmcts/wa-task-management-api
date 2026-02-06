@@ -9,12 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnRequest;
 
 import java.util.concurrent.TimeUnit;
@@ -26,6 +29,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DmnEvaluationServiceCacheTest {
@@ -64,7 +68,6 @@ public class DmnEvaluationServiceCacheTest {
         @Test
         void should_call_camunda_api_once_when_retrieving_task_type_dmn() {
             String dmnKey = "wa-task-types-";
-
 
             IntStream.range(0, 4).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("wa", dmnKey));
             IntStream.range(0, 5).forEach(x -> dmnEvaluationService.retrieveTaskTypesDmn("ia", dmnKey));
@@ -140,7 +143,6 @@ public class DmnEvaluationServiceCacheTest {
                     new DmnRequest<>()
                 );
 
-
             // when 10 mins later use cache response
             OverrideBean.FAKE_TICKER.advance(40, TimeUnit.MINUTES);
             dmnEvaluationService.evaluateTaskTypesDmn("sscs", dmnKey);
@@ -153,7 +155,6 @@ public class DmnEvaluationServiceCacheTest {
                     "sscs",
                     new DmnRequest<>()
                 );
-
 
             // when 61 mins later cache expired should call the service 1 more
             OverrideBean.FAKE_TICKER.advance(61, TimeUnit.MINUTES);

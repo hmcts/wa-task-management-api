@@ -21,6 +21,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
@@ -65,7 +67,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
-@Import(AwaitilityIntegrationTestConfig.class)
+@Import({AwaitilityIntegrationTestConfig.class, IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @Slf4j
 class TaskResourceRepositoryTest {
 
@@ -84,7 +86,6 @@ class TaskResourceRepositoryTest {
 
     @Autowired
     private TaskRoleResourceRepository taskRoleResourceRepository;
-
 
     @AfterEach
     void tearDown() {
@@ -698,7 +699,6 @@ class TaskResourceRepositoryTest {
         assertNotNull(taskResult);
         assertEquals(0, taskResult.size());
     }
-
 
     @Test
     void given_tasks_exist_when_get_top_5_order_by_lastUpdated_timestamp_asc_then_return_max_5_tasks_ordered() {

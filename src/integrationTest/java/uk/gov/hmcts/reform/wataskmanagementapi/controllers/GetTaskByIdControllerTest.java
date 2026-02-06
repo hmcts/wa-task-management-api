@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,6 +36,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -85,6 +87,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -207,7 +210,6 @@ class GetTaskByIdControllerTest {
         );
 
         taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResource,null,null);
-
 
         List<RoleAssignment> roles = new ArrayList<>();
 
@@ -339,7 +341,6 @@ class GetTaskByIdControllerTest {
             jsonPath("$.detail").value("Task Not Found Error: The task could not be found.")
         );
     }
-
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() throws Exception {
@@ -494,7 +495,6 @@ class GetTaskByIdControllerTest {
 
         taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId,UNASSIGNED, taskRoleResource,null,null);
 
-
         List<RoleAssignment> roles = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -537,7 +537,6 @@ class GetTaskByIdControllerTest {
         );
 
     }
-
 
     @Test
     @Execution(ExecutionMode.CONCURRENT)
@@ -691,7 +690,6 @@ class GetTaskByIdControllerTest {
         );
         taskTestUtils.insertDummyTaskInDb("WA", "WaCaseType", "caseId1",taskId2,UNASSIGNED, taskRoleResource,null,null);
 
-
         List<RoleAssignment> roles = new ArrayList<>();
 
         RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -759,4 +757,3 @@ class GetTaskByIdControllerTest {
     }
 
 }
-

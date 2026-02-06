@@ -9,6 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -22,6 +23,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -56,6 +59,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
@@ -158,7 +162,6 @@ class DeleteTerminateByIdControllerTest {
                 status().isNoContent()
             );
 
-
             Optional<TaskResource> taskInDb = cftTaskDatabaseService.findByIdOnly(taskId);
             assertTrue(taskInDb.isPresent());
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
@@ -167,7 +170,6 @@ class DeleteTerminateByIdControllerTest {
             assertEquals(TaskAction.TERMINATE.getValue(), taskInDb.get().getLastUpdatedAction());
             assertNotNull(taskInDb.get().getLastUpdatedTimestamp());
         }
-
 
     }
 
@@ -228,7 +230,6 @@ class DeleteTerminateByIdControllerTest {
             ).andExpectAll(
                 status().isNoContent()
             );
-
 
             Optional<TaskResource> taskInDb = cftTaskDatabaseService.findByIdOnly(taskId);
             assertTrue(taskInDb.isPresent());
@@ -296,7 +297,6 @@ class DeleteTerminateByIdControllerTest {
                 status().isNoContent()
             );
 
-
             Optional<TaskResource> taskInDb = cftTaskDatabaseService.findByIdOnly(taskId);
             assertTrue(taskInDb.isPresent());
             assertEquals(CFTTaskState.TERMINATED, taskInDb.get().getState());
@@ -307,4 +307,3 @@ class DeleteTerminateByIdControllerTest {
         }
     }
 }
-

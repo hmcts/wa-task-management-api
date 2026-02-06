@@ -6,7 +6,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
@@ -21,6 +24,7 @@ import java.util.Map;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 public class DateTypeConfiguratorForReconfigurationTest {
 
@@ -170,7 +174,6 @@ public class DateTypeConfiguratorForReconfigurationTest {
         String initiationDueDateFound
     ) {
 
-
         ConfigurationDmnEvaluationResponse defaultDueDateTime = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateTime"))
             .value(CamundaValue.stringValue("16:00"))
@@ -295,7 +298,6 @@ public class DateTypeConfiguratorForReconfigurationTest {
                 Boolean.parseBoolean(isReConfigurationRequest),
                 taskAttributes
             );
-
 
         Assertions.assertThat(configurationDmnEvaluationResponses).hasSize(1)
             .isEqualTo(List.of(ConfigurationDmnEvaluationResponse.builder()

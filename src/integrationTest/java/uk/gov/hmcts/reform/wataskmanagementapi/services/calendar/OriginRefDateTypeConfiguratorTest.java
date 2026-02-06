@@ -6,7 +6,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationIdamStubConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationSecurityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.DateCalculationException;
@@ -26,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateType
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.PublicHolidaysCollectionTest.CALENDAR_URI;
 
 @SpringBootTest
+@Import({IntegrationSecurityTestConfig.class, IntegrationIdamStubConfig.class})
 @ActiveProfiles({"integration"})
 public class OriginRefDateTypeConfiguratorTest {
 
@@ -174,7 +178,6 @@ public class OriginRefDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue("nextHearingDate,nextHearingDuration,dueDate,priorityDate"))
             .canReconfigure(CamundaValue.booleanValue(configurable))
             .build();
-
 
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = readDueDateOriginFields(
             configurable, dueDateOriginRef, nextHearingDuration, calculatedDates);
@@ -590,7 +593,6 @@ public class OriginRefDateTypeConfiguratorTest {
             ));
     }
 
-
     @Test
     public void shouldNotReCalculateDateWhenBothDueDateAndDueDateOriginRefAreNotSetForReconfiguration() {
         String dueDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -728,7 +730,6 @@ public class OriginRefDateTypeConfiguratorTest {
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
 
-
     @Test
     public void shouldNotRecalculateDateWhenPriorityDateIsUnconfigurableButOriginRefIsConfigurable() {
         String priorityDateValue = GIVEN_DATE.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -782,7 +783,6 @@ public class OriginRefDateTypeConfiguratorTest {
 
         assertThat(configurationDmnEvaluationResponses).isEmpty();
     }
-
 
     @Test
     public void shouldRecalculateDateWhenDueDateIsConfigurableButOriginRefIsUnConfigurable() {
@@ -885,7 +885,6 @@ public class OriginRefDateTypeConfiguratorTest {
                     .build()
             ));
     }
-
 
     @Test
     public void shouldCalculateDateFromTaskResourceWhenReferenceDatesAreNotProvidedForReconfigure() {
@@ -1038,7 +1037,6 @@ public class OriginRefDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(PRIORITY_DATE_VALUE))
             .build();
 
-
         List<ConfigurationDmnEvaluationResponse> evaluationResponses
             = List.of(priorityDateOriginRef, priorityDateOrigin);
 
@@ -1065,7 +1063,6 @@ public class OriginRefDateTypeConfiguratorTest {
             .value(CamundaValue.stringValue(NEXT_HEARING_DATE_VALUE))
             .build();
 
-
         List<ConfigurationDmnEvaluationResponse> evaluationResponses = List.of(
             nextHearingDateOriginRef, nextHearingDateOrigin);
 
@@ -1079,7 +1076,6 @@ public class OriginRefDateTypeConfiguratorTest {
             .isInstanceOf(DateCalculationException.class)
             .hasMessage(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
     }
-
 
     @Test
     public void should_not_calculate_date_when_multiple_origin_date_types_for_intermediate_date_exist() {
