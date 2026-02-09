@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -9,7 +8,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariables;
 
-@Slf4j
 @Service
 public class CamundaRetryService {
 
@@ -22,7 +20,7 @@ public class CamundaRetryService {
     }
 
 
-    @Retryable(retryFor = FeignException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    @Retryable(retryFor = FeignException.class, backoff = @Backoff(delay = 100))
     public void completeTaskWithRetry(String taskId) {
         camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
     }
