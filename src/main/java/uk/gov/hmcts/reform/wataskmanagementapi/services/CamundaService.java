@@ -503,6 +503,7 @@ public class CamundaService {
         }
 
         try {
+            log.info("Task '{}' completed", taskId);
             camundaRetryService.completeTaskWithRetry(taskId);
         } catch (FeignException ex) {
             log.error("There was a problem completing the task '{}'", taskId);
