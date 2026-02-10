@@ -879,29 +879,31 @@ public class TaskManagementService {
         log.warn("Reconfiguring tasks with request: {}", taskReconfigureRequest);
         TaskReconfigureResponse response = new TaskReconfigureResponse();
         taskReconfigureRequest.getTasks().forEach(task -> {
-                Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                    .findByIdAndStateInObtainPessimisticWriteLock(task.getId().toString(), List.of(
-                        CFTTaskState.ASSIGNED,
-                        CFTTaskState.UNASSIGNED
-                    ));
-                if (optionalTaskResource.isEmpty()) {
-                    log.warn("Task with id: {} is not in a state that allows reconfiguration or does not exist. Skipping task.",
-                             task.getId());
-                    return;
-                }
-                if (!optionalTaskResource.get().isCamundaTask()) {
+            Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
+                .findByIdAndStateInObtainPessimisticWriteLock(task.getId().toString(), List.of(
+                    CFTTaskState.ASSIGNED,
+                    CFTTaskState.UNASSIGNED
+                ));
+            if (optionalTaskResource.isEmpty()) {
+                log.warn("Task with id: {} is not in a state that allows reconfiguration or does not exist. " +
+                             "Skipping task.", task.getId());
+                return;
+            }
+            if (!optionalTaskResource.get().isCamundaTask()) {
 
-                    TaskResource taskResource = cftTaskMapper.mapToTaskResourceForReconfigure(
-                        optionalTaskResource.get(),
-                        task
-                    );
-                    taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource); //Added just to double confirm can delete after adding all tests
-                    taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                    taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-                    TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
-                    response.addTasksItem(savedTask);
-                }
-            });
+                TaskResource taskResource = cftTaskMapper.mapToTaskResourceForReconfigure(
+                    optionalTaskResource.get(),
+                    task
+                );
+                //Added just to double confirm can delete after adding all tests
+                taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource);
+                taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+                response.addTasksItem(savedTask);
+            }
+
+        });
         return response;
     }
 

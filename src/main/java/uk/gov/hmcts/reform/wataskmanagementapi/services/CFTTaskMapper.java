@@ -906,22 +906,6 @@ public class CFTTaskMapper {
     public TaskResource mapToTaskResourceForReconfigure(TaskResource taskResource, TaskReconfigurePayload task) {
         log.info("mapping task attributes to taskResource");
 
-        String taskId = task.getId().toString();
-
-        Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
-
-        WorkTypeResource workTypeResource = new WorkTypeResource(
-            task.getWorkType()
-        );
-        Map<String, String> additionalProperties = Collections.emptyMap();
-        if (task.getAdditionalProperties() != null) {
-            additionalProperties = task.getAdditionalProperties().entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    e -> String.valueOf(e.getValue())
-                ));
-        }
         taskResource.setCaseName(task.getCaseName());
         taskResource.setRegion(task.getRegion());
         taskResource.setLocation(task.getLocation());
@@ -932,12 +916,27 @@ public class CFTTaskMapper {
         taskResource.setPriorityDate(task.getPriorityDate());
         taskResource.setMajorPriority(task.getMajorPriority());
         taskResource.setMinorPriority(task.getMinorPriority());
+        String taskId = task.getId().toString();
+        Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
         taskResource.setTaskRoleResources(taskRoleResources);
         taskResource.setCaseCategory(task.getCaseCategory());
+        WorkTypeResource workTypeResource = new WorkTypeResource(
+            task.getWorkType()
+        );
         taskResource.setWorkTypeResource(workTypeResource);
         taskResource.setRoleCategory(task.getRoleCategory());
         taskResource.setNextHearingDate(task.getNextHearingDate());
         taskResource.setNextHearingId(task.getNextHearingId());
+        Map<String, String> additionalProperties = Collections.emptyMap();
+        if (task.getAdditionalProperties() != null) {
+            additionalProperties = task.getAdditionalProperties().entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> String.valueOf(e.getValue())
+                ));
+        }
+        taskResource.setAdditionalProperties(additionalProperties);
         return taskResource;
     }
 }
