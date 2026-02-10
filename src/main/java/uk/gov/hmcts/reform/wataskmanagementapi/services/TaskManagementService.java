@@ -896,10 +896,8 @@ public class TaskManagementService {
                         task
                     );
                     taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource); //Added just to double confirm can delete after adding all tests
-                    taskResource = taskAutoAssignmentService.performAutoAssignment(
-                        taskResource.getTaskId(),
-                        taskResource
-                    );
+                    taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                    taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
                     TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
                     response.addTasksItem(savedTask);
                 }
