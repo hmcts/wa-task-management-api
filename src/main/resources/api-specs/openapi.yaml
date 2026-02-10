@@ -242,9 +242,11 @@ components:
           description: Task Management task identifier.
         type:
           type: string
+          pattern: '.*\S.*'
           description: Service-defined task type identifier.
         name:
           type: string
+          pattern: '.*\S.*'
           description: User-facing task name.
         title:
           type: string
@@ -260,27 +262,35 @@ components:
           $ref: '#/components/schemas/ExecutionType'
         case_id:
           type: string
+          pattern: '.*\S.*'
           description: CCD case reference.
         case_type_id:
           type: string
+          pattern: '.*\S.*'
           description: CCD case type identifier.
         case_category:
           type: string
+          pattern: '.*\S.*'
           description: Primary case management category.
         case_name:
           type: string
+          pattern: '.*\S.*'
           description: Human-readable case name.
         jurisdiction:
           type: string
+          pattern: '.*\S.*'
           description: CCD jurisdiction identifier.
         region:
           type: string
+          pattern: '.*\S.*'
           description: Case management region identifier.
         location:
           type: string
+          pattern: '.*\S.*'
           description: Base location identifier.
         work_type:
           type: string
+          pattern: '.*\S.*'
           description: Work type identifier.
         role_category:
           type: string
@@ -329,6 +339,14 @@ components:
             $ref: '#/components/schemas/TaskPermission'
     TaskReconfigurePayload:
       type: object
+      required:
+        - work_type
+        - due_date_time
+        - permissions
+        - case_category
+        - case_name
+        - region
+        - location
       description: Task attributes that can be updated during reconfiguration.
       properties:
         id:
@@ -340,18 +358,23 @@ components:
           description: Optional display title.
         case_category:
           type: string
+          pattern: '.*\S.*'
           description: Primary case management category.
         case_name:
           type: string
+          pattern: '.*\S.*'
           description: Human-readable case name.
         region:
           type: string
+          pattern: '.*\S.*'
           description: Case management region identifier.
         location:
           type: string
+          pattern: '.*\S.*'
           description: Base location identifier.
         work_type:
           type: string
+          pattern: '.*\S.*'
           description: Work type identifier.
         role_category:
           type: string
@@ -408,7 +431,7 @@ components:
         tasks:
           type: array
           items:
-            $ref: '#/components/schemas/TaskPayload'
+            $ref: '#/components/schemas/TaskResource'
     TaskResource:
       type: object
       properties:

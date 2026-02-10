@@ -55,6 +55,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminationAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
@@ -870,6 +872,39 @@ public class TaskManagementService {
 
             log.error("Task Completion failed for task ({}) as task is already complete", taskId);
         }
+    }
+
+    @Transactional
+    public TaskReconfigureResponse reconfigureTasks(TaskReconfigureRequest taskReconfigureRequest) {
+        log.warn("Reconfiguring tasks with request: {}", taskReconfigureRequest);
+        TaskReconfigureResponse response = new TaskReconfigureResponse();
+        taskReconfigureRequest.getTasks().forEach(task -> {
+            Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
+                .findByIdAndStateInObtainPessimisticWriteLock(task.getId().toString(), List.of(
+                    CFTTaskState.ASSIGNED,
+                    CFTTaskState.UNASSIGNED
+                ));
+            if (optionalTaskResource.isEmpty()) {
+                log.warn("Task with id: {} is not in a state that allows reconfiguration or does not exist. "
+                             + "Skipping task.", task.getId());
+                return;
+            }
+            if (!optionalTaskResource.get().isCamundaTask()) {
+
+                TaskResource taskResource = cftTaskMapper.mapToTaskResourceForReconfigure(
+                    optionalTaskResource.get(),
+                    task
+                );
+                //Added just to double confirm can delete after adding all tests
+                taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource);
+                taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+                taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+                response.addTasksItem(savedTask);
+            }
+
+        });
+        return response;
     }
 
     private void checkCompletePermissions(String taskId, AccessControlResponse accessControlResponse,

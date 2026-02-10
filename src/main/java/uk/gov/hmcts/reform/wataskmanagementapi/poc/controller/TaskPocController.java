@@ -1,12 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.poc.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.api.TasksApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -70,6 +74,22 @@ public class TaskPocController implements TasksApi {
             .build();
     }
 
+    @PutMapping(value = "/tasks/reconfigure", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TaskReconfigureResponse> reconfigureTasks(
+        @NotNull @Parameter(name = "ServiceAuthorization", description = "Service-to-service authorization token", required = true, in = ParameterIn.HEADER) @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
+        @Parameter(name = "TaskReconfigureRequest", description = "", required = true) @Valid @RequestBody TaskReconfigureRequest taskReconfigureRequest
+    ) {
+        boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthorization);
+        if (!hasAccess) {
+            throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
+        TaskReconfigureResponse response = taskManagementService.reconfigureTasks(taskReconfigureRequest);
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(response);
+
+    }
 
 
 

@@ -31,6 +31,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskPermission;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigurePayload;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -154,7 +156,7 @@ public class CFTTaskMapper {
         );
         String taskId = UUID.randomUUID().toString();
 
-        Set<TaskRoleResource> taskRoleResources = mapPermissions(request, taskId);
+        Set<TaskRoleResource> taskRoleResources = mapPermissions(request.getPermissions(), taskId);
 
         WorkTypeResource workTypeResource = new WorkTypeResource(
             request.getWorkType()
@@ -535,10 +537,10 @@ public class CFTTaskMapper {
     }
 
     private Set<TaskRoleResource> mapPermissions(
-        CreateTaskRequestTask requestTask, String taskId
+        List<TaskPermission> permissions, String taskId
     ) {
 
-        return requestTask.getPermissions().stream()
+        return permissions.stream()
             .map(permission -> {
 
                 final String roleName = permission.getRoleName();
@@ -899,6 +901,43 @@ public class CFTTaskMapper {
         Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
         return value == null ? Optional.empty() : Optional.of((T) value);
+    }
+
+    public TaskResource mapToTaskResourceForReconfigure(TaskResource taskResource, TaskReconfigurePayload task) {
+        log.info("mapping task attributes to taskResource");
+
+        taskResource.setCaseName(task.getCaseName());
+        taskResource.setRegion(task.getRegion());
+        taskResource.setLocation(task.getLocation());
+        taskResource.setLocationName(task.getLocationName());
+        taskResource.setDescription(task.getDescription());
+        taskResource.setTitle(task.getTitle());
+        taskResource.setDueDateTime(task.getDueDateTime());
+        taskResource.setPriorityDate(task.getPriorityDate());
+        taskResource.setMajorPriority(task.getMajorPriority());
+        taskResource.setMinorPriority(task.getMinorPriority());
+        String taskId = task.getId().toString();
+        Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
+        taskResource.setTaskRoleResources(taskRoleResources);
+        taskResource.setCaseCategory(task.getCaseCategory());
+        WorkTypeResource workTypeResource = new WorkTypeResource(
+            task.getWorkType()
+        );
+        taskResource.setWorkTypeResource(workTypeResource);
+        taskResource.setRoleCategory(task.getRoleCategory());
+        taskResource.setNextHearingDate(task.getNextHearingDate());
+        taskResource.setNextHearingId(task.getNextHearingId());
+        Map<String, String> additionalProperties = Collections.emptyMap();
+        if (task.getAdditionalProperties() != null) {
+            additionalProperties = task.getAdditionalProperties().entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> String.valueOf(e.getValue())
+                ));
+        }
+        taskResource.setAdditionalProperties(additionalProperties);
+        return taskResource;
     }
 }
 
