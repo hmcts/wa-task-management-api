@@ -885,8 +885,8 @@ public class TaskManagementService {
                     CFTTaskState.UNASSIGNED
                 ));
             if (optionalTaskResource.isEmpty()) {
-                log.warn("Task with id: {} is not in a state that allows reconfiguration or does not exist. " +
-                             "Skipping task.", task.getId());
+                log.warn("Task with id: {} is not in a state that allows reconfiguration or does not exist. "
+                             + "Skipping task.", task.getId());
                 return;
             }
             if (!optionalTaskResource.get().isCamundaTask()) {
