@@ -889,11 +889,20 @@ public class TaskManagementService {
                              task.getId());
                     return;
                 }
-                TaskResource taskResource = cftTaskMapper.mapToTaskResourceForReconfigure(optionalTaskResource.get(), task);
-                taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource); //Added just to double confirm can delete after adding all tests
-                taskResource = taskAutoAssignmentService.performAutoAssignment(taskResource.getTaskId(), taskResource);
-                TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
-                response.addTasksItem(savedTask);
+                if (!optionalTaskResource.get().isCamundaTask()) {
+
+                    TaskResource taskResource = cftTaskMapper.mapToTaskResourceForReconfigure(
+                        optionalTaskResource.get(),
+                        task
+                    );
+                    taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource); //Added just to double confirm can delete after adding all tests
+                    taskResource = taskAutoAssignmentService.performAutoAssignment(
+                        taskResource.getTaskId(),
+                        taskResource
+                    );
+                    TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+                    response.addTasksItem(savedTask);
+                }
             });
         return response;
     }
