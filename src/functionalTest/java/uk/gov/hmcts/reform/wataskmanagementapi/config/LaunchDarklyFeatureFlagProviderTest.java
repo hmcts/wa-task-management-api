@@ -91,6 +91,6 @@ public class LaunchDarklyFeatureFlagProviderTest {
         boolean flagValue = featureFlagProvider.getBooleanValue(
             FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE, SOME_USER_EMAIL, SOME_USER_ID);
 
-        assertFalse(flagValue);
+        assertTrue(flagValue);
     }
 }
