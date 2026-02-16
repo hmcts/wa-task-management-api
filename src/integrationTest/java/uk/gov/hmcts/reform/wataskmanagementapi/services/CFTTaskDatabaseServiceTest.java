@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -42,9 +43,13 @@ class CFTTaskDatabaseServiceTest {
 
     CFTTaskDatabaseService cftTaskDatabaseService;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
+    }
+
+    @BeforeEach
+    void beforeEach() {
         taskResourceRepository.deleteAll();
     }
 

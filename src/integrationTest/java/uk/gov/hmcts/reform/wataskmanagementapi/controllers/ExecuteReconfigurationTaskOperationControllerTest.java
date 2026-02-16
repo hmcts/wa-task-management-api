@@ -138,16 +138,32 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         assertTrue(expected.minusSeconds(offsetSeconds).isBefore(actual) && expected.plusSeconds(offsetSeconds).isAfter(actual));
     }
 
-    @BeforeAll
-    void init() {
-        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
-    }
-
     @BeforeEach
-    void setUp() {
+    void init() {
+
+        RoleAssignment roleAssignmentResource = taskTestUtils.buildRoleAssignment(
+            ASSIGNEE_USER,
+            "tribunalCaseworker",
+            singletonList("IA")
+        );
+        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource);
+        when(roleAssignmentService.getRolesByUserId(any())).thenReturn(roleAssignmentForAssignee);
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(roleAssignmentForAssignee);
+
+        CaseDetails caseDetails = new CaseDetails(
+            "IA",
+            "Asylum",
+            SecurityClassification.PUBLIC.getSecurityClassification(),
+            Map.of("caseAccessCategory", "categoryA,categoryC")
+        );
+        lenient().when(ccdDataService.getCaseData(anyString())).thenReturn(caseDetails);
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
+
+        bearerAccessToken1 = "Token" + UUID.randomUUID();
+        when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
+        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
 
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
             anyString(),
@@ -161,24 +177,11 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                 CamundaValue.booleanValue(true)
             )
         ));
-        bearerAccessToken1 = "Token" + UUID.randomUUID();
-        when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
-        when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
-        CaseDetails caseDetails = new CaseDetails(
-            "IA",
-            "Asylum",
-            SecurityClassification.PUBLIC.getSecurityClassification(),
-            Map.of("caseAccessCategory", "categoryA,categoryC")
-        );
-        lenient().when(ccdDataService.getCaseData(anyString())).thenReturn(caseDetails);
-        RoleAssignment roleAssignmentResource = taskTestUtils.buildRoleAssignment(
-            ASSIGNEE_USER,
-            "tribunalCaseworker",
-            singletonList("IA")
-        );
-        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource);
-        when(roleAssignmentService.getRolesByUserId(any())).thenReturn(roleAssignmentForAssignee);
-        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(any())).thenReturn(roleAssignmentForAssignee);
+    }
+
+    @BeforeAll
+    void setUp() {
+        taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
     }
 
     @Test
