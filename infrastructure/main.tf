@@ -91,6 +91,8 @@ module "wa_task_management_api_database_flexible" {
 
   admin_user_object_id = var.jenkins_AAD_objectId
 
+  auto_grow_enabled = true
+
 }
 
 //New Azure Flexible database replica
