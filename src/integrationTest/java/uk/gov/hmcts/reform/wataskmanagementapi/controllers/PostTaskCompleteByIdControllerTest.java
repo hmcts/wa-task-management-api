@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -123,13 +124,24 @@ class PostTaskCompleteByIdControllerTest {
     @MockitoBean
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
+        mockServices = new ServiceMocks(
+            idamWebApi,
+            serviceAuthorisationApi,
+            camundaServiceApi,
+            roleAssignmentServiceApi
+        );
+    }
+
+    @BeforeEach
+    void beforeEach() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
                                                                        anyString(), anyString())).thenReturn(false);
+
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         lenient().when(mockedUserInfo.getUid())
@@ -137,12 +149,8 @@ class PostTaskCompleteByIdControllerTest {
         lenient().when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
 
-        mockServices = new ServiceMocks(
-            idamWebApi,
-            serviceAuthorisationApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi
-        );
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(false);
     }
 
     @Nested
@@ -542,14 +550,6 @@ class PostTaskCompleteByIdControllerTest {
     @Nested
     @DisplayName("with no privileged access")
     class CompleteTaskWithNoPrivilegedAccess {
-
-        @BeforeEach
-        void beforeEach() {
-
-            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
-                .thenReturn(false);
-
-        }
 
         @Test
         void should_succeed_and_return_204_and_update_cft_task_state_with_grant_type_standard() throws Exception {
@@ -1261,14 +1261,6 @@ class PostTaskCompleteByIdControllerTest {
     @DisplayName("without privileged access")
     class CompleteTaskWithoutPrivilegedAccess {
 
-        @BeforeEach
-        void beforeEach() {
-
-            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
-                .thenReturn(false);
-
-        }
-
         @ParameterizedTest
         @CsvSource(value = {
             "true, false, false, false, IDAM_USER_ID_GP",
@@ -1459,4 +1451,3 @@ class PostTaskCompleteByIdControllerTest {
         cftTaskDatabaseService.saveTask(taskResource);
     }
 }
-

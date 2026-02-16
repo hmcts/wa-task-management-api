@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -88,8 +89,19 @@ class PostTaskCancelByIdControllerFailureTest {
     private ServiceMocks mockServices;
     private String taskId;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
+
+        mockServices = new ServiceMocks(
+            idamWebApi,
+            serviceAuthorisationApi,
+            camundaServiceApi,
+            roleAssignmentServiceApi
+        );
+    }
+
+    @BeforeEach
+    void beforeEach() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
@@ -99,13 +111,6 @@ class PostTaskCancelByIdControllerFailureTest {
             .thenReturn(IDAM_USER_ID);
         when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
-
-        mockServices = new ServiceMocks(
-            idamWebApi,
-            serviceAuthorisationApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi
-        );
     }
 
     @Test

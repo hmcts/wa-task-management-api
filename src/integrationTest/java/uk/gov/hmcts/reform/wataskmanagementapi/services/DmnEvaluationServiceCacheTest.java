@@ -39,6 +39,11 @@ public class DmnEvaluationServiceCacheTest {
     @MockitoSpyBean
     private DmnEvaluationService dmnEvaluationService;
 
+    @BeforeEach
+    void setup() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+    }
+
     /*
      * This class provides us change system time to test caching
      */
@@ -56,11 +61,6 @@ public class DmnEvaluationServiceCacheTest {
     @Nested
     @DisplayName("Retrieve task type")
     class Test1 {
-        @BeforeEach
-        void setup() {
-            when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        }
-
         @Test
         void should_call_camunda_api_once_when_retrieving_task_type_dmn() {
             String dmnKey = "wa-task-types-";
@@ -91,11 +91,6 @@ public class DmnEvaluationServiceCacheTest {
     @Nested
     @DisplayName("Evaluate task type")
     class Test2 {
-        @BeforeEach
-        void setup() {
-            when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        }
-
         @Test
         void should_call_camunda_api_once_when_evaluating_task_type_dmn() {
 
@@ -127,11 +122,6 @@ public class DmnEvaluationServiceCacheTest {
     @Nested
     @DisplayName("Cache expire")
     class Test3 {
-        @BeforeEach
-        void setup() {
-            when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        }
-
         @Test
         void should_use_cache_until_expires_then_call_service() {
 

@@ -4,6 +4,7 @@ import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -114,8 +115,18 @@ class PostTaskForSearchCompletionControllerTest {
         "asylum"
     );
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
+        mockServices = new ServiceMocks(
+            idamWebApi,
+            serviceAuthorisationApi,
+            camundaServiceApi,
+            roleAssignmentServiceApi
+        );
+    }
+
+    @BeforeEach
+    void beforeEach() {
         taskId = UUID.randomUUID().toString();
 
         when(authTokenGenerator.generate())
@@ -124,13 +135,6 @@ class PostTaskForSearchCompletionControllerTest {
             .thenReturn(IDAM_USER_ID);
         when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
-
-        mockServices = new ServiceMocks(
-            idamWebApi,
-            serviceAuthorisationApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi
-        );
     }
 
     @AfterEach

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -129,8 +130,18 @@ class PostTaskSearchControllerTest {
     private ServiceMocks mockServices;
 
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
+        mockServices = new ServiceMocks(
+            idamWebApi,
+            serviceAuthorisationApi,
+            camundaServiceApi,
+            roleAssignmentServiceApi
+        );
+    }
+
+    @BeforeEach
+    void beforeEach() {
         taskId = UUID.randomUUID().toString();
 
         when(authTokenGenerator.generate())
@@ -139,13 +150,6 @@ class PostTaskSearchControllerTest {
             .thenReturn(IDAM_USER_ID);
         when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
-
-        mockServices = new ServiceMocks(
-            idamWebApi,
-            serviceAuthorisationApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi
-        );
     }
 
     @ParameterizedTest

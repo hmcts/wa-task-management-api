@@ -5,6 +5,7 @@ import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import org.hibernate.exception.JDBCConnectionException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ControllerTestStubs;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -52,7 +54,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -92,16 +93,25 @@ class WorkTypesControllerTest {
     private ServiceMocks mockServices;
     private UserInfo mockedUserInfo;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        mockedUserInfo = UserInfo.builder().uid(ServiceMocks.IDAM_USER_ID).name("someUser").build();
-        lenient().when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        lenient().when(idamWebApi.userInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
             roleAssignmentServiceApi
+        );
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        mockedUserInfo = ControllerTestStubs.stubUserInfo(
+            idamWebApi,
+            serviceAuthTokenGenerator,
+            IDAM_AUTHORIZATION_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            ServiceMocks.IDAM_USER_ID,
+            "someUser"
         );
     }
 
@@ -398,4 +408,3 @@ class WorkTypesControllerTest {
     }
 
 }
-

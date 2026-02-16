@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,7 +85,7 @@ public class DeleteTasksControllerTest {
 
     private ServiceMocks mockServices;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         mockServices = new ServiceMocks(
                 idamWebApi,
