@@ -117,6 +117,8 @@ module "wa_task_management_api_database_flexible_replica" {
     }
   ]
 
+  auto_grow_enabled = true
+
   pgsql_version = 14
   enable_qpi    = var.is_qpa_enabled
   common_tags   = local.common_tags
