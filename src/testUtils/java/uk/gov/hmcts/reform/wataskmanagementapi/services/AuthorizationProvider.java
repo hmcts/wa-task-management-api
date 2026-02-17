@@ -203,7 +203,7 @@ public class AuthorizationProvider {
                     email.set(emailPrefix + UUID.randomUUID() + "@fake.hmcts.net");
                     log.info("Attempting to create a new test account {}", email);
                     body.put("email", email);
-                    idamServiceApi.createTestUser(false,body);
+                    idamServiceApi.createTestUser(body);
                     accountCreated.set(true);
                 } catch (FeignException e) {
                     log.error("Failed to create test account, retrying...", e);
