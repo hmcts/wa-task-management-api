@@ -23,7 +23,7 @@ public interface IdamServiceApi {
         value = "/testing-support/accounts",
         consumes = APPLICATION_JSON_VALUE
     )
-    void createTestUser( @RequestBody Map<String, ?> form);
+    void createTestUser(@RequestBody Map<String, ?> form);
 
     @PostMapping(
         value = "/testing-support/accounts",
