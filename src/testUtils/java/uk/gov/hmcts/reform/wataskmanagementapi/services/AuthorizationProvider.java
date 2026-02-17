@@ -99,6 +99,18 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
+    public TestAuthenticationCredentials getNewWaTribunalCaseworkerWithStaticEmail(String email) {
+
+        TestAccount caseworker = getIdamWaTribunalCaseworkerCredentialsWithStaticEmail(email);
+
+        Headers authenticationHeaders = new Headers(
+            getAuthorizationOnly(caseworker),
+            getServiceAuthorizationHeader()
+        );
+
+        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
+    }
+
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
@@ -153,6 +165,13 @@ public class AuthorizationProvider {
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
+    private TestAccount getIdamWaTribunalCaseworkerCredentialsWithStaticEmail(String email) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("tribunal-caseworker"),
+                                              new RoleCode("case-manager"),
+                                              new RoleCode("senior-tribunal-caseworker"));
+        return generateIdamTestAccountWithStaticEmail(email, requiredRoles);
+    }
+
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "password");
@@ -183,6 +202,38 @@ public class AuthorizationProvider {
             .until(() -> {
                 try {
                     email.set(emailPrefix + UUID.randomUUID() + "@fake.hmcts.net");
+                    log.info("Attempting to create a new test account {}", email);
+                    body.put("email", email);
+                    idamServiceApi.createTestUser(body);
+                    accountCreated.set(true);
+                } catch (FeignException e) {
+                    log.error("Failed to create test account, retrying...", e);
+                    accountCreated.set(false);
+                }
+                return accountCreated.get();
+            });
+
+        log.info("Test account created successfully");
+        return new TestAccount(email.get(), idamTestAccountPassword);
+    }
+
+    private TestAccount generateIdamTestAccountWithStaticEmail(String emailId, List<RoleCode> requiredRoles) {
+        RoleCode userGroup = new RoleCode("caseworker");
+
+        Map<String, Object> body = new ConcurrentHashMap<>();
+        body.put("password", idamTestAccountPassword);
+        body.put("forename", "WAFTAccount");
+        body.put("surname", "Functional");
+        body.put("roles", requiredRoles);
+        body.put("userGroup", userGroup);
+        AtomicBoolean accountCreated = new AtomicBoolean(false);
+        AtomicReference<String> email = new AtomicReference<>("");
+        await().ignoreException(Exception.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(120, SECONDS)
+            .until(() -> {
+                try {
+                    email.set(emailId + "@fake.hmcts.net");
                     log.info("Attempting to create a new test account {}", email);
                     body.put("email", email);
                     idamServiceApi.createTestUser(body);

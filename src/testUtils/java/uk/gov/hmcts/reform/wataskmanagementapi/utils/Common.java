@@ -528,6 +528,44 @@ public class Common {
         );
     }
 
+    public void setupCaseManagerForSpecificAccessWithAuthorizations(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
+
+        log.info("Creating Case manager Case Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "case-manager",
+            toJsonString(Map.of(
+                "caseId", caseId,
+                "caseType", caseType,
+                "jurisdiction", jurisdiction,
+                "substantive", "Y"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of("testAuth")),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
     public void setupOnlyCaseManagerForSpecificAccess(Headers headers, String caseId, String jurisdiction, String caseType) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 

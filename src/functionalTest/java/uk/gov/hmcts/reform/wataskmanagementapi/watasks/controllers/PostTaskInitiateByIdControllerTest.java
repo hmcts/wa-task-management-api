@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
@@ -181,6 +182,144 @@ public class PostTaskInitiateByIdControllerTest {
             .body("roles[9].permissions", hasItems("Read", "Own"));
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_assign_task_when_assignee_has_right_roles() {
+
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                "assigneeTestTask", "Assignee Test Task"
+            );
+        String taskId = taskVariables.getTaskId();
+
+        TestAuthenticationCredentials assigneeCaseWorker =
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("taskassignee.test");
+
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
+            assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
+            TaskFunctionalTestConstants.WA_CASE_TYPE);
+
+        //Note: this is the TaskResource.class
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Assignee Test Task"))
+                .body("task.type", equalTo("assigneeTestTask"))
+                .body("task.task_state", equalTo("assigned"))
+                .body("task.assignee", equalTo("dd8b6c25-6079-36f2-ba0c-afd189308b68"));
+        };
+
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, assigneeCaseWorker.getHeaders(), assertConsumer);
+
+        //taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "assigned"
+        );
+
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
+    }
+
+    @Test
+    public void should_not_assign_task_when_assignee_have_incorrect_roles() {
+
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                "incorrectRoleAssigneeTestTask", "Incorrect RoleAssignment Task Test"
+            );
+        String taskId = taskVariables.getTaskId();
+
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Incorrect RoleAssignment Task Test"))
+                .body("task.type", equalTo("incorrectRoleAssigneeTestTask"))
+                .body("task.task_state", equalTo("unassigned"))
+                .body("task.assignee", equalTo(null));
+        };
+
+        final TestAuthenticationCredentials assigneeCaseWorker =
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("incorrectroletaskassignee.test");
+
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+
+
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
+
+    }
+
+    @Test
+    public void should_assign_task_to_first_assignee_when_multiple_assignees_with_correct_roles() {
+
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                "multipleAssigneeTestTask", "Multiple Assignee Test Task"
+            );
+        String taskId = taskVariables.getTaskId();
+
+        Consumer<Response> assertConsumer = (result) -> {
+            result.prettyPrint();
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(taskId))
+                .body("task.name", equalTo("Multiple Assignee Test Task"))
+                .body("task.type", equalTo("multipleAssigneeTestTask"))
+                .body("task.task_state", equalTo("assigned"))
+                .body("task.assignee", equalTo("682318bb-917d-3beb-82af-8037f9dca1a2"));
+        };
+
+        TestAuthenticationCredentials assigneeCaseWorker =
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test1");
+
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
+            assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
+            TaskFunctionalTestConstants.WA_CASE_TYPE);
+
+        final TestAuthenticationCredentials assigneeCaseWorker2 =
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test2");
+
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
+            assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
+            TaskFunctionalTestConstants.WA_CASE_TYPE);
+
+        taskFunctionalTestsInitiationUtils.initiateTask(
+            taskVariables, assigneeCaseWorker.getHeaders(), assertConsumer);
+
+        taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "assigned"
+        );
+
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
+        authorizationProvider.deleteAccount(assigneeCaseWorker2.getAccount().getUsername());
+
     }
 
     @Test
