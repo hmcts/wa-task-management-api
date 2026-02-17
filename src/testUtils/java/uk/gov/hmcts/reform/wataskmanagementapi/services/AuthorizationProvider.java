@@ -166,8 +166,7 @@ public class AuthorizationProvider {
     }
 
     private TestAccount getIdamWaTribunalCaseworkerCredentialsWithStaticEmail(String email) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("tribunal-caseworker"),
-                                              new RoleCode("case-manager"),
+        List<RoleCode> requiredRoles = asList(new RoleCode("case-manager"),
                                               new RoleCode("senior-tribunal-caseworker"));
         return generateIdamTestAccountWithStaticEmail(email, requiredRoles);
     }

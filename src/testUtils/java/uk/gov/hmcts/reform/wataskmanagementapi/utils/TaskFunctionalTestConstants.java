@@ -56,5 +56,9 @@ public final class TaskFunctionalTestConstants {
     public static final String CASE_WORKER_WITH_SENIOR_TRIB_ROLE = "CASE_WORKER_WITH_SENIOR_TRIB_ROLE";
 
     public static final String EMAIL_PREFIX_GIN_INDEX = "wa-gin-index-";
+    public static final String ASSIGNEE_CASE_WORKER = "ASSIGNEE_CASE_WORKER";
+    public static final String ASSIGNEE_CASE_WORKER_WITH_INCORRECT_ROLES = "ASSIGNEE_CASE_WORKER_WITH_INCORRECT_ROLES";
+    public static final String MULTI_ASSIGNEE_CASE_WORKER_1 = "MULTI_ASSIGNEE_CASE_WORKER_1";
+    public static final String MULTI_ASSIGNEE_CASE_WORKER_2 = "MULTI_ASSIGNEE_CASE_WORKER_2";
 
 }

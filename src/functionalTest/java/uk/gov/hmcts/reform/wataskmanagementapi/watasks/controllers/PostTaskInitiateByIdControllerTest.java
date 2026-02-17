@@ -39,9 +39,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_CASE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ASSIGNEE_CASE_WORKER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ASSIGNEE_CASE_WORKER_WITH_INCORRECT_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CFTC_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.MULTI_ASSIGNEE_CASE_WORKER_1;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.MULTI_ASSIGNEE_CASE_WORKER_2;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.TASK_GET_ROLES_ENDPOINT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.TASK_INITIATION_ENDPOINT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
@@ -67,12 +71,21 @@ public class PostTaskInitiateByIdControllerTest {
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
     TestAuthenticationCredentials caseWorkerWithJudgeRole;
     TestAuthenticationCredentials userWithCFTCtscRole;
+    TestAuthenticationCredentials assigneeCaseWorker;
+    TestAuthenticationCredentials assigneeCaseWorkerWithIncorrectRoles;
+    TestAuthenticationCredentials multiAssigneeCaseWorker1;
+    TestAuthenticationCredentials multiAssigneeCaseWorker2;
 
     @Before
     public void setUp() {
         caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES2);
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
         userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_CFTC_ROLE);
+        assigneeCaseWorker = taskFunctionalTestsUserUtils.getTestUser(ASSIGNEE_CASE_WORKER);
+        assigneeCaseWorkerWithIncorrectRoles =
+            taskFunctionalTestsUserUtils.getTestUser(ASSIGNEE_CASE_WORKER_WITH_INCORRECT_ROLES);
+        multiAssigneeCaseWorker1 = taskFunctionalTestsUserUtils.getTestUser(MULTI_ASSIGNEE_CASE_WORKER_1);
+        multiAssigneeCaseWorker2 = taskFunctionalTestsUserUtils.getTestUser(MULTI_ASSIGNEE_CASE_WORKER_2);
     }
 
     @Test
@@ -194,9 +207,6 @@ public class PostTaskInitiateByIdControllerTest {
             );
         String taskId = taskVariables.getTaskId();
 
-        TestAuthenticationCredentials assigneeCaseWorker =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("taskassignee.test");
-
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
             assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
             TaskFunctionalTestConstants.WA_CASE_TYPE);
@@ -227,7 +237,6 @@ public class PostTaskInitiateByIdControllerTest {
         );
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
-        authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
     }
 
     @Test
@@ -253,9 +262,6 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.assignee", equalTo(null));
         };
 
-        final TestAuthenticationCredentials assigneeCaseWorker =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("incorrectroletaskassignee.test");
-
         taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
 
@@ -266,8 +272,6 @@ public class PostTaskInitiateByIdControllerTest {
         );
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
-        authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
-
     }
 
     @Test
@@ -293,22 +297,20 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.assignee", equalTo("682318bb-917d-3beb-82af-8037f9dca1a2"));
         };
 
-        TestAuthenticationCredentials assigneeCaseWorker =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test1");
+
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
-            assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
+            multiAssigneeCaseWorker1.getHeaders(),
+            taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
             TaskFunctionalTestConstants.WA_CASE_TYPE);
 
-        final TestAuthenticationCredentials assigneeCaseWorker2 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test2");
-
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
-            assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
+            multiAssigneeCaseWorker2.getHeaders(),
+            taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
             TaskFunctionalTestConstants.WA_CASE_TYPE);
 
         taskFunctionalTestsInitiationUtils.initiateTask(
-            taskVariables, assigneeCaseWorker.getHeaders(), assertConsumer);
+            taskVariables, multiAssigneeCaseWorker1.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -317,8 +319,6 @@ public class PostTaskInitiateByIdControllerTest {
         );
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
-        authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
-        authorizationProvider.deleteAccount(assigneeCaseWorker2.getAccount().getUsername());
 
     }
 
