@@ -204,7 +204,7 @@ public class AuthorizationProvider {
                     email.set(emailPrefix + UUID.randomUUID() + "@fake.hmcts.net");
                     log.info("Attempting to create a new test account {}", email);
                     body.put("email", email);
-                    idamServiceApi.createTestUser(body);
+                    idamServiceApi.createTestUser(false,body);
                     accountCreated.set(true);
                 } catch (FeignException e) {
                     log.error("Failed to create test account, retrying...", e);
@@ -221,6 +221,8 @@ public class AuthorizationProvider {
         RoleCode userGroup = new RoleCode("caseworker");
 
         Map<String, Object> body = new ConcurrentHashMap<>();
+        String staticEmail = emailId + "@fake.hmcts.net";
+        body.put("id",UUID.nameUUIDFromBytes(staticEmail.getBytes()).toString());
         body.put("password", idamTestAccountPassword);
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
@@ -233,10 +235,10 @@ public class AuthorizationProvider {
             .atMost(120, SECONDS)
             .until(() -> {
                 try {
-                    email.set(emailId + "@fake.hmcts.net");
+                    email.set(staticEmail);
                     log.info("Attempting to create a new test account {}", email);
                     body.put("email", email);
-                    idamServiceApi.createTestUser(body);
+                    idamServiceApi.createTestUser(true,body);
                     accountCreated.set(true);
                 } catch (FeignException e) {
                     log.error("Failed to create test account, retrying...", e);
