@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
@@ -43,9 +42,6 @@ public class PostTaskAssignByIdControllerTest {
 
     @Autowired
     AuthorizationProvider authorizationProvider;
-
-    @Autowired
-    RoleAssignmentService roleAssignmentService;
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
     private String taskId;
