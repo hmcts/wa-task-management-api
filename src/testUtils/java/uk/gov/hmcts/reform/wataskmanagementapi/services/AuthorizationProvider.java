@@ -237,7 +237,7 @@ public class AuthorizationProvider {
                     email.set(staticEmail);
                     log.info("Attempting to create a new test account {}", email);
                     body.put("email", email);
-                    idamServiceApi.createTestUser(true,body);
+                    idamServiceApi.createTestUser(body);
                     accountCreated.set(true);
                 } catch (FeignException e) {
                     log.error("Failed to create test account, retrying...", e);
