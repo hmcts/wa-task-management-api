@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.RoleCode;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAccount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -166,9 +167,7 @@ public class AuthorizationProvider {
     }
 
     private TestAccount getIdamWaTribunalCaseworkerCredentialsWithStaticEmail(String email) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("case-manager"),
-                                              new RoleCode("senior-tribunal-caseworker"));
-        return generateIdamTestAccountWithStaticEmail(email, requiredRoles);
+        return generateIdamTestAccountWithStaticEmail(email, Collections.emptyList());
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
@@ -237,7 +236,7 @@ public class AuthorizationProvider {
                     email.set(staticEmail);
                     log.info("Attempting to create a new test account {}", email);
                     body.put("email", email);
-                    idamServiceApi.createTestUser(body);
+                    idamServiceApi.createTestUser(true,body);
                     accountCreated.set(true);
                 } catch (FeignException e) {
                     log.error("Failed to create test account, retrying...", e);

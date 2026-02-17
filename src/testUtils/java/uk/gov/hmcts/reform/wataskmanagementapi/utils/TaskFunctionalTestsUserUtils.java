@@ -15,8 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ASSIGNEE_CASE_WORKER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ASSIGNEE_CASE_WORKER_WITH_INCORRECT_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.BASE_CASE_WORDER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CASE_MANAGER_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CASE_MANAGER_ROLE2;
@@ -29,8 +27,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.MULTI_ASSIGNEE_CASE_WORKER_1;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.MULTI_ASSIGNEE_CASE_WORKER_2;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_DISABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
@@ -203,23 +199,6 @@ public class TaskFunctionalTestsUserUtils {
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
             caseWorkerWithCancellationDisabled.getHeaders());
         testUsersMap.put(USER_WITH_CANCELLATION_DISABLED, caseWorkerWithCancellationDisabled);
-
-        TestAuthenticationCredentials assigneeCaseWorker =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("taskassignee.test");
-        testUsersMap.put(ASSIGNEE_CASE_WORKER, assigneeCaseWorker);
-
-        TestAuthenticationCredentials assigneeCaseWorkerWithIncorrectRoles =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("incorrectroletaskassignee.test");
-        testUsersMap.put(ASSIGNEE_CASE_WORKER_WITH_INCORRECT_ROLES, assigneeCaseWorkerWithIncorrectRoles);
-
-        TestAuthenticationCredentials multiAssigneeCaseWorker1 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test1");
-        testUsersMap.put(MULTI_ASSIGNEE_CASE_WORKER_1, multiAssigneeCaseWorker1);
-
-        final TestAuthenticationCredentials multiAssigneeCaseWorker2 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test2");
-        testUsersMap.put(MULTI_ASSIGNEE_CASE_WORKER_2, multiAssigneeCaseWorker2);
-
 
     }
 
