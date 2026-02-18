@@ -38,6 +38,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -97,6 +98,7 @@ class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.or()).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any(), any(), any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.and(any(), any(), any(), any(), any())).thenReturn(inObject);
         Predicate predicate = mock(Predicate.class);
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(predicate);
@@ -333,6 +335,7 @@ class TaskResourceSpecificationTest {
 
         verify(criteriaBuilder, times(1)).in(any());
         verify(criteriaBuilder, times(3)).equal(any(), anyString());
+        verify(criteriaBuilder, times(1)).equal(any(), eq(true));
 
     }
 
@@ -357,6 +360,30 @@ class TaskResourceSpecificationTest {
 
         verify(criteriaBuilder, times(1)).in(any());
         verify(criteriaBuilder, times(2)).equal(any(), anyString());
+        verify(criteriaBuilder, times(1)).equal(any(), eq(true));
+    }
+
+    @Test
+    void should_build_task_query_for_search_for_completable_non_camunda() {
+        PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
+            .buildSingleRequirementWithOr(OWN, EXECUTE);
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            "caseId", "eventId", "IA", "caseType");
+
+        Predicate predicate = TaskSearchQueryBuilder.buildApiFirstQueryForCompletable(
+            searchEventAndCase,
+            roleAssignmentWithSpecificGrantTypeOnly(PUBLIC),
+            permissionsRequired,
+            criteriaBuilder,
+            root
+        );
+
+        assertNotNull(predicate);
+
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(2)).equal(any(), anyString());
+        verify(criteriaBuilder, times(1)).equal(any(), eq(false));
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() { //NOSONAR paramTests

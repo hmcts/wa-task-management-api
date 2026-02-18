@@ -19,6 +19,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildRoleAssignmentConstraints;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseIds;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCamundaTask;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByLocation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByRoleCategory;
@@ -111,12 +112,51 @@ public final class TaskSearchQueryBuilder {
         List<String> taskTypes,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
+        return buildCamundaQueryForCompletable(
+            searchEventAndCase,
+            roleAssignments,
+            permissionsRequired,
+            taskTypes,
+            builder,
+            root
+        );
+    }
+
+    public static Predicate buildCamundaQueryForCompletable(
+        SearchEventAndCase searchEventAndCase,
+        List<RoleAssignment> roleAssignments,
+        PermissionRequirements permissionsRequired,
+        List<String> taskTypes,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
 
         ArrayList<Predicate> predicates = new ArrayList<>();
 
         predicates.add(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
         predicates.add(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), builder, root));
         predicates.add(searchByTaskTypes(taskTypes, builder, root));
+        predicates.add(searchByCamundaTask(true, builder, root));
+        predicates.add(buildRoleAssignmentConstraints(
+            permissionsRequired,
+            roleAssignments,
+            builder,
+            root
+        ));
+        return builder.and(predicates.toArray(new Predicate[0]));
+    }
+
+    public static Predicate buildApiFirstQueryForCompletable(
+        SearchEventAndCase searchEventAndCase,
+        List<RoleAssignment> roleAssignments,
+        PermissionRequirements permissionsRequired,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
+
+        ArrayList<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
+        predicates.add(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), builder, root));
+        predicates.add(searchByCamundaTask(false, builder, root));
         predicates.add(buildRoleAssignmentConstraints(
             permissionsRequired,
             roleAssignments,

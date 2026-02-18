@@ -27,6 +27,7 @@ public final class TaskQuerySpecification {
     private static final String WORK_TYPE = "workTypeResource";
     private static final String WORK_TYPE_ID = "id";
     private static final String ROLE_CATEGORY = "roleCategory";
+    private static final String CAMUNDA_TASK = "camundaTask";
     public static final int SINGLE_ELEMENT = 1;
 
     private TaskQuerySpecification() {
@@ -139,6 +140,12 @@ public final class TaskQuerySpecification {
             return builder.equal(root.get(ROLE_CATEGORY), roleCategoryTexts.get(0));
         }
         return builder.in(root.get(ROLE_CATEGORY)).value(roleCategoryTexts);
+    }
+
+    public static Predicate searchByCamundaTask(boolean camundaTask,
+                                                CriteriaBuilder builder,
+                                                Root<TaskResource> root) {
+        return builder.equal(root.get(CAMUNDA_TASK), camundaTask);
     }
 
     private static boolean hasSingleElement(List<?> list) {
