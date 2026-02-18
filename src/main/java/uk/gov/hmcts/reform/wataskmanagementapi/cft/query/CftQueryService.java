@@ -95,10 +95,10 @@ public class CftQueryService {
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    roleAssignments
-                )
+                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                         taskResource,
+                         roleAssignments
+                     )
             )
             .toList();
 
@@ -111,8 +111,10 @@ public class CftQueryService {
         PermissionRequirements permissionsRequired
     ) {
         if (!isAllowedForJurisdictionAndCaseType(searchEventAndCase)) {
-            log.info("Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
-                     searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
+            log.info(
+                "Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
+                searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()
+            );
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -128,8 +130,8 @@ public class CftQueryService {
         );
         final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources);
 
-        boolean taskRequiredForEvent = camundaCompletableTasks.taskRequiredForEvent() ||
-            isApiFirstTaskRequiredForEvent(apiFirstTaskResources, searchEventAndCase);
+        boolean taskRequiredForEvent = camundaCompletableTasks.taskRequiredForEvent()
+            || isApiFirstTaskRequiredForEvent(apiFirstTaskResources, searchEventAndCase);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
@@ -209,10 +211,12 @@ public class CftQueryService {
     }
 
     private boolean isAllowedForJurisdictionAndCaseType(SearchEventAndCase searchEventAndCase) {
-        List<String> allowedJurisdictions = Optional.ofNullable(allowedJurisdictionConfiguration.getAllowedJurisdictions())
-            .orElse(emptyList());
-        List<String> allowedCaseTypes = Optional.ofNullable(allowedJurisdictionConfiguration.getAllowedCaseTypes())
-            .orElse(emptyList());
+        List<String> allowedJurisdictions = Optional.ofNullable(
+            allowedJurisdictionConfiguration.getAllowedJurisdictions()
+        ).orElse(emptyList());
+        List<String> allowedCaseTypes = Optional.ofNullable(
+            allowedJurisdictionConfiguration.getAllowedCaseTypes()
+        ).orElse(emptyList());
 
         return allowedJurisdictions.contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
             && allowedCaseTypes.contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT));
@@ -251,8 +255,10 @@ public class CftQueryService {
             evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(searchEventAndCase);
         } catch (ServerErrorException ex) {
             if (isDmnNotFound(ex)) {
-                log.debug("Completion DMN not found for jurisdiction \"{}\" and case type \"{}\".",
-                         searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
+                log.debug(
+                    "Completion DMN not found for jurisdiction \"{}\" and case type \"{}\".",
+                    searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()
+                );
                 return CamundaCompletableTasks.empty();
             }
             throw ex;
@@ -260,8 +266,10 @@ public class CftQueryService {
 
         List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
         if (taskTypes.isEmpty()) {
-            log.info("No taskTypes were found from Completion DMN using eventId: \"{}\" and caseId: \"{}\"",
-                     searchEventAndCase.getEventId(), searchEventAndCase.getCaseId());
+            log.info(
+                "No taskTypes were found from Completion DMN using eventId: \"{}\" and caseId: \"{}\"",
+                searchEventAndCase.getEventId(), searchEventAndCase.getCaseId()
+            );
             return CamundaCompletableTasks.empty();
         }
 
