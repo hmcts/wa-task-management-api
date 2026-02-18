@@ -682,8 +682,6 @@ class PostTaskForSearchCompletionControllerTest {
     void should_return_a_200_and_merge_camunda_and_api_first_tasks() throws Exception {
         String caseId = "searchForCompletableApiFirstCaseId3";
         String eventId = "decideAnApplication";
-        String camundaTaskId = UUID.randomUUID().toString();
-        String apiFirstTaskId = UUID.randomUUID().toString();
         searchEventAndCase = new SearchEventAndCase(
             caseId,
             eventId,
@@ -694,7 +692,11 @@ class PostTaskForSearchCompletionControllerTest {
 
         List<RoleAssignment> roleAssignments = createStandardRoleAssignments(caseId, "IA", "Asylum");
         TaskRoleResource taskRoleResource = createTaskRoleResourceForCompletableSearch();
+
+        String camundaTaskId = UUID.randomUUID().toString();
         insertDummyTaskInDb(caseId, camundaTaskId, "IA", "Asylum", taskRoleResource);
+
+        String apiFirstTaskId = UUID.randomUUID().toString();
         insertApiFirstTaskInDb(
             caseId,
             apiFirstTaskId,
