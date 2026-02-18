@@ -110,6 +110,11 @@ public class CftQueryService {
         List<RoleAssignment> roleAssignments,
         PermissionRequirements permissionsRequired
     ) {
+        if (!isAllowedForJurisdictionAndCaseType(searchEventAndCase)) {
+            log.info("Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
+                     searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
+            return new GetTasksCompletableResponse<>(false, emptyList());
+        }
 
         List<TaskResource> apiFirstTaskResources =
             getApiFirstCompletableTaskResources(searchEventAndCase, roleAssignments, permissionsRequired);
@@ -241,12 +246,6 @@ public class CftQueryService {
     private CamundaCompletableTasks getCamundaCompletableTasks(SearchEventAndCase searchEventAndCase,
                                                                List<RoleAssignment> roleAssignments,
                                                                PermissionRequirements permissionsRequired) {
-        if (!isAllowedForJurisdictionAndCaseType(searchEventAndCase)) {
-            log.info("Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
-                     searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
-            return CamundaCompletableTasks.empty();
-        }
-
         List<Map<String, CamundaVariable>> evaluateDmnResult;
         try {
             evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(searchEventAndCase);

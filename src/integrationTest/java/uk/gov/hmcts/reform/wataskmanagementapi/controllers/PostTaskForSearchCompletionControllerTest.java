@@ -227,7 +227,8 @@ class PostTaskForSearchCompletionControllerTest {
     }
 
     @Test
-    void should_return_a_200_and_api_first_task_when_camunda_branch_is_not_supported() throws Exception {
+    void should_return_a_200_and_empty_list_when_jurisdiction_and_case_type_not_supported_for_both_flows()
+        throws Exception {
         String caseId = "searchForCompletableApiFirstCaseId1";
         String eventId = "caseworker-issue-case";
         String jurisdiction = "invalidJurisdiction";
@@ -258,14 +259,15 @@ class PostTaskForSearchCompletionControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(1))
-            .andExpect(jsonPath("task_required_for_event").value(true));
+            .andExpect(jsonPath("tasks.size()").value(0))
+            .andExpect(jsonPath("task_required_for_event").value(false));
 
         verify(camundaServiceApi, times(0)).evaluateDMN(any(), any(), any(), anyMap());
     }
 
     @Test
-    void should_return_a_200_and_api_first_task_with_optional_completion_rule() throws Exception {
+    void should_return_a_200_and_empty_list_even_with_optional_api_first_rule_when_not_supported()
+        throws Exception {
         String caseId = "searchForCompletableApiFirstCaseId2";
         String eventId = "caseworker-send-order";
         String jurisdiction = "invalidJurisdiction";
@@ -296,7 +298,7 @@ class PostTaskForSearchCompletionControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(1))
+            .andExpect(jsonPath("tasks.size()").value(0))
             .andExpect(jsonPath("task_required_for_event").value(false));
 
         verify(camundaServiceApi, times(0)).evaluateDMN(any(), any(), any(), anyMap());
