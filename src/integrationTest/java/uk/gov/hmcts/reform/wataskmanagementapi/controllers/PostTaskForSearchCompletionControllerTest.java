@@ -227,6 +227,82 @@ class PostTaskForSearchCompletionControllerTest {
     }
 
     @Test
+    void should_return_a_200_and_api_first_task_when_camunda_branch_is_not_supported() throws Exception {
+        String caseId = "searchForCompletableApiFirstCaseId1";
+        String eventId = "caseworker-issue-case";
+        String jurisdiction = "invalidJurisdiction";
+        String caseType = "invalidCaseType";
+        String apiFirstTaskId = UUID.randomUUID().toString();
+        searchEventAndCase = new SearchEventAndCase(
+            caseId,
+            eventId,
+            jurisdiction,
+            caseType
+        );
+        mockServices.mockUserInfo();
+
+        List<RoleAssignment> roleAssignments = createStandardRoleAssignments(caseId, jurisdiction, caseType);
+        TaskRoleResource taskRoleResource = createTaskRoleResourceForCompletableSearch();
+        insertApiFirstTaskInDb(caseId, apiFirstTaskId, jurisdiction, caseType, eventId, true, taskRoleResource);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any())).thenReturn(accessControlResponse);
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(1))
+            .andExpect(jsonPath("task_required_for_event").value(true));
+
+        verify(camundaServiceApi, times(0)).evaluateDMN(any(), any(), any(), anyMap());
+    }
+
+    @Test
+    void should_return_a_200_and_api_first_task_with_optional_completion_rule() throws Exception {
+        String caseId = "searchForCompletableApiFirstCaseId2";
+        String eventId = "caseworker-send-order";
+        String jurisdiction = "invalidJurisdiction";
+        String caseType = "invalidCaseType";
+        String apiFirstTaskId = UUID.randomUUID().toString();
+        searchEventAndCase = new SearchEventAndCase(
+            caseId,
+            eventId,
+            jurisdiction,
+            caseType
+        );
+        mockServices.mockUserInfo();
+
+        List<RoleAssignment> roleAssignments = createStandardRoleAssignments(caseId, jurisdiction, caseType);
+        TaskRoleResource taskRoleResource = createTaskRoleResourceForCompletableSearch();
+        insertApiFirstTaskInDb(caseId, apiFirstTaskId, jurisdiction, caseType, eventId, false, taskRoleResource);
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any())).thenReturn(accessControlResponse);
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(1))
+            .andExpect(jsonPath("task_required_for_event").value(false));
+
+        verify(camundaServiceApi, times(0)).evaluateDMN(any(), any(), any(), anyMap());
+    }
+
+    @Test
     void should_return_a_200_and_empty_list_when_idam_user_id_different_from_task_assignee() throws Exception {
         mockServices.mockUserInfo();
         mockServices.mockServiceAPIs();
@@ -601,6 +677,57 @@ class PostTaskForSearchCompletionControllerTest {
     }
 
     @Test
+    void should_return_a_200_and_merge_camunda_and_api_first_tasks() throws Exception {
+        String caseId = "searchForCompletableApiFirstCaseId3";
+        String eventId = "decideAnApplication";
+        String camundaTaskId = UUID.randomUUID().toString();
+        String apiFirstTaskId = UUID.randomUUID().toString();
+        searchEventAndCase = new SearchEventAndCase(
+            caseId,
+            eventId,
+            "ia",
+            "asylum"
+        );
+        mockServices.mockUserInfo();
+
+        List<RoleAssignment> roleAssignments = createStandardRoleAssignments(caseId, "IA", "Asylum");
+        TaskRoleResource taskRoleResource = createTaskRoleResourceForCompletableSearch();
+        insertDummyTaskInDb(caseId, camundaTaskId, "IA", "Asylum", taskRoleResource);
+        insertApiFirstTaskInDb(
+            caseId,
+            apiFirstTaskId,
+            "IA",
+            "Asylum",
+            eventId,
+            true,
+            createTaskRoleResourceForCompletableSearch()
+        );
+
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any())).thenReturn(accessControlResponse);
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
+            .thenReturn(asList(Map.of(
+                "taskType", new CamundaVariable("reviewTheAppeal", "String"),
+                "completionMode", new CamundaVariable("Auto", "String")
+            )));
+        when(camundaServiceApi.getAllVariables(any(), any()))
+            .thenReturn(mockedAllVariables(caseId, "processInstanceId", "IA", camundaTaskId));
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(integrationTestUtils.asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(2))
+            .andExpect(jsonPath("task_required_for_event").value(true));
+    }
+
+    @Test
     void should_return_a_200_with_empty_list_when_the_user_did_not_have_any_roles() throws Exception {
 
         String caseId = "searchForCompletableCaseId5";
@@ -756,6 +883,63 @@ class PostTaskForSearchCompletionControllerTest {
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private void insertApiFirstTaskInDb(String caseId,
+                                        String taskId,
+                                        String jurisdiction,
+                                        String caseType,
+                                        String eventId,
+                                        boolean requiredForEvent,
+                                        TaskRoleResource taskRoleResource) {
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "anApiFirstTaskName",
+            "anApiFirstTaskType",
+            ASSIGNED
+        );
+        taskResource.setDescription("anApiFirstDescription");
+        taskResource.setCreated(OffsetDateTime.now());
+        taskResource.setDueDateTime(OffsetDateTime.now());
+        taskResource.setJurisdiction(jurisdiction);
+        taskResource.setCaseTypeId(caseType);
+        taskResource.setSecurityClassification(SecurityClassification.PUBLIC);
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setRegion("TestRegion");
+        taskResource.setCaseId(caseId);
+        taskResource.setAssignee(IDAM_USER_ID);
+        taskResource.setCamundaTask(false);
+        taskResource.setCompletionRules(Map.of(eventId, requiredForEvent));
+        taskResource.setWorkTypeResource(new WorkTypeResource("decision_making_work", "Decision Making work"));
+        taskRoleResource.setTaskId(taskId);
+        taskResource.setTaskRoleResources(Set.of(taskRoleResource));
+        cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private List<RoleAssignment> createStandardRoleAssignments(String caseId, String jurisdiction, String caseType) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction(jurisdiction)
+                    .caseType(caseType)
+                    .caseId(caseId)
+                    .build()
+            )
+            .build();
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        return roleAssignments;
+    }
+
+    private TaskRoleResource createTaskRoleResourceForCompletableSearch() {
+        return new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
     }
 
     private void insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(String caseId, String taskId,
