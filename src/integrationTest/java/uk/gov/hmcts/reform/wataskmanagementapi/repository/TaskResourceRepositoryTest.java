@@ -234,6 +234,23 @@ class TaskResourceRepositoryTest {
     }
 
     @Test
+    void should_persist_completion_rules_when_task_is_saved() {
+        Map<String, Boolean> completionRules = Map.of(
+            "caseworker-issue-case", true,
+            "caseworker-send-order", false
+        );
+        task.setCompletionRules(completionRules);
+        taskResourceRepository.save(task);
+
+        Optional<TaskResource> taskResourceInDb = taskResourceRepository.findById(taskId);
+
+        assertAll(
+            () -> assertTrue(taskResourceInDb.isPresent()),
+            () -> assertEquals(completionRules, taskResourceInDb.get().getCompletionRules())
+        );
+    }
+
+    @Test
     void given_task_is_created_when_find_by_id_and_state_return_tasks_in_the_given_state() {
 
         String firstTaskId = UUID.randomUUID().toString();
