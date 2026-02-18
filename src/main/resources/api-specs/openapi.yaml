@@ -337,7 +337,13 @@ components:
           type: object
           additionalProperties:
             type: boolean
-          description: Map of event IDs to completion required flag.
+          description: >
+            Optional map of event IDs to "completion required" flags for API-first tasks. `true` means the event is
+            required, `false` means the event is optional. This is the API-first equivalent to the event_id -> task_type
+            mappings within the completion DMN.
+          example:
+            caseworker-issue-case: true
+            caseworker-send-order: false
         permissions:
           type: array
           items:
@@ -474,4 +480,7 @@ components:
           type: object
           additionalProperties:
             type: boolean
-          description: Map of event IDs to completion required flag.
+          description: Persisted map of CCD event IDs to completion required flags for API-first tasks.
+          example:
+            caseworker-issue-case: true
+            caseworker-send-order: false
