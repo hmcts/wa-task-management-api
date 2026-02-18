@@ -1018,7 +1018,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_return_api_first_results_when_camunda_branch_is_not_supported() {
+        void should_return_empty_results_when_jurisdiction_or_case_type_is_not_supported() {
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
@@ -1027,10 +1027,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
             );
 
             List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
-            when(taskResourceDao.getApiFirstCompletableTaskResources(searchEventAndCase, roleAssignments,
-                permissionsRequired
-            )).thenReturn(List.of(createApiFirstTaskResource("api-first-task-id", "someEventId", true)));
-            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -1039,10 +1035,11 @@ public class CftQueryServiceTest extends CamundaHelpers {
             );
 
             assertNotNull(response);
-            assertEquals(1, response.getTasks().size());
-            assertTrue(response.isTaskRequiredForEvent());
+            assertTrue(response.getTasks().isEmpty());
+            assertFalse(response.isTaskRequiredForEvent());
 
             verify(camundaService, times(0)).evaluateTaskCompletionDmn(any());
+            verify(taskResourceDao, times(0)).getApiFirstCompletableTaskResources(any(), any(), any());
         }
 
         @Test
