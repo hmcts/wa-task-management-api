@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -16,12 +18,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
@@ -106,39 +111,20 @@ public class CftQueryService {
         PermissionRequirements permissionsRequired
     ) {
 
-        //Safe-guard against unsupported Jurisdictions.
-        if (!allowedJurisdictionConfiguration.getAllowedJurisdictions()
-            .contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
-            || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
-            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
-        ) {
-            log.info("Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
-                searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
+        List<TaskResource> apiFirstTaskResources =
+            getApiFirstCompletableTaskResources(searchEventAndCase, roleAssignments, permissionsRequired);
 
-        //1. Evaluate Dmn
-        final List<Map<String, CamundaVariable>> evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(
-            searchEventAndCase);
+        CamundaCompletableTasks camundaCompletableTasks =
+            getCamundaCompletableTasks(searchEventAndCase, roleAssignments, permissionsRequired);
 
-        // Collect task types
-        List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
-
-        if (taskTypes.isEmpty()) {
-            log.info("No taskTypes were found from Completion DMN using eventId: \"{}\" and caseId: \"{}\"",
-                searchEventAndCase.getEventId(), searchEventAndCase.getCaseId());
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
-        final List<TaskResource> taskResources = taskResourceDao.getCompletableTaskResources(
-            searchEventAndCase,
-            roleAssignments,
-            permissionsRequired,
-            taskTypes
+        List<TaskResource> taskResources = mergeTaskResources(
+            camundaCompletableTasks.taskResources(),
+            apiFirstTaskResources
         );
-
         final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources);
-        boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
+
+        boolean taskRequiredForEvent = camundaCompletableTasks.taskRequiredForEvent() ||
+            isApiFirstTaskRequiredForEvent(apiFirstTaskResources, searchEventAndCase);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
@@ -215,6 +201,120 @@ public class CftQueryService {
          * If they are of different sizes, it means there is an empty row and task is not required
          */
         return evaluateDmnResult.size() == taskTypes.size();
+    }
+
+    private boolean isAllowedForJurisdictionAndCaseType(SearchEventAndCase searchEventAndCase) {
+        List<String> allowedJurisdictions = Optional.ofNullable(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+            .orElse(emptyList());
+        List<String> allowedCaseTypes = Optional.ofNullable(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+            .orElse(emptyList());
+
+        return allowedJurisdictions.contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
+            && allowedCaseTypes.contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT));
+    }
+
+    // This method encapsulates api-first logic where the task is NOT backed by Camunda, and the completion logic is
+    // driven by completion rules stored with the task in Task Management (originating from POST /tasks).
+    private List<TaskResource> getApiFirstCompletableTaskResources(SearchEventAndCase searchEventAndCase,
+                                                                   List<RoleAssignment> roleAssignments,
+                                                                   PermissionRequirements permissionsRequired) {
+        List<TaskResource> candidateTaskResources = taskResourceDao.getApiFirstCompletableTaskResources(
+            searchEventAndCase, roleAssignments, permissionsRequired);
+
+        if (CollectionUtils.isEmpty(candidateTaskResources)) {
+            return emptyList();
+        }
+
+        String eventId = searchEventAndCase.getEventId();
+        return candidateTaskResources.stream()
+            .filter(taskResource -> hasEventCompletionRule(taskResource, eventId))
+            .toList();
+    }
+
+    private boolean hasEventCompletionRule(TaskResource taskResource, String eventId) {
+        return taskResource.getCompletionRules() != null
+            && taskResource.getCompletionRules().containsKey(eventId);
+    }
+
+    // This method encapsulates existing logic where the task is backed by Camunda, and the configured DMN drives the
+    // completion logic.
+    private CamundaCompletableTasks getCamundaCompletableTasks(SearchEventAndCase searchEventAndCase,
+                                                               List<RoleAssignment> roleAssignments,
+                                                               PermissionRequirements permissionsRequired) {
+        if (!isAllowedForJurisdictionAndCaseType(searchEventAndCase)) {
+            log.info("Jurisdiction: \"{}\" or CaseType: \"{}\" not supported",
+                     searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
+            return CamundaCompletableTasks.empty();
+        }
+
+        List<Map<String, CamundaVariable>> evaluateDmnResult;
+        try {
+            evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(searchEventAndCase);
+        } catch (ServerErrorException ex) {
+            if (isDmnNotFound(ex)) {
+                log.debug("Completion DMN not found for jurisdiction \"{}\" and case type \"{}\".",
+                         searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType());
+                return CamundaCompletableTasks.empty();
+            }
+            throw ex;
+        }
+
+        List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
+        if (taskTypes.isEmpty()) {
+            log.info("No taskTypes were found from Completion DMN using eventId: \"{}\" and caseId: \"{}\"",
+                     searchEventAndCase.getEventId(), searchEventAndCase.getCaseId());
+            return CamundaCompletableTasks.empty();
+        }
+
+        List<TaskResource> camundaTaskResources = Optional.ofNullable(taskResourceDao.getCompletableTaskResources(
+            searchEventAndCase,
+            roleAssignments,
+            permissionsRequired,
+            taskTypes
+        )).orElse(emptyList());
+
+        return new CamundaCompletableTasks(
+            isTaskRequired(evaluateDmnResult, taskTypes),
+            camundaTaskResources
+        );
+    }
+
+    private boolean isDmnNotFound(ServerErrorException serverErrorException) {
+        Throwable cause = serverErrorException.getCause();
+        while (cause != null) {
+            if (cause instanceof FeignException feignException && feignException.status() == 404) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private boolean isApiFirstTaskRequiredForEvent(List<TaskResource> taskResources,
+                                                   SearchEventAndCase searchEventAndCase) {
+        String eventId = searchEventAndCase.getEventId();
+        return taskResources.stream()
+            .map(TaskResource::getCompletionRules)
+            .filter(Objects::nonNull)
+            .map(rules -> rules.get(eventId))
+            .anyMatch(Boolean.TRUE::equals);
+    }
+
+    private List<TaskResource> mergeTaskResources(List<TaskResource> camundaTaskResources,
+                                                  List<TaskResource> apiFirstTaskResources) {
+        Map<String, TaskResource> mergedTaskResources = new LinkedHashMap<>();
+        camundaTaskResources.forEach(taskResource ->
+                                         mergedTaskResources.put(taskResource.getTaskId(), taskResource));
+        apiFirstTaskResources.forEach(taskResource ->
+                                          mergedTaskResources.putIfAbsent(taskResource.getTaskId(), taskResource));
+        return mergedTaskResources.values().stream()
+            .toList();
+    }
+
+    private record CamundaCompletableTasks(boolean taskRequiredForEvent, List<TaskResource> taskResources) {
+        private static CamundaCompletableTasks empty() {
+            return new CamundaCompletableTasks(false, emptyList());
+        }
     }
 
 }
