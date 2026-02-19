@@ -166,11 +166,30 @@ public class TaskResourceDao {
                                                           List<String> taskTypes) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
 
-        final Predicate selectPredicate = TaskSearchQueryBuilder.buildQueryForCompletable(
+        final Predicate selectPredicate = TaskSearchQueryBuilder.buildCamundaQueryForCompletable(
             searchEventAndCase,
             roleAssignments,
             permissionsRequired,
             taskTypes,
+            selectQueryBuilder.builder,
+            selectQueryBuilder.root
+        );
+
+        return selectQueryBuilder
+            .where(selectPredicate)
+            .build()
+            .getResultList();
+    }
+
+    public List<TaskResource> getApiFirstCompletableTaskResources(SearchEventAndCase searchEventAndCase,
+                                                                  List<RoleAssignment> roleAssignments,
+                                                                  PermissionRequirements permissionsRequired) {
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+
+        final Predicate selectPredicate = TaskSearchQueryBuilder.buildApiFirstQueryForCompletable(
+            searchEventAndCase,
+            roleAssignments,
+            permissionsRequired,
             selectQueryBuilder.builder,
             selectQueryBuilder.root
         );

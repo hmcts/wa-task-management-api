@@ -156,6 +156,11 @@ public class TaskResource implements Serializable {
     @Schema(name = "additional_properties")
     private Map<String, String> additionalProperties;
 
+    @Type(JsonType.class)
+    @Column(columnDefinition = JSONB)
+    @Schema(name = "completion_rules")
+    private Map<String, Boolean> completionRules;
+
     @Column(columnDefinition = TIMESTAMP)
     @JdbcTypeCode(Types.TIMESTAMP)
     @Schema(name = "reconfigure_request_time")
@@ -537,6 +542,10 @@ public class TaskResource implements Serializable {
 
     public void setAdditionalProperties(Map<String, String> additionalProperties) {
         this.additionalProperties = additionalProperties;
+    }
+
+    public void setCompletionRules(Map<String, Boolean> completionRules) {
+        this.completionRules = completionRules;
     }
 
     public void setReconfigureRequestTime(OffsetDateTime reconfigureRequestTime) {
