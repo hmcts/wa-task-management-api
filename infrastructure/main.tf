@@ -117,6 +117,17 @@ module "wa_task_management_api_database_flexible_replica" {
     }
   ]
 
+  pgsql_server_configuration = [
+    {
+      name  = "azure.extensions"
+      value = "pg_cron"
+    },
+    {
+      name  = "backslash_quote"
+      value = "on"
+    }
+  ]
+
   auto_grow_enabled = true
 
   pgsql_version = 14
