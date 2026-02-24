@@ -121,6 +121,10 @@ module "wa_task_management_api_database_flexible_replica" {
     {
       name  = "azure.extensions"
       value = "pg_cron"
+    },
+    {
+      name  = "backslash_quote"
+      value = "on"
     }
   ]
 
