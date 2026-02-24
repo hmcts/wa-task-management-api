@@ -51,6 +51,8 @@ public class TaskResource implements Serializable {
     @EqualsAndHashCode.Include()
     @Schema(name = "task_id")
     private String taskId;
+    @Schema(name = "external_task_id")
+    private String externalTaskId;
     @Schema(name = "task_name")
     private String taskName;
     @Schema(name = "task_type")
@@ -187,6 +189,8 @@ public class TaskResource implements Serializable {
 
     @Schema(name = "last_updated_action")
     private String lastUpdatedAction;
+
+    private boolean camundaTask = true;
 
     private Boolean indexed = false;
 
@@ -577,6 +581,14 @@ public class TaskResource implements Serializable {
 
     public void setCaseDeletionTimestamp(OffsetDateTime caseDeletionTimestamp) {
         this.caseDeletionTimestamp = caseDeletionTimestamp;
+    }
+
+    public void setExternalTaskId(String externalTaskId) {
+        this.externalTaskId = externalTaskId;
+    }
+
+    public void setCamundaTask(Boolean camundaTask) {
+        this.camundaTask = camundaTask;
     }
 
     public TaskResource(String taskId,
