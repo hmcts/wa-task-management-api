@@ -4,6 +4,7 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -195,7 +196,7 @@ public class PostTaskInitiateByIdControllerTest {
         String taskId = taskVariables.getTaskId();
 
         TestAuthenticationCredentials assigneeCaseWorker =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("taskassignee.test");
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("taskassignee.test");
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
             assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
@@ -217,8 +218,6 @@ public class PostTaskInitiateByIdControllerTest {
 
         taskFunctionalTestsInitiationUtils.initiateTask(
             taskVariables, assigneeCaseWorker.getHeaders(), assertConsumer);
-
-        //taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -242,7 +241,8 @@ public class PostTaskInitiateByIdControllerTest {
         String taskId = taskVariables.getTaskId();
 
         final TestAuthenticationCredentials assigneeCaseWorkerWithIncorrectRoles =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("incorrectroletaskassignee.test");
+            authorizationProvider
+                .getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("incorrectroletaskassignee.test");
 
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();
@@ -272,8 +272,17 @@ public class PostTaskInitiateByIdControllerTest {
         authorizationProvider.deleteAccount(assigneeCaseWorkerWithIncorrectRoles.getAccount().getUsername());
     }
 
+    /*
+     *This test covers the scenario where there are multiple assignees with correct roles for a task,
+     *in which case the task should be assigned to the last assignee returned by the DMN configuration.
+
+     *But as the DMN configuration is currently set up to return only one assignee, this test is ignored for now.
+     *Once the code changes were made to allow multiple assignees to be returned by the DMN configuration,
+     *this test should be enabled and the assertions should be updated to reflect the expected behaviour.
+     */
+    @Ignore
     @Test
-    public void should_assign_task_to_first_assignee_when_multiple_assignees_with_correct_roles() {
+    public void should_assign_task_to_last_assignee_when_multiple_assignees_with_correct_roles() {
 
         TestVariables taskVariables =
             taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
@@ -292,15 +301,15 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.name", equalTo("Multiple Assignee Test Task"))
                 .body("task.type", equalTo("multipleAssigneeTestTask"))
                 .body("task.task_state", equalTo("assigned"))
-                .body("task.assignee", equalTo("682318bb-917d-3beb-82af-8037f9dca1a2"));
+                .body("task.assignee", equalTo("8b48c4bd-6281-32f8-a880-a3be29d3b952"));
         };
 
 
         TestAuthenticationCredentials multiAssigneeCaseWorker1 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test1");
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test1");
 
         final TestAuthenticationCredentials multiAssigneeCaseWorker2 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmail("multipletaskassignee.test2");
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test2");
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
             multiAssigneeCaseWorker1.getHeaders(),

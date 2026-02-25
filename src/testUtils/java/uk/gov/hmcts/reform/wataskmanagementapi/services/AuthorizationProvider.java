@@ -100,9 +100,9 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
-    public TestAuthenticationCredentials getNewWaTribunalCaseworkerWithStaticEmail(String email) {
+    public TestAuthenticationCredentials getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(String email) {
 
-        TestAccount caseworker = getIdamWaTribunalCaseworkerCredentialsWithStaticEmail(email);
+        TestAccount caseworker = getIdamWaTribunalCaseworkerCredentialsWithStaticEmailAndStaticID(email);
 
         Headers authenticationHeaders = new Headers(
             getAuthorizationOnly(caseworker),
@@ -166,8 +166,8 @@ public class AuthorizationProvider {
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
-    private TestAccount getIdamWaTribunalCaseworkerCredentialsWithStaticEmail(String email) {
-        return generateIdamTestAccountWithStaticEmail(email, Collections.emptyList());
+    private TestAccount getIdamWaTribunalCaseworkerCredentialsWithStaticEmailAndStaticID(String email) {
+        return generateIdamTestAccountWithStaticEmailAndStaticID(email, Collections.emptyList());
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
@@ -215,7 +215,8 @@ public class AuthorizationProvider {
         return new TestAccount(email.get(), idamTestAccountPassword);
     }
 
-    private TestAccount generateIdamTestAccountWithStaticEmail(String emailId, List<RoleCode> requiredRoles) {
+    private TestAccount generateIdamTestAccountWithStaticEmailAndStaticID(String emailId,
+                                                                          List<RoleCode> requiredRoles) {
         RoleCode userGroup = new RoleCode("caseworker");
 
         Map<String, Object> body = new ConcurrentHashMap<>();
