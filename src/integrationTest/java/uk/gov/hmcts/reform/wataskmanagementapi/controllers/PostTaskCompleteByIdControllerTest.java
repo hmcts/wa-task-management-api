@@ -210,7 +210,7 @@ class PostTaskCompleteByIdControllerTest {
                 .contentType(APPLICATION_JSON_VALUE)
         ).andExpect(status().is5xxServerError());
 
-        verify(camundaServiceApi, times(1)).completeTask(anyString(), eq(taskId), any());
+        verify(camundaServiceApi, times(3)).completeTask(anyString(), eq(taskId), any());
 
         Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
         assertThat(taskResource).isPresent();
