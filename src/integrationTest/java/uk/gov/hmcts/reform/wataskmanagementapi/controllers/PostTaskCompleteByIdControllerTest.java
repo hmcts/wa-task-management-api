@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import feign.FeignException;
+import feign.Request;
+import feign.Response;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,13 +49,16 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -62,7 +68,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -149,6 +158,64 @@ class PostTaskCompleteByIdControllerTest {
 
         when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
             .thenReturn(false);
+    }
+
+    @Test
+    void should_not_update_cft_db_when_camunda_complete_api_fails() throws Exception {
+        mockServices.mockUserInfo();
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("completeCaseId1")
+                    .build()
+            )
+            .build();
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(true);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
+        );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
+            .thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        doNothing().when(camundaServiceApi).addLocalVariablesToTask(anyString(), anyString(), any());
+
+        doThrow(feignException(502))
+            .when(camundaServiceApi)
+            .completeTask(anyString(), eq(taskId), any());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+        ).andExpect(status().is5xxServerError());
+
+        verify(camundaServiceApi, times(1)).completeTask(anyString(), eq(taskId), any());
+
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        assertThat(taskResource).isPresent();
+        assertThat(taskResource.get().getState()).isNotEqualTo(COMPLETED);
+        assertThat(taskResource.get().getState()).isEqualTo(ASSIGNED);
     }
 
     @Nested
@@ -1447,5 +1514,24 @@ class PostTaskCompleteByIdControllerTest {
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private static FeignException feignException(int status) {
+        Request request = Request.create(
+            Request.HttpMethod.POST,
+            "/task/complete",
+            Collections.emptyMap(),
+            new byte[0],
+            StandardCharsets.UTF_8,
+            null
+        );
+
+        Response response = Response.builder()
+            .status(status)
+            .request(request)
+            .headers(Collections.emptyMap())
+            .build();
+
+        return FeignException.errorStatus("camunda", response);
     }
 }

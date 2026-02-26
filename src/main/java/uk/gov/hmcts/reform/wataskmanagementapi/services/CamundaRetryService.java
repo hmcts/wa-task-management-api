@@ -1,0 +1,27 @@
+package uk.gov.hmcts.reform.wataskmanagementapi.services;
+
+import feign.FeignException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariables;
+
+@Service
+public class CamundaRetryService {
+
+    private final CamundaServiceApi camundaServiceApi;
+    private final AuthTokenGenerator authTokenGenerator;
+
+    public CamundaRetryService(CamundaServiceApi camundaServiceApi, AuthTokenGenerator authTokenGenerator) {
+        this.camundaServiceApi = camundaServiceApi;
+        this.authTokenGenerator = authTokenGenerator;
+    }
+
+
+    @Retryable(retryFor = FeignException.class, backoff = @Backoff(delay = 100))
+    public void completeTaskWithRetry(String taskId) {
+        camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
+    }
+}
