@@ -508,7 +508,7 @@ public class PostTaskSearchControllerTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(10))
+            .body("tasks.size()", equalTo(1))
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.id", hasItem(is(in(taskIds))))
             .body("tasks.role_category", everyItem(equalTo("ENFORCEMENT")))
