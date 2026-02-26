@@ -228,7 +228,8 @@ dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
 
   //CVE Scanning only relevant to production code that is published, not test or other implementations
-  scanConfigurations += 'releaseCompileClasspath'
+//  scanConfigurations += 'releaseCompileClasspath'
+  scanConfigurations.addAll(['releaseCompileClasspath'])
 
   analyzers {
     // Disable scanning of .NET related binaries
