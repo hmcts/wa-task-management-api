@@ -477,6 +477,48 @@ public class PostTaskSearchControllerTest {
     }
 
     @Test
+    public void should_return_a_200_with_role_category_enforcement() {
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestAuthenticationCredentials caseworkerWithEnforcementRole =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            caseworkerWithEnforcementRole.getHeaders(), "enforcement");
+
+        TestVariables taskVariables
+            = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+            "enforcementRoleCategoryTask", "Enforcement Role Category Task");
+        tasksCreated.add(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables,caseworkerWithEnforcementRole.getHeaders());
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("ENFORCEMENT")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+        ));
+
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerWithEnforcementRole.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(1))
+            .body("tasks.id", everyItem(notNullValue()))
+            .body("tasks.id", hasItem(is(in(taskIds))))
+            .body("tasks.role_category", everyItem(equalTo("ENFORCEMENT")))
+            .body("total_records", equalTo(1));
+
+        tasksCreated
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
+    }
+
+    @Test
     public void should_return_200_with_tasks_sorted_on_next_hearing_date_asc() {
         List<TestVariables> tasksCreated = new ArrayList<>();
 
@@ -881,6 +923,51 @@ public class PostTaskSearchControllerTest {
             .body("tasks.role_category", everyItem(equalTo("CTSC")))
             .body("tasks.minor_priority", everyItem(equalTo(500)))
             .body("tasks.major_priority", everyItem(equalTo(5000)))
+            .body("total_records", equalTo(1));
+
+        tasksCreated
+            .forEach(task -> taskFunctionalTestsApiUtils.getCommon().cleanUpTask(task.getTaskId()));
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(ginIndexCaseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(ginIndexCaseworkerCredentials.getAccount().getUsername());
+    }
+
+    @Test
+    public void should_return_a_200_with_role_category_enforcement_using_search_index() {
+        TestAuthenticationCredentials ginIndexCaseworkerCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_GIN_INDEX);
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            ginIndexCaseworkerCredentials.getHeaders(), "enforcement");
+
+        List<TestVariables> tasksCreated = new ArrayList<>();
+
+        TestVariables taskVariables
+            = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_no_hearing_date.json",
+                                       "enforcementRoleCategoryTask", "Enforcement Role Category Task");
+        tasksCreated.add(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables,ginIndexCaseworkerCredentials.getHeaders());
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).toList();
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).toList();
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("ENFORCEMENT")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+        ));
+
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            ginIndexCaseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10))
+            .body("tasks.id", everyItem(notNullValue()))
+            .body("tasks.id", hasItem(is(in(taskIds))))
+            .body("tasks.role_category", everyItem(equalTo("ENFORCEMENT")))
             .body("total_records", equalTo(1));
 
         tasksCreated

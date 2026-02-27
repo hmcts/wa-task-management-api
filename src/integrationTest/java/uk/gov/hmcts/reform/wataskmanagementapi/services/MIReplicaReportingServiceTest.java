@@ -308,6 +308,7 @@ class MIReplicaReportingServiceTest {
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
+        "ENFORCEMENT,Enforcement,EMPLOYMENT,Employment,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         ",,WA,WA,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned",
         "TEST,TEST,TEST,TEST,TEST,TEST,UNASSIGNED,Configure,Unassigned"
     })
