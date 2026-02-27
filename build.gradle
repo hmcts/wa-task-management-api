@@ -5,7 +5,7 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.4.4'
+  id 'org.springframework.boot' version '3.5.11'
   id 'org.owasp.dependencycheck' version '12.2.0'
   id 'com.github.ben-manes.versions' version '0.48.0'
   id 'org.sonarqube' version '5.1.0.4882'
@@ -250,7 +250,7 @@ dependencyManagement {
   dependencies {
     dependency group: 'commons-io', name: 'commons-io', version: '2.19.0'
 
-    dependencySet( group: 'org.springframework.security', version: '6.4.4'){
+    dependencySet( group: 'org.springframework.security', version: '6.5.8'){
       entry 'spring-security-core'
       entry 'spring-security-acl'
       entry 'spring-security-aspects'
@@ -345,16 +345,16 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
 
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.4.4'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.5.11'
 
 
   implementation (group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: '2.7.18') {
     exclude group: 'net.minidev', module: 'json-smart'
   }
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-context', version: '4.2.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-context', version: '4.3.1'
 
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.2.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.3.1'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
 
