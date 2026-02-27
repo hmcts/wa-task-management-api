@@ -6,14 +6,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
@@ -26,11 +25,10 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_NON_WORKING_CALENDAR;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.CALENDAR_URI;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = CalendarCacheManagerTest.TestConfiguration.class)
-@ActiveProfiles({"integration"})
+@IntegrationTest(classes = CalendarCacheManagerTest.TestConfiguration.class)
 public class CalendarCacheManagerTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
@@ -57,7 +55,7 @@ public class CalendarCacheManagerTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
@@ -98,7 +96,7 @@ public class CalendarCacheManagerTest {
                     .value(CamundaValue.stringValue(expectedDueDate + "T20:00"))
                     .build()
             ));
-        verify(publicHolidayService, times(1)).getPublicHolidays(DEFAULT_NON_WORKING_CALENDAR);
+        verify(publicHolidayService, times(1)).getPublicHolidays(CALENDAR_URI);
     }
 
     @DisplayName("(Access calendars successfully if cached information is not available)")
@@ -119,7 +117,7 @@ public class CalendarCacheManagerTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
             .build();
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()
@@ -161,7 +159,7 @@ public class CalendarCacheManagerTest {
                     .build()
             ));
 
-        verify(publicHolidayService, times(1)).getPublicHolidays(DEFAULT_NON_WORKING_CALENDAR);
+        verify(publicHolidayService, times(1)).getPublicHolidays(CALENDAR_URI);
     }
 
     @Configuration
