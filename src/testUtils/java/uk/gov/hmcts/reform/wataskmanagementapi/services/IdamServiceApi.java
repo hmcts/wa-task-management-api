@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.SnakeCaseFeignConfiguration;
 
 import java.util.Map;
@@ -23,6 +24,12 @@ public interface IdamServiceApi {
         consumes = APPLICATION_JSON_VALUE
     )
     void createTestUser(@RequestBody Map<String, ?> form);
+
+    @PostMapping(
+        value = "/testing-support/accounts",
+        consumes = APPLICATION_JSON_VALUE
+    )
+    void createTestUser(@RequestHeader("useapi") boolean useApi, @RequestBody Map<String, ?> form);
 
 
     @DeleteMapping(
