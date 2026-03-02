@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -47,10 +46,7 @@ public class TaskPocController extends BaseController implements TasksApi {
                                                      String caseId,
                                                      List<String> taskTypes) {
         checkExclusiveAccess(serviceAuthorization);
-
-        if (StringUtils.isEmpty(caseId) && CollectionUtils.isEmpty(taskTypes)) {
-            throw new InvalidRequestException("At least one query/filter parameter must be included in the request.");
-        }
+        validateGetTasksFilters(caseId, taskTypes);
 
         List<TaskResource> tasks = taskManagementService.getTasks(caseId, taskTypes);
         List<GetTaskResponseItem> taskItems = responseMapper.mapToGetTaskItems(tasks);
@@ -107,6 +103,24 @@ public class TaskPocController extends BaseController implements TasksApi {
     private void checkExclusiveAccess(String serviceAuthorization) {
         if (!clientAccessControlService.hasExclusiveAccess(serviceAuthorization)) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
+    }
+
+    private void validateGetTasksFilters(String caseId, List<String> taskTypes) {
+        if (caseId == null && taskTypes == null) {
+            throw new InvalidRequestException("At least one query/filter parameter must be included in the request.");
+        }
+
+        if (caseId != null && StringUtils.isBlank(caseId)) {
+            throw new InvalidRequestException("case_id cannot be blank");
+        }
+
+        if (taskTypes != null && taskTypes.isEmpty()) {
+            throw new InvalidRequestException("task_types cannot be empty");
+        }
+
+        if (taskTypes != null && taskTypes.stream().anyMatch(StringUtils::isBlank)) {
+            throw new InvalidRequestException("task_types list cannot contain a blank item");
         }
     }
 
