@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +48,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -185,6 +187,14 @@ public class CftQueryServiceTest extends CamundaHelpers {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
+    }
+
+    private TaskResource createApiFirstTaskResource(String taskId, String eventId, boolean requiredForEvent) {
+        TaskResource taskResource = createTaskResource();
+        taskResource.setTaskId(taskId);
+        taskResource.setCamundaTask(false);
+        taskResource.setCompletionRules(Map.of(eventId, requiredForEvent));
+        return taskResource;
     }
 
     private Task getTask() {
@@ -1005,6 +1015,114 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertFalse(response.isTaskRequiredForEvent());
 
             verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
+        }
+
+        @Test
+        void should_return_empty_results_when_jurisdiction_or_case_type_is_not_supported() {
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "someCaseId",
+                "someEventId",
+                "invalidJurisdiction",
+                "Asylum"
+            );
+
+            List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+            GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
+                searchEventAndCase,
+                roleAssignments,
+                permissionsRequired
+            );
+
+            assertNotNull(response);
+            assertTrue(response.getTasks().isEmpty());
+            assertFalse(response.isTaskRequiredForEvent());
+
+            verify(camundaService, times(0)).evaluateTaskCompletionDmn(any());
+            verify(taskResourceDao, times(0)).getApiFirstCompletableTaskResources(any(), any(), any());
+        }
+
+        @Test
+        void should_succeed_when_camunda_dmn_not_found_and_return_api_first_results() {
+            String jurisdiction = "IA";
+            String caseType = "Asylum";
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "someCaseId",
+                "someEventId",
+                jurisdiction,
+                caseType
+            );
+            List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+            FeignException feignException = mock(FeignException.class);
+            when(feignException.status()).thenReturn(404);
+
+            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
+                .thenThrow(new ServerErrorException("There was a problem evaluating DMN", feignException));
+            when(taskResourceDao.getApiFirstCompletableTaskResources(searchEventAndCase, roleAssignments,
+                permissionsRequired
+            )).thenReturn(List.of(createApiFirstTaskResource("api-first-task-id", "someEventId", true)));
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+                .thenReturn(Arrays.asList(jurisdiction.toLowerCase()));
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+                .thenReturn(Arrays.asList(caseType.toLowerCase()));
+
+            GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
+                searchEventAndCase,
+                roleAssignments,
+                permissionsRequired
+            );
+
+            assertNotNull(response);
+            assertEquals(1, response.getTasks().size());
+            assertTrue(response.isTaskRequiredForEvent());
+
+            verify(taskResourceDao, times(0))
+                .getCompletableTaskResources(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_merge_camunda_and_api_first_tasks_and_calculate_required_flag_with_or_semantics() {
+            String jurisdiction = "IA";
+            String caseType = "Asylum";
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "someCaseId",
+                "someEventId",
+                jurisdiction,
+                caseType
+            );
+            List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+
+            TaskResource camundaTaskResource = createTaskResource();
+            TaskResource duplicateApiFirstTask = createApiFirstTaskResource("taskId", "someEventId", false);
+            TaskResource uniqueApiFirstTask = createApiFirstTaskResource("api-first-task-id-2", "someEventId", true);
+
+            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
+                .thenReturn(mockTaskCompletionDMNResponses());
+            when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+                .thenReturn(Arrays.asList(jurisdiction.toLowerCase()));
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+                .thenReturn(Arrays.asList(caseType.toLowerCase()));
+            when(taskResourceDao.getCompletableTaskResources(searchEventAndCase, roleAssignments,
+                permissionsRequired, List.of("reviewTheAppeal")
+            )).thenReturn(List.of(camundaTaskResource));
+            when(taskResourceDao.getApiFirstCompletableTaskResources(searchEventAndCase, roleAssignments,
+                permissionsRequired
+            )).thenReturn(List.of(duplicateApiFirstTask, uniqueApiFirstTask));
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+
+            GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
+                searchEventAndCase,
+                roleAssignments,
+                permissionsRequired
+            );
+
+            assertNotNull(response);
+            assertEquals(2, response.getTasks().size());
+            assertTrue(response.isTaskRequiredForEvent());
+            verify(cftTaskMapper, times(2)).mapToTaskAndExtractPermissionsUnion(any(), any());
         }
 
     }
