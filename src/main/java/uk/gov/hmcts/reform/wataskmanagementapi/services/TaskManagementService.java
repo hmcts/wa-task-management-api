@@ -743,6 +743,10 @@ public class TaskManagementService {
         });
     }
 
+    public List<TaskResource> getTasks(String caseId, List<String> taskTypes) {
+        return cftTaskDatabaseService.findAllBy(caseId, taskTypes);
+    }
+
     private boolean isTaskAlreadyTerminated(TaskResource task, TerminationAction action) {
         CFTTaskState state = task.getState();
         return (action == TerminationAction.CANCEL && state == CFTTaskState.CANCELLED)
@@ -1111,4 +1115,5 @@ public class TaskManagementService {
             }
         });
     }
+
 }

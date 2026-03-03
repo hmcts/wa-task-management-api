@@ -8,6 +8,47 @@ servers:
     description: Local development server
 paths:
   /tasks:
+    get:
+      summary: Retrieve tasks
+      description: Retrieve tasks filtered by case ID and/or task types.
+      operationId: getTasks
+      parameters:
+        - name: ServiceAuthorization
+          in: header
+          required: true
+          description: Service-to-service authorization token
+          schema:
+            type: string
+        - name: case_id
+          in: query
+          required: false
+          description: CCD case reference.
+          schema:
+            type: string
+        - name: task_types
+          in: query
+          required: false
+          description: List of task type identifiers.
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTasksResponse'
+        '400':
+          description: Validation errors
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
     post:
       summary: Create a new task
       description: Create fully formed tasks directly in Task Management without relying on Camunda or DMN evaluation.
@@ -337,6 +378,132 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TaskPermission'
+    GetTasksResponse:
+      type: object
+      required:
+        - tasks
+        - total_records
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetTaskResponseItem'
+        total_records:
+          type: integer
+          format: int64
+    GetTaskResponseItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the task.
+        name:
+          type: string
+          description: Name of the task assigned in the process model.
+        assignee:
+          type: string
+          description: IDAM ID of the assigned user.
+        type:
+          type: string
+          description: Unique identifier for the conceptual business task.
+        task_state:
+          type: string
+          description: unconfigured, unassigned, configured, assigned, referred, completed, cancelled.
+        task_system:
+          $ref: '#/components/schemas/TaskSystem'
+        security_classification:
+          $ref: '#/components/schemas/SecurityClassification'
+        task_title:
+          type: string
+          description: Task title to display in task list UI.
+        created_date:
+          type: string
+          format: date-time
+          description: Task creation timestamp.
+        due_date:
+          type: string
+          format: date-time
+          description: Task due date/time.
+        location_name:
+          type: string
+          description: Location display name.
+        location:
+          type: string
+          description: Base location identifier.
+        execution_type:
+          $ref: '#/components/schemas/ExecutionType'
+        jurisdiction:
+          type: string
+          description: CCD jurisdiction identifier.
+        region:
+          type: string
+          description: Case management region identifier.
+        case_type_id:
+          type: string
+          description: CCD case type identifier.
+        case_id:
+          type: string
+          description: CCD case reference.
+        case_category:
+          type: string
+          description: Primary case management category.
+        case_name:
+          type: string
+          description: Human-readable case name.
+        auto_assigned:
+          type: boolean
+          description: Whether the task was auto-assigned.
+        warnings:
+          type: boolean
+          description: Whether warning(s) are applied to the task.
+        case_management_category:
+          type: string
+          description: Case management category for the task.
+        work_type_id:
+          type: string
+          description: Work type identifier.
+        work_type_label:
+          type: string
+          description: Work type display label.
+        description:
+          type: string
+          description: Task description text.
+        role_category:
+          type: string
+          description: Role category for the task.
+        additional_properties:
+          type: object
+          description: Additional properties map.
+          additionalProperties:
+            type: string
+        next_hearing_id:
+          type: string
+          description: Next hearing identifier.
+        next_hearing_date:
+          type: string
+          format: date-time
+          description: Next hearing date/time.
+        minor_priority:
+          type: integer
+          description: Minor priority value.
+        major_priority:
+          type: integer
+          description: Major priority value.
+        priority_date:
+          type: string
+          format: date-time
+          description: Priority date/time.
+        reconfigure_request_time:
+          type: string
+          format: date-time
+          description: Reconfigure request timestamp.
+        last_reconfiguration_time:
+          type: string
+          format: date-time
+          description: Last reconfiguration timestamp.
+        termination_process:
+          type: string
+          description: Termination process marker.
     TaskReconfigurePayload:
       type: object
       required:
