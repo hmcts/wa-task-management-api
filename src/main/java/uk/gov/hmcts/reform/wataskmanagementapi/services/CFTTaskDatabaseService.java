@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -20,12 +23,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSi
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 
 @Slf4j
 @Service
@@ -168,6 +174,23 @@ public class CFTTaskDatabaseService {
 
     public List<TaskResource> findLastFiveUpdatedTasks() {
         return tasksRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
+    }
+
+    public List<TaskResource> findAllBy(String caseId, List<String> taskTypes) {
+        Specification<TaskResource> specification = (root, query, builder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (StringUtils.isNotBlank(caseId)) {
+                predicates.add(searchByCaseId(caseId, builder, root));
+            }
+            if (CollectionUtils.isNotEmpty(taskTypes)) {
+                predicates.add(searchByTaskTypes(taskTypes, builder, root));
+            }
+
+            return builder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return tasksRepository.findAll(specification);
     }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
