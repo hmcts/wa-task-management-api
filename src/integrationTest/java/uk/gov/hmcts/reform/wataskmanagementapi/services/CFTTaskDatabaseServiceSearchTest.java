@@ -281,6 +281,33 @@ class CFTTaskDatabaseServiceSearchTest {
     }
 
     @Test
+    @Sql("/scripts/wa/search_tasks_enforcement_data.sql")
+    void should_return_task_list_and_count_when_filter_task_by_enforcement_role_category() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        setTaskAsIndexed("8d6cc5cf-c973-11eb-aaaa-500000000001");
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .roleCategories(List.of(RoleCategory.ENFORCEMENT))
+            .jurisdictions(List.of("WA"))
+            .locations(List.of("765324"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
+            accessControlResponse);
+        assertEquals(1, response.getTotalRecords());
+        Assertions.assertThat(response.getTasks())
+            .hasSize(1)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getRoleCategory)
+            .containsExactly(
+                newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-500000000001", "1623278362450001", "ENFORCEMENT"
+                ).toArray()
+            );
+    }
+
+    @Test
     void should_return_task_list_and_count_when_filter_task_by_location() {
         List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -608,11 +635,15 @@ class CFTTaskDatabaseServiceSearchTest {
             "8d6cc5cf-c973-11eb-aaaa-000000000044","8d6cc5cf-c973-11eb-aaaa-000000000045"
         };
         Arrays.stream(ids).forEach(id -> {
-            Optional<TaskResource> taskResource = taskResourceRepository.findById(id);
-            TaskResource task = taskResource.get();
-            task.setIndexed(true);
-            taskResourceRepository.save(task);
+            setTaskAsIndexed(id);
         });
+    }
+
+    private void setTaskAsIndexed(String id) {
+        Optional<TaskResource> taskResource = taskResourceRepository.findById(id);
+        TaskResource task = taskResource.get();
+        task.setIndexed(true);
+        taskResourceRepository.save(task);
     }
 
     private static List<RoleAssignment> roleAssignmentsForCaseType() {

@@ -105,6 +105,7 @@ module "wa_task_management_api_database_flexible_replica" {
   product                    = var.product
   component                  = var.component
   name                       = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
+  pgsql_storage_mb           = var.replica_pgsql_storage_mb
   location                   = var.location
   business_area              = var.business_area
   env                        = var.env
