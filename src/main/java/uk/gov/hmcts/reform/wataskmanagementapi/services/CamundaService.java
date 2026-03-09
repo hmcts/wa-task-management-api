@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -82,16 +81,18 @@ public class CamundaService {
     private final TaskMapper taskMapper;
     private final AuthTokenGenerator authTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final CamundaRetryService camundaRetryService;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
-                          CamundaObjectMapper camundaObjectMapper) {
+                          CamundaObjectMapper camundaObjectMapper, CamundaRetryService camundaRetryService) {
         this.camundaServiceApi = camundaServiceApi;
         this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
         this.camundaObjectMapper = camundaObjectMapper;
+        this.camundaRetryService = camundaRetryService;
     }
 
     public <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
@@ -502,7 +503,7 @@ public class CamundaService {
         }
 
         try {
-            camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
+            camundaRetryService.completeTaskWithRetry(taskId);
             log.info("Task '{}' completed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem completing the task '{}'", taskId);
