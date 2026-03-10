@@ -247,6 +247,10 @@ configurations.all {
 }
 
 dependencyManagement {
+  imports {
+    mavenBom "org.testcontainers:testcontainers-bom:${versions.testcontainers}"
+  }
+
   dependencies {
     dependency group: 'commons-io', name: 'commons-io', version: '2.19.0'
 
