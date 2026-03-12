@@ -32,6 +32,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskPermission;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -175,6 +177,7 @@ class CFTTaskMapperTest {
         assertEquals("someStaffLocationId", taskResource.getLocation());
         assertEquals("someStaffLocationName", taskResource.getLocationName());
         assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
+        assertNull(taskResource.getCompletionRules());
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(
@@ -1425,8 +1428,8 @@ class CFTTaskMapperTest {
             objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
         Map<String, Object> camundaTaskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        //Added external_task_id and camunda_task in poc work
-        assertEquals(dbTaskAttributes.size() - 18, camundaTaskAttributes.size());
+        // Added external_task_id, camunda_task and completion_rules in POC work.
+        assertEquals(dbTaskAttributes.size() - 19, camundaTaskAttributes.size());
         assertEquals(dbTaskAttributes.get("taskName"), camundaTaskAttributes.get("name"));
         assertEquals(dbTaskAttributes.get("state"), camundaTaskAttributes.get("taskState"));
         assertEquals(dbTaskAttributes.get("caseCategory"), camundaTaskAttributes.get("caseManagementCategory"));
@@ -1438,7 +1441,7 @@ class CFTTaskMapperTest {
                    "lastReconfigurationTime", "reconfigureRequestTime", "autoAssigned", "state", "taskSystem",
                    "indexed", "lastUpdatedTimestamp", "lastUpdatedAction", "taskRoleResources", "executionTypeCode",
                    "businessContext", "terminationReason", "notes", "assignmentExpiry", "workTypeResource",
-                   "caseDeletionTimestamp");
+                   "completionRules", "caseDeletionTimestamp");
         expectedOnlyInDbTaskAttributes.forEach(s -> {
             assertTrue(dbTaskAttributes.containsKey(s));
         }
@@ -1448,6 +1451,32 @@ class CFTTaskMapperTest {
         }
         );
 
+    }
+
+    @Test
+    void should_map_api_first_completion_rules_when_present() {
+        Map<String, Boolean> completionRules = Map.of(
+            "caseworker-issue-case", true,
+            "caseworker-send-order", false
+        );
+        CreateTaskRequestTask taskRequest = createApiFirstTaskRequest();
+        taskRequest.setCompletionRules(completionRules);
+
+        TaskResource taskResource = cftTaskMapper.mapToApiFirstTaskResource(taskRequest);
+
+        assertEquals(completionRules, taskResource.getCompletionRules());
+        assertFalse(taskResource.isCamundaTask());
+    }
+
+    @Test
+    void should_default_api_first_completion_rules_to_empty_map_when_not_supplied() {
+        CreateTaskRequestTask taskRequest = createApiFirstTaskRequest();
+
+        TaskResource taskResource = cftTaskMapper.mapToApiFirstTaskResource(taskRequest);
+
+        assertNotNull(taskResource.getCompletionRules());
+        assertTrue(taskResource.getCompletionRules().isEmpty());
+        assertFalse(taskResource.isCamundaTask());
     }
 
     @Test
@@ -2543,6 +2572,38 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
+    }
+
+    private CreateTaskRequestTask createApiFirstTaskRequest() {
+        TaskPermission taskPermission = new TaskPermission(
+            "tribunal-caseworker",
+            "LEGAL_OPERATIONS",
+            singletonList(PermissionTypes.READ)
+        );
+        taskPermission.setAuthorisations(emptyList());
+        taskPermission.setAssignmentPriority(0);
+        taskPermission.setAutoAssignable(false);
+
+        CreateTaskRequestTask taskRequest = new CreateTaskRequestTask(
+            "processApplication",
+            "Process application",
+            OffsetDateTime.parse("2026-02-17T11:00:00Z"),
+            ExecutionType.CASE_EVENT,
+            "1652446087857201",
+            "WaCaseType",
+            "Protection",
+            "Bob Smith",
+            "WA",
+            "1",
+            "765324",
+            "hearing_work",
+            "LEGAL_OPERATIONS",
+            uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.SecurityClassification.PUBLIC,
+            OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+            singletonList(taskPermission)
+        );
+        taskRequest.setTaskSystem(TaskSystem.SELF);
+        return taskRequest;
     }
 
     private List<PermissionsDmnEvaluationResponse> permissionsResponse() {

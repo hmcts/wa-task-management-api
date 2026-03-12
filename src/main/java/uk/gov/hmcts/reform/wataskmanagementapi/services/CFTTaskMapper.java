@@ -218,6 +218,10 @@ public class CFTTaskMapper {
                 .map(Object::toString)
                 .orElse(null)
         );
+        taskResource.setCompletionRules(
+            Optional.ofNullable(request.getCompletionRules())
+                .orElse(Collections.emptyMap())
+        );
         taskResource.setCamundaTask(false);
         return taskResource;
     }
@@ -940,4 +944,3 @@ public class CFTTaskMapper {
         return taskResource;
     }
 }
-
