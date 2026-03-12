@@ -91,6 +91,8 @@ module "wa_task_management_api_database_flexible" {
 
   admin_user_object_id = var.jenkins_AAD_objectId
 
+  auto_grow_enabled = true
+
 }
 
 //New Azure Flexible database replica
@@ -103,6 +105,7 @@ module "wa_task_management_api_database_flexible_replica" {
   product                    = var.product
   component                  = var.component
   name                       = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
+  pgsql_storage_mb           = var.replica_pgsql_storage_mb
   location                   = var.location
   business_area              = var.business_area
   env                        = var.env
@@ -114,6 +117,19 @@ module "wa_task_management_api_database_flexible_replica" {
       name : var.postgresql_database_name
     }
   ]
+
+  pgsql_server_configuration = [
+    {
+      name  = "azure.extensions"
+      value = "pg_cron"
+    },
+    {
+      name  = "backslash_quote"
+      value = "on"
+    }
+  ]
+
+  auto_grow_enabled = true
 
   pgsql_version = 14
   enable_qpi    = var.is_qpa_enabled
