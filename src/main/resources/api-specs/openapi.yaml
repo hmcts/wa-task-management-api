@@ -244,7 +244,6 @@ components:
       type: object
       required:
         - role_name
-        - role_category
         - permissions
       properties:
         role_name:
