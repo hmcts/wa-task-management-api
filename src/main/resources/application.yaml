@@ -5,6 +5,8 @@ management:
   endpoint:
     health:
       show-details: "always"
+    loggers:
+      enabled: false
   endpoints:
     web:
       base-path: /
@@ -41,7 +43,6 @@ security:
     - "/health"
     - "/health/liveness"
     - "/health/readiness"
-    - "/loggers/**"
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
