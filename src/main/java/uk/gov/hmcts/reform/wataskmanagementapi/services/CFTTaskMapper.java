@@ -218,7 +218,6 @@ public class CFTTaskMapper {
                 .map(Object::toString)
                 .orElse(null)
         );
-        taskResource.setCamundaTask(false);
         return taskResource;
     }
 
