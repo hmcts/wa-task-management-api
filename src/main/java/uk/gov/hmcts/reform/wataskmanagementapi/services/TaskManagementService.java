@@ -894,21 +894,19 @@ public class TaskManagementService {
                              + "Skipping task.", task.getId());
                 return;
             }
-            if (!optionalTaskResource.get().isCamundaTask()) {
 
-                TaskResource taskResource = cftTaskMapper.mapToTaskResourceForReconfigure(
-                    optionalTaskResource.get(),
-                    task
-                );
-                //Added just to double confirm can delete after adding all tests
-                taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource);
-                taskResource.setLastReconfigurationTime(OffsetDateTime.now());
-                taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
-                TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
-                response.addTasksItem(savedTask);
-            }
-
+            TaskResource taskResource = cftTaskMapper.mapToTaskResourceForReconfigure(
+                optionalTaskResource.get(),
+                task
+            );
+            //Added just to double confirm can delete after adding all tests
+            taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource);
+            taskResource.setLastReconfigurationTime(OffsetDateTime.now());
+            taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+            TaskResource savedTask = cftTaskDatabaseService.saveTask(taskResource);
+            response.addTasksItem(savedTask);
         });
+
         return response;
     }
 

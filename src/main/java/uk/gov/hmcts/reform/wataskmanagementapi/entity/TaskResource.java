@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
@@ -189,8 +191,6 @@ public class TaskResource implements Serializable {
 
     @Schema(name = "last_updated_action")
     private String lastUpdatedAction;
-
-    private boolean camundaTask = true;
 
     private Boolean indexed = false;
 
@@ -587,8 +587,9 @@ public class TaskResource implements Serializable {
         this.externalTaskId = externalTaskId;
     }
 
-    public void setCamundaTask(Boolean camundaTask) {
-        this.camundaTask = camundaTask;
+    @JsonIgnore
+    public boolean isCamundaTask() {
+        return StringUtils.isBlank(this.externalTaskId);
     }
 
     public TaskResource(String taskId,
