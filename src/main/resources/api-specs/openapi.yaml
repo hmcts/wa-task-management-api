@@ -224,6 +224,7 @@ components:
             - $ref: '#/components/schemas/TaskPayload'
             - type: object
               required:
+                - external_task_id
                 - type
                 - name
                 - created
