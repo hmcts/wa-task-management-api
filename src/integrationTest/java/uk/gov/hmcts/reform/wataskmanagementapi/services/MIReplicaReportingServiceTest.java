@@ -13,11 +13,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReplicaTaskResourceRepository;
@@ -25,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableT
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.ReplicaIntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.MIReplicaDBDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
@@ -75,9 +74,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTe
 /**
  * We test logical replication in here.
  */
-@ActiveProfiles({"replica"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@SpringBootTest
+@ReplicaIntegrationTest
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Slf4j

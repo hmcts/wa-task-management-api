@@ -15,11 +15,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -39,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -100,8 +99,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.ID
 
 @Slf4j
 @ExtendWith(OutputCaptureExtension.class)
-@SpringBootTest
-@ActiveProfiles({"integration"})
+@IntegrationTest
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
 @Import(AwaitilityIntegrationTestConfig.class)
@@ -128,7 +126,7 @@ class TaskManagementServiceTest {
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
-    @MockitoBean
+    @Autowired
     private IdamWebApi idamWebApi;
     @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
