@@ -451,7 +451,7 @@ public class CamundaService {
         }
 
         try {
-            camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
+            camundaRetryService.assignTaskWithRetry(taskId, body);
             log.info("Task id '{}' assigned to user id: '{}'", taskId, userId);
         } catch (FeignException ex) {
             throw new CamundaTaskAssignException(ex);
@@ -467,7 +467,7 @@ public class CamundaService {
     private void performClaimTaskAction(String taskId, Map<String, String> body) {
         updateTaskStateTo(taskId, TaskState.ASSIGNED);
         try {
-            camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
+            camundaRetryService.claimTaskWithRetry(taskId, body);
             log.info("Task id '{}' successfully claimed", taskId);
         } catch (FeignException ex) {
             CamundaExceptionMessage camundaException =
@@ -523,7 +523,7 @@ public class CamundaService {
             updateTaskStateTo(taskId, TaskState.UNASSIGNED);
         }
         try {
-            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
+            camundaRetryService.unclaimTaskWithRetry(taskId);
             log.info("Task id '{}' unclaimed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem while claiming task id '{}'", taskId);
@@ -546,7 +546,7 @@ public class CamundaService {
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
 
         try {
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+            camundaRetryService.addLocalVariablesToTaskWithRetry(taskId, camundaLocalVariables);
         } catch (FeignException ex) {
             log.error(
                 "There was a problem updating task '{}', cft task state could not be updated to '{}'",
@@ -570,7 +570,7 @@ public class CamundaService {
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
 
         try {
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+            camundaRetryService.addLocalVariablesToTaskWithRetry(taskId, camundaLocalVariables);
         } catch (FeignException ex) {
             log.error(
                 "There was a problem updating task '{}', task state could not be updated to '{}'",
@@ -591,7 +591,7 @@ public class CamundaService {
         Map<String, String> body = new ConcurrentHashMap<>();
         body.put("escalationCode", ESCALATION_CODE);
         try {
-            camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
+            camundaRetryService.bpmnEscalationWithRetry(taskId, body);
             log.info("Task id '{}' cancelled", taskId);
         } catch (FeignException ex) {
             log.error("Task id '{}' could not be cancelled", taskId);
