@@ -1,3 +1,5 @@
+
+
 INSERT INTO cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id, case_name, case_type_id, created,
 description, due_date_time, has_warnings, jurisdiction, location, location_name, major_priority, minor_priority,
 notes, region, region_name, role_category, security_classification, state, task_name, task_system, task_type,
@@ -163,7 +165,25 @@ false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "
 '1623278362432023', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
 false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
 'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stf_24w_review_case', 'stf_24w_review_case', 'MANUAL',
-'2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00');
+'2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111047', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+  '1623278362432024', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+  false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+  'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'stopped_applications', 'stopped_applications', 'MANUAL',
+  '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111048', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+ '1623278362432025', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+ false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+ 'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'queries', 'queries', 'MANUAL',
+ '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00'),
+
+('8d6cc5cf-c973-11eb-bdba-0242ac111049', 'SELF', '2025-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
+ '1623278362432065', 'TestCase', 'WaCaseType', '2025-05-09T20:15:45.345875+01:00', 'description', '2025-05-09T20:15:45.345875+01:00',
+ false, 'WA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'ADMIN',
+ 'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'processApplication', null, 'queries_stf', 'queries_stf', 'MANUAL',
+ '2025-05-10T20:15:45.345875+01:00', '2025-05-09T20:15:45.345875+01:00');
 
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name,
 "read", own, "execute", manage, cancel,
@@ -197,5 +217,8 @@ VALUES
 ('8d6cc5cf-c973-11eb-bdba-0242ac115043', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111043', '2025-05-09T20:15:45.345875+01:00'),
 ('8d6cc5cf-c973-11eb-bdba-0242ac115044', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111044', '2025-05-09T20:15:45.345875+01:00'),
 ('8d6cc5cf-c973-11eb-bdba-0242ac115045', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111045', '2025-05-09T20:15:45.345875+01:00'),
-('8d6cc5cf-c973-11eb-bdba-0242ac115046', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111046', '2025-05-09T20:15:45.345875+01:00');
+('8d6cc5cf-c973-11eb-bdba-0242ac115046', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111046', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac111047', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111047', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac111048', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111048', '2025-05-09T20:15:45.345875+01:00'),
+('8d6cc5cf-c973-11eb-bdba-0242ac111049', 'tribunal-caseworker', true, false , false , false , false, null, 0, false, 'ADMIN', '8d6cc5cf-c973-11eb-bdba-0242ac111049', '2025-05-09T20:15:45.345875+01:00');
 
