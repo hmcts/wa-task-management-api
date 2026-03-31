@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtil
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
