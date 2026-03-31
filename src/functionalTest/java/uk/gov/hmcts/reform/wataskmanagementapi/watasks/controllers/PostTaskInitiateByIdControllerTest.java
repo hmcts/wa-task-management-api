@@ -395,7 +395,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.due_date", notNullValue())
                 .body(
                     "task.due_date",
-                    equalTo(OffsetDateTime.now(ZoneOffset.UTC)
+                    equalTo(OffsetDateTime.now(ZoneId.of("Europe/London"))
                                 .plusDays(2)
                                 .withHour(18).withMinute(0).withSecond(0).withNano(0)
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
