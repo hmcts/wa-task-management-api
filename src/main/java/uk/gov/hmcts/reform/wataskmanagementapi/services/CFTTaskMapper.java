@@ -910,11 +910,17 @@ public class CFTTaskMapper {
         taskResource.setLocation(task.getLocation());
         taskResource.setLocationName(task.getLocationName());
         taskResource.setDescription(task.getDescription());
-        taskResource.setTitle(task.getTitle());
+        if (task.getTitle() != null) {
+            taskResource.setTitle(task.getTitle());
+        }
         taskResource.setDueDateTime(task.getDueDateTime());
         taskResource.setPriorityDate(task.getPriorityDate());
-        taskResource.setMajorPriority(task.getMajorPriority());
-        taskResource.setMinorPriority(task.getMinorPriority());
+        if (task.getMajorPriority() != null) {
+            taskResource.setMajorPriority(task.getMajorPriority());
+        }
+        if (task.getMinorPriority() != null) {
+            taskResource.setMinorPriority(task.getMinorPriority());
+        }
         String taskId = task.getId().toString();
         Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
         taskResource.setTaskRoleResources(taskRoleResources);

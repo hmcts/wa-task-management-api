@@ -514,6 +514,7 @@ components:
         - case_name
         - region
         - location
+        - role_category
       description: Task attributes that can be updated during reconfiguration.
       properties:
         id:
