@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtil
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -348,6 +347,7 @@ public class PostTaskInitiateByIdControllerTest {
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
+            ZoneId zone = ZoneId.systemDefault();
             result.prettyPrint();
 
             result.then().assertThat()
@@ -395,7 +395,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.due_date", notNullValue())
                 .body(
                     "task.due_date",
-                    equalTo(OffsetDateTime.now(ZoneOffset.UTC)
+                    equalTo(OffsetDateTime.now(zone)
                                 .plusDays(2)
                                 .withHour(18).withMinute(0).withSecond(0).withNano(0)
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
