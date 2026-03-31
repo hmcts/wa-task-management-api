@@ -84,6 +84,9 @@ public class WorkTypeProviderTest extends SpringBootContractProviderBaseTest {
         workTypes.add(new WorkType("stf_24w_upper_tribunal", "Upper Tribunal - STF"));
         workTypes.add(new WorkType("stf_24w_access_requests", "Access Requests - STF"));
         workTypes.add(new WorkType("stf_24w_review_case", "Review Case - STF"));
+        workTypes.add(new WorkType("stopped_applications", "Stopped Applications"));
+        workTypes.add(new WorkType("queries", "Queries"));
+        workTypes.add(new WorkType("queries_stf", "Queries - STF"));
 
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         UserInfo userInfo = mock((UserInfo.class));

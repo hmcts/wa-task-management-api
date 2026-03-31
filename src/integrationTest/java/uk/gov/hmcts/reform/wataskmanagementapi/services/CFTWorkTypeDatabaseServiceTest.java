@@ -39,7 +39,7 @@ class CFTWorkTypeDatabaseServiceTest {
 
         final List<WorkType> allWorkTypes = cftWorkTypeDatabaseService.getAllWorkTypes();
 
-        assertEquals(27, allWorkTypes.size());
+        assertEquals(30, allWorkTypes.size());
         assertEquals("hearing_work", allWorkTypes.get(0).getId());
         assertEquals("Hearing work", allWorkTypes.get(0).getLabel());
         assertEquals("upper_tribunal", allWorkTypes.get(1).getId());
@@ -94,6 +94,12 @@ class CFTWorkTypeDatabaseServiceTest {
         assertEquals("Access Requests - STF", allWorkTypes.get(25).getLabel());
         assertEquals("stf_24w_review_case", allWorkTypes.get(26).getId());
         assertEquals("Review Case - STF", allWorkTypes.get(26).getLabel());
+        assertEquals("stopped_applications", allWorkTypes.get(27).getId());
+        assertEquals("Stopped Applications", allWorkTypes.get(27).getLabel());
+        assertEquals("queries", allWorkTypes.get(28).getId());
+        assertEquals("Queries", allWorkTypes.get(28).getLabel());
+        assertEquals("queries_stf", allWorkTypes.get(29).getId());
+        assertEquals("Queries - STF", allWorkTypes.get(29).getLabel());
     }
 
     @Test

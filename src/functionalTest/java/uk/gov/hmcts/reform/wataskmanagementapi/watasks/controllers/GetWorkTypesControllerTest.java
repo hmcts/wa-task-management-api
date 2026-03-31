@@ -141,7 +141,10 @@ public class GetWorkTypesControllerTest {
             Map.of("id", "stf_24w_applications", "label", "Applications - STF"),
             Map.of("id", "stf_24w_upper_tribunal", "label", "Upper Tribunal - STF"),
             Map.of("id", "stf_24w_access_requests", "label", "Access Requests - STF"),
-            Map.of("id", "stf_24w_review_case", "label", "Review Case - STF")
+            Map.of("id", "stf_24w_review_case", "label", "Review Case - STF"),
+            Map.of("id", "stopped_applications", "label", "Stopped Applications"),
+            Map.of("id", "queries", "label", "Queries"),
+            Map.of("id", "queries_stf", "label", "Queries - STF")
         );
         Assertions.assertEquals(expectedWorkTypes, workTypes);
 
