@@ -398,6 +398,7 @@ public class PostTaskInitiateByIdControllerTest {
                     equalTo(OffsetDateTime.now(ZoneOffset.UTC)
                                 .plusDays(2)
                                 .withHour(18).withMinute(0).withSecond(0).withNano(0)
+                                .atZoneSimilarLocal(ZoneId.systemDefault()).toOffsetDateTime()
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 

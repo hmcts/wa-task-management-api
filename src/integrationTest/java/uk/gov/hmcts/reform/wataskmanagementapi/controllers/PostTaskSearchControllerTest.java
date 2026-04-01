@@ -639,7 +639,8 @@ class PostTaskSearchControllerTest {
                                + "intermediate_track_decision_making_work, multi_track_decision_making_work, "
                                + "query_work, welsh_translation_work, bail_work, stf_24w_hearing_work, "
                                + "stf_24w_routine_work, stf_24w_decision_making_work, stf_24w_applications, "
-                               + "stf_24w_upper_tribunal, stf_24w_access_requests, stf_24w_review_case]")
+                               + "stf_24w_upper_tribunal, stf_24w_access_requests, stf_24w_review_case, "
+                               + "stopped_applications, queries, queries_stf]")
                 ));
     }
 
@@ -1283,7 +1284,10 @@ class PostTaskSearchControllerTest {
         "stf_24w_applications",
         "stf_24w_upper_tribunal",
         "stf_24w_access_requests",
-        "stf_24w_review_case"
+        "stf_24w_review_case",
+        "stopped_applications",
+        "queries",
+        "queries_stf"
     })
     void should_return_200_and_filter_by_each_work_type(String workType) throws Exception {
 
