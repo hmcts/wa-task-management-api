@@ -4,7 +4,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -272,15 +271,6 @@ public class PostTaskInitiateByIdControllerTest {
         authorizationProvider.deleteAccount(assigneeCaseWorkerWithIncorrectRoles.getAccount().getUsername());
     }
 
-    /*
-     *This test covers the scenario where there are multiple assignees with correct roles for a task,
-     *in which case the task should be assigned to the last assignee returned by the DMN configuration.
-
-     *But as the DMN configuration is currently set up to return only one assignee, this test is ignored for now.
-     *Once the code changes were made to allow multiple assignees to be returned by the DMN configuration,
-     *this test should be enabled and the assertions should be updated to reflect the expected behaviour.
-     */
-    @Ignore
     @Test
     public void should_assign_task_to_last_assignee_when_multiple_assignees_with_correct_roles() {
 
