@@ -129,7 +129,7 @@ class WorkTypesControllerTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(27)
+            jsonPath("$.work_types.length()").value(30)
         ).andReturn();
 
 
@@ -153,7 +153,7 @@ class WorkTypesControllerTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("$.work_types").isNotEmpty(),
-            jsonPath("$.work_types.length()").value(27)
+            jsonPath("$.work_types.length()").value(30)
         );
     }
 
@@ -380,6 +380,9 @@ class WorkTypesControllerTest {
         WorkType expectedWorkType25 = new WorkType("stf_24w_upper_tribunal", "Upper Tribunal - STF");
         WorkType expectedWorkType26 = new WorkType("stf_24w_access_requests", "Access Requests - STF");
         WorkType expectedWorkType27 = new WorkType("stf_24w_review_case", "Review Case - STF");
+        WorkType expectedWorkType28 = new WorkType("stopped_applications", "Stopped Applications");
+        WorkType expectedWorkType29 = new WorkType("queries", "Queries");
+        WorkType expectedWorkType30 = new WorkType("queries_stf", "Queries - STF");
         return new GetWorkTypesResponse(asList(
             expectedWorkType1, expectedWorkType2, expectedWorkType3,
             expectedWorkType4, expectedWorkType5, expectedWorkType6,
@@ -388,7 +391,8 @@ class WorkTypesControllerTest {
             expectedWorkType14, expectedWorkType15, expectedWorkType16, expectedWorkType17,
             expectedWorkType18, expectedWorkType19, expectedWorkType20, expectedWorkType21,
             expectedWorkType22, expectedWorkType23, expectedWorkType24, expectedWorkType25,
-            expectedWorkType26, expectedWorkType27
+            expectedWorkType26, expectedWorkType27, expectedWorkType28, expectedWorkType29,
+            expectedWorkType30
         ));
     }
 
