@@ -352,9 +352,11 @@ components:
         major_priority:
           type: integer
           description: Major priority level.
+          default: 5000
         minor_priority:
           type: integer
           description: Minor priority level.
+          default: 500
         location_name:
           type: string
           description: Location display name.
@@ -515,6 +517,9 @@ components:
         - region
         - location
         - role_category
+        - title
+        - major_priority
+        - minor_priority
       description: Task attributes that can be updated during reconfiguration.
       properties:
         id:

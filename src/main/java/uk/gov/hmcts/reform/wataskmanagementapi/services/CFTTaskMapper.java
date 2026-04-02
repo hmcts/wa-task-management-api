@@ -185,8 +185,8 @@ public class CFTTaskMapper {
             taskTitle != null ? taskTitle : taskName,
             request.getDescription(),
             new ArrayList<NoteResource>(),
-            majorPriority != null ? majorPriority : 5000,
-            minorPriority != null ? minorPriority : 500,
+            majorPriority,
+            minorPriority,
             null, //Need to get from taskPayload assignee
             false, //autoAssigned
             executionTypeResource,
@@ -910,17 +910,12 @@ public class CFTTaskMapper {
         taskResource.setLocation(task.getLocation());
         taskResource.setLocationName(task.getLocationName());
         taskResource.setDescription(task.getDescription());
-        if (task.getTitle() != null) {
-            taskResource.setTitle(task.getTitle());
-        }
+        taskResource.setTitle(task.getTitle());
         taskResource.setDueDateTime(task.getDueDateTime());
         taskResource.setPriorityDate(task.getPriorityDate());
-        if (task.getMajorPriority() != null) {
-            taskResource.setMajorPriority(task.getMajorPriority());
-        }
-        if (task.getMinorPriority() != null) {
-            taskResource.setMinorPriority(task.getMinorPriority());
-        }
+        taskResource.setMajorPriority(task.getMajorPriority());
+        taskResource.setMinorPriority(task.getMinorPriority());
+
         String taskId = task.getId().toString();
         Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
         taskResource.setTaskRoleResources(taskRoleResources);
@@ -932,15 +927,23 @@ public class CFTTaskMapper {
         taskResource.setRoleCategory(task.getRoleCategory());
         taskResource.setNextHearingDate(task.getNextHearingDate());
         taskResource.setNextHearingId(task.getNextHearingId());
-        Map<String, String> additionalProperties = Collections.emptyMap();
-        if (task.getAdditionalProperties() != null) {
-            additionalProperties = task.getAdditionalProperties().entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    e -> String.valueOf(e.getValue())
-                ));
+        Map<String, String> additionalProperties = new ConcurrentHashMap<>();
+
+        // Start with existing values if present
+        if (taskResource.getAdditionalProperties() != null &&
+            !taskResource.getAdditionalProperties().isEmpty()) {
+            additionalProperties.putAll(taskResource.getAdditionalProperties());
         }
+
+        // Merge / update with new values from task
+        if (task.getAdditionalProperties() != null) {
+            task.getAdditionalProperties().forEach(
+                (key, value) -> additionalProperties.put(key, String.valueOf(value)) // put() handles both add & update
+            );
+        }
+
+
+        // Set back to resource
         taskResource.setAdditionalProperties(additionalProperties);
         return taskResource;
     }
