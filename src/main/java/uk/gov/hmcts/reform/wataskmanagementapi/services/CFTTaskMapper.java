@@ -930,8 +930,8 @@ public class CFTTaskMapper {
         Map<String, String> additionalProperties = new ConcurrentHashMap<>();
 
         // Start with existing values if present
-        if (taskResource.getAdditionalProperties() != null &&
-            !taskResource.getAdditionalProperties().isEmpty()) {
+        if (taskResource.getAdditionalProperties() != null
+            && !taskResource.getAdditionalProperties().isEmpty()) {
             additionalProperties.putAll(taskResource.getAdditionalProperties());
         }
 
