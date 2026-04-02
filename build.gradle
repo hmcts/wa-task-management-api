@@ -9,11 +9,11 @@ plugins {
   id 'org.owasp.dependencycheck' version '12.2.0'
   id 'com.github.ben-manes.versions' version '0.48.0'
   id 'org.sonarqube' version '5.1.0.4882'
-  id 'info.solidsoft.pitest' version '1.15.0'
+  id 'info.solidsoft.pitest' version '1.19.0'
   id 'io.freefair.lombok' version '8.10.2'
   // If Pact version is changed, make sure serenity report works.
-  id 'au.com.dius.pact' version '4.6.17'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.33'
+  id 'au.com.dius.pact' version '4.6.20'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.3.2'
   id 'org.flywaydb.flyway' version '9.3.0'
 }
 
@@ -308,9 +308,9 @@ def versions = [
   springDoc     : '2.2.0',
   serenity      : '3.9.8',
   gradlePitest  : '1.15.0',
-  pitest        : '1.16.3',
+  pitest        : '1.23.0',
   sonarPitest   : '0.5',
-  pactVersion   : '4.6.17',
+  pactVersion   : '4.6.20',
   logbook       : '3.9.0',
   tomcat        : '10.1.52',
   testcontainers: '1.21.4',
