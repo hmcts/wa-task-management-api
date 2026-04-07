@@ -185,8 +185,8 @@ public class CFTTaskMapper {
             taskTitle != null ? taskTitle : taskName,
             request.getDescription(),
             new ArrayList<NoteResource>(),
-            majorPriority != null ? majorPriority : 5000,
-            minorPriority != null ? minorPriority : 500,
+            majorPriority,
+            minorPriority,
             null, //Need to get from taskPayload assignee
             false, //autoAssigned
             executionTypeResource,
@@ -915,6 +915,7 @@ public class CFTTaskMapper {
         taskResource.setPriorityDate(task.getPriorityDate());
         taskResource.setMajorPriority(task.getMajorPriority());
         taskResource.setMinorPriority(task.getMinorPriority());
+
         String taskId = task.getId().toString();
         Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
         taskResource.setTaskRoleResources(taskRoleResources);
