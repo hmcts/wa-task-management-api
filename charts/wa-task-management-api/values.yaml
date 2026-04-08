@@ -1,6 +1,6 @@
 java:
   applicationPort: 8087
-  image: 'hmctspublic.azurecr.io/wa/task-management-api:latest'
+  image: 'hmctsprod.azurecr.io/wa/task-management-api:latest'
   ingressHost: wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: wa
   autoscaling:

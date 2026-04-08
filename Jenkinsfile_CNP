@@ -46,8 +46,8 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 def branchesToSync = ['demo', 'ithc', 'perftest']
 
-// Prevent Docker hub rate limit errors by ensuring that testcontainers uses images from hmctspublic ACR
-env.TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "hmctspublic.azurecr.io/imported/"
+// Prevent Docker hub rate limit errors by ensuring that testcontainers uses images from hmctsprod ACR
+env.TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "hmctsprod.azurecr.io/imported/"
 
 withPipeline(type, product, component) {
     disableLegacyDeployment()
