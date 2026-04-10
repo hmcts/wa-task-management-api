@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -95,6 +96,8 @@ public class CaseConfigurationProviderService {
             isReconfigureRequest,
             taskAttributes
         );
+        taskConfigurationDmnResultsAfterUpdate =
+            normalizeAssigneeConfigurationResults(taskConfigurationDmnResultsAfterUpdate);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -187,6 +190,22 @@ public class CaseConfigurationProviderService {
         ConfigurationDmnEvaluationResponse resp) {
         String additionalPropKey = resp.getName().getValue().replace(ADDITIONAL_PROPERTIES_PREFIX, "");
         return new ConfigurationDmnEvaluationResponse(CamundaValue.stringValue(additionalPropKey), resp.getValue());
+    }
+
+    private List<ConfigurationDmnEvaluationResponse> normalizeAssigneeConfigurationResults(
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
+        Optional<ConfigurationDmnEvaluationResponse> lastAssigneeResponse = taskConfigurationDmnResults.stream()
+            .filter(response -> ASSIGNEE.value().equals(response.getName().getValue()))
+            .reduce((first, second) -> second);
+
+        if (lastAssigneeResponse.isEmpty()) {
+            return taskConfigurationDmnResults;
+        }
+
+        return taskConfigurationDmnResults.stream()
+            .filter(response -> !ASSIGNEE.value().equals(response.getName().getValue())
+                || response == lastAssigneeResponse.get())
+            .toList();
     }
 
     private boolean filterBasedOnCaseAccessCategory(CaseDetails caseDetails,

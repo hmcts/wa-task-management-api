@@ -235,6 +235,23 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
+    void should_use_last_assignee_when_dmn_returns_multiple_assignee_rows() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", "{}"))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_2"))
+            ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
+
+        assertEquals(Optional.of("assignee_2"), mappedData.getProcessVariables().get("assignee"));
+    }
+
+    @Test
     void should_consider_permissions_when_case_access_category_column_matches_with_different_sets() {
         String someCaseId = "someCaseId";
 
