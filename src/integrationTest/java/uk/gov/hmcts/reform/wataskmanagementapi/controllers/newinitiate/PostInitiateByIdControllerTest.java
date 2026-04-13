@@ -1741,9 +1741,8 @@ class PostInitiateByIdControllerTest {
             .andExpectAll(
                 status().isInternalServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.detail").value("Generic Server Error: "
-                                                + "The action could not be completed because there was a problem "
-                                                + "when initiating the task.")
+                jsonPath("$.detail").value("Assignee Configuration Error: "
+                                               + "Multiple assignee should be declared as separate rules.")
             );
     }
 

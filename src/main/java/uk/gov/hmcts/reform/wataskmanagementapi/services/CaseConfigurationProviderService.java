@@ -11,6 +11,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 
 import java.util.Arrays;
@@ -194,8 +196,22 @@ public class CaseConfigurationProviderService {
 
     private List<ConfigurationDmnEvaluationResponse> normalizeAssigneeConfigurationResults(
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
-        Optional<ConfigurationDmnEvaluationResponse> lastAssigneeResponse = taskConfigurationDmnResults.stream()
+        List<ConfigurationDmnEvaluationResponse> assigneeResponses = taskConfigurationDmnResults.stream()
             .filter(response -> ASSIGNEE.value().equals(response.getName().getValue()))
+            .toList();
+
+        assigneeResponses.stream()
+            .map(ConfigurationDmnEvaluationResponse::getValue)
+            .filter(Objects::nonNull)
+            .map(CamundaValue::getValue)
+            .filter(Objects::nonNull)
+            .filter(value -> value.contains(","))
+            .findFirst()
+            .ifPresent(value -> {
+                throw new AssigneeConfigurationException(ErrorMessages.MULTIPLE_ASSIGNEE_RULE_ERROR.getDetail());
+            });
+
+        Optional<ConfigurationDmnEvaluationResponse> lastAssigneeResponse = assigneeResponses.stream()
             .reduce((first, second) -> second);
 
         if (lastAssigneeResponse.isEmpty()) {
