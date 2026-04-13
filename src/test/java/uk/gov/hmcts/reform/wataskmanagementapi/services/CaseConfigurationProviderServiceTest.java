@@ -255,6 +255,7 @@ class CaseConfigurationProviderServiceTest {
     @Test
     void should_throw_exception_when_assignee_is_declared_as_comma_separated_value() {
         String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = Map.of();
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", "{}"))
@@ -263,7 +264,7 @@ class CaseConfigurationProviderServiceTest {
             ));
 
         assertThatThrownBy(() -> caseConfigurationProviderService.getCaseRelatedConfiguration(
-            someCaseId, Map.of(), false))
+            someCaseId, taskAttributes, false))
             .isInstanceOf(AssigneeConfigurationException.class)
             .hasMessage("Assignee Configuration Error: Multiple assignee should be declared as separate rules.");
     }

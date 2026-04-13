@@ -6,6 +6,7 @@ import java.net.URI;
 
 import static org.zalando.problem.Status.INTERNAL_SERVER_ERROR;
 
+@SuppressWarnings("java:S110")
 public class AssigneeConfigurationException extends AbstractThrowableProblem {
 
     private static final long serialVersionUID = 3413789972854759388L;
