@@ -1150,20 +1150,15 @@ public class PostTaskExecuteReconfigureControllerTest {
 
     @Test
     public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
+
+        int numberOfAttempts = 2;
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId
         );
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskWithAdditionalPropertiesAndRetrieveIds(
-            additionalProperties,
-            "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "reconfigTaskAttributesTask"
-        );
+        TestVariables taskVariables = initiateTaskUntilProcessCategoryProtectionIsTrue(additionalProperties,
+                                                                                       numberOfAttempts);
         String taskId = taskVariables.getTaskId();
-
-        taskFunctionalTestsInitiationUtils.initiateTask(
-            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
 
         await().untilAsserted(() -> {
             Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
@@ -1182,6 +1177,7 @@ public class PostTaskExecuteReconfigureControllerTest {
                     "task.additional_properties", equalTo(Map.of(
                         "key1", "value1",
                         "key2", "value1",
+                        "processCategoryProtection", "true",
                         "roleAssignmentId", roleAssignmentId
                     ))
             );
@@ -1259,11 +1255,60 @@ public class PostTaskExecuteReconfigureControllerTest {
                     "task.additional_properties", equalTo(Map.of(
                         "key1", "value1",
                         "key2", "reconfigValue2",
+                        "processCategoryProtection", "true",
                         "roleAssignmentId", roleAssignmentId
                     ))
             );
         });
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+    }
+
+    private TestVariables initiateTaskUntilProcessCategoryProtectionIsTrue(Map<String, String> additionalProperties,
+                                                                           int numberOfAttempts) {
+        for (int attempt = 1; attempt <= numberOfAttempts; attempt++) {
+            TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+                .setupWATaskWithAdditionalPropertiesAndRetrieveIds(
+                    additionalProperties,
+                    "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                    "reconfigTaskAttributesTask"
+                );
+
+            taskFunctionalTestsInitiationUtils.initiateTask(
+                taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+
+            Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                "/task/{task-id}",
+                taskVariables.getTaskId(),
+                userWithCaseManagerRole.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .and().body("task.id", equalTo(taskVariables.getTaskId()));
+
+            Map<String, String> taskAdditionalProperties = result.then().extract().path("task.additional_properties");
+            String processCategoryProtection = taskAdditionalProperties == null
+                ? null
+                : taskAdditionalProperties.get("processCategoryProtection");
+
+            if ("true".equals(processCategoryProtection)) {
+                return taskVariables;
+            }
+
+            log.info(
+                "Retrying setup for task {} because additional_properties.{} was '{}'",
+                taskVariables.getTaskId(),
+                "processCategoryProtection",
+                processCategoryProtection
+            );
+            taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskVariables.getTaskId());
+        }
+
+        throw new AssertionError(
+            "Unable to initiate task with additional_properties. processCategoryProtection = true after "
+                + numberOfAttempts + " attempts"
+        );
     }
 
     @Test
@@ -1567,4 +1612,3 @@ public class PostTaskExecuteReconfigureControllerTest {
     }
 
 }
-
