@@ -131,6 +131,13 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
     }
 
+    public String setupWaCase(String resourceFileName) {
+
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        return caseId;
+    }
+
     public TestVariables setupWATaskAndRetrieveIdsWithCustomHearingDate(String resourceFileName, String taskType, String taskName, OffsetDateTime nextHearingDate) {
 
         String caseId = given.iCreateWACcdCaseWithCustomHearignDate("WA",

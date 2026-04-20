@@ -167,7 +167,11 @@ public class AuthorizationProvider {
     }
 
     private TestAccount getIdamWaTribunalCaseworkerCredentialsWithStaticEmailAndStaticID(String email) {
-        return generateIdamTestAccountWithStaticEmailAndStaticID(email, Collections.emptyList());
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
+                                              new RoleCode("payments"),
+                                              new RoleCode("caseworker-wa"),
+                                              new RoleCode("caseworker"));
+        return generateIdamTestAccountWithStaticEmailAndStaticID(email, requiredRoles);
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
@@ -187,7 +191,7 @@ public class AuthorizationProvider {
         RoleCode userGroup = new RoleCode("caseworker");
 
         Map<String, Object> body = new ConcurrentHashMap<>();
-        body.put("password", idamTestAccountPassword);
+        body.put("password", "IDAM_USER_ACCOUNT_PASSWORD");
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
         body.put("roles", requiredRoles);
@@ -212,7 +216,7 @@ public class AuthorizationProvider {
             });
 
         log.info("Test account created successfully");
-        return new TestAccount(email.get(), idamTestAccountPassword);
+        return new TestAccount(email.get(), "IDAM_USER_ACCOUNT_PASSWORD");
     }
 
     private TestAccount generateIdamTestAccountWithStaticEmailAndStaticID(String emailId,
@@ -222,7 +226,7 @@ public class AuthorizationProvider {
         Map<String, Object> body = new ConcurrentHashMap<>();
         String staticEmail = emailId + "@fake.hmcts.net";
         body.put("id",UUID.nameUUIDFromBytes(staticEmail.getBytes()).toString());
-        body.put("password", idamTestAccountPassword);
+        body.put("password", "IDAM_USER_ACCOUNT_PASSWORD");
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
         body.put("roles", requiredRoles);
@@ -247,6 +251,6 @@ public class AuthorizationProvider {
             });
 
         log.info("Test account created successfully");
-        return new TestAccount(email.get(), idamTestAccountPassword);
+        return new TestAccount(email.get(), "IDAM_USER_ACCOUNT_PASSWORD");
     }
 }

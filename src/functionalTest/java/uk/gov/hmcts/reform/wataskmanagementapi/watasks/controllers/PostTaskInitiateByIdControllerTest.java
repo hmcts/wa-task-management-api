@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
+import com.microsoft.applicationinsights.core.dependencies.http.Header;
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
@@ -11,9 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAccount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
@@ -63,6 +67,9 @@ public class PostTaskInitiateByIdControllerTest {
 
     @Autowired
     TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
+
+    @Autowired
+    private IdamServiceApi idamServiceApi;
 
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
     TestAuthenticationCredentials caseWorkerWithJudgeRole;
@@ -326,6 +333,37 @@ public class PostTaskInitiateByIdControllerTest {
         authorizationProvider.deleteAccount(multiAssigneeCaseWorker1.getAccount().getUsername());
         taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(multiAssigneeCaseWorker2.getHeaders());
         authorizationProvider.deleteAccount(multiAssigneeCaseWorker2.getAccount().getUsername());
+    }
+
+    @Test
+    public void create_demo_test_accounts_in_aat() {
+
+        String caseId = taskFunctionalTestsApiUtils.getCommon().setupWaCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
+
+        TestAuthenticationCredentials assigneeCaseWorker =
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("taskassignee.test");
+
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
+            assigneeCaseWorker.getHeaders(), caseId, TaskFunctionalTestConstants.WA_JURISDICTION,
+            TaskFunctionalTestConstants.WA_CASE_TYPE);
+
+        log.info("Created case [" + caseId + "]");
+
+    }
+
+    @Test
+    public void create_demo_test_accounts_in_aat_cleanup() {
+
+        TestAccount testAccount = new TestAccount("taskassignee.test@fake.hmcts.net","Nagoya0102");
+
+        Headers authenticationHeaders = new Headers(
+            authorizationProvider.getAuthorizationOnly(testAccount),
+            authorizationProvider.getServiceAuthorizationHeader()
+        );
+
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(authenticationHeaders);
+        idamServiceApi.deleteTestUser("taskassignee.test@fake.hmcts.net");
+
     }
 
     @Test

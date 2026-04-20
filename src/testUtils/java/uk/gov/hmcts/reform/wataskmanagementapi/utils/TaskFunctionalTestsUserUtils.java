@@ -63,7 +63,7 @@ public class TaskFunctionalTestsUserUtils {
     @PostConstruct
     public void setup() {
 
-        authorizationHeaders = authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-");
+        /*authorizationHeaders = authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-");
 
         baseCaseworkerCredentials = authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
@@ -198,7 +198,7 @@ public class TaskFunctionalTestsUserUtils {
             authorizationProvider.getNewTribunalCaseworker("wa-user-with-cancellation-process-disabled-");
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
             caseWorkerWithCancellationDisabled.getHeaders());
-        testUsersMap.put(USER_WITH_CANCELLATION_DISABLED, caseWorkerWithCancellationDisabled);
+        testUsersMap.put(USER_WITH_CANCELLATION_DISABLED, caseWorkerWithCancellationDisabled);*/
 
     }
 

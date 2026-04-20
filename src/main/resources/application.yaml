@@ -28,13 +28,13 @@ config:
 
 core_case_data:
   api:
-    url: ${CCD_URL:http://ccd-data-store-api}
+    url: http://ccd-data-store-api-aat.service.core-compute-aat.internal
 
 camunda:
-  url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+  url: http://camunda-api-aat.service.core-compute-aat.internal/engine-rest
 
 role-assignment-service:
-  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+  url: http://am-role-assignment-service-aat.service.core-compute-aat.internal
   maxResults: ${ROLE_ASSIGNMENT_MAX_RESULTS:50}
 
 security:
@@ -53,23 +53,23 @@ auth:
   provider:
     service:
       client:
-        baseUrl: ${S2S_URL:http://service-auth-provider-api}
+        baseUrl: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
 
 idam:
-  baseUrl: ${OPEN_ID_IDAM_URL:http://sidam-api}
-  redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
+  baseUrl: https://idam-api.aat.platform.hmcts.net
+  redirectUrl: https://ia-case-api-aat.service.core-compute-aat.internal/oauth2/callback
   scope: "openid profile roles"
   s2s-auth:
-    url: ${S2S_URL:http://service-auth-provider-api}
-    secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
-    name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
+    url: http://rpe-service-auth-provider-aat.service.core-compute-aat.internal
+    secret: <s2s_secret>
+    name: <s2s_name>
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler,ccd_case_disposer,civil_service,sscs}
   api:
-    baseUrl: ${IDAM_URL:http://sidam-api}
+    baseUrl: https://idam-api.aat.platform.hmcts.net
   system:
-    username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
-    password: ${WA_SYSTEM_PASSWORD:password}
+    username: <s2s_user_name>
+    password: <s2s_password>
 
 springdoc:
   swagger-ui:
@@ -78,12 +78,12 @@ springdoc:
   writer-with-order-by-keys: true
 
 replication:
-  username: ${REPLICATION_USERNAME:repl_user}
-  password: ${REPLICATION_PASSWORD:repl_password}
-  subscriptionUrl: postgresql://${POSTGRES_CLUSTER_HOST:localhost}:${POSTGRES_PORT:5432}
+  username: <repl_user>
+  password: <repl_password>
+  subscriptionUrl: <repl_sub>
 primary:
-  username: ${POSTGRES_USERNAME:wa_user}
-  password: ${POSTGRES_PASSWORD:wa_password}
+  username: <prim_user>
+  password: <prim_password>
 
 spring:
   mvc:
@@ -97,14 +97,14 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     driverClassName: org.postgresql.Driver
-    jdbcUrl: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
-    username: ${POSTGRES_USERNAME:postgres}
-    password: ${POSTGRES_PASSWORD:}
+    jdbcUrl: jdbc:postgresql://host from secrets:port from secrets/DB name from secrets?sslmode=require
+    username: <datasource_user>
+    password: <datasource_password>
   datasource-replica:
     driverClassName: org.postgresql.Driver
-    jdbcUrl: jdbc:postgresql://${POSTGRES_REPLICA_HOST:ccd-shared-database-replica}:${POSTGRES_REPLICA_PORT:5433}/${POSTGRES_REPLICA_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
-    username: ${REPLICATION_USERNAME:postgres}
-    password: ${REPLICATION_PASSWORD:}
+    jdbcUrl: jdbc:postgresql://hosr from secrets:port from secrets/DB name from secrets?sslmode=require
+    username: REPLICATION_USERNAME from secrets
+    password: REPLICATION_PASSWORD from secrets
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -114,31 +114,31 @@ spring:
       hibernate:
         query:
           in_clause_parameter_padding: true
-        default_schema: ${POSTGRES_NAME:cft_task_db}
+        default_schema: DB name from secrets
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
         physical_naming_strategy: "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy"
   flyway:
     enabled: true
     baselineOnMigrate: true
-    defaultSchema: ${POSTGRES_NAME:cft_task_db}
-    schemas: ${POSTGRES_NAME:cft_task_db}
+    defaultSchema: cft_task_db
+    schemas: cft_task_db
     placeholders:
-      dbPrimaryUserName: ${POSTGRES_USERNAME}
-      dbReplicaUserName: ${REPLICATION_USERNAME}
-      dbReaderUserName: ${DB_READER_USERNAME:postgres}
+      dbPrimaryUserName: POSTGRES_USERNAME from secrets
+      dbReplicaUserName: REPLICATION_USERNAME from secrets
+      dbReaderUserName: DB_READER_USERNAME from secrets
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o/jwks
+          jwk-set-uri: https://idam-web-public.aat.platform.hmcts.net/o/jwks
       client:
         provider:
           oidc:
-            issuer-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o
+            issuer-uri: https://idam-web-public.aat.platform.hmcts.net/o
         registration:
           oidc:
-            client-id: ${WA_IDAM_CLIENT_ID:wa}
-            client-secret: ${WA_IDAM_CLIENT_SECRET:something}
+            client-id: <client_id>
+            client-secret: <client_password>
 
 feign:
   client:
@@ -149,7 +149,7 @@ feign:
         loggerLevel: FULL
 
 launchDarkly:
-  sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
+  sdkKey: <sdkKey>
   connectionTimeout: 5000
   socketTimeout: 5000
 
