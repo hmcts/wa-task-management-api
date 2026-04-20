@@ -26,6 +26,7 @@ import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.violations.Violation;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
@@ -428,6 +429,14 @@ class ApplicationProblemControllerAdviceTest {
             .expectedType(URI.create("https://github.com/hmcts/wa-task-management-api/problem/generic-server-error"))
             .build();
 
+        GenericExceptionScenario assigneeConfigurationException = GenericExceptionScenario.builder()
+            .exception(new AssigneeConfigurationException(ErrorMessages.MULTIPLE_ASSIGNEE_RULE_ERROR.getDetail()))
+            .expectedTitle("Assignee Configuration Error")
+            .expectedStatus(INTERNAL_SERVER_ERROR)
+            .expectedType(
+                URI.create("https://github.com/hmcts/wa-task-management-api/problem/assignee-configuration-error"))
+            .build();
+
         GenericExceptionScenario taskNotFoundException = GenericExceptionScenario.builder()
             .exception(new TaskNotFoundException(ErrorMessages.TASK_NOT_FOUND_ERROR))
             .expectedTitle("Task Not Found Error")
@@ -447,6 +456,7 @@ class ApplicationProblemControllerAdviceTest {
             taskCancelException,
             databaseConflictException,
             genericServerErrorException,
+            assigneeConfigurationException,
             taskNotFoundException
         );
     }

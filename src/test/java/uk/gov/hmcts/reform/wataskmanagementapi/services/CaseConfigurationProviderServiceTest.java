@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateIntervalCalculator;
@@ -232,6 +233,40 @@ class CaseConfigurationProviderServiceTest {
 
         assertEquals(Optional.of("value1"), mappedData.getProcessVariables().get("name1"));
         assertEquals(Optional.empty(), mappedData.getProcessVariables().get("name2"));
+    }
+
+    @Test
+    void should_use_last_assignee_when_dmn_returns_multiple_assignee_rows() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", "{}"))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_2"))
+            ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of(), false);
+
+        assertEquals(Optional.of("assignee_2"), mappedData.getProcessVariables().get("assignee"));
+    }
+
+    @Test
+    void should_throw_exception_when_assignee_is_declared_as_comma_separated_value() {
+        String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = Map.of();
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", "{}"))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1,assignee_2"))
+            ));
+
+        assertThatThrownBy(() -> caseConfigurationProviderService.getCaseRelatedConfiguration(
+            someCaseId, taskAttributes, false))
+            .isInstanceOf(AssigneeConfigurationException.class)
+            .hasMessage("Assignee Configuration Error: Multiple assignee should be declared as separate rules.");
     }
 
     @Test

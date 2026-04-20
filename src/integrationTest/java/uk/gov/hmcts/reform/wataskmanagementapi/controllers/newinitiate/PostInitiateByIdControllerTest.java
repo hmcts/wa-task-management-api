@@ -1583,14 +1583,33 @@ class PostInitiateByIdControllerTest {
     }
 
     @Test
-    void should_assign_task_to_first_assignee_when_multiple_assignees_with_correct_roles() throws Exception {
-        String firstAssignee = "assignee1";
-        String secondAssignee = "assignee2";
-        String dmnAssignees = firstAssignee + "," + secondAssignee;
-        mockCaseDetailsAndConfigurationForAutoAssign(dmnAssignees);
+    void should_use_last_dmn_assignee_when_multiple_assignee_rows_are_returned() throws Exception {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn("PUBLIC");
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"),
+                                                       stringValue("Protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_2"))
+            ));
 
         when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
-            .thenReturn(List.of(
+            .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
                     stringValue("Read,Refer,Own"),
@@ -1602,41 +1621,34 @@ class PostInitiateByIdControllerTest {
                 )
             ));
 
-        when(roleAssignmentServiceApi.getRolesForUser(eq(dmnAssignees), any(), any()))
-            .thenReturn(new RoleAssignmentResource(emptyList()));
+        when(roleAssignmentServiceApi.getRolesForUser(eq("assignee_2"), any(), any()))
+            .thenReturn(new RoleAssignmentResource(List.of(
+                RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("assignee_2")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build()
+            )));
 
-        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
-            .thenReturn(ResponseEntity.ok()
-                            .header(TOTAL_RECORDS, "2")
-                            .body(new RoleAssignmentResource(List.of(
-                                RoleAssignment.builder()
-                                    .id("id-1")
-                                    .actorIdType(ActorIdType.IDAM)
-                                    .actorId(firstAssignee)
-                                    .roleName("tribunal-caseworker")
-                                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                    .grantType(GrantType.SPECIFIC)
-                                    .roleType(RoleType.ORGANISATION)
-                                    .classification(Classification.PUBLIC)
-                                    .authorisations(List.of("IA"))
-                                    .build(),
-                                RoleAssignment.builder()
-                                    .id("id-2")
-                                    .actorIdType(ActorIdType.IDAM)
-                                    .actorId(secondAssignee)
-                                    .roleName("tribunal-caseworker")
-                                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                    .grantType(GrantType.SPECIFIC)
-                                    .roleType(RoleType.ORGANISATION)
-                                    .classification(Classification.PUBLIC)
-                                    .authorisations(List.of("IA"))
-                                    .build()
-                            ))));
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
-            INITIATION,
-            createTaskAttributes("multipleAssigneeTestTask", "Multiple Assignee Test Task")
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "aTaskName",
+            TITLE.value(), "A test task",
+            CASE_ID.value(), "someCaseId",
+            DUE_DATE.value(), formattedDueDate
         );
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
         mockMvc.perform(post(ENDPOINT_BEING_TESTED)
                             .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -1647,9 +1659,90 @@ class PostInitiateByIdControllerTest {
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
                 jsonPath("$.task_id").value(taskId),
-                jsonPath("$.task_type").value("multipleAssigneeTestTask"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
                 jsonPath("$.state").value("ASSIGNED"),
-                jsonPath("$.assignee").value(firstAssignee)
+                jsonPath("$.assignee").value("assignee_2"),
+                jsonPath("$.auto_assigned").value(false)
+            );
+    }
+
+    @Test
+    void should_throw_error_when_multiple_assignees_from_a_single_row_are_returned() throws Exception {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn("PUBLIC");
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"),
+                                                       stringValue("Protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1,assignee_2"))
+            ));
+
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA"),
+                    integerValue(1),
+                    booleanValue(true),
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+        when(roleAssignmentServiceApi.getRolesForUser(eq("assignee_2"), any(), any()))
+            .thenReturn(new RoleAssignmentResource(List.of(
+                RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("assignee_2")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build()
+            )));
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "aTaskName",
+            TITLE.value(), "A test task",
+            CASE_ID.value(), "someCaseId",
+            DUE_DATE.value(), formattedDueDate
+        );
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+
+        mockMvc.perform(post(ENDPOINT_BEING_TESTED)
+                            .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                            .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(integrationTestUtils.asJsonString(req)))
+            .andExpectAll(
+                status().isInternalServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.detail").value("Assignee Configuration Error: "
+                                               + "Multiple assignee should be declared as separate rules.")
             );
     }
 

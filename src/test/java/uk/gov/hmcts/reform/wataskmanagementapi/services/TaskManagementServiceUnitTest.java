@@ -67,12 +67,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
@@ -2468,6 +2470,30 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 .when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(ServiceMandatoryFieldValidationException.class);
+        }
+
+        @Test
+        void should_propagate_assignee_configuration_exception_when_initiating_task() {
+            when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
+            doReturn(taskResource).when(cftTaskMapper).mapToTaskResource(eq(taskId), anyMap());
+
+            OffsetDateTime offsetDueDate = OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER);
+            when(taskResource.getTaskType()).thenReturn(A_TASK_TYPE);
+            when(taskResource.getTaskId()).thenReturn(taskId);
+            when(taskResource.getCaseId()).thenReturn("aCaseId");
+            when(taskResource.getTaskName()).thenReturn(A_TASK_NAME);
+            when(taskResource.getDueDateTime()).thenReturn(offsetDueDate);
+
+            doThrow(new AssigneeConfigurationException(ErrorMessages.MULTIPLE_ASSIGNEE_RULE_ERROR.getDetail()))
+                .when(configureTaskService).configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class));
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(AssigneeConfigurationException.class)
+                .hasMessage("Assignee Configuration Error: Multiple assignee should be declared as separate rules.");
+
+            verify(configureTaskService).configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class));
+            verifyNoInteractions(taskAutoAssignmentService, camundaService);
+            verify(cftTaskDatabaseService, never()).saveTask(any(TaskResource.class));
         }
 
         @Test
