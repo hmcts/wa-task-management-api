@@ -41,6 +41,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
@@ -908,6 +909,9 @@ public class TaskManagementService {
             log.error("Error when initiating task(id={})", taskId, e);
             throw new ServiceMandatoryFieldValidationException(MANDATORY_FIELD_MISSING_ERROR.getDetail()
                                                                    + taskId + e.getMessage(), e);
+        } catch (AssigneeConfigurationException e) {
+            log.error("Error when initiating task(id={})", taskId, e);
+            throw e;
         } catch (Exception e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);

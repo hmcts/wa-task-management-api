@@ -11,6 +11,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEv
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskConfigurationResults;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateTypeConfigurator;
 
 import java.util.Arrays;
@@ -22,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -95,6 +98,8 @@ public class CaseConfigurationProviderService {
             isReconfigureRequest,
             taskAttributes
         );
+        taskConfigurationDmnResultsAfterUpdate =
+            normalizeAssigneeConfigurationResults(taskConfigurationDmnResultsAfterUpdate);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -187,6 +192,36 @@ public class CaseConfigurationProviderService {
         ConfigurationDmnEvaluationResponse resp) {
         String additionalPropKey = resp.getName().getValue().replace(ADDITIONAL_PROPERTIES_PREFIX, "");
         return new ConfigurationDmnEvaluationResponse(CamundaValue.stringValue(additionalPropKey), resp.getValue());
+    }
+
+    private List<ConfigurationDmnEvaluationResponse> normalizeAssigneeConfigurationResults(
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
+        List<ConfigurationDmnEvaluationResponse> assigneeResponses = taskConfigurationDmnResults.stream()
+            .filter(response -> ASSIGNEE.value().equals(response.getName().getValue()))
+            .toList();
+
+        assigneeResponses.stream()
+            .map(ConfigurationDmnEvaluationResponse::getValue)
+            .filter(Objects::nonNull)
+            .map(CamundaValue::getValue)
+            .filter(Objects::nonNull)
+            .filter(value -> value.contains(","))
+            .findFirst()
+            .ifPresent(value -> {
+                throw new AssigneeConfigurationException(ErrorMessages.MULTIPLE_ASSIGNEE_RULE_ERROR.getDetail());
+            });
+
+        Optional<ConfigurationDmnEvaluationResponse> lastAssigneeResponse = assigneeResponses.stream()
+            .reduce((first, second) -> second);
+
+        if (lastAssigneeResponse.isEmpty()) {
+            return taskConfigurationDmnResults;
+        }
+
+        return taskConfigurationDmnResults.stream()
+            .filter(response -> !ASSIGNEE.value().equals(response.getName().getValue())
+                || response == lastAssigneeResponse.get())
+            .toList();
     }
 
     private boolean filterBasedOnCaseAccessCategory(CaseDetails caseDetails,
