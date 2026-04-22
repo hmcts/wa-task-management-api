@@ -1,0 +1,128 @@
+package uk.gov.hmcts.reform.wataskmanagementapi.poc.controller;
+
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController;
+import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.api.TasksApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.mapper.GetTasksResponseMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTaskResponseItem;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+
+import java.util.List;
+
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
+
+@RequiredArgsConstructor
+@Slf4j
+@RestController
+
+public class TaskPocController extends BaseController implements TasksApi {
+
+    private final TaskManagementService taskManagementService;
+    private final ClientAccessControlService clientAccessControlService;
+    private final GetTasksResponseMapper responseMapper;
+
+    @Override
+    public ResponseEntity<GetTasksResponse> getTasks(String serviceAuthorization,
+                                                     String caseId,
+                                                     List<String> taskTypes) {
+        checkExclusiveAccess(serviceAuthorization);
+        validateGetTasksFilters(caseId, taskTypes);
+
+        List<TaskResource> tasks = taskManagementService.getTasks(caseId, taskTypes);
+        List<GetTaskResponseItem> taskItems = responseMapper.mapToGetTaskItems(tasks);
+
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(new GetTasksResponse(taskItems, (long) taskItems.size()));
+    }
+
+    @Override
+    @PostMapping(value = "/tasks", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource> createTask(
+        @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
+        @Parameter(name = "CreateTaskRequest", description = "", required = true) @RequestBody CreateTaskRequest createTaskRequest
+    ) {
+        checkExclusiveAccess(serviceAuthorization);
+        TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
+        taskManagementService.updateTaskIndex(savedTask.getTaskId());
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .cacheControl(CacheControl.noCache())
+            .body(savedTask);
+    }
+
+    @PostMapping(value = "/tasks/terminate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> terminateTasks(
+        @NotNull @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
+        @Parameter(name = "TerminateTasksRequest", description = "", required = true) @Valid @RequestBody TerminateTasksRequest terminateTasksRequest
+    ) {
+        checkExclusiveAccess(serviceAuthorization);
+
+        taskManagementService.terminateTasks(terminateTasksRequest);
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
+    }
+
+    @PutMapping(value = "/tasks/reconfigure", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<TaskReconfigureResponse> reconfigureTasks(
+        @NotNull @Parameter(name = "ServiceAuthorization", description = "Service-to-service authorization token", required = true, in = ParameterIn.HEADER) @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
+        @Parameter(name = "TaskReconfigureRequest", description = "", required = true) @Valid @RequestBody TaskReconfigureRequest taskReconfigureRequest
+    ) {
+        checkExclusiveAccess(serviceAuthorization);
+        TaskReconfigureResponse response = taskManagementService.reconfigureTasks(taskReconfigureRequest);
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(response);
+
+    }
+
+    private void checkExclusiveAccess(String serviceAuthorization) {
+        if (!clientAccessControlService.hasExclusiveAccess(serviceAuthorization)) {
+            throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
+    }
+
+    private void validateGetTasksFilters(String caseId, List<String> taskTypes) {
+        if (caseId == null && taskTypes == null) {
+            throw new InvalidRequestException("At least one query/filter parameter must be included in the request.");
+        }
+
+        if (caseId != null && StringUtils.isBlank(caseId)) {
+            throw new InvalidRequestException("case_id cannot be blank");
+        }
+
+        if (taskTypes != null && taskTypes.isEmpty()) {
+            throw new InvalidRequestException("task_types cannot be empty");
+        }
+
+        if (taskTypes != null && taskTypes.stream().anyMatch(StringUtils::isBlank)) {
+            throw new InvalidRequestException("task_types list cannot contain a blank item");
+        }
+    }
+
+}
+
