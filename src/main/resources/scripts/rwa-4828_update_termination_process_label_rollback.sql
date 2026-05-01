@@ -11,10 +11,10 @@ select count(*) from cft_task_db.cft_task_db.automated_cancelled_tasks_ids_backu
 select count(*) from cft_task_db.cft_task_db.manual_cancelled_tasks_ids_backup;
 -- more than 0
 
-update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Manual' where task_id in (select task_id from cft_task_db.cft_task_db.manual_completed_tasks_ids_backup);
+update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Manual', outcome = null where task_id in (select task_id from cft_task_db.cft_task_db.manual_completed_tasks_ids_backup);
 -- Updated Rows greater than 0
 
-update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Automated' where task_id in (select task_id from cft_task_db.cft_task_db.automated_completed_tasks_ids_backup);
+update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Automated', outcome = null  where task_id in (select task_id from cft_task_db.cft_task_db.automated_completed_tasks_ids_backup);
 -- Updated Rows greater than 0
 
 update cft_task_db.cft_task_db.reportable_task set termination_process = null, termination_process_label= null where task_id in (select task_id from cft_task_db.cft_task_db.automated_cancelled_tasks_ids_backup);

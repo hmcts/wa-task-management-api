@@ -38,9 +38,9 @@ select count(*) from cft_task_db.cft_task_db.automated_cancelled_tasks_ids_backu
 
 select count(*) from cft_task_db.cft_task_db.manual_cancelled_tasks_ids_backup;
 
-update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Automated Completion' where  termination_process_label = 'Automated' and termination_process = 'EXUI_CASE_EVENT_COMPLETION';
+update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Automated Completion', outcome = 'Completed' where  termination_process_label = 'Automated' and termination_process = 'EXUI_CASE_EVENT_COMPLETION';
 
-update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Manual Completion' where  termination_process_label = 'Manual' and termination_process = 'EXUI_USER_COMPLETION';
+update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Manual Completion', outcome = 'Completed'  where  termination_process_label = 'Manual' and termination_process = 'EXUI_USER_COMPLETION';
 
 update cft_task_db.cft_task_db.reportable_task set termination_process_label = 'Automated Cancellation', termination_process = 'EXUI_CASE_EVENT_CANCELLATION' where final_state_label is null and termination_process is null and agent_name = 'aeabbbcb-4909-4346-acd5-4e95df4357a3' and outcome = 'Cancelled';
 
