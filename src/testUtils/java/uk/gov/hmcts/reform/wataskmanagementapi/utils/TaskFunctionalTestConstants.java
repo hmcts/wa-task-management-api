@@ -17,6 +17,7 @@ public final class TaskFunctionalTestConstants {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     public static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
+    public static final String TASK_INITIATION_PUSH_ENDPOINT = "task/{task-id}/initiation-push";
     public static final String TASK_GET_ENDPOINT = "task/{task-id}";
     public static final String TASK_GET_ROLES_ENDPOINT = "task/{task-id}/roles";
     public static final String WA_JURISDICTION = "WA";

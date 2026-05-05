@@ -64,6 +64,7 @@ public class SecurityConfiguration {
                 .requestMatchers("/task-configuration/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
                 .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
+                .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation-push").permitAll()
                 .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/notes").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/task/{\\\\d+}").permitAll()
                 .anyRequest().authenticated()
