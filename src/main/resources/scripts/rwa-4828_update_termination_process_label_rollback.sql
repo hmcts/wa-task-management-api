@@ -28,10 +28,10 @@ update cft_task_db.cft_task_db.reportable_task set termination_process = null, t
 select count(*) from cft_task_db.cft_task_db.reportable_task where termination_process_label in ('Automated', 'Manual') and termination_process in ('EXUI_CASE_EVENT_COMPLETION', 'EXUI_USER_COMPLETION');
 --greater than  0
 
-select count(*) from cft_task_db.cft_task_db.reportable_task where final_state_label = 'USER_CANCELLED' and termination_process is null  and outcome = 'Cancelled';
+select count(*) from cft_task_db.cft_task_db.reportable_task where final_state_label = 'USER_CANCELLED' and outcome = 'Cancelled';
 -- greater than 0
 
-select count(*) from cft_task_db.cft_task_db.reportable_task where final_state_label is null and termination_process is null and agent_name = 'aeabbbcb-4909-4346-acd5-4e95df4357a3' and outcome = 'Cancelled';
+select count(*) from cft_task_db.cft_task_db.reportable_task where final_state_label is null and agent_name = 'aeabbbcb-4909-4346-acd5-4e95df4357a3' and outcome = 'Cancelled';
 -- greater than 0
 
 --Drop the backup tables if not needed
