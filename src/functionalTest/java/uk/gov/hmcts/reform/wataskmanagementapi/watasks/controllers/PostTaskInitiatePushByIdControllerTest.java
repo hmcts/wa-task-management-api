@@ -78,8 +78,8 @@ public class PostTaskInitiatePushByIdControllerTest {
 
         pushResponse.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
-            .body("task.id", equalTo(taskVariables.getTaskId()))
-            .body("task.task_state", equalTo("unassigned"));
+            .body("task_id", equalTo(taskVariables.getTaskId()))
+            .body("state", equalTo("UNASSIGNED"));
 
         Response response = taskFunctionalTestsApiUtils.getRestApiActions().get(
             TASK_GET_ENDPOINT,
