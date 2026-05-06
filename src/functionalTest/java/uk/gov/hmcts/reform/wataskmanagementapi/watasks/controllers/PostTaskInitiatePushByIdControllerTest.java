@@ -49,12 +49,27 @@ public class PostTaskInitiatePushByIdControllerTest {
             );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
-        variables.put(CamundaVariableDefinition.TASK_TYPE.value(), new CamundaVariable(taskVariables.getTaskType(), "String"));
-        variables.put(CamundaVariableDefinition.TASK_ID.value(), new CamundaVariable(taskVariables.getTaskType(), "String"));
-        variables.put(CamundaVariableDefinition.CASE_ID.value(), new CamundaVariable(taskVariables.getCaseId(), "String"));
-        variables.put(CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(), new CamundaVariable("PUBLIC", "String"));
+        variables.put(
+            CamundaVariableDefinition.TASK_TYPE.value(),
+            new CamundaVariable(taskVariables.getTaskType(), "String")
+        );
+        variables.put(
+            CamundaVariableDefinition.TASK_ID.value(),
+            new CamundaVariable(taskVariables.getTaskType(), "String")
+        );
+        variables.put(
+            CamundaVariableDefinition.CASE_ID.value(),
+            new CamundaVariable(taskVariables.getCaseId(), "String")
+        );
+        variables.put(
+            CamundaVariableDefinition.SECURITY_CLASSIFICATION.value(),
+            new CamundaVariable("PUBLIC", "String")
+        );
         variables.put(CamundaVariableDefinition.HAS_WARNINGS.value(), new CamundaVariable(false, "Boolean"));
-        variables.put(CamundaVariableDefinition.CFT_TASK_STATE.value(), new CamundaVariable("unconfigured", "String"));
+        variables.put(
+            CamundaVariableDefinition.CFT_TASK_STATE.value(),
+            new CamundaVariable("unconfigured", "String")
+        );
         variables.put("__processCategory__Protection", new CamundaVariable(true, "Boolean"));
 
         ZonedDateTime created = ZonedDateTime.now();

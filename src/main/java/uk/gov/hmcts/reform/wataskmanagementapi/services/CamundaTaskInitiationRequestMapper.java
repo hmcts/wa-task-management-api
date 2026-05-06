@@ -63,6 +63,14 @@ public class CamundaTaskInitiationRequestMapper {
         return new InitiateTaskRequestMap(INITIATION, attributes);
     }
 
+    private <T> Optional<T> map(CamundaVariable variable, Class<T> type) {
+        if (variable == null) {
+            return Optional.empty();
+        }
+        T value = objectMapper.convertValue(variable.getValue(), type);
+        return Optional.ofNullable(value);
+    }
+
     private String getType(String taskId, Map<String, CamundaVariable> variables) {
         String type = getVariableValue(variables.get(TASK_TYPE.value()), String.class, null);
         if (type != null) {
@@ -93,13 +101,5 @@ public class CamundaTaskInitiationRequestMapper {
     private <T> T getVariableValue(CamundaVariable variable, Class<T> type, T defaultValue) {
         Optional<T> value = map(variable, type);
         return value.orElse(defaultValue);
-    }
-
-    private <T> Optional<T> map(CamundaVariable variable, Class<T> type) {
-        if (variable == null) {
-            return Optional.empty();
-        }
-        T value = objectMapper.convertValue(variable.getValue(), type);
-        return Optional.ofNullable(value);
     }
 }

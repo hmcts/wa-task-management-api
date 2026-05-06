@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTime;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 
 import java.time.ZonedDateTime;
 import java.util.Map;

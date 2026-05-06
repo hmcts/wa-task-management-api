@@ -23,7 +23,9 @@ public class TaskInitiationPushService {
     }
 
     public TaskResource initiateTask(String taskId, CamundaTaskInitiationRequest request) {
-        CamundaVariable cftTaskState = request.getVariables() == null ? null : request.getVariables().get(CFT_TASK_STATE.value());
+        CamundaVariable cftTaskState = request.getVariables() == null
+            ? null
+            : request.getVariables().get(CFT_TASK_STATE.value());
         String cftTaskStateValue = cftTaskState == null || cftTaskState.getValue() == null
             ? null
             : cftTaskState.getValue().toString();
