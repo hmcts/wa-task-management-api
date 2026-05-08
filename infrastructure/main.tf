@@ -80,7 +80,7 @@ module "wa_task_management_api_database_flexible" {
     },
     {
       name  = "work_mem"
-      value = "8192"
+      value = "16384"
     }
   ]
 
