@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TerminationProcessHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
@@ -72,6 +73,8 @@ class TerminateTaskTest extends CamundaHelpers {
     private UserInfo userInfo;
     @Mock
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    @Mock
+    TerminationProcessHelper terminationProcessHelper;
 
     @BeforeEach
     void setUp() {
@@ -89,7 +92,8 @@ class TerminateTaskTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator);
+            taskMandatoryFieldsValidator,
+            terminationProcessHelper);
 
 
         taskId = UUID.randomUUID().toString();
@@ -158,7 +162,7 @@ class TerminateTaskTest extends CamundaHelpers {
             assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
             assertEquals("cancelled", taskResource.getTerminationReason());
             assertEquals(IDAM_SYSTEM_USER, taskResource.getLastUpdatedUser());
-            assertEquals(TaskAction.AUTO_CANCEL.getValue(), taskResource.getLastUpdatedAction());
+            assertEquals(TaskAction.TERMINATE.getValue(), taskResource.getLastUpdatedAction());
             assertNotNull(taskResource.getLastUpdatedTimestamp());
             verify(camundaService, times(1)).deleteCftTaskState(taskId);
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);

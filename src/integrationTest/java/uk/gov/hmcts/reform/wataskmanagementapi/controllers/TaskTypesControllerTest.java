@@ -4,35 +4,39 @@ import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ControllerTestStubs;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -48,13 +52,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles({"integration"})
+@IntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
+class TaskTypesControllerTest {
     private static final String ENDPOINT_PATH = "/task/task-types";
     private static final String DMN_NAME = "Task Types DMN";
 
-    @MockitoBean
+    @Autowired
     private IdamWebApi idamWebApi;
 
     @MockitoBean
@@ -72,19 +78,31 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private DmnEvaluationService dmnEvaluationService;
 
+    @Autowired
+    protected MockMvc mockMvc;
+
     private ServiceMocks mockServices;
     private UserInfo mockedUserInfo;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        mockedUserInfo = UserInfo.builder().uid(ServiceMocks.IDAM_USER_ID).name("someUser").build();
-        lenient().when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        lenient().when(idamWebApi.userInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
             roleAssignmentServiceApi
+        );
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        mockedUserInfo = ControllerTestStubs.stubUserInfo(
+            idamWebApi,
+            serviceAuthTokenGenerator,
+            IDAM_AUTHORIZATION_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            ServiceMocks.IDAM_USER_ID,
+            "someUser"
         );
     }
 
@@ -259,4 +277,3 @@ class TaskTypesControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 }
-

@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 
@@ -18,10 +17,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.CALENDAR_URI;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DateCalculator.DEFAULT_DATE;
 
-@SpringBootTest
-@ActiveProfiles({"integration"})
+@IntegrationTest
 public class DateTypeConfiguratorForReconfigurationTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
@@ -535,7 +534,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
@@ -630,7 +629,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
             .build();
         ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(canConfigurable))
             .build();
 
@@ -810,7 +809,7 @@ public class DateTypeConfiguratorForReconfigurationTest {
 
         var nextHearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("nextHearingDatePreDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
         var nextHearingDatePreDateNonWorkingDaysOfWeek = ConfigurationDmnEvaluationResponse.builder()

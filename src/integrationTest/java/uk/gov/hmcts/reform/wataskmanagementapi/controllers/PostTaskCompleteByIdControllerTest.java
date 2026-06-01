@@ -1,19 +1,28 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import feign.FeignException;
+import feign.Request;
+import feign.Response;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
@@ -26,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -36,24 +46,32 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -73,13 +91,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID_GP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@IntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("checkstyle:LineLength")
-class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
+class PostTaskCompleteByIdControllerTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
     private static String ENDPOINT_BEING_TESTED;
-    @MockitoBean
+    @Autowired
     private IdamWebApi idamWebApi;
     @MockitoBean
     private CamundaServiceApi camundaServiceApi;
@@ -101,17 +122,33 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     private String taskId;
     @MockitoBean
     private AccessControlService accessControlService;
+    @Autowired
+    protected MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     @MockitoBean
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
+        mockServices = new ServiceMocks(
+            idamWebApi,
+            serviceAuthorisationApi,
+            camundaServiceApi,
+            roleAssignmentServiceApi
+        );
+    }
+
+    @BeforeEach
+    void beforeEach() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
                                                                        anyString(), anyString())).thenReturn(false);
+
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         lenient().when(mockedUserInfo.getUid())
@@ -119,12 +156,66 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         lenient().when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
 
-        mockServices = new ServiceMocks(
-            idamWebApi,
-            serviceAuthorisationApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(false);
+    }
+
+    @Test
+    void should_not_update_cft_db_when_camunda_complete_api_fails() throws Exception {
+        mockServices.mockUserInfo();
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+            .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
+            .roleAssignmentAttribute(
+                RoleAssignmentAttribute.builder()
+                    .jurisdiction("IA")
+                    .caseType("Asylum")
+                    .caseId("completeCaseId1")
+                    .build()
+            )
+            .build();
+        when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            .thenReturn(true);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
+
+        TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
+            false, true, true, false, false, false,
+            new String[]{}, 1, false,
+            TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
+        insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
+
+        when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
+            .thenReturn(accessControlResponse);
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+
+        doNothing().when(camundaServiceApi).addLocalVariablesToTask(anyString(), anyString(), any());
+
+        doThrow(feignException(502))
+            .when(camundaServiceApi)
+            .completeTask(anyString(), eq(taskId), any());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+        ).andExpect(status().is5xxServerError());
+
+        verify(camundaServiceApi, times(3)).completeTask(anyString(), eq(taskId), any());
+
+        Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        assertThat(taskResource).isPresent();
+        assertThat(taskResource.get().getState()).isNotEqualTo(COMPLETED);
+        assertThat(taskResource.get().getState()).isEqualTo(ASSIGNED);
     }
 
     @Nested
@@ -156,7 +247,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -186,7 +277,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .content(asJsonString(request))
+                        .content(integrationTestUtils.asJsonString(request))
                 )
                 .andExpect(status().isNoContent());
 
@@ -217,7 +308,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -247,7 +338,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -269,7 +360,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .content(asJsonString(request))
+                        .content(integrationTestUtils.asJsonString(request))
                 )
                 .andExpectAll(
                     status().is4xxClientError(),
@@ -300,7 +391,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -330,7 +421,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .content(asJsonString(request))
+                        .content(integrationTestUtils.asJsonString(request))
                 )
                 .andExpect(status().isNoContent());
 
@@ -361,7 +452,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -391,7 +482,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .content(asJsonString(request))
+                        .content(integrationTestUtils.asJsonString(request))
                 )
                 .andExpect(status().isNoContent());
 
@@ -442,7 +533,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(APPLICATION_JSON_VALUE)
-                    .content(asJsonString(request))
+                    .content(integrationTestUtils.asJsonString(request))
             ).andExpectAll(
                 status().is4xxClientError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -471,7 +562,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -504,7 +595,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(APPLICATION_JSON_VALUE)
-                    .content(asJsonString(request))
+                    .content(integrationTestUtils.asJsonString(request))
             ).andExpectAll(
                 status().isNoContent()
             );
@@ -525,14 +616,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     @DisplayName("with no privileged access")
     class CompleteTaskWithNoPrivilegedAccess {
 
-        @BeforeEach
-        void beforeEach() {
-
-            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
-                .thenReturn(false);
-
-        }
-
         @Test
         void should_succeed_and_return_204_and_update_cft_task_state_with_grant_type_standard() throws Exception {
 
@@ -550,7 +633,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -619,7 +702,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -663,7 +746,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             if (completionProcess == null || completionProcess.isBlank()) {
                 assertNull(taskResource.get().getTerminationProcess());
             } else {
-                assertEquals(TerminationProcess.fromValue(completionProcess), taskResource.get().getTerminationProcess());
+                assertEquals(TerminationProcess.fromValue(completionProcess).get(),
+                             taskResource.get().getTerminationProcess());
             }
         }
 
@@ -692,7 +776,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -754,7 +838,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             TaskRoleResource taskRoleResource = new TaskRoleResource(
                 TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
@@ -784,7 +868,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -835,7 +919,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -894,7 +978,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -953,7 +1037,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -1029,7 +1113,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -1136,7 +1220,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -1192,7 +1276,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -1222,7 +1306,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(APPLICATION_JSON_VALUE)
-                        .content(asJsonString(request))
+                        .content(integrationTestUtils.asJsonString(request))
                 )
                 .andExpectAll(
                     status().is4xxClientError(),
@@ -1241,14 +1325,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Nested
     @DisplayName("without privileged access")
     class CompleteTaskWithoutPrivilegedAccess {
-
-        @BeforeEach
-        void beforeEach() {
-
-            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
-                .thenReturn(false);
-
-        }
 
         @ParameterizedTest
         @CsvSource(value = {
@@ -1282,7 +1358,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -1353,7 +1429,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 )
                 .build();
 
-            createRoleAssignment(roleAssignments, roleAssignmentRequest);
+            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
             RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -1439,5 +1515,23 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setTaskRoleResources(taskRoleResourceSet);
         cftTaskDatabaseService.saveTask(taskResource);
     }
-}
 
+    private static FeignException feignException(int status) {
+        Request request = Request.create(
+            Request.HttpMethod.POST,
+            "/task/complete",
+            Collections.emptyMap(),
+            new byte[0],
+            StandardCharsets.UTF_8,
+            null
+        );
+
+        Response response = Response.builder()
+            .status(status)
+            .request(request)
+            .headers(Collections.emptyMap())
+            .build();
+
+        return FeignException.errorStatus("camunda", response);
+    }
+}

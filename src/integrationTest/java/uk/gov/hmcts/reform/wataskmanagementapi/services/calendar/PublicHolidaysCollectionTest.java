@@ -4,12 +4,11 @@ import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.testing.FakeTicker;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
@@ -21,12 +20,13 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.CALENDAR_URI;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.INVALID_CALENDAR_URI;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.OVERRIDE_CALENDAR_URI;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.notFoundUri;
 
-@SpringBootTest
-@ActiveProfiles({"integration"})
+@IntegrationTest
 class PublicHolidaysCollectionTest {
-
-    public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
 
     @Autowired
     private PublicHolidaysCollection publicHolidaysCollection;
@@ -58,7 +58,7 @@ class PublicHolidaysCollectionTest {
 
         List<String> twoUris = List.of(
             CALENDAR_URI,
-            "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json"
+            OVERRIDE_CALENDAR_URI
         );
         Set<LocalDate> twoCalendarResult = publicHolidaysCollection.getPublicHolidays(twoUris);
         assertThat(twoCalendarResult.contains(LocalDate.of(2026, 05, 25))).isFalse();
@@ -74,7 +74,7 @@ class PublicHolidaysCollectionTest {
 
     @Test
     public void should_throw_calendar_resource_not_found_exception() {
-        String wrongUri = "https://www.gov.uk/bank-holidays/not-a-calendar.json";
+        String wrongUri = notFoundUri();
         assertThatThrownBy(() -> publicHolidaysCollection.getPublicHolidays(List.of(wrongUri)))
             .isInstanceOf(CalendarResourceNotFoundException.class)
             .hasMessage("Could not find calendar resource " + wrongUri);
@@ -82,10 +82,9 @@ class PublicHolidaysCollectionTest {
 
     @Test
     public void should_throw_resource_invalid_exception() {
-        String uri = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/895bb18417be056175ec64727e6d5fd39289d489/src/integrationTest/resources/calendars/invalid-calendar.json";
-        assertThatThrownBy(() -> publicHolidaysCollection.getPublicHolidays(List.of(uri)))
+        assertThatThrownBy(() -> publicHolidaysCollection.getPublicHolidays(List.of(INVALID_CALENDAR_URI)))
             .isInstanceOf(CalendarResourceInvalidException.class)
-            .hasMessage("Could not read calendar resource " + uri);
+            .hasMessage("Could not read calendar resource " + INVALID_CALENDAR_URI);
     }
 
     @Test

@@ -55,7 +55,9 @@ public enum CamundaVariableDefinition {
     PRIORITY_DATE("priorityDate", new TypeReference<String>() {}),
     ROLE_ASSIGNMENT_ID("roleAssignmentId", new TypeReference<String>() {}),
     NOTES("notes", new TypeReference<String>() {}),
-    ROLES("roles", new TypeReference<String>() {});
+    ROLES("roles", new TypeReference<String>() {}),
+
+    CANCELLATION_PROCESS("cancellationProcess", new TypeReference<String>() {});
 
 
     private final String value;

@@ -1,67 +1,69 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.opentest4j.AssertionFailedError;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.JdbcDatabaseContainer;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReplicaTaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.TCExtendedContainerDatabaseDriver;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
-public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
-    protected static final String TEST_REPLICA_DB_USER = "repl_user";
-    protected static final String TEST_REPLICA_DB_PASS = "repl_user";
+public class ReplicaIntegrationTestUtils {
+    public static final String TEST_REPLICA_DB_USER = "repl_user";
+    public static final String TEST_REPLICA_DB_PASS = "repl_user";
 
-    protected static final String TEST_PRIMARY_DB_USER = "wa_user";
-    protected static final String TEST_PRIMARY_DB_PASS = "wa_password";
-    protected static final String TEST_PUBLICATION_URL = "postgresql://cft_task_db:5432";
-    protected static final String ENVIRONMENT = "local-arm-arch";
+    public static final String TEST_PRIMARY_DB_USER = "wa_user";
+    public static final String TEST_PRIMARY_DB_PASS = "wa_password";
+    public static final String TEST_PUBLICATION_URL = "postgresql://cft_task_db:5432";
+    public static final String ENVIRONMENT = "local-arm-arch";
 
-    @Autowired
     protected TaskResourceRepository taskResourceRepository;
-
-    @Autowired
-    protected ReplicaTaskResourceRepository replicaTaskResourceRepository;
-
-    @Autowired
     protected TaskHistoryResourceRepository taskHistoryResourceRepository;
-    @Autowired
     protected ReportableTaskRepository reportableTaskRepository;
-    @Autowired
     protected TaskAssignmentsRepository taskAssignmentsRepository;
-
-    @Value("${spring.datasource.jdbcUrl}")
-    protected String primaryJdbcUrl;
-
-    @Value("${spring.datasource-replica.jdbcUrl}")
-    private String replicaJdbcUrl;
-
-    protected MIReportingService miReportingServiceForTest;
-
-    protected SubscriptionCreator subscriptionCreatorForTest;
-
-    @Autowired
     protected MIReportingService miReportingService;
 
+    private final String primaryJdbcUrl;
 
+    private final String replicaJdbcUrl;
+
+    @Getter
+    protected MIReportingService miReportingServiceForTest;
+
+    @Getter
+    protected SubscriptionCreator subscriptionCreatorForTest;
+
+    @Getter
     protected JdbcDatabaseContainer container;
+    @Getter
     protected JdbcDatabaseContainer containerReplica;
 
-    @BeforeAll
-    void setUp() {
+    public ReplicaIntegrationTestUtils(
+        TaskResourceRepository taskResourceRepository,
+        TaskHistoryResourceRepository taskHistoryResourceRepository,
+        ReportableTaskRepository reportableTaskRepository,
+        TaskAssignmentsRepository taskAssignmentsRepository,
+        MIReportingService miReportingService,
+        String primaryJdbcUrl,
+        String replicaJdbcUrl
+    ) {
+        this.taskResourceRepository = taskResourceRepository;
+        this.taskHistoryResourceRepository = taskHistoryResourceRepository;
+        this.reportableTaskRepository = reportableTaskRepository;
+        this.taskAssignmentsRepository = taskAssignmentsRepository;
+        this.miReportingService = miReportingService;
+        this.primaryJdbcUrl = primaryJdbcUrl;
+        this.replicaJdbcUrl = replicaJdbcUrl;
+    }
+
+    public void setUp() {
         //Logical Replication is a pre-requisite for all tests here
         waitForReplication();
 
@@ -86,25 +88,19 @@ public abstract class ReplicaBaseTest extends SpringBootIntegrationBaseTest {
         Testcontainers.exposeHostPorts(container.getFirstMappedPort(), containerReplica.getFirstMappedPort());
 
         log.info("Primary DB port: {}, Replica DB port: {}",
-            container.getFirstMappedPort(),
-            containerReplica.getFirstMappedPort());
+                 container.getFirstMappedPort(),
+                 containerReplica.getFirstMappedPort());
 
     }
 
     private boolean waitForReplication() {
 
-        await().ignoreException(AssertionFailedError.class)
-            .atLeast(5, SECONDS)
-            .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
-            .until(() -> miReportingService.hasReplicationStarted());
+        await().until(() -> miReportingService.hasReplicationStarted());
         return true;
     }
 
-    @AfterAll
-    void tearDown() {
+    public void tearDown() {
         container.stop();
         containerReplica.stop();
     }
-
 }

@@ -27,6 +27,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_DISABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_DISABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_ENABLED;
@@ -186,6 +188,17 @@ public class TaskFunctionalTestsUserUtils {
                 userWithSeniorTribCaseworker.getHeaders(), "senior-tribunal-caseworker");
         testUsersMap.put(CASE_WORKER_WITH_SENIOR_TRIB_ROLE, userWithSeniorTribCaseworker);
 
+        TestAuthenticationCredentials caseWorkerWithCancellationEnabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-cancellation-process-enabled-");
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            caseWorkerWithCancellationEnabled.getHeaders());
+        testUsersMap.put(USER_WITH_CANCELLATION_ENABLED, caseWorkerWithCancellationEnabled);
+
+        TestAuthenticationCredentials caseWorkerWithCancellationDisabled =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-cancellation-process-disabled-");
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            caseWorkerWithCancellationDisabled.getHeaders());
+        testUsersMap.put(USER_WITH_CANCELLATION_DISABLED, caseWorkerWithCancellationDisabled);
 
     }
 

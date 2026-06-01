@@ -35,14 +35,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.createRoleAssignment;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.CALENDAR_URI;
 
 public class TaskTestUtils {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
+
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     private final String profile;
 
@@ -83,7 +85,7 @@ public class TaskTestUtils {
             )
             .build();
 
-        createRoleAssignment(assignerRoles, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(assignerRoles, roleAssignmentRequest);
 
         return taskId;
     }
@@ -168,7 +170,7 @@ public class TaskTestUtils {
         ConfigurationDmnEvaluationResponse hearingDatePreDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse
             .builder()
             .name(CamundaValue.stringValue("hearingDatePreDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 
@@ -207,7 +209,7 @@ public class TaskTestUtils {
 
         ConfigurationDmnEvaluationResponse dueDateNonWorkingCalendar = ConfigurationDmnEvaluationResponse.builder()
             .name(CamundaValue.stringValue("dueDateNonWorkingCalendar"))
-            .value(CamundaValue.stringValue("https://www.gov.uk/bank-holidays/england-and-wales.json"))
+            .value(CamundaValue.stringValue(CALENDAR_URI))
             .canReconfigure(CamundaValue.booleanValue(true))
             .build();
 

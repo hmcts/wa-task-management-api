@@ -172,7 +172,6 @@ public class PostTaskCompleteByIdControllerTest {
             result.then().assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
             String completionProcess = data[0];
-            String terminationProcess = data[1];
             result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
                 taskId,
@@ -182,13 +181,25 @@ public class PostTaskCompleteByIdControllerTest {
             result.then().assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
 
+            TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+                new TerminateInfo("completed")
+            );
+            result = taskFunctionalTestsApiUtils.getRestApiActions().delete(
+                "/task/{task-id}",
+                taskId,
+                terminateTaskRequest,
+                caseWorkerWithCompletionEnabled.getHeaders()
+            );
+
+            result.then().assertThat()
+                .statusCode(HttpStatus.NO_CONTENT.value());
+            String terminationProcess = data[1];
+
             taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
                 taskId, "termination_process", terminationProcess, caseWorkerWithCompletionEnabled.getHeaders()
             );
-            taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
-                taskVariables.getProcessInstanceId(), "taskState", "completed");
             taskFunctionalTestsApiUtils.getAssertions().taskStateWasUpdatedInDatabase(
-                taskId, "completed", caseWorkerWithCompletionEnabled.getHeaders());
+                taskId, "terminated", caseWorkerWithCompletionEnabled.getHeaders());
 
             taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
         }
@@ -225,6 +236,7 @@ public class PostTaskCompleteByIdControllerTest {
                 .statusCode(HttpStatus.NO_CONTENT.value());
             String completionProcess = data[0];
             String terminationProcess = data[1];
+            log.info("caseWorkerWithCompletionDisabled headers: {}", caseWorkerWithCompletionDisabled.getHeaders());
             result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
                 taskId,

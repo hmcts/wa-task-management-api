@@ -225,6 +225,27 @@ public class Common {
 
     }
 
+    public TestVariables setupWATaskWithCancellationProcessAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        Map<String, CamundaValue<?>> processVariables =
+            given.createDefaultTaskVariables(caseId, WA_JURISDICTION,
+                                             WA_CASE_TYPE, taskType, DEFAULT_TASK_NAME, additionalProperties);
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType,
+                                 DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
+
+    }
+
     public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType, String taskName) {
 
         String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
@@ -494,6 +515,44 @@ public class Common {
             GrantType.SPECIFIC.name(),
             RoleCategory.LEGAL_OPERATIONS.name(),
             toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupCaseManagerForSpecificAccessWithAuthorizations(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
+
+        log.info("Creating Case manager Case Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "case-manager",
+            toJsonString(Map.of(
+                "caseId", caseId,
+                "caseType", caseType,
+                "jurisdiction", jurisdiction,
+                "substantive", "Y"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of("testAuth")),
             RoleType.CASE.name(),
             Classification.PUBLIC.name(),
             "staff-organisational-role-mapping",

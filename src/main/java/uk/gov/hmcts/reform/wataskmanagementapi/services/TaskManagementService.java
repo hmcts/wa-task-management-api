@@ -41,6 +41,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
@@ -83,13 +84,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN_CLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_CANCELLATION_PROCESS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController.REQ_PARAM_COMPLETION_PROCESS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.AUTO_CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE_EXCEPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
@@ -120,6 +117,9 @@ public class TaskManagementService {
     private final IdamTokenGenerator idamTokenGenerator;
     private final CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
     private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+
+    private final TerminationProcessHelper terminationProcessHelper;
+
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -133,7 +133,8 @@ public class TaskManagementService {
                                  EntityManager entityManager,
                                  IdamTokenGenerator idamTokenGenerator,
                                  CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService,
-                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
+                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator,
+                                 TerminationProcessHelper terminationProcessHelper) {
         this.camundaService = camundaService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
@@ -144,6 +145,7 @@ public class TaskManagementService {
         this.idamTokenGenerator = idamTokenGenerator;
         this.cftSensitiveTaskEventLogsDatabaseService = cftSensitiveTaskEventLogsDatabaseService;
         this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
+        this.terminationProcessHelper = terminationProcessHelper;
     }
 
     protected void updateTaskActionAttributesForAssign(TaskResource taskResource, String assigner,
@@ -359,10 +361,11 @@ public class TaskManagementService {
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
+     * @param cancellationProcess   the termination process using which task is cancelled
      */
     @Transactional
     public void cancelTask(String taskId,
-                           AccessControlResponse accessControlResponse, Map<String, Object> requestParamMap) {
+                           AccessControlResponse accessControlResponse, String cancellationProcess) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
 
         PermissionRequirements permissionsRequired;
@@ -391,8 +394,8 @@ public class TaskManagementService {
         TaskResource task = findByIdAndObtainLock(taskId);
         CFTTaskState previousTaskState = task.getState();
         task.setState(CFTTaskState.CANCELLED);
-        task.setTerminationProcess(getTerminationProcess(requestParamMap, REQ_PARAM_CANCELLATION_PROCESS));
 
+        task.setTerminationProcess(TerminationProcess.fromValue(cancellationProcess).orElse(null));
         boolean isCftTaskStateExist = camundaService.isCftTaskStateExistInCamunda(taskId);
 
         log.info("{} previousTaskState : {} - isCftTaskStateExist : {}",
@@ -434,34 +437,16 @@ public class TaskManagementService {
     }
 
     /**
-     * Retrieves the termination process from the provided request parameter map using the specified key.
-     * This method ensures that attempts to map the value associated with the given key to a `TerminationProcess`
-     * enum value.
-     *
-     * @param requestParamMap A map containing request parameters.
-     * @param key             The key used to retrieve the termination process value from the map.
-     * @return The `TerminationProcess` enum value corresponding to the key, or null if the key is not present
-     *         or the value cannot be mapped.
-     */
-    private TerminationProcess getTerminationProcess(final Map<String, Object> requestParamMap, String key) {
-        TerminationProcess terminationProcess = Optional.ofNullable(requestParamMap.get(key))
-            .map(Object::toString)
-            .map(TerminationProcess::fromValue)
-            .orElse(null);
-        return terminationProcess;
-    }
-
-    /**
      * Completes a task in camunda also performs role assignment verifications.
      * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
-     * @param requestParamMap       the termination process using which task is completed
+     * @param completionProcess     the termination process using which task is completed
      */
     @Transactional
     public void completeTask(String taskId, AccessControlResponse accessControlResponse,
-                             Map<String, Object> requestParamMap) {
+                             String completionProcess) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         final String userId = accessControlResponse.getUserInfo().getUid();
         boolean taskHasCompleted;
@@ -483,7 +468,8 @@ public class TaskManagementService {
             //Commit transaction
             if (task.isActive(state)) {
                 task.setState(CFTTaskState.COMPLETED);
-                task.setTerminationProcess(getTerminationProcess(requestParamMap, REQ_PARAM_COMPLETION_PROCESS));
+                task.setTerminationProcess(TerminationProcess.fromValue(completionProcess).orElse(null));
+
                 setTaskActionAttributes(task, userId, TaskAction.COMPLETED);
                 cftTaskDatabaseService.saveTask(task);
             }
@@ -497,13 +483,13 @@ public class TaskManagementService {
      * @param taskId                The task id to complete.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @param completionOptions     The completion options to orchestrate how this completion should be handled.
-     * @param requestParamMap       the termination process using which task is completed
+     * @param completionProcess     the termination process using which task is completed
      */
     @Transactional
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions,
-                                                              Map<String, Object> requestParamMap) {
+                                                              String completionProcess) {
         String userId = accessControlResponse.getUserInfo().getUid();
         requireNonNull(userId, USER_ID_CANNOT_BE_NULL);
         PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
@@ -529,12 +515,12 @@ public class TaskManagementService {
                 userId,
                 taskStateIsAssignedAlready
             );
-            task.setTerminationProcess(getTerminationProcess(requestParamMap, REQ_PARAM_COMPLETION_PROCESS));
+            task.setTerminationProcess(TerminationProcess.fromValue(completionProcess).orElse(null));
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
         } else {
-            completeTask(taskId, accessControlResponse, requestParamMap);
+            completeTask(taskId, accessControlResponse, completionProcess);
         }
     }
 
@@ -561,19 +547,17 @@ public class TaskManagementService {
         //Terminate the task if found in the database
         if (task != null) {
             //Update cft task and terminate reason
-            task.setState(CFTTaskState.TERMINATED);
-            task.setTerminationReason(terminateInfo.getTerminateReason());
             boolean isCamundaStateUpdated = false;
             try {
-                TaskAction taskAction = switch (terminateInfo.getTerminateReason()) {
-                    case "cancelled" -> AUTO_CANCEL;
-                    case "completed" -> TERMINATE;
-                    default -> TERMINATE_EXCEPTION;
-                };
+                task.setTerminationReason(terminateInfo.getTerminateReason());
+                TaskAction taskAction = TERMINATE;
                 setSystemUserTaskActionAttributes(task, taskAction);
                 //Perform Camunda updates
                 camundaService.deleteCftTaskState(taskId);
+                terminationProcessHelper.setTerminationProcessOnTerminateTask(taskId, task);
+                task.setState(CFTTaskState.TERMINATED);
                 isCamundaStateUpdated = true;
+
                 // Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             } catch (Exception ex) {
@@ -925,6 +909,9 @@ public class TaskManagementService {
             log.error("Error when initiating task(id={})", taskId, e);
             throw new ServiceMandatoryFieldValidationException(MANDATORY_FIELD_MISSING_ERROR.getDetail()
                                                                    + taskId + e.getMessage(), e);
+        } catch (AssigneeConfigurationException e) {
+            log.error("Error when initiating task(id={})", taskId, e);
+            throw e;
         } catch (Exception e) {
             log.error("Error when initiating task(id={})", taskId, e);
             throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);

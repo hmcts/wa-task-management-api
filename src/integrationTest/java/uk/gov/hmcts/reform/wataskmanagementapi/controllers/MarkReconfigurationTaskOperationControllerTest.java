@@ -4,13 +4,15 @@ import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserIdamTokenGeneratorInfo;
@@ -18,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -30,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
 import java.time.LocalDate;
@@ -41,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -55,8 +60,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
+@IntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrationBaseTest {
+class MarkReconfigurationTaskOperationControllerTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     public static final String SYSTEM_USER_1 = "system_user1";
@@ -73,28 +81,36 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
     @MockitoBean(name = "systemUserIdamInfo")
     UserIdamTokenGeneratorInfo systemUserIdamInfo;
 
-    @MockitoBean
+    @Autowired
     private IdamWebApi idamWebApi;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
+
+    @Autowired
+    protected MockMvc mockMvc;
+
+    @Autowired
+    protected IntegrationTestUtils integrationTestUtils;
 
     TaskTestUtils taskTestUtils;
 
     private String bearerAccessToken1;
 
     @BeforeAll
-    void init() {
+    void setUp() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
     }
 
     @BeforeEach
-    void setUp() {
+    void beforeEach() {
         bearerAccessToken1 = "Token" + UUID.randomUUID();
         when(idamWebApi.token(any())).thenReturn(new Token(bearerAccessToken1, "Scope"));
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid(SYSTEM_USER_1).build());
+
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
+
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(
             anyString(),
             any()
@@ -105,6 +121,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
                 CamundaValue.booleanValue(true)
             )
         ));
+
     }
 
     @Test
@@ -115,7 +132,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId0")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId0")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -139,7 +156,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -153,7 +170,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId2")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -180,7 +197,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId3")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId3")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -204,7 +221,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId4")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId4")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -227,7 +244,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
         ).andExpectAll(
             status().is(HttpStatus.FORBIDDEN.value())
         );
@@ -240,7 +257,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -265,7 +282,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId6")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId6")))
         ).andExpectAll(
             status().is(HttpStatus.CONFLICT.value())
         );
@@ -297,7 +314,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId7")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId7")))
         ).andExpectAll(
             status().is(HttpStatus.CONFLICT.value())
         );
@@ -345,7 +362,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId8")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId8")))
         ).andExpectAll(
             status().is(HttpStatus.CONFLICT.value())
         );
@@ -422,7 +439,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId9")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId9")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );
@@ -466,7 +483,7 @@ class MarkReconfigurationTaskOperationControllerTest extends SpringBootIntegrati
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId10")))
+                .content(integrationTestUtils.asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId10")))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
         );

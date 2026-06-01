@@ -5,6 +5,8 @@ management:
   endpoint:
     health:
       show-details: "always"
+    loggers:
+      enabled: false
   endpoints:
     web:
       base-path: /
@@ -41,7 +43,6 @@ security:
     - "/health"
     - "/health/liveness"
     - "/health/readiness"
-    - "/loggers/**"
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
@@ -63,7 +64,7 @@ idam:
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler,ccd_case_disposer,civil_service}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler,ccd_case_disposer,civil_service,sscs}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
   system:

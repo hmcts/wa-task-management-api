@@ -5,10 +5,11 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.ResourceUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.MultipleQueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,9 +34,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils.MAX_ROLE_ASSIGNMENT_RECORDS;
 
+@IntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest {
+public class RoleAssignmentServiceApiTest {
 
     private static WireMockServer wireMockServer;
 
@@ -76,6 +83,44 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
             .classification(Classification.RESTRICTED)
             .grantType(GrantType.SPECIFIC)
             .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .readOnly(false)
+            .created(OffsetDateTime.parse("2020-11-09T14:32:23.693195Z"))
+            .attributes(Map.of(
+                RoleAttributeDefinition.CASE_ID.value(), "1604929600826893",
+                RoleAttributeDefinition.JURISDICTION.value(), "IA",
+                RoleAttributeDefinition.CASE_TYPE.value(), "Asylum"
+            ))
+            .authorisations(emptyList())
+            .build();
+
+        assertThat(roleAssignmentResource.getRoleAssignmentResponse()).isNotEmpty();
+        assertThat(roleAssignmentResource.getRoleAssignmentResponse().get(0)).isEqualTo(expectedRoleAssignment);
+    }
+
+    @Test
+    void queryRoleAssignmentTestWithEnforcementRoleCategory() throws IOException {
+
+        String roleAssignmentsResponseAsJsonString = loadJsonFileResourceWithEnforcementRoleCategory();
+
+        stubRoleAssignmentApiResponse(roleAssignmentsResponseAsJsonString);
+
+        RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
+            "user token",
+            "s2s token",
+            0,
+            MAX_ROLE_ASSIGNMENT_RECORDS,
+            MultipleQueryRequest.builder().build()
+        ).getBody();
+
+        RoleAssignment expectedRoleAssignment = RoleAssignment.builder()
+            .id("428971b1-3954-4783-840f-c2718732b466")
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("122f8de4-2eb6-4dcf-91c9-16c2c8aaa422")
+            .roleType(RoleType.CASE)
+            .roleName("tribunal-caseworker")
+            .classification(Classification.RESTRICTED)
+            .grantType(GrantType.SPECIFIC)
+            .roleCategory(RoleCategory.ENFORCEMENT)
             .readOnly(false)
             .created(OffsetDateTime.parse("2020-11-09T14:32:23.693195Z"))
             .attributes(Map.of(
@@ -205,6 +250,10 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
 
     private String loadJsonFileResourceWithUnknownValues() throws IOException {
         return loadFile("roleAssignmentsResponseUnknownValues.json");
+    }
+
+    private String loadJsonFileResourceWithEnforcementRoleCategory() throws IOException {
+        return loadFile("roleAssignmentsResponseEnforcement.json");
     }
 
     private String loadJsonFileResourceForRoleNameTests() throws IOException {

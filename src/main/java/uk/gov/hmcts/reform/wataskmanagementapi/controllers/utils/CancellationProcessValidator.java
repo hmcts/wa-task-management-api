@@ -20,7 +20,7 @@ public class CancellationProcessValidator {
 
     private static final List<String> VALID_CANCELLATION_PROCESS = Arrays.asList(
         "EXUI_USER_CANCELLATION",
-        "EXUI_CASE_EVENT_CANCELLATION"
+        "CASE_EVENT_CANCELLATION"
     );
 
     /**

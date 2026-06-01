@@ -21,6 +21,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -30,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -41,6 +44,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -60,6 +64,10 @@ import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.PRIMARY_LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.SSCS_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.UNCLAIM_ASSIGN;
@@ -75,13 +83,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.Se
 
 @ActiveProfiles("integration")
 @DataJpaTest
-@Import(AllowedJurisdictionConfiguration.class)
+@Import({AllowedJurisdictionConfiguration.class, JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CftQueryServiceITTest extends RoleAssignmentHelper {
+public class CftQueryServiceITTest {
+
+    static RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
@@ -99,6 +109,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     IntegrationTestIndexUtils integrationTestIndexUtils = new IntegrationTestIndexUtils();
 
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private CftQueryService cftQueryService;
 
@@ -206,7 +218,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("unknownValue"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
             .scenarioName("standard_grant_type_with_authorizations")
@@ -605,7 +617,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("unknownValue"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
@@ -619,7 +631,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario invalidAuthorization = TaskQueryScenario.builder()
             .scenarioName("standard_and_excluded_grant_type_with_invalid_authorization")
@@ -717,7 +729,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
@@ -731,7 +743,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
             .scenarioName("challenged_and_excluded_grant_type_with_invalid_caseId")
@@ -1238,7 +1250,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .testRolesWithGrantType(TestRolesWithGrantType.INACTIVE_ROLE)
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario inActive = TaskQueryScenario.builder()
             .scenarioName("inactive_role")
@@ -1277,7 +1289,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .endTime(null)
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final TaskQueryScenario invalidBeginAndEndTime = TaskQueryScenario.builder()
             .scenarioName("invalid-begin-end-time")
@@ -1311,7 +1323,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1331,7 +1343,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -1345,7 +1357,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1366,7 +1378,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -1381,7 +1393,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1401,7 +1413,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -1415,7 +1427,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1436,7 +1448,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
@@ -1448,7 +1460,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1469,7 +1481,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_JUDICIAL)
@@ -1481,7 +1493,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1503,7 +1515,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -1523,7 +1535,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -1537,7 +1549,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -1551,7 +1563,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -2052,7 +2064,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     @BeforeEach
     void setUp() {
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
         cftQueryService = new CftQueryService(
             camundaService,
             cftTaskMapper,
@@ -2292,7 +2304,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -2326,7 +2338,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
 
@@ -2368,7 +2380,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
@@ -2402,7 +2414,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);
@@ -2447,7 +2459,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
@@ -2484,7 +2496,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
         permissionsRequired.add(READ);

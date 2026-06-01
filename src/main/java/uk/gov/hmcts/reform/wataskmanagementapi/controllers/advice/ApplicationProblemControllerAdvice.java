@@ -23,6 +23,7 @@ import org.zalando.problem.spring.web.advice.validation.ValidationAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
@@ -199,6 +200,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
     }
 
     @ExceptionHandler({
+        AssigneeConfigurationException.class,
         GenericForbiddenException.class,
         RoleAssignmentVerificationException.class,
         TaskAssignAndCompleteException.class,

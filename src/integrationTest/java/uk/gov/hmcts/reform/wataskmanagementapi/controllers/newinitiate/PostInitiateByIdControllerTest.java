@@ -4,21 +4,24 @@ import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -32,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
@@ -40,6 +44,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -63,6 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -93,8 +99,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@IntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
+class PostInitiateByIdControllerTest {
     private static final String ENDPOINT_PATH = "/task/%s/initiation";
     private static String ENDPOINT_BEING_TESTED;
     @MockitoBean
@@ -102,7 +111,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     private ServiceMocks mockServices;
-    @MockitoBean
+    @Autowired
     private IdamWebApi idamWebApi;
     @MockitoBean
     private CamundaServiceApi camundaServiceApi;
@@ -118,12 +127,14 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     private CaseDetails caseDetails;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
     private String taskId;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
-        taskId = UUID.randomUUID().toString();
-        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
         mockServices = new ServiceMocks(
             idamWebApi,
@@ -131,6 +142,12 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        taskId = UUID.randomUUID().toString();
+        ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
         mockServices.mockServiceAPIs();
         when(idamWebApi.userInfo(any())).thenReturn(UserInfo.builder().uid("system_user1").build());
@@ -165,7 +182,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
+                .content(integrationTestUtils.asJsonString(req))
         ).andExpectAll(
             status().isForbidden(),
             content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -251,7 +268,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(asJsonString(req))
+                        .content(integrationTestUtils.asJsonString(req))
                 ).andExpectAll(
                     status().isCreated(),
                     content().contentType(APPLICATION_JSON_VALUE)
@@ -282,7 +299,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(someOtherReq)))
+                .content(integrationTestUtils.asJsonString(someOtherReq)))
             .andExpectAll(
                 status().isServiceUnavailable(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
@@ -324,7 +341,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(print())
             .andExpectAll(status().isInternalServerError());
 
@@ -372,7 +389,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andDo(print())
             .andExpectAll(
                 status().isBadGateway(),
@@ -456,7 +473,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -564,7 +581,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().is(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -654,7 +671,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -683,6 +700,129 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
                     + "(Typically this will be in CCD.)")
+            );
+
+        Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
+        if (optionalTaskResource.isPresent()) {
+            TaskResource taskResource = optionalTaskResource.get();
+            assertNotNull(taskResource.getLastUpdatedTimestamp());
+            assertEquals("system_user1", taskResource.getLastUpdatedUser());
+            assertEquals(TaskAction.AUTO_ASSIGN.getValue(), taskResource.getLastUpdatedAction());
+        }
+    }
+
+    @Test
+    void should_set_task_assigned_when_permission_is_auto_assigned_and_assignee_roles_not_meet() throws Exception {
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"),
+                                                       stringValue("Protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("incorrectAssignee"))
+            ));
+
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("hearing-judge"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA,WA"),
+                    integerValue(1),
+                    booleanValue(true),
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("judge"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA,WA"),
+                    integerValue(1),
+                    booleanValue(false),
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok()
+                            .header(TOTAL_RECORDS, "1")
+                            .body(new RoleAssignmentResource(
+                                singletonList(RoleAssignment.builder()
+                                                  .id("someId")
+                                                  .actorIdType(ActorIdType.IDAM)
+                                                  .actorId(IDAM_USER_ID)
+                                                  .roleName("hearing-judge")
+                                                  .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                                                  .grantType(GrantType.SPECIFIC)
+                                                  .roleType(RoleType.ORGANISATION)
+                                                  .classification(Classification.PUBLIC)
+                                                  .authorisations(List.of("IA"))
+                                                  .build()))));
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "aTaskName",
+            TITLE.value(), "A test task",
+            CASE_ID.value(), "someCaseId",
+            DUE_DATE.value(), formattedDueDate
+        );
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
+                         .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                         .contentType(MediaType.APPLICATION_JSON_VALUE)
+                         .content(integrationTestUtils.asJsonString(req)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_name").value("aTaskName"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                jsonPath("$.state").value("ASSIGNED"),
+                jsonPath("$.assignee").value(IDAM_USER_ID),
+                jsonPath("$.task_system").value("SELF"),
+                jsonPath("$.security_classification").value("PUBLIC"),
+                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.auto_assigned").value(true),
+                jsonPath("$.has_warnings").value("false"),
+                jsonPath("$.case_id").value("someCaseId"),
+                jsonPath("$.case_type_id").value("Asylum"),
+                jsonPath("$.case_name").value("someName"),
+                jsonPath("$.case_category").value("Protection"),
+                jsonPath("$.jurisdiction").value("IA"),
+                jsonPath("$.region").value("1"),
+                jsonPath("$.location").value("765324"),
+                jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                jsonPath("$.execution_type_code.execution_name")
+                    .value("Case Management Task"),
+                jsonPath("$.execution_type_code.description").value(
+                    "The task requires a case management event to be executed by the user. "
+                        + "(Typically this will be in CCD.)")
             );
 
         Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
@@ -775,7 +915,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -895,7 +1035,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1014,7 +1154,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1130,7 +1270,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1253,7 +1393,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
@@ -1300,6 +1440,309 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].manage").value(false),
                 jsonPath("$.task_role_resources.[1].cancel").value(false),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+            );
+    }
+
+    @Test
+    void should_assign_task_when_assignee_has_right_roles() throws Exception {
+        String validAssignee = "dd8b6c25-6079-36f2-ba0c-afd189308b68";
+        mockCaseDetailsAndConfigurationForAutoAssign(validAssignee);
+
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA"),
+                    integerValue(1),
+                    booleanValue(true),
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+        when(roleAssignmentServiceApi.getRolesForUser(eq(validAssignee), any(), any()))
+            .thenReturn(new RoleAssignmentResource(List.of(
+                RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId(validAssignee)
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build()
+            )));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok()
+                            .header(TOTAL_RECORDS, "1")
+                            .body(new RoleAssignmentResource(List.of(
+                                RoleAssignment.builder()
+                                    .id("someId")
+                                    .actorIdType(ActorIdType.IDAM)
+                                    .actorId(validAssignee)
+                                    .roleName("tribunal-caseworker")
+                                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                                    .grantType(GrantType.SPECIFIC)
+                                    .roleType(RoleType.ORGANISATION)
+                                    .classification(Classification.PUBLIC)
+                                    .authorisations(List.of("IA"))
+                                    .build()
+                            ))));
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
+            INITIATION,
+            createTaskAttributes("assigneeTestTask", "Assignee Test Task")
+        );
+
+        mockMvc.perform(post(ENDPOINT_BEING_TESTED)
+                            .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                            .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(integrationTestUtils.asJsonString(req)))
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_type").value("assigneeTestTask"),
+                jsonPath("$.state").value("ASSIGNED"),
+                jsonPath("$.assignee").value(validAssignee)
+            );
+    }
+
+    @Test
+    void should_not_assign_task_when_assignee_have_incorrect_roles() throws Exception {
+        mockCaseDetailsAndConfigurationForAutoAssign("someAssignee");
+
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA"),
+                    integerValue(1),
+                    booleanValue(true),
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+        when(roleAssignmentServiceApi.getRolesForUser(eq("someAssignee"), any(), any()))
+            .thenReturn(new RoleAssignmentResource(List.of(
+                RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("someAssignee")
+                    .roleName("hearing-judge")
+                    .roleCategory(RoleCategory.JUDICIAL)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build()
+            )));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
+            .thenReturn(ResponseEntity.ok()
+                            .header(TOTAL_RECORDS, "1")
+                            .body(new RoleAssignmentResource(List.of(
+                                RoleAssignment.builder()
+                                    .id("someId")
+                                    .actorIdType(ActorIdType.IDAM)
+                                    .actorId("wrongRoleUser")
+                                    .roleName("hearing-judge")
+                                    .roleCategory(RoleCategory.JUDICIAL)
+                                    .grantType(GrantType.SPECIFIC)
+                                    .roleType(RoleType.ORGANISATION)
+                                    .classification(Classification.PUBLIC)
+                                    .authorisations(List.of("IA"))
+                                    .build()
+                            ))));
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(
+            INITIATION,
+            createTaskAttributes("incorrectRoleAssigneeTestTask", "Incorrect Role Assignment Test Task")
+        );
+
+        mockMvc.perform(post(ENDPOINT_BEING_TESTED)
+                            .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                            .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(integrationTestUtils.asJsonString(req)))
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_type").value("incorrectRoleAssigneeTestTask"),
+                jsonPath("$.state").value("UNASSIGNED"),
+                jsonPath("$.assignee").doesNotExist()
+            );
+    }
+
+    @Test
+    void should_use_last_dmn_assignee_when_multiple_assignee_rows_are_returned() throws Exception {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn("PUBLIC");
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"),
+                                                       stringValue("Protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_2"))
+            ));
+
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA"),
+                    integerValue(1),
+                    booleanValue(true),
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+        when(roleAssignmentServiceApi.getRolesForUser(eq("assignee_2"), any(), any()))
+            .thenReturn(new RoleAssignmentResource(List.of(
+                RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("assignee_2")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build()
+            )));
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "aTaskName",
+            TITLE.value(), "A test task",
+            CASE_ID.value(), "someCaseId",
+            DUE_DATE.value(), formattedDueDate
+        );
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+
+        mockMvc.perform(post(ENDPOINT_BEING_TESTED)
+                            .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                            .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(integrationTestUtils.asJsonString(req)))
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                jsonPath("$.state").value("ASSIGNED"),
+                jsonPath("$.assignee").value("assignee_2"),
+                jsonPath("$.auto_assigned").value(false)
+            );
+    }
+
+    @Test
+    void should_throw_error_when_multiple_assignees_from_a_single_row_are_returned() throws Exception {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn("PUBLIC");
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"),
+                                                       stringValue("Protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1,assignee_2"))
+            ));
+
+        when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA"),
+                    integerValue(1),
+                    booleanValue(true),
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+        when(roleAssignmentServiceApi.getRolesForUser(eq("assignee_2"), any(), any()))
+            .thenReturn(new RoleAssignmentResource(List.of(
+                RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("assignee_2")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(List.of("IA"))
+                    .build()
+            )));
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        Map<String, Object> taskAttributes = Map.of(
+            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
+            TASK_NAME.value(), "aTaskName",
+            TITLE.value(), "A test task",
+            CASE_ID.value(), "someCaseId",
+            DUE_DATE.value(), formattedDueDate
+        );
+
+        InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+
+        mockMvc.perform(post(ENDPOINT_BEING_TESTED)
+                            .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                            .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .content(integrationTestUtils.asJsonString(req)))
+            .andExpectAll(
+                status().isInternalServerError(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.detail").value("Assignee Configuration Error: "
+                                               + "Multiple assignee should be declared as separate rules.")
             );
     }
 
@@ -1362,7 +1805,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -1437,7 +1880,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(
                 status().isBadRequest(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -1513,7 +1956,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                          .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                          .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                          .contentType(MediaType.APPLICATION_JSON_VALUE)
-                         .content(asJsonString(req)))
+                         .content(integrationTestUtils.asJsonString(req)))
             .andExpectAll(status().isCreated(),
                           content().contentType(APPLICATION_JSON_VALUE),
                           jsonPath("$.task_id").value(taskId),
@@ -1523,5 +1966,49 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             );
     }
-}
 
+    private void mockCaseDetailsAndConfigurationForAutoAssign(String dmnAssignee) {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn("PUBLIC");
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        List<ConfigurationDmnEvaluationResponse> configurationResponses = new ArrayList<>(asList(
+            new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+            new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+            new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+            new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+            new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+            new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+            new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+        ));
+
+        if (dmnAssignee != null) {
+            configurationResponses.add(
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue(dmnAssignee))
+            );
+        }
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(configurationResponses);
+    }
+
+    private Map<String, Object> createTaskAttributes(String taskType, String taskName) {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        return new HashMap<>(Map.of(
+            TASK_TYPE.value(), taskType,
+            TASK_NAME.value(), taskName,
+            TITLE.value(), "A test task",
+            CASE_ID.value(), "someCaseId",
+            DUE_DATE.value(), formattedDueDate
+        ));
+    }
+}

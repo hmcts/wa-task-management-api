@@ -1,16 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
@@ -19,10 +27,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.ReplicaIntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
@@ -31,8 +43,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.ReplicaBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.MIReportingService;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
@@ -47,13 +63,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -73,10 +89,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-@ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ReplicaIntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @Slf4j
-public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
+@Import(AwaitilityIntegrationTestConfig.class)
+public class PostTaskCompleteByIdControllerReplicaTest {
 
     private static final String ENDPOINT_PATH = "/task/%s/complete";
 
@@ -103,14 +122,54 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
     @MockitoBean
     private ClientAccessControlService clientAccessControlService;
 
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
+
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
+    @Autowired
+    private TaskHistoryResourceRepository taskHistoryResourceRepository;
+    @Autowired
+    private ReportableTaskRepository reportableTaskRepository;
+    @Autowired
+    private TaskAssignmentsRepository taskAssignmentsRepository;
+    @Autowired
+    private MIReportingService miReportingService;
+    @Value("${spring.datasource.jdbcUrl}")
+    private String primaryJdbcUrl;
+    @Value("${spring.datasource-replica.jdbcUrl}")
+    private String replicaJdbcUrl;
+
     @Mock
     private UserInfo mockedUserInfo;
 
     TaskTestUtils taskTestUtils;
 
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
+
+    ReplicaIntegrationTestUtils replicaIntegrationTestUtils;
+
     @BeforeAll
     void init() {
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"replica");
+        replicaIntegrationTestUtils = new ReplicaIntegrationTestUtils(
+            taskResourceRepository,
+            taskHistoryResourceRepository,
+            reportableTaskRepository,
+            taskAssignmentsRepository,
+            miReportingService,
+            primaryJdbcUrl,
+            replicaJdbcUrl
+        );
+        replicaIntegrationTestUtils.setUp();
+    }
+
+    @AfterAll
+    void tearDown() {
+        replicaIntegrationTestUtils.tearDown();
     }
 
     @Test
@@ -139,7 +198,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
         mockServices.mockUserInfo();
 
-        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
+        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
@@ -152,7 +211,7 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
 
@@ -193,17 +252,15 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(request))
+                .content(integrationTestUtils.asJsonString(request))
         ).andExpectAll(
             status().isNoContent()
         );
 
         await()
-            .pollDelay(5, SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
                 List<ReportableTaskResource> reportableTaskList2
-                    = miReportingServiceForTest.findByReportingTaskId(taskId);
+                    = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
                 assertEquals(1, reportableTaskList2.size());
             });
 
@@ -217,12 +274,10 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
         assertEquals(TaskAction.COMPLETED.getValue(), taskResourcePostComplete.get().getLastUpdatedAction());
 
         await()
-            .pollDelay(3, SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 List<TaskHistoryResource> taskHistoryResourceList
-                    = miReportingServiceForTest.findByTaskId(taskId);
+                    = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByTaskId(taskId);
 
                 assertEquals(2, taskHistoryResourceList.size());
                 assertEquals("COMPLETED", taskHistoryResourceList.get(1).getState());
@@ -243,12 +298,10 @@ public class PostTaskCompleteByIdControllerReplicaTest extends ReplicaBaseTest {
             });
 
         await()
-            .pollDelay(3, SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
                 List<ReportableTaskResource> reportableTaskList
-                    = miReportingServiceForTest.findByReportingTaskId(taskId);
+                    = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                 assertEquals(1, reportableTaskList.size());
                 assertEquals("COMPLETED", reportableTaskList.get(0).getState());

@@ -2,19 +2,25 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -31,11 +37,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.ReplicaIntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
@@ -45,7 +55,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskTestUtils;
 
@@ -62,12 +76,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -100,10 +114,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-@ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ReplicaIntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @Slf4j
-class TaskManagementTimeZoneTest extends ReplicaBaseTest {
+@Import(AwaitilityIntegrationTestConfig.class)
+class TaskManagementTimeZoneTest {
 
     @MockitoBean
     private ClientAccessControlService clientAccessControlService;
@@ -151,6 +168,31 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
     @MockitoBean
     private RoleAssignmentService roleAssignmentService;
 
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    IntegrationTestUtils integrationTestUtils;
+
+    @Autowired
+    protected TaskResourceRepository taskResourceRepository;
+    @Autowired
+    private TaskHistoryResourceRepository taskHistoryResourceRepository;
+    @Autowired
+    private ReportableTaskRepository reportableTaskRepository;
+    @Autowired
+    private TaskAssignmentsRepository taskAssignmentsRepository;
+    @Autowired
+    private MIReportingService miReportingService;
+
+    @Value("${spring.datasource.jdbcUrl}")
+    private String primaryJdbcUrl;
+
+    @Value("${spring.datasource-replica.jdbcUrl}")
+    private String replicaJdbcUrl;
+
+    ReplicaIntegrationTestUtils replicaIntegrationTestUtils;
+
     TaskTestUtils taskTestUtils;
 
     private String bearerAccessToken1;
@@ -160,7 +202,22 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
 
     @BeforeAll
     void init() {
+        replicaIntegrationTestUtils = new ReplicaIntegrationTestUtils(
+            taskResourceRepository,
+            taskHistoryResourceRepository,
+            reportableTaskRepository,
+            taskAssignmentsRepository,
+            miReportingService,
+            primaryJdbcUrl,
+            replicaJdbcUrl
+        );
+        replicaIntegrationTestUtils.setUp();
         taskTestUtils = new TaskTestUtils(cftTaskDatabaseService,"primary");
+    }
+
+    @AfterAll
+    void tearDown() {
+        replicaIntegrationTestUtils.tearDown();
     }
 
     @ParameterizedTest
@@ -186,9 +243,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                 ZoneOffset.of("+01:00")).toZonedDateTime());
         }
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(taskId);
@@ -197,14 +252,16 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                     taskResource.set(optionalTaskResource.get());
 
                     List<TaskHistoryResource> taskHistoryResourceList
-                        = miReportingServiceForTest.findByTaskId(taskResource.get().getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByTaskId(taskResource.get().getTaskId());
 
                     assertFalse(taskHistoryResourceList.isEmpty());
 
                     taskHistoryResource.set(taskHistoryResourceList.get(0));
 
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskResource.get().getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(taskResource.get().getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -301,7 +358,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskTestUtils.taskOperationRequest(
+                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
                     MARK_TO_RECONFIGURE, taskTestUtils.markTaskFilters(caseIdToday))))
         ).andExpectAll(
             status().is(HttpStatus.OK.value())
@@ -314,7 +371,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                 assertNotNull(task.getReconfigureRequestTime());
 
                 List<TaskHistoryResource> taskHistoryResourceList
-                    = miReportingServiceForTest.findByTaskId(task.getTaskId());
+                    = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByTaskId(task.getTaskId());
 
                 assertFalse(taskHistoryResourceList.isEmpty());
 
@@ -356,7 +413,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             post("/task/operation")
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(taskTestUtils.taskOperationRequest(
+                .content(integrationTestUtils.asJsonString(taskTestUtils.taskOperationRequest(
                     EXECUTE_RECONFIGURE,
                     taskTestUtils.executeTaskFilters(OffsetDateTime.now().minusSeconds(30L))
                 )))
@@ -364,9 +421,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
             status().is(HttpStatus.OK.value())
         );
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     Optional<TaskResource> optionalTaskResource = taskResourceRepository.getByTaskId(reconfigTaskId);
@@ -376,7 +431,8 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                             assertNotNull(task.getLastReconfigurationTime());
 
                             List<TaskHistoryResource> taskHistoryResourceList
-                                = miReportingServiceForTest.findByTaskId(task.getTaskId());
+                                = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                                .findByTaskId(task.getTaskId());
 
                             assertFalse(taskHistoryResourceList.isEmpty());
 
@@ -515,7 +571,7 @@ class TaskManagementTimeZoneTest extends ReplicaBaseTest {
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(APPLICATION_JSON_VALUE)
-                .content(asJsonString(req)))
+                .content(integrationTestUtils.asJsonString(req)))
             .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),

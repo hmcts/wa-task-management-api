@@ -12,6 +12,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -19,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
@@ -26,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
@@ -37,24 +41,32 @@ import java.util.Optional;
 
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.PRIMARY_LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 
 @ActiveProfiles("integration")
 @DataJpaTest
-@Import(AllowedJurisdictionConfiguration.class)
+@Import({AllowedJurisdictionConfiguration.class, JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
-class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
+class CFTTaskDatabaseServiceSearchTest {
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
 
     @Autowired
     TaskResourceRepository taskResourceRepository;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     CFTTaskDatabaseService cftTaskDatabaseService;
+
+    static RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     @BeforeEach
     void setUp() {
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
     }
 
@@ -264,6 +276,33 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .containsExactly(
                 newArrayList(
                     "8d6cc5cf-c973-11eb-aaaa-200000000001", "1623278362420001", "CTSC"
+                ).toArray()
+            );
+    }
+
+    @Test
+    @Sql("/scripts/wa/search_tasks_enforcement_data.sql")
+    void should_return_task_list_and_count_when_filter_task_by_enforcement_role_category() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        setTaskAsIndexed("8d6cc5cf-c973-11eb-aaaa-500000000001");
+
+        SearchRequest searchRequest = SearchRequest.builder()
+            .roleCategories(List.of(RoleCategory.ENFORCEMENT))
+            .jurisdictions(List.of("WA"))
+            .locations(List.of("765324"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+        GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(0, 25, searchRequest,
+            accessControlResponse);
+        assertEquals(1, response.getTotalRecords());
+        Assertions.assertThat(response.getTasks())
+            .hasSize(1)
+            .flatExtracting(Task::getId, Task::getCaseId, Task::getRoleCategory)
+            .containsExactly(
+                newArrayList(
+                    "8d6cc5cf-c973-11eb-aaaa-500000000001", "1623278362450001", "ENFORCEMENT"
                 ).toArray()
             );
     }
@@ -596,11 +635,15 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             "8d6cc5cf-c973-11eb-aaaa-000000000044","8d6cc5cf-c973-11eb-aaaa-000000000045"
         };
         Arrays.stream(ids).forEach(id -> {
-            Optional<TaskResource> taskResource = taskResourceRepository.findById(id);
-            TaskResource task = taskResource.get();
-            task.setIndexed(true);
-            taskResourceRepository.save(task);
+            setTaskAsIndexed(id);
         });
+    }
+
+    private void setTaskAsIndexed(String id) {
+        Optional<TaskResource> taskResource = taskResourceRepository.findById(id);
+        TaskResource task = taskResource.get();
+        task.setIndexed(true);
+        taskResourceRepository.save(task);
     }
 
     private static List<RoleAssignment> roleAssignmentsForCaseType() {
@@ -620,7 +663,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -641,7 +684,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }
@@ -662,7 +705,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -678,7 +721,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             .authorisations(List.of("skill2"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(
@@ -693,7 +736,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
 
@@ -716,7 +759,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
@@ -730,7 +773,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.EXCLUDED_CHALLENGED_ACCESS_ADMIN_LEGAL)
@@ -744,7 +787,7 @@ class CFTTaskDatabaseServiceSearchTest extends RoleAssignmentHelper {
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         return roleAssignments;
     }

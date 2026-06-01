@@ -80,7 +80,14 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkTypeResource("multi-track-decision-making-work", "Multi track decision making work"),
             new WorkTypeResource("query_work", "Query work"),
             new WorkTypeResource("welsh_translation_work", "Welsh translation work"),
-            new WorkTypeResource("bail_work", "Bail work")
+            new WorkTypeResource("bail_work", "Bail work"),
+            new WorkTypeResource("stf_24w_hearing_work", "Hearing Work - STF"),
+            new WorkTypeResource("stf_24w_routine_work", "Routine Work - STF"),
+            new WorkTypeResource("stf_24w_decision_making_work", "Decision Making Work - STF"),
+            new WorkTypeResource("stf_24w_applications", "Applications - STF"),
+            new WorkTypeResource("stf_24w_upper_tribunal", "Upper Tribunal - STF"),
+            new WorkTypeResource("stf_24w_access_requests", "Access Requests - STF"),
+            new WorkTypeResource("stf_24w_review_case", "Review Case - STF")
         );
 
         when(workTypeResourceRepository.findAll()).thenReturn(workTypeResources);
@@ -118,7 +125,14 @@ class CFTWorkTypeDatabaseServiceTest {
             new WorkType("multi_track_decision_making_work", "Multi track decision making work"),
             new WorkType("query_work", "Query work"),
             new WorkType("welsh_translation_work", "Welsh translation work"),
-            new WorkType("bail_work", "Bail work")
+            new WorkType("bail_work", "Bail work"),
+            new WorkType("stf_24w_hearing_work", "Hearing Work - STF"),
+            new WorkType("stf_24w_routine_work", "Routine Work - STF"),
+            new WorkType("stf_24w_decision_making_work", "Decision Making Work - STF"),
+            new WorkType("stf_24w_applications", "Applications - STF"),
+            new WorkType("stf_24w_upper_tribunal", "Upper Tribunal - STF"),
+            new WorkType("stf_24w_access_requests", "Access Requests - STF"),
+            new WorkType("stf_24w_review_case", "Review Case - STF")
         );
     }
 }

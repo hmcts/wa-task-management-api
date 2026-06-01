@@ -15,10 +15,13 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.emptyMap;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -119,7 +122,21 @@ public class RestApiActions {
     }
 
     public Response delete(String path, String resourceId, Object body, Headers headers) {
-        return deleteWithBody(path, resourceId, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
+        AtomicReference<Response> response = new AtomicReference<>();;
+        await()
+            .untilAsserted(() -> {
+                response.set(deleteWithBody(
+                    path,
+                    resourceId,
+                    body,
+                    APPLICATION_JSON_VALUE,
+                    APPLICATION_JSON_VALUE,
+                    headers
+                ));
+                response.get().then().assertThat()
+                    .statusCode(HttpStatus.NO_CONTENT.value());
+            });
+        return response.get();
     }
 
     protected RequestSpecification given() {

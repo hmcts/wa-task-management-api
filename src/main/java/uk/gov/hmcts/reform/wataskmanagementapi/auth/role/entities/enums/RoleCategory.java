@@ -13,6 +13,7 @@ public enum RoleCategory {
     LEGAL_OPERATIONS("L"),
     ADMIN("A"),
     CTSC("C"),
+    ENFORCEMENT("E"),
     @JsonEnumDefaultValue UNKNOWN(null);
 
     private final String abbreviation;

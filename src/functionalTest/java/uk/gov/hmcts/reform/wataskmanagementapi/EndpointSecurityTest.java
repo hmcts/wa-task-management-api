@@ -114,6 +114,15 @@ public class EndpointSecurityTest {
             .then()
             .assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        given()
+            .relaxedHTTPSValidation()
+            .baseUri(testUrl)
+            .when()
+            .get("/loggers")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
 
     /**
