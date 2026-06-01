@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -82,6 +83,8 @@ class TaskResourceRepositoryTest {
 
     @Autowired
     private TaskRoleResourceRepository taskRoleResourceRepository;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
 
     @AfterEach
@@ -315,6 +318,92 @@ class TaskResourceRepositoryTest {
         List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
             List.of(), request);
         assertEquals(taskId, taskIds.get(0));
+    }
+
+    @Test
+    void given_task_is_indexed_then_materialised_signatures_and_hashes_are_populated() {
+        reindexTasks(taskId);
+
+        Boolean searchColumnsPopulated = jdbcTemplate.queryForObject(
+            """
+                SELECT '*:IA:*:*:1:765324' = ANY(filter_signatures)
+                   AND 'IA:*:*:tribunal-caseofficer:*:r:U:*' = ANY(role_signatures)
+                   AND CARDINALITY(filter_signature_hashes) > 0
+                   AND CARDINALITY(role_signature_hashes) > 0
+                FROM cft_task_db.tasks
+                WHERE task_id = ?
+                """,
+            Boolean.class,
+            taskId
+        );
+
+        assertThat(searchColumnsPopulated).isTrue();
+    }
+
+    @Test
+    void given_indexed_task_when_relevant_task_role_changes_then_materialised_role_signatures_are_refreshed() {
+        reindexTasks(taskId);
+        TaskRoleResource taskRole = taskRoleResourceRepository.findByTaskId(taskId).get(0);
+
+        transactionHelper.doInNewTransaction(() -> {
+            taskRole.setRoleName("case-manager");
+            taskRoleResourceRepository.save(taskRole);
+        });
+
+        assertThat(searchTasksForRole("IA:*:*:tribunal-caseofficer:*:r:U:*")).isEmpty();
+        assertThat(searchTasksForRole("IA:*:*:case-manager:*:r:U:*")).containsExactly(taskId);
+    }
+
+    @Test
+    void given_hash_candidate_matches_when_exact_role_signature_does_not_then_task_is_not_returned() {
+        reindexTasks(taskId);
+
+        jdbcTemplate.update(
+            """
+                UPDATE cft_task_db.tasks
+                SET role_signature_hashes = cft_task_db.signature_hashes(ARRAY[?]::TEXT[])
+                WHERE task_id = ?
+                """,
+            "IA:*:*:case-manager:*:r:U:*",
+            taskId
+        );
+
+        assertThat(searchTasksForRole("IA:*:*:case-manager:*:r:U:*")).isEmpty();
+    }
+
+    @Test
+    void given_search_schema_then_gist_hash_indexes_replace_legacy_gin_index() {
+        reindexTasks(taskId);
+
+        List<String> indexDefinitions = jdbcTemplate.queryForList(
+            """
+                SELECT indexdef
+                FROM pg_indexes
+                WHERE schemaname = 'cft_task_db'
+                  AND indexname IN (
+                      'search_filter_signature_hashes_idx',
+                      'search_role_signature_hashes_idx'
+                  )
+                ORDER BY indexname
+                """,
+            String.class
+        );
+        Integer legacyGinIndexCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM pg_indexes
+                WHERE schemaname = 'cft_task_db'
+                  AND indexname = 'search_index'
+                """,
+            Integer.class
+        );
+
+        assertThat(indexDefinitions)
+            .anySatisfy(index -> assertThat(index)
+                .contains("USING gist (filter_signature_hashes cft_task_db.gist__intbig_ops)"))
+            .anySatisfy(index -> assertThat(index)
+                .contains("USING gist (role_signature_hashes cft_task_db.gist__intbig_ops)"));
+        assertThat(legacyGinIndexCount).isZero();
     }
 
     @Test
@@ -744,6 +833,17 @@ class TaskResourceRepositoryTest {
                 taskResourceRepository.save(taskToIndex);
             }
         });
+    }
+
+    private List<String> searchTasksForRole(String roleSignature) {
+        return taskResourceRepository.searchTasksIds(
+            0,
+            25,
+            Set.of("*:IA:*:*:1:765324"),
+            Set.of(roleSignature),
+            List.of(),
+            SearchRequest.builder().build()
+        );
     }
 
     private TaskResource createTask(String taskId, OffsetDateTime lastUpdated) {

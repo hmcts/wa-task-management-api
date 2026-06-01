@@ -21,10 +21,10 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     private static final String BASE_QUERY =
         "%sFROM {h-schema}tasks t "
         + "WHERE indexed "
-        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, t.region, "
-        + "t.location) && CAST(:filterSignature AS text[]) "
-        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
-        + "t.security_classification) && CAST(:roleSignature AS text[]) "
+        + "AND t.filter_signature_hashes && {h-schema}signature_hashes(CAST(:filterSignature AS text[])) "
+        + "AND t.role_signature_hashes && {h-schema}signature_hashes(CAST(:roleSignature AS text[])) "
+        + "AND t.filter_signatures && CAST(:filterSignature AS text[]) "
+        + "AND t.role_signatures && CAST(:roleSignature AS text[]) "
         + "%s%s%s";
 
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";
