@@ -17,5 +17,3 @@ CREATE INDEX CONCURRENTLY search_role_signature_hashes_idx
 CREATE INDEX CONCURRENTLY search_assignee_idx
     ON cft_task_db.tasks USING btree (assignee)
     WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
-
-DROP INDEX CONCURRENTLY IF EXISTS cft_task_db.search_index;
