@@ -21,6 +21,15 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     private static final String BASE_QUERY =
         "%sFROM {h-schema}tasks t "
         + "WHERE indexed "
+        + "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, "
+        + "t.region, t.location) && CAST(:filterSignature AS text[]) "
+        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+        + "t.security_classification) && CAST(:roleSignature AS text[]) "
+        + "%s%s%s";
+
+    private static final String BASE_QUERY_NEW =
+        "%sFROM {h-schema}tasks t "
+        + "WHERE indexed "
         + "AND t.filter_signature_hashes && {h-schema}signature_hashes(CAST(:filterSignature AS text[])) "
         + "AND t.role_signature_hashes && {h-schema}signature_hashes(CAST(:roleSignature AS text[])) "
         + "AND t.filter_signatures && CAST(:filterSignature AS text[]) "
@@ -51,7 +60,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> searchTasksIds(int firstResult,
                                        int maxResults,
                                        Set<String> filterSignature,
@@ -59,7 +67,31 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                        List<String> excludeCaseIds,
                                        SearchRequest searchRequest) {
 
-        String queryString = String.format(BASE_QUERY,
+        return searchTasksIds(BASE_QUERY_NEW, firstResult, maxResults, filterSignature, roleSignature,
+                              excludeCaseIds, searchRequest);
+    }
+
+    @Override
+    public List<String> searchTasksIdsOld(int firstResult,
+                                          int maxResults,
+                                          Set<String> filterSignature,
+                                          Set<String> roleSignature,
+                                          List<String> excludeCaseIds,
+                                          SearchRequest searchRequest) {
+
+        return searchTasksIds(BASE_QUERY, firstResult, maxResults, filterSignature, roleSignature,
+                              excludeCaseIds, searchRequest);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> searchTasksIds(String baseQuery,
+                                        int firstResult,
+                                        int maxResults,
+                                        Set<String> filterSignature,
+                                        Set<String> roleSignature,
+                                        List<String> excludeCaseIds,
+                                        SearchRequest searchRequest) {
+        String queryString = String.format(baseQuery,
             SELECT_CLAUSE,
             extraConstraints(excludeCaseIds, searchRequest),
             TaskSearchSortProvider.getSortOrderQuery(searchRequest),

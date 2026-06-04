@@ -17,6 +17,14 @@ public interface TaskResourceCustomRepository {
                                 SearchRequest searchRequest);
 
     @Transactional
+    List<String> searchTasksIdsOld(int firstResult,
+                                   int maxResults,
+                                   Set<String> filterSignature,
+                                   Set<String> roleSignature,
+                                   List<String> excludeCaseIds,
+                                   SearchRequest searchRequest);
+
+    @Transactional
     Long searchTasksCount(Set<String> filterSignature,
                           Set<String> roleSignature,
                           List<String> excludeCaseIds,
