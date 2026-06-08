@@ -90,9 +90,8 @@ public class TaskManagerCompleteTaskProviderTest extends SpringBootContractProvi
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-            anyString(), anyString())).thenReturn(true);
-        when(completionProcessValidator.validate(anyString(), anyString(), any())).thenAnswer(invocation -> {
+
+        when(completionProcessValidator.validate(anyString(), anyString())).thenAnswer(invocation -> {
             if (Math.random() < 0.4) {
                 return Optional.of("EXUI_USER_COMPLETION");
             } else if (Math.random() > 0.6) {

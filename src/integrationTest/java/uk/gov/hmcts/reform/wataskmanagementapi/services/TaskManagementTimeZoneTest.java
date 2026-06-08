@@ -44,7 +44,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.ReplicaIntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -146,9 +145,6 @@ class TaskManagementTimeZoneTest {
     private IdamWebApi idamWebApi;
     @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
@@ -525,9 +521,6 @@ class TaskManagementTimeZoneTest {
                     stringValue(null)
                 )
             ));
-
-        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any())).thenReturn(null);
-
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -326,7 +325,7 @@ class TaskSearchControllerTest {
     }
 
     @Test
-    void should_succeed_when_performing_search_and_return_termination_process_when_completion_process_flag_enabled() {
+    void should_succeed_when_performing_search_and_return_termination_process_for_a_task() {
         when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
             .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
@@ -337,9 +336,6 @@ class TaskSearchControllerTest {
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
         when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(tasksResponse);
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-                                                                       mockedUserInfo.getUid(),
-                                                                       mockedUserInfo.getEmail())).thenReturn(true);
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,
             new SearchTaskRequest(
@@ -359,39 +355,6 @@ class TaskSearchControllerTest {
                      response.getBody().getTasks().get(0).getTerminationProcess());
     }
 
-    @Test
-    void should_succeed_when_performing_search_not_return_termination_process_when_completion_process_flag_disabled() {
-        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
-            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
-
-        Task mockTask = mock(Task.class);
-
-        mockTask.setTerminationProcess(TerminationProcess.EXUI_USER_COMPLETION.getValue());
-        List<Task> taskList = Lists.newArrayList(mockTask);
-        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
-            .thenReturn(tasksResponse);
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-                                                                       mockedUserInfo.getUid(),
-                                                                       mockedUserInfo.getEmail())).thenReturn(false);
-        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
-            IDAM_AUTH_TOKEN, 0, 1,
-            new SearchTaskRequest(
-                singletonList(new SearchParameterList(
-                                  TASK_TYPE,
-                                  SearchOperator.IN,
-                                  singletonList("processApplication")
-                              )
-                )
-            )
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getTotalRecords());
-        response.getBody().getTasks();
-        Assertions.assertNull(response.getBody().getTasks().get(0).getTerminationProcess());
-    }
 
     @Test
     void should_search_by_search_index_when_gin_index_feature_flag_is_true() {
@@ -434,10 +397,6 @@ class TaskSearchControllerTest {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
             mockedUserInfo.getUid(),
             mockedUserInfo.getEmail())).thenReturn(false);
-
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-                                                                       mockedUserInfo.getUid(),
-                                                                       mockedUserInfo.getEmail())).thenReturn(true);
 
         taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 1,

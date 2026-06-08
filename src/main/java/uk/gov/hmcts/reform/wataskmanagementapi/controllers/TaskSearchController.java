@@ -150,14 +150,6 @@ public class TaskSearchController extends BaseController {
             );
 
         }
-        boolean isCompletionProcessUpdateEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-        if (!isCompletionProcessUpdateEnabled && response != null && response.getTasks() != null) {
-            response.getTasks().forEach(task -> task.setTerminationProcess(null));
-        }
 
         return ResponseEntity
             .ok()

@@ -498,7 +498,5 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             .thenReturn(accessControlResponse);
         when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskWithCompletionProcess()), 1L));
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                             anyString(), anyString())).thenReturn(true);
     }
 }

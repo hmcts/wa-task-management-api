@@ -38,7 +38,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -70,7 +69,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -514,10 +512,6 @@ class PostTaskSearchControllerTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail())).thenReturn(true);
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, IN, singletonList("WA")),
             new SearchParameterList(WORK_TYPE, IN, singletonList("query_work")),
@@ -537,54 +531,6 @@ class PostTaskSearchControllerTest {
                     jsonPath("total_records").value(1),
                     jsonPath("$.tasks").isArray(),
                     jsonPath("$.tasks[0].termination_process").value("EXUI_CASE-EVENT_COMPLETION")
-                ));
-    }
-
-    @Test
-    void should_return_200_list_with_no_termination_process_for_matching_search_criteria_when_flag_disabled()
-        throws Exception {
-
-        UserInfo userInfo = mockServices.mockUserInfo();
-
-        final List<String> roleNames = singletonList("tribunal-caseworker");
-
-        Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "WA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "query_work");
-
-        List<RoleAssignment> allTestRoles =
-            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
-
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(new RoleAssignmentResource(allTestRoles));
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail())).thenReturn(false);
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(JURISDICTION, IN, singletonList("WA")),
-            new SearchParameterList(WORK_TYPE, IN, singletonList("query_work")),
-            new SearchParameterList(STATE, IN, singletonList("COMPLETED"))
-        ));
-
-        mockMvc.perform(
-                post("/task")
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-            )
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isOk(),
-                    jsonPath("total_records").value(1),
-                    jsonPath("$.tasks").isArray(),
-                    jsonPath("$.tasks[0].termination_process").doesNotExist()
                 ));
     }
 
