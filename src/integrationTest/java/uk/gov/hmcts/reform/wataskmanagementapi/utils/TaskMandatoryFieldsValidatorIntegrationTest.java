@@ -16,14 +16,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.JsonParserUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
@@ -46,12 +44,6 @@ public class TaskMandatoryFieldsValidatorIntegrationTest {
 
     @Autowired
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-
-    @Autowired
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    @Autowired
-    private JsonParserUtils jsonParserUtils;
 
     private String taskId;
 
