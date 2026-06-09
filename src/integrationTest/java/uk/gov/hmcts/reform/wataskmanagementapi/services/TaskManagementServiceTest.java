@@ -158,7 +158,7 @@ class TaskManagementServiceTest {
 
 
 
-    @MockitoBean private CancellationProcessValidator cancellationProcessValidator;
+    @Autowired private CancellationProcessValidator cancellationProcessValidator;
 
     public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
 
