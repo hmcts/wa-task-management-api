@@ -6,7 +6,6 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 
 import java.util.Optional;
