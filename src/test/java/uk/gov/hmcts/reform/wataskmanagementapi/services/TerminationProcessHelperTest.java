@@ -48,9 +48,7 @@ public class TerminationProcessHelperTest {
     void should_return_termination_process_when_feature_flag_is_enabled_and_variable_is_present() {
         String taskId = "taskId123";
         String cancellationProcess = "CASE_EVENT_CANCELLATION";
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
-        when(cancellationProcessValidator.validate(anyString(), anyString(), any()))
+        when(cancellationProcessValidator.validate(anyString(), anyString()))
             .thenReturn(Optional.of(cancellationProcess));
         when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
             .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));
@@ -66,9 +64,7 @@ public class TerminationProcessHelperTest {
     void should_return_optional_empty_when_feature_flag_is_enabled_and_invalid_cancellation_process_is_present() {
         String taskId = "taskId123";
         String cancellationProcess = "INVALID_CANCELLATION";
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
-        when(cancellationProcessValidator.validate(anyString(), anyString(), any()))
+        when(cancellationProcessValidator.validate(anyString(), anyString()))
             .thenReturn(Optional.empty());
         when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
             .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));
@@ -79,23 +75,11 @@ public class TerminationProcessHelperTest {
 
     }
 
-    @Test
-    void should_return_empty_optional_when_feature_flag_is_disabled() {
-        String taskId = "taskId123";
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(false);
-
-        Optional<TerminationProcess> result = terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId);
-
-        assertTrue(result.isEmpty());
-    }
 
     @Test
     void should_return_empty_optional_when_cancellation_process_variable_is_not_present() {
         String taskId = "taskId123";
 
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
         when(camundaService.getVariableFromHistory(taskId, "cancellationProcess")).thenReturn(Optional.empty());
 
         Optional<TerminationProcess> result = terminationProcessHelper.fetchTerminationProcessFromCamunda(taskId);
@@ -104,27 +88,12 @@ public class TerminationProcessHelperTest {
     }
 
     @Test
-    void should_not_set_termination_process_when_optional_empty_returned_from_camunda() {
-        TaskResource taskResource = spy(TaskResource.class);
-
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(false);
-
-        terminationProcessHelper.setTerminationProcessOnTerminateTask(taskResource.getTaskId(),
-                                                                      taskResource);
-
-        verify(taskResource, times(0))
-            .setTerminationProcess(any());
-    }
-
-    @Test
     void should_not_set_termination_process_from_camunda_if_task_completed_by_user_in_db() {
         TaskResource taskResource = spy(TaskResource.class);
 
         String cancellationProcess = "CASE_EVENT_CANCELLATION";
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
-        when(cancellationProcessValidator.validate(any(), any(), any()))
+
+        when(cancellationProcessValidator.validate(any(), any()))
             .thenReturn(Optional.of(cancellationProcess));
         when(camundaService.getVariableFromHistory(taskResource.getTaskId(), "cancellationProcess"))
             .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));
@@ -140,9 +109,8 @@ public class TerminationProcessHelperTest {
     void should_not_set_termination_process_from_camunda_if_task_cancelled_by_user_in_db() {
         TaskResource taskResource = spy(TaskResource.class);
         String cancellationProcess = "CASE_EVENT_CANCELLATION";
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
-        when(cancellationProcessValidator.validate(any(), any(), any()))
+
+        when(cancellationProcessValidator.validate(any(), any()))
             .thenReturn(Optional.of(cancellationProcess));
         when(camundaService.getVariableFromHistory(taskResource.getTaskId(), "cancellationProcess"))
             .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));
@@ -158,9 +126,8 @@ public class TerminationProcessHelperTest {
     void should_invoke_and_set_termination_process_when_valid_value_returned_from_camunda() {
         TaskResource taskResource = spy(TaskResource.class);
         String cancellationProcess = "CASE_EVENT_CANCELLATION";
-        when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
-        when(cancellationProcessValidator.validate(any(), any(), any()))
+
+        when(cancellationProcessValidator.validate(any(), any()))
             .thenReturn(Optional.of(cancellationProcess));
         when(camundaService.getVariableFromHistory(taskResource.getTaskId(), "cancellationProcess"))
             .thenReturn(Optional.of(new HistoryVariableInstance("id", "cancellationProcess", cancellationProcess)));

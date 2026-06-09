@@ -38,7 +38,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
@@ -157,10 +156,9 @@ class TaskManagementServiceTest {
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    private CancellationProcessValidator cancellationProcessValidator;
+
+    @MockitoBean private CancellationProcessValidator cancellationProcessValidator;
 
     public static final String USER_WITH_CANCELLATION_FLAG_ENABLED = "wa-user-with-cancellation-process-enabled";
 
@@ -177,7 +175,6 @@ class TaskManagementServiceTest {
             cftTaskDatabaseService,
             cftQueryService,
             cftSensitiveTaskEventLogsDatabaseService);
-        cancellationProcessValidator = new CancellationProcessValidator(launchDarklyFeatureFlagProvider);
         terminationProcessHelper = new TerminationProcessHelper(
             camundaService,
             systemUserIdamToken,
@@ -848,7 +845,6 @@ class TaskManagementServiceTest {
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
 
             AtomicBoolean success = new AtomicBoolean(false);
 
@@ -889,7 +885,6 @@ class TaskManagementServiceTest {
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.of(historyVariableInstance));
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
 
             AtomicBoolean success = new AtomicBoolean(false);
 
@@ -917,38 +912,6 @@ class TaskManagementServiceTest {
 
         }
 
-        @Test
-        @DisplayName("should_not_set_termination_process_when_termination_process_from_camunda_returns_value_flag_off")
-        void should_not_set_termination_process_when_termination_process_from_camunda_returns_value_and_flag_off() {
-            String taskId = UUID.randomUUID().toString();
-            createAndAssignTestTask(taskId);
-            HistoryVariableInstance historyVariableInstance = new HistoryVariableInstance(
-                "id",
-                "cancellationProcess",
-                "CASE_EVENT_CANCELLATION"
-            );
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(false);
-            when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
-                .thenReturn(Optional.of(historyVariableInstance));
-            AtomicBoolean success = new AtomicBoolean(false);
-
-            transactionHelper.doInNewTransaction(
-                () -> {
-                    taskManagementService.terminateTask(
-                        taskId,
-                        new TerminateInfo("completed")
-
-                    );
-                    success.set(true);
-
-                }
-            );
-            assertTrue(success.get());
-            verify(cftTaskDatabaseService, times(1)).saveTask(any());
-            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
-            assertTrue(savedTaskResource.isPresent());
-            assertNull(savedTaskResource.get().getTerminationProcess());
-        }
 
         @Test
         @DisplayName("should_not_set_termination_process_when_termination_process_from_camunda_returns_empty")
@@ -958,8 +921,6 @@ class TaskManagementServiceTest {
             UserInfo mockedUserInfo =
                 UserInfo.builder().uid(IDAM_USER_ID).email(USER_WITH_CANCELLATION_FLAG_ENABLED).build();
             when(systemUserIdamToken.getUserInfo(anyString())).thenReturn(mockedUserInfo);
-            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), anyString(), anyString())).thenReturn(true);
-
 
             when(camundaService.getVariableFromHistory(taskId, "cancellationProcess"))
                 .thenReturn(Optional.empty());

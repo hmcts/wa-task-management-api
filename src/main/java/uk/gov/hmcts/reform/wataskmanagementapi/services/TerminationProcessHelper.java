@@ -4,16 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -65,21 +62,11 @@ public class TerminationProcessHelper {
     and the "cancellationProcess" variable is found, or an empty Optional otherwise.
      */
     public Optional<TerminationProcess> fetchTerminationProcessFromCamunda(String taskId) {
-        final String userToken = idamTokenGenerator.generate();
-        final UserInfo userInfo = idamTokenGenerator.getUserInfo(userToken);
-
-        //Don't need roles for feature flag check
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, new ArrayList<>());
-
-        if (!cancellationProcessValidator.isCancellationProcessFeatureEnabled(accessControlResponse)) {
-            return Optional.empty();
-        }
 
         return getValidatedTerminationProcess(
             taskId,
-            fetchCancellationProcessHistoryVar(taskId),
-            accessControlResponse
-        );
+            fetchCancellationProcessHistoryVar(taskId)
+            );
 
     }
 
@@ -90,16 +77,14 @@ public class TerminationProcessHelper {
      *
      * @param taskId                 The ID of the task for which the termination process is to be validated.
      * @param cancellationProcessOpt An Optional containing the cancellation process string, if present.
-     * @param accessControlResponse  The access control response containing user roles and permissions.
      * @return An Optional containing the TerminationProcess if the cancellation process is valid,
      *         or an empty Optional if the cancellation process is invalid or not present.
      */
     private Optional<TerminationProcess> getValidatedTerminationProcess(String taskId,
-                                                                        Optional<String> cancellationProcessOpt,
-                                                                        AccessControlResponse accessControlResponse) {
+                                                                        Optional<String> cancellationProcessOpt) {
         if (cancellationProcessOpt.isPresent()) {
             String cancellationProcess = cancellationProcessOpt.get();
-            if (cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse).isPresent()) {
+            if (cancellationProcessValidator.validate(cancellationProcess, taskId).isPresent()) {
                 return TerminationProcess.fromValue(cancellationProcess);
             } else {
                 log.warn(

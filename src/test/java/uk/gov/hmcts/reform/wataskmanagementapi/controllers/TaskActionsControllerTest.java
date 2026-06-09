@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -58,7 +56,6 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -401,74 +398,13 @@ class TaskActionsControllerTest {
             .cancelTask(taskId, mockAccessControlResponse, null);
     }
 
-    @ParameterizedTest(name = "should complete task with null termination process when flag disabled")
-    @NullAndEmptySource
-    @ValueSource(strings = {"EXUI_USER_CANCELLATION", "EXUI_CASE_EVENT_CANCELLATION"})
-    void should_call_complete_task_without_cancellation_process_in_map_when_flag_disabled(String cancellationProcess) {
-        AccessControlResponse mockAccessControlResponse =
-            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-
-        lenient().when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(false);
-
-        ResponseEntity response = taskActionsController.cancelTask(
-            IDAM_AUTH_TOKEN,
-            taskId,
-            cancellationProcess
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(taskManagementService, times(1)).cancelTask(
-            taskId,
-            mockAccessControlResponse,
-            null
-        );
-
-    }
-
-
     @Test
-    void should_call_cancel_task_with_valid_cancellation_process_in_map_when_flag_enabled() {
-        String cancellationProcess = "EXUI_USER_CANCELLATION";
-        AccessControlResponse mockAccessControlResponse =
-            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-
-
-        lenient().when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
-
-        doReturn(Optional.of(cancellationProcess)).when(cancellationProcessValidator)
-            .validate(anyString(), anyString(), any());
-
-
-        ResponseEntity<Void> response = taskActionsController.cancelTask(
-            IDAM_AUTH_TOKEN,
-            taskId,
-            cancellationProcess
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(taskManagementService, times(1)).cancelTask(
-            taskId,
-            mockAccessControlResponse,
-            cancellationProcess
-        );
-    }
-
-    @Test
-    void should_call_cancel_task_with_no_value_in_map_when_flag_enabled_and_for_invalid_cancellation_process() {
+    void should_call_cancel_task_with_no_value_in_map_when_for_invalid_cancellation_process() {
         String cancellationProcess = "INVALID_VALUE";
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
 
-
-        lenient().when(cancellationProcessValidator.isCancellationProcessFeatureEnabled(any()))
-            .thenReturn(true);
 
         ResponseEntity<Void> response = taskActionsController.cancelTask(
             IDAM_AUTH_TOKEN,

@@ -285,7 +285,7 @@ public class TaskActionsController extends BaseController {
         LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
         String validatedCancellationProcess =
-            cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse).orElse(null);
+            cancellationProcessValidator.validate(cancellationProcess, taskId).orElse(null);
 
 
         taskManagementService.cancelTask(taskId, accessControlResponse, validatedCancellationProcess);

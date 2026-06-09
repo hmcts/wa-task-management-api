@@ -79,9 +79,7 @@ public class TaskManagerCancelTaskProviderTest extends SpringBootContractProvide
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE),
-                                                             anyString(), anyString())).thenReturn(true);
-        when(cancellationProcessValidator.validate(anyString(), anyString(), any())).thenAnswer(invocation -> {
+        when(cancellationProcessValidator.validate(anyString(), anyString())).thenAnswer(invocation -> {
             if (Math.random() < 0.5) {
                 return Optional.of("EXUI_USER_CANCELLATION!");
             } else {

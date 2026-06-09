@@ -6,8 +6,6 @@ public enum FeatureFlag {
 
     WA_DELETE_TASK_BY_CASE_ID("wa-delete-task-by-case-id"),
 
-    WA_CANCELLATION_PROCESS_FEATURE("wa-cancellation-process-feature"),
-
 
     //The following keys are used for testing purposes only.
     TEST_KEY("tester"),
