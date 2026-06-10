@@ -112,8 +112,6 @@ public class TaskSearchController extends BaseController {
                 .cacheControl(CacheControl.noCache())
                 .body(response);
         }
-        AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
-
         log.info("Search request received '{}', first_result '{}', max_result '{}'", searchTaskRequest,
             firstResult, maxResults);
 
@@ -123,6 +121,8 @@ public class TaskSearchController extends BaseController {
             Optional.ofNullable(maxResults).orElse(defaultMaxResults));
 
         log.info("Search tasks using search_index");
+        AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
+
         response = cftTaskDatabaseService.searchForTasks(
             Optional.ofNullable(firstResult).orElse(0),
             Optional.ofNullable(maxResults).orElse(defaultMaxResults),
