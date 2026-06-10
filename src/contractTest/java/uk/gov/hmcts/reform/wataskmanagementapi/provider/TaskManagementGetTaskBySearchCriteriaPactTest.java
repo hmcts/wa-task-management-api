@@ -424,7 +424,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskWithNoWarnings(), createTaskWithNoWarnings()), 2L));
     }
 
@@ -436,7 +436,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createWaTask(), createWaTask()), 2L));
     }
 
@@ -447,7 +447,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskWithWarnings()), 1L));
     }
 
@@ -459,7 +459,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskWithNoWarnings()), 1L));
     }
 
@@ -470,7 +470,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskForRoleCategorySearch()), 1L));
     }
 
@@ -481,7 +481,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskTypeSearch()), 1L));
     }
 
@@ -493,7 +493,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
         when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getAccessControlResponse(anyString()))
             .thenReturn(accessControlResponse);
-        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any()))
+        when(cftTaskDatabaseService.searchForTasks(anyInt(), anyInt(), any(), any()))
             .thenReturn(new GetTasksResponse<>(List.of(createTaskForTaskWithCompletionProcess()), 1L));
     }
 }
