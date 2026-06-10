@@ -76,8 +76,7 @@ class TaskSearchControllerTest {
         taskSearchController = new TaskSearchController(
             accessControlService,
             cftQueryService,
-            cftTaskDatabaseService,
-            launchDarklyFeatureFlagProvider
+            cftTaskDatabaseService
         );
     }
 
@@ -357,13 +356,9 @@ class TaskSearchControllerTest {
 
 
     @Test
-    void should_search_by_search_index_when_gin_index_feature_flag_is_true() {
+    void should_search_by_search_index_with_gin_index() {
         when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
             .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
-
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail())).thenReturn(true);
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
@@ -387,30 +382,6 @@ class TaskSearchControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, Objects.requireNonNull(response.getBody()).getTotalRecords());
-    }
-
-    @Test
-    void should_not_search_by_search_index_when_gin_index_feature_flag_is_false() {
-        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
-            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
-
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail())).thenReturn(false);
-
-        taskSearchController.searchWithCriteria(
-            IDAM_AUTH_TOKEN, 0, 1,
-            new SearchTaskRequest(
-                singletonList(new SearchParameterList(
-                        TASK_TYPE,
-                        SearchOperator.IN,
-                        singletonList("processApplication")
-                    )
-                )
-            )
-        );
-
-        verify(cftTaskDatabaseService, never()).searchForTasks(anyInt(), anyInt(), any(), any());
     }
 
 }

@@ -111,7 +111,7 @@ class PostTaskSearchControllerTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Autowired
+    @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockitoSpyBean
     private CftQueryService cftQueryService;
@@ -293,12 +293,15 @@ class PostTaskSearchControllerTest {
         );
 
         String roleAssignmentId = UUID.randomUUID().toString();
+        WorkTypeResource workTypeResource =
+            new WorkTypeResource("decision_making_work", "Decision Making Work");
 
         insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(caseId,
                                                                taskId,
                                                                "IA",
                                                                "Asylum",
                                                                roleAssignmentId,
+                                                               workTypeResource,
                                                                taskRoleResource);
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
@@ -487,50 +490,6 @@ class PostTaskSearchControllerTest {
                     status().isOk(),
                     jsonPath("total_records").value(0),
                     jsonPath("$.tasks").isEmpty()
-                ));
-    }
-
-    @Test
-    void should_return_200_list_with_termination_process_for_matching_search_criteria_when_flag_enabled()
-        throws Exception {
-
-        UserInfo userInfo = mockServices.mockUserInfo();
-
-        final List<String> roleNames = singletonList("tribunal-caseworker");
-
-        Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "WA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "query_work");
-
-        List<RoleAssignment> allTestRoles =
-            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
-
-        when(roleAssignmentServiceApi.getRolesForUser(
-            any(), any(), any()
-        )).thenReturn(new RoleAssignmentResource(allTestRoles));
-
-        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
-        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(JURISDICTION, IN, singletonList("WA")),
-            new SearchParameterList(WORK_TYPE, IN, singletonList("query_work")),
-            new SearchParameterList(STATE, IN, singletonList("COMPLETED"))
-        ));
-
-        mockMvc.perform(
-                post("/task")
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content(integrationTestUtils.asJsonString(searchTaskRequest))
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-            )
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isOk(),
-                    jsonPath("total_records").value(1),
-                    jsonPath("$.tasks").isArray(),
-                    jsonPath("$.tasks[0].termination_process").value("EXUI_CASE-EVENT_COMPLETION")
                 ));
     }
 
@@ -1536,7 +1495,7 @@ class PostTaskSearchControllerTest {
         );
         SearchRequest searchRequest = SearchTaskRequestMapper.map(expectedReq);
 
-        verify(cftQueryService, times(1)).searchForTasks(
+        verify(cftTaskDatabaseService, times(1)).searchForTasks(
             0,
             50,
             searchRequest,
@@ -1859,6 +1818,7 @@ class PostTaskSearchControllerTest {
     private void insertDummyTaskWithWarningsAndAdditionalPropertiesInDb(String caseId, String taskId,
                                                                         String jurisdiction, String caseType,
                                                                         String roleAssignmentId,
+                                                                        WorkTypeResource workTypeResource,
                                                                         TaskRoleResource taskRoleResource) {
         TaskResource taskResource = new TaskResource(
             taskId,
@@ -1883,7 +1843,7 @@ class PostTaskSearchControllerTest {
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId(caseId);
         taskResource.setAssignee(IDAM_USER_ID);
-        taskResource.setWorkTypeResource(new WorkTypeResource("decision_making_work", "Decision Making work"));
+        taskResource.setWorkTypeResource(workTypeResource);
         taskResource.setNotes(warnings);
         taskResource.setHasWarnings(true);
         taskResource.setAdditionalProperties(Map.of("roleAssignmentId", roleAssignmentId));
@@ -1894,4 +1854,3 @@ class PostTaskSearchControllerTest {
 
     }
 }
-
