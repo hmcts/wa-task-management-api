@@ -29,10 +29,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @IntegrationTest(properties = {
     "spring.datasource.driver-class-name=org.postgresql.Driver",
     "spring.datasource.driverClassName=org.postgresql.Driver",
-    "spring.datasource.url=jdbc:postgresql://localhost:5432/postgres",
-    "spring.datasource.jdbcUrl=jdbc:postgresql://localhost:5432/postgres",
-    "spring.datasource.username=pgadmin",
-    "spring.datasource.password=pgadmin",
+    "spring.datasource.url=jdbc:postgresql://localhost:5432/cft_task_db",
+    "spring.datasource.jdbcUrl=jdbc:postgresql://localhost:5432/cft_task_db",
+    "spring.datasource.username=postgres",
+    "spring.datasource.password=postgres",
     "spring.datasource.hikari.maximum-pool-size=2",
     "spring.flyway.enabled=false",
     "logging.level.uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCustomRepositoryImpl=WARN"
@@ -87,6 +87,14 @@ class TaskResourceSearchIndexComparisonTest {
 
             if (newSearchResult.taskIds().size() == MAX_RESULTS) {
                 fullPageScenarios++;
+                Long oldSearchCount = countOld(scenario);
+                Long newSearchCount = countNew(scenario);
+
+                assertThat(newSearchCount)
+                    .as("scenario %s taskId=%s should match old search count",
+                        scenario.scenarioNo(),
+                        scenario.taskId())
+                    .isEqualTo(oldSearchCount);
             }
         }
 
@@ -145,6 +153,24 @@ class TaskResourceSearchIndexComparisonTest {
         return taskResourceRepository.searchTasksIds(
             0,
             MAX_RESULTS,
+            scenario.filterSignatures(),
+            scenario.roleSignatures(),
+            List.of(),
+            scenario.toSearchRequest()
+        );
+    }
+
+    private Long countOld(SearchScenario scenario) {
+        return taskResourceRepository.searchTasksCountOld(
+            scenario.filterSignatures(),
+            scenario.roleSignatures(),
+            List.of(),
+            scenario.toSearchRequest()
+        );
+    }
+
+    private Long countNew(SearchScenario scenario) {
+        return taskResourceRepository.searchTasksCount(
             scenario.filterSignatures(),
             scenario.roleSignatures(),
             List.of(),

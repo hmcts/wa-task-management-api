@@ -114,7 +114,25 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                  List<String> excludeCaseIds,
                                  SearchRequest searchRequest) {
 
-        String queryString = String.format(BASE_QUERY,
+        return searchTasksCount(BASE_QUERY_NEW, filterSignature, roleSignature, excludeCaseIds, searchRequest);
+    }
+
+    @Override
+    public Long searchTasksCountOld(Set<String> filterSignature,
+                                    Set<String> roleSignature,
+                                    List<String> excludeCaseIds,
+                                    SearchRequest searchRequest) {
+
+        return searchTasksCount(BASE_QUERY, filterSignature, roleSignature, excludeCaseIds, searchRequest);
+    }
+
+    private Long searchTasksCount(String baseQuery,
+                                  Set<String> filterSignature,
+                                  Set<String> roleSignature,
+                                  List<String> excludeCaseIds,
+                                  SearchRequest searchRequest) {
+
+        String queryString = String.format(baseQuery,
             COUNT_CLAUSE,
             extraConstraints(excludeCaseIds, searchRequest),
             "", "");

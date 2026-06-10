@@ -33,6 +33,11 @@ class TaskResourceCustomRepositoryImplTest {
         + "AND t.role_signature_hashes && {h-schema}signature_hashes(CAST(:roleSignature AS text[])) "
         + "AND t.filter_signatures && CAST(:filterSignature AS text[]) "
         + "AND t.role_signatures && CAST(:roleSignature AS text[]) ";
+    private static final String OLD_SIGNATURE_CONSTRAINTS =
+        "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, "
+        + "t.region, t.location) && CAST(:filterSignature AS text[]) "
+        + "AND {h-schema}role_signatures(t.task_id, t.jurisdiction, t.region, t.location, t.case_id, "
+        + "t.security_classification) && CAST(:roleSignature AS text[]) ";
 
     @Mock
     EntityManager entityManager;
@@ -104,6 +109,20 @@ class TaskResourceCustomRepositoryImplTest {
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + SIGNATURE_CONSTRAINTS
+                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
+        verify(entityManager).createNativeQuery(queryStr);
+        InOrder inOrder = inOrder(query);
+        inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
+        inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
+    }
+
+    @Test
+    void when_search_request_is_empty_then_build_old_count_query_with_signatures() {
+        taskResourceCustomRepository.searchTasksCountOld(filterSignature, roleSignature,null,
+            SearchRequest.builder().build());
+
+        String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
+                       + OLD_SIGNATURE_CONSTRAINTS
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
