@@ -20,17 +20,24 @@ public class CancellationProcessValidator {
 
     /**
      * Validates the cancellation process value.
-     * Validation logic:
-     *      * If the updateCancellationProcessFlagEnabled flag is disabled, the method logs an info message
-     *      * and returns an empty {@link Optional}.
-     *      * If the cancellation process is null, blank, or not in the list of valid completion processes,
-     *      * the method logs a warning and returns an empty {@link Optional}.
-     *      * If the cancellation process is valid, the method logs an info message and returns the cancellation process
-     *      * wrapped in an {@link Optional}.
+     *
+     * This method checks whether the provided `cancellationProcess` value is valid based on predefined criteria.
+     * The validation process includes:
+     * - Checking if the `cancellationProcess` is null, blank, or not part of the valid cancellation processes.
+     * - Logging appropriate messages based on the validation outcome.
+     * - Returning an `Optional` containing the valid `cancellationProcess` value, or an empty `Optional` if invalid.
+     *
+     * Validation steps:
+     * 1. If `cancellationProcess` is null, blank, or not in the list of valid cancellation processes:
+     *    - Logs a warning message indicating the invalid value and task ID.
+     *    - Returns an empty `Optional`.
+     * 2. If `cancellationProcess` is valid:
+     *    - Logs an info message indicating the valid value and task ID.
+     *    - Returns the `cancellationProcess` wrapped in an `Optional`.
      *
      * @param cancellationProcess the cancellation process value to validate
      * @param taskId the task ID for logging purposes
-     * @return an Optional containing the valid completion process value, or empty if invalid.
+     * @return an `Optional` containing the valid cancellation process value, or empty if invalid
      */
     public Optional<String> validate(String cancellationProcess, String taskId) {
         if (cancellationProcess == null || cancellationProcess.isBlank()
