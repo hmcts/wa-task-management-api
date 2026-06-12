@@ -23,17 +23,24 @@ public class CompletionProcessValidator {
 
     /**
      * Validates the completion process value.
-     * Validation logic:
-     *      * If the updateCompletionProcessFlagEnabled flag is disabled, the method logs an info message
-     *      * and returns an empty {@link Optional}.
-     *      * If the completion process is null, blank, or not in the list of valid completion processes,
-     *      * the method logs a warning and returns an empty {@link Optional}.
-     *      * If the completion process is valid, the method logs an info message and returns the completion process
-     *      * wrapped in an {@link Optional}.
+     *
+     * This method ensures that the provided `completionProcess` value is valid based on predefined criteria.
+     * The validation logic includes:
+     * - Checking if the `completionProcess` is null, blank, or not part of the valid completion processes.
+     * - Logging appropriate messages based on the validation outcome.
+     * - Returning an `Optional` containing the valid `completionProcess` value, or an empty `Optional` if invalid.
+     *
+     * Validation steps:
+     * 1. If `completionProcess` is null, blank, or not in the list of valid completion processes:
+     *    - Logs a warning message indicating the invalid value and task ID.
+     *    - Returns an empty `Optional`.
+     * 2. If `completionProcess` is valid:
+     *    - Logs an info message indicating the valid value and task ID.
+     *    - Returns the `completionProcess` wrapped in an `Optional`.
      *
      * @param completionProcess the completion process value to validate
      * @param taskId the task ID for logging purposes
-     * @return an Optional containing the valid completion process value, or empty if invalid.
+     * @return an `Optional` containing the valid completion process value, or empty if invalid
      */
     public Optional<String> validate(String completionProcess, String taskId) {
         if (completionProcess == null || completionProcess.isBlank()
