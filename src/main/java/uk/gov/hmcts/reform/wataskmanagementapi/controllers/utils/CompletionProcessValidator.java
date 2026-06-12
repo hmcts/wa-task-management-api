@@ -23,13 +23,11 @@ public class CompletionProcessValidator {
 
     /**
      * Validates the completion process value.
-     *
      * This method ensures that the provided `completionProcess` value is valid based on predefined criteria.
      * The validation logic includes:
      * - Checking if the `completionProcess` is null, blank, or not part of the valid completion processes.
      * - Logging appropriate messages based on the validation outcome.
      * - Returning an `Optional` containing the valid `completionProcess` value, or an empty `Optional` if invalid.
-     *
      * Validation steps:
      * 1. If `completionProcess` is null, blank, or not in the list of valid completion processes:
      *    - Logs a warning message indicating the invalid value and task ID.

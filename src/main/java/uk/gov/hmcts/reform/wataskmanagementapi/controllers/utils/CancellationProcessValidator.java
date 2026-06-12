@@ -20,13 +20,11 @@ public class CancellationProcessValidator {
 
     /**
      * Validates the cancellation process value.
-     *
      * This method checks whether the provided `cancellationProcess` value is valid based on predefined criteria.
      * The validation process includes:
      * - Checking if the `cancellationProcess` is null, blank, or not part of the valid cancellation processes.
      * - Logging appropriate messages based on the validation outcome.
      * - Returning an `Optional` containing the valid `cancellationProcess` value, or an empty `Optional` if invalid.
-     *
      * Validation steps:
      * 1. If `cancellationProcess` is null, blank, or not in the list of valid cancellation processes:
      *    - Logs a warning message indicating the invalid value and task ID.
@@ -34,7 +32,6 @@ public class CancellationProcessValidator {
      * 2. If `cancellationProcess` is valid:
      *    - Logs an info message indicating the valid value and task ID.
      *    - Returns the `cancellationProcess` wrapped in an `Optional`.
-     *
      * @param cancellationProcess the cancellation process value to validate
      * @param taskId the task ID for logging purposes
      * @return an `Optional` containing the valid cancellation process value, or empty if invalid
