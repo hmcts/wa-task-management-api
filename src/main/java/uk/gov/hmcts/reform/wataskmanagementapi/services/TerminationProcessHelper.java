@@ -54,11 +54,9 @@ public class TerminationProcessHelper {
 
     /**
      * Fetches the termination process for a given task ID from Camunda.
-     *
      * This method retrieves the termination process for a specific task by checking the
      * "cancellationProcess" variable in the task's history within Camunda. It validates
      * the retrieved value and ensures it corresponds to a valid TerminationProcess.
-     *
      * The process involves:
      * - Fetching the "cancellationProcess" variable from the task's history.
      * - Validating the fetched value to ensure it matches a valid TerminationProcess.
@@ -79,12 +77,10 @@ public class TerminationProcessHelper {
 
     /**
      * Validates and retrieves the TerminationProcess for a given task.
-     *
      * This method checks if the cancellation process is present and valid for the given task ID.
      * If the cancellation process is valid, it maps it to a TerminationProcess enum value.
      * The validation is performed using the CancellationProcessValidator.
-     *
-     * @param taskId                 The unique identifier of the task for which the termination process is to be validated.
+     * @param taskId             The unique identifier of the task for which the termination process is to be validated.
      * @param cancellationProcessOpt An Optional containing the cancellation process string, if present.
      * @return An Optional containing the TerminationProcess if the cancellation process is valid,
      *         or an empty Optional if the cancellation process is invalid or not present.
