@@ -36,9 +36,6 @@ public final class TaskFunctionalTestConstants {
     public static final String USER_WITH_WA_ORG_ROLES = "USER_WITH_WA_ORG_ROLES";
     public static final String USER_WITH_WA_ORG_ROLES2 = "USER_WITH_WA_ORG_ROLES2";
     public static final String USER_WITH_WA_ORG_ROLES3 = "USER_WITH_WA_ORG_ROLES23";
-    public static final String USER_WITH_COMPLETION_ENABLED = "USER_WITH_COMPLETION_ENABLED";
-    public static final String USER_WITH_TRIB_ROLE_COMPLETION_ENABLED = "USER_WITH_TRIB_ROLE_COMPLETION_ENABLED";
-    public static final String USER_WITH_CANCELLATION_ENABLED = "USER_WITH_CANCELLATION_ENABLED";
     public static final String USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES =
         "USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES";
     public static final String USER_WITH_TRIB_CASEWORKER_ROLE = "USER_WITH_TRIB_CASEWORKER_ROLE";

@@ -27,13 +27,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.GIN_INDEX_CASE_WORKER_WITH_JUDGE_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_NO_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_ROLE_COMPLETION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES3;
@@ -94,18 +91,6 @@ public class TaskFunctionalTestsUserUtils {
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
             caseWorkerWithWAOrgRoles3.getHeaders());
         testUsersMap.put(USER_WITH_WA_ORG_ROLES3, caseWorkerWithWAOrgRoles3);
-
-        TestAuthenticationCredentials caseWorkerWithCompletionEnabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithCompletionEnabled.getHeaders());
-        testUsersMap.put(USER_WITH_COMPLETION_ENABLED, caseWorkerWithCompletionEnabled);
-
-        TestAuthenticationCredentials tribCaseworkerWithCompletionEnabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            tribCaseworkerWithCompletionEnabled.getHeaders(), "tribunal-caseworker");
-        testUsersMap.put(USER_WITH_TRIB_ROLE_COMPLETION_ENABLED, tribCaseworkerWithCompletionEnabled);
 
         TestAuthenticationCredentials caseWorkerWithTribRoleWithWorkTypes =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
@@ -172,12 +157,6 @@ public class TaskFunctionalTestsUserUtils {
             .setupWAOrganisationalRoleAssignment(
                 userWithSeniorTribCaseworker.getHeaders(), "senior-tribunal-caseworker");
         testUsersMap.put(CASE_WORKER_WITH_SENIOR_TRIB_ROLE, userWithSeniorTribCaseworker);
-
-        TestAuthenticationCredentials caseWorkerWithCancellationEnabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-cancellation-process-enabled-");
-        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
-            caseWorkerWithCancellationEnabled.getHeaders());
-        testUsersMap.put(USER_WITH_CANCELLATION_ENABLED, caseWorkerWithCancellationEnabled);
     }
 
     public TestAuthenticationCredentials getTestUser(String userKey) {

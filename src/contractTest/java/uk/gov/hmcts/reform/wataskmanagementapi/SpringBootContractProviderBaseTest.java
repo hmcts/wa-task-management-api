@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManagerFactory;
@@ -32,12 +33,12 @@ import java.util.Map;
 @ExtendWith(SpringExtension.class)
 //Uncomment @PactFolder and comment the @PactBroker line to test local consumer.
 //using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-//@PactFolder("target/pacts")
-@PactBroker(
-    url = "${PACT_BROKER_FULL_URL:http://localhost:9292}",
-    consumerVersionSelectors = {
-        @VersionSelector(tag = "master")}
-)
+@PactFolder("target/pacts")
+//@PactBroker(
+//    url = "${PACT_BROKER_FULL_URL:http://localhost:9292}",
+//    consumerVersionSelectors = {
+//        @VersionSelector(tag = "master")}
+//)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class SpringBootContractProviderBaseTest {
