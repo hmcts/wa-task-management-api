@@ -23,6 +23,7 @@ import org.zalando.problem.spring.web.advice.validation.ValidationAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskSecondaryKeyConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
@@ -198,6 +199,12 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 status.getStatusCode())
             );
 
+    }
+
+    @ExceptionHandler(TaskSecondaryKeyConflictException.class)
+    public ResponseEntity<Void> handleTaskSecondaryKeyConflict(TaskSecondaryKeyConflictException ex) {
+        log.info("Task creation idempotency hit: {}", ex.getMessage());
+        return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler({
