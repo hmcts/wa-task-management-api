@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -31,9 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TaskMandatoryFieldsValidatorTest {
 
     @Mock
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Mock
-    private JsonParserUtils jsonParserUtils;
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     private String taskId;

@@ -47,12 +47,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_ROLE_COMPLETION_ENABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES3;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
 @Import(AwaitilityTestConfig.class)
@@ -95,10 +94,10 @@ public class PostTaskReplicationMIControllerTest {
     TestAuthenticationCredentials caseWorkerWithTribRole;
     TestAuthenticationCredentials userWithTaskSupervisorRole;
     TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
-    TestAuthenticationCredentials tribCaseworkerWithCompletionEnabled;
-    TestAuthenticationCredentials caseworkerWithCancellationEnabled;
+    TestAuthenticationCredentials waOrgCaseworkerForCompletion;
+    TestAuthenticationCredentials tribCaseworkerWithWorkTypes;
     TestAuthenticationCredentials caseWorkerWithJudgeRole;
-    TestAuthenticationCredentials caseworkerWithCompletionEnabled;
+    TestAuthenticationCredentials waOrgCaseworkerForTermination;
 
     @Before
     public void setUp() {
@@ -110,13 +109,13 @@ public class PostTaskReplicationMIControllerTest {
             CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE);
         caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils
             .getTestUser(USER_WITH_CFT_ORG_ROLES);
-        tribCaseworkerWithCompletionEnabled = taskFunctionalTestsUserUtils
-            .getTestUser(USER_WITH_TRIB_ROLE_COMPLETION_ENABLED);
-        caseworkerWithCancellationEnabled = taskFunctionalTestsUserUtils
-            .getTestUser(USER_WITH_CANCELLATION_ENABLED);
+        waOrgCaseworkerForCompletion = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_WA_ORG_ROLES2);
+        tribCaseworkerWithWorkTypes = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES);
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils
             .getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
-        caseworkerWithCompletionEnabled = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_COMPLETION_ENABLED);
+        waOrgCaseworkerForTermination = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES3);
     }
 
     @Test
@@ -1347,13 +1346,13 @@ public class PostTaskReplicationMIControllerTest {
             new TerminateInfo("deleted")
         );
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            caseworkerWithCancellationEnabled.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+            tribCaseworkerWithWorkTypes.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
         Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            caseworkerWithCancellationEnabled.getHeaders()
+            tribCaseworkerWithWorkTypes.getHeaders()
         );
 
         resultDelete.then().assertThat()
@@ -1384,7 +1383,9 @@ public class PostTaskReplicationMIControllerTest {
                     .body("reportable_task_list.get(0).state", equalTo(CFTTaskState.TERMINATED.getValue()));
             });
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerWithCancellationEnabled.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(tribCaseworkerWithWorkTypes.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithWorkTypes(
+            tribCaseworkerWithWorkTypes.getHeaders(), "tribunal-caseworker");
     }
 
     @Test
@@ -1398,7 +1399,7 @@ public class PostTaskReplicationMIControllerTest {
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            tribCaseworkerWithCompletionEnabled.getHeaders(),
+            waOrgCaseworkerForCompletion.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
@@ -1407,7 +1408,7 @@ public class PostTaskReplicationMIControllerTest {
                 Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    tribCaseworkerWithCompletionEnabled.getHeaders()
+                    waOrgCaseworkerForCompletion.getHeaders()
                 );
 
 
@@ -1421,7 +1422,7 @@ public class PostTaskReplicationMIControllerTest {
         Response resultComplete = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
-            tribCaseworkerWithCompletionEnabled.getHeaders()
+            waOrgCaseworkerForCompletion.getHeaders()
         );
 
         resultComplete.then().assertThat()
@@ -1435,7 +1436,7 @@ public class PostTaskReplicationMIControllerTest {
             ENDPOINT_BEING_TESTED_TASK,
             taskId,
             terminateTaskRequest,
-            caseworkerWithCompletionEnabled.getHeaders()
+            waOrgCaseworkerForTermination.getHeaders()
         );
         resultTerminate.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
@@ -1443,7 +1444,7 @@ public class PostTaskReplicationMIControllerTest {
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_TASK,
             taskId,
-            tribCaseworkerWithCompletionEnabled.getHeaders()
+            waOrgCaseworkerForCompletion.getHeaders()
         );
         result.prettyPrint();
         result.then().assertThat()
@@ -1456,7 +1457,7 @@ public class PostTaskReplicationMIControllerTest {
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    tribCaseworkerWithCompletionEnabled.getHeaders()
+                    waOrgCaseworkerForCompletion.getHeaders()
                 );
 
                 resultHistory.prettyPrint();
@@ -1475,11 +1476,11 @@ public class PostTaskReplicationMIControllerTest {
                 Response resultCompleteReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    tribCaseworkerWithCompletionEnabled.getHeaders()
+                    waOrgCaseworkerForCompletion.getHeaders()
                 );
 
                 UserInfo userInfo = idamService.getUserInfo(
-                    tribCaseworkerWithCompletionEnabled.getHeaders().getValue(AUTHORIZATION)
+                    waOrgCaseworkerForCompletion.getHeaders().getValue(AUTHORIZATION)
                 );
                 resultCompleteReport.prettyPrint();
                 resultCompleteReport.then().assertThat()
@@ -1497,7 +1498,9 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(tribCaseworkerWithCompletionEnabled.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waOrgCaseworkerForCompletion.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waOrgCaseworkerForCompletion.getHeaders());
     }
 
     @Test
@@ -1626,12 +1629,12 @@ public class PostTaskReplicationMIControllerTest {
 
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            caseworkerWithCancellationEnabled.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+            tribCaseworkerWithWorkTypes.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED_CANCEL + "?cancellation_process=" + "EXUI_USER_CANCELLATION",
             taskId,
-            caseworkerWithCancellationEnabled.getHeaders()
+            tribCaseworkerWithWorkTypes.getHeaders()
         );
 
         result.then().assertThat()
@@ -1662,7 +1665,7 @@ public class PostTaskReplicationMIControllerTest {
                 Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerWithCancellationEnabled.getHeaders()
+                    tribCaseworkerWithWorkTypes.getHeaders()
                 );
 
                 resultHistory.prettyPrint();
@@ -1689,11 +1692,11 @@ public class PostTaskReplicationMIControllerTest {
                 Response resultCancelReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerWithCancellationEnabled.getHeaders()
+                    tribCaseworkerWithWorkTypes.getHeaders()
                 );
 
                 resultCancelReport.prettyPrint();
-                UserInfo userInfo = idamService.getUserInfo(caseworkerWithCancellationEnabled.getHeaders()
+                UserInfo userInfo = idamService.getUserInfo(tribCaseworkerWithWorkTypes.getHeaders()
                                                                 .getValue(AUTHORIZATION));
 
                 resultCancelReport.then().assertThat()
@@ -1724,7 +1727,7 @@ public class PostTaskReplicationMIControllerTest {
             });
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerWithCancellationEnabled.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(tribCaseworkerWithWorkTypes.getHeaders());
         taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
     }

@@ -25,7 +25,6 @@ import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CANCELLATION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
@@ -49,16 +48,11 @@ public class DeleteTaskByIdControllerTest {
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
     private TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
-    private TestAuthenticationCredentials caseWorkerWithCancellationProcessEnabled;
 
     @Before
     public void setUp() {
         caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils.getTestUser(
             USER_WITH_CFT_ORG_ROLES);
-        caseWorkerWithCancellationProcessEnabled =
-            taskFunctionalTestsUserUtils.getTestUser(
-                USER_WITH_CANCELLATION_ENABLED
-            );
     }
 
     @Test
@@ -163,13 +157,12 @@ public class DeleteTaskByIdControllerTest {
                 "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "processApplication"
             );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables,
-                                                        caseWorkerWithCancellationProcessEnabled.getHeaders());
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "/cancel?cancellation_process=" + "EXUI_USER_CANCELLATION",
             taskVariables.getTaskId(),
-            caseWorkerWithCancellationProcessEnabled.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
@@ -177,7 +170,7 @@ public class DeleteTaskByIdControllerTest {
         result =  taskFunctionalTestsApiUtils.getRestApiActions().get(
             "task/{task-id}",
             taskVariables.getTaskId(),
-            caseWorkerWithCancellationProcessEnabled.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
         log.info("Get Task Result After Cancel: {}", result.asString());
         result.prettyPrint();
@@ -185,7 +178,7 @@ public class DeleteTaskByIdControllerTest {
             taskVariables.getTaskId(),
             "termination_process",
             "EXUI_USER_CANCELLATION",
-            caseWorkerWithCancellationProcessEnabled.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
 
@@ -200,7 +193,7 @@ public class DeleteTaskByIdControllerTest {
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            caseWorkerWithCancellationProcessEnabled.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
         log.info("Get Task Result After Terminate: {}", result.asString());
 
@@ -211,14 +204,14 @@ public class DeleteTaskByIdControllerTest {
         result =  taskFunctionalTestsApiUtils.getRestApiActions().get(
             "task/{task-id}",
             taskVariables.getTaskId(),
-            caseWorkerWithCancellationProcessEnabled.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
         result.prettyPrint();
         taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
             taskVariables.getTaskId(),
             "termination_process",
             "EXUI_USER_CANCELLATION",
-            caseWorkerWithCancellationProcessEnabled.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
     }
 
