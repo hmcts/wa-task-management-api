@@ -159,15 +159,18 @@ class GetTasksControllerTest {
                        .executionType(executionType)
                        .additionalProperties(additionalProperties)
                        .build());
-        insertMinimalTask(UUID.randomUUID().toString(), caseId, "someOtherTaskType");
-        insertMinimalTask(UUID.randomUUID().toString(), "1615817621013641", taskType);
+        insertMinimalTask(UUID.randomUUID().toString(), caseId, caseTypeId, "someOtherTaskType");
+        insertMinimalTask(UUID.randomUUID().toString(), "1615817621013641", caseTypeId, taskType);
+        insertMinimalTask(UUID.randomUUID().toString(), caseId, "OtherCaseType", taskType);
 
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN)).thenReturn(true);
+        when(clientAccessControlService.hasExclusiveCaseTypeAccess(SERVICE_AUTHORIZATION_TOKEN, caseTypeId))
+            .thenReturn(true);
 
         mockMvc.perform(
                 get("/tasks")
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .param("case_id", caseId)
+                    .param("case_type_id", caseTypeId)
                     .param("task_types", "reviewTask")
                     .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpectAll(
@@ -221,11 +224,10 @@ class GetTasksControllerTest {
 
     @Test
     void should_return_bad_request_when_no_query_parameters_are_provided() throws Exception {
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN)).thenReturn(true);
-
         mockMvc.perform(
                 get("/tasks")
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("case_type_id", "WaCaseType")
                     .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpectAll(
                 status().isBadRequest(),
@@ -237,14 +239,17 @@ class GetTasksControllerTest {
 
     @Test
     void should_return_empty_tasks_when_filters_match_no_tasks() throws Exception {
-        insertMinimalTask(UUID.randomUUID().toString(), "1615817621013641", "someOtherTaskType");
+        String caseTypeId = "WaCaseType";
+        insertMinimalTask(UUID.randomUUID().toString(), "1615817621013641", caseTypeId, "someOtherTaskType");
 
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN)).thenReturn(true);
+        when(clientAccessControlService.hasExclusiveCaseTypeAccess(SERVICE_AUTHORIZATION_TOKEN, caseTypeId))
+            .thenReturn(true);
 
         mockMvc.perform(
                 get("/tasks")
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .param("case_id", "72912937129")
+                    .param("case_type_id", caseTypeId)
                     .param("task_types", "reviewTask,completeTask")
                     .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpectAll(
@@ -255,7 +260,7 @@ class GetTasksControllerTest {
             );
     }
 
-    private void insertMinimalTask(String taskId, String caseId, String taskType) {
+    private void insertMinimalTask(String taskId, String caseId, String caseTypeId, String taskType) {
         TaskResource task = new TaskResource(
             taskId,
             null,
@@ -263,6 +268,7 @@ class GetTasksControllerTest {
             (CFTTaskState) null
         );
         task.setCaseId(caseId);
+        task.setCaseTypeId(caseTypeId);
         task.setCreated(OffsetDateTime.now());
         task.setDueDateTime(OffsetDateTime.now());
         cftTaskDatabaseService.saveTask(task);

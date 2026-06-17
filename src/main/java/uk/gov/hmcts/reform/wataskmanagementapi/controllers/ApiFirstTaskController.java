@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -34,7 +33,6 @@ import java.util.List;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
 
 @RequiredArgsConstructor
-@Slf4j
 @RestController
 public class ApiFirstTaskController extends BaseController {
 
@@ -46,12 +44,13 @@ public class ApiFirstTaskController extends BaseController {
     public ResponseEntity<ApiFirstGetTasksResponse> getTasks(
         @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
         @RequestParam(value = "case_id", required = false) String caseId,
-        @RequestParam(value = "task_types", required = false) List<String> taskTypes
+        @RequestParam(value = "task_types", required = false) List<String> taskTypes,
+        @RequestParam(value = "case_type_id", required = false) String caseTypeId
     ) {
-        checkExclusiveAccess(serviceAuthorization);
-        validateGetTasksFilters(caseId, taskTypes);
+        validateGetTasksFilters(caseId, taskTypes, caseTypeId);
+        checkCaseTypeAccess(serviceAuthorization, caseTypeId);
 
-        List<TaskResource> tasks = taskManagementService.getTasks(caseId, taskTypes);
+        List<TaskResource> tasks = taskManagementService.getTasks(caseId, taskTypes, caseTypeId);
         List<GetTaskResponseItem> taskItems = responseMapper.mapToGetTaskItems(tasks);
 
         return ResponseEntity
@@ -69,7 +68,7 @@ public class ApiFirstTaskController extends BaseController {
         @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
         @Valid @RequestBody CreateTaskRequest createTaskRequest
     ) {
-        checkExclusiveAccess(serviceAuthorization);
+        checkCaseTypeAccess(serviceAuthorization, createTaskRequest.getTask().getCaseTypeId());
         TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
         taskManagementService.updateTaskIndex(savedTask.getTaskId());
         return ResponseEntity
@@ -87,7 +86,7 @@ public class ApiFirstTaskController extends BaseController {
         @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
         @Valid @RequestBody TerminateTasksRequest terminateTasksRequest
     ) {
-        checkExclusiveAccess(serviceAuthorization);
+        checkCaseTypeAccess(serviceAuthorization, terminateTasksRequest.getCaseTypeId());
 
         taskManagementService.terminateTasks(terminateTasksRequest);
         return ResponseEntity
@@ -105,7 +104,7 @@ public class ApiFirstTaskController extends BaseController {
         @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
         @Valid @RequestBody TaskReconfigureRequest taskReconfigureRequest
     ) {
-        checkExclusiveAccess(serviceAuthorization);
+        checkCaseTypeAccess(serviceAuthorization, taskReconfigureRequest.getCaseTypeId());
         TaskReconfigureResponse response = taskManagementService.reconfigureTasks(taskReconfigureRequest);
         return ResponseEntity
             .ok()
@@ -114,13 +113,17 @@ public class ApiFirstTaskController extends BaseController {
 
     }
 
-    private void checkExclusiveAccess(String serviceAuthorization) {
-        if (!clientAccessControlService.hasExclusiveAccess(serviceAuthorization)) {
+    private void checkCaseTypeAccess(String serviceAuthorization, String caseTypeId) {
+        if (!clientAccessControlService.hasExclusiveCaseTypeAccess(serviceAuthorization, caseTypeId)) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
     }
 
-    private void validateGetTasksFilters(String caseId, List<String> taskTypes) {
+    private void validateGetTasksFilters(String caseId, List<String> taskTypes, String caseTypeId) {
+        if (StringUtils.isBlank(caseTypeId)) {
+            throw new InvalidRequestException("case_type_id cannot be blank");
+        }
+
         if (caseId == null && taskTypes == null) {
             throw new InvalidRequestException("At least one query/filter parameter must be included in the request.");
         }

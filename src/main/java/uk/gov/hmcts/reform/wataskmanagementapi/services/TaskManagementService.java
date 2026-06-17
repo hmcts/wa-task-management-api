@@ -10,7 +10,6 @@ import jakarta.persistence.criteria.Root;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -51,6 +50,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskSecondaryKeyConfli
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -95,6 +95,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.ADD_WARNING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction.TERMINATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
@@ -133,7 +134,6 @@ public class TaskManagementService {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    @Autowired
     public TaskManagementService(CamundaService camundaService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
@@ -725,6 +725,7 @@ public class TaskManagementService {
         Set<String> taskIds = terminateTasksRequest.getTaskIds().stream()
             .map(Object::toString)
             .collect(Collectors.toSet());
+        assertTasksBelongToCaseType(taskIds, terminateTasksRequest.getCaseTypeId());
 
         TerminationAction action = terminateTasksRequest.getAction();
         String terminationReason = action == TerminationAction.CANCEL ? "deleted" : "completed";
@@ -743,8 +744,8 @@ public class TaskManagementService {
         });
     }
 
-    public List<TaskResource> getTasks(String caseId, List<String> taskTypes) {
-        return cftTaskDatabaseService.findAllBy(caseId, taskTypes);
+    public List<TaskResource> getTasks(String caseId, List<String> taskTypes, String caseTypeId) {
+        return cftTaskDatabaseService.findAllBy(caseId, taskTypes, caseTypeId);
     }
 
     private boolean isTaskAlreadyTerminated(TaskResource task, TerminationAction action) {
@@ -883,6 +884,10 @@ public class TaskManagementService {
     public TaskReconfigureResponse reconfigureTasks(TaskReconfigureRequest taskReconfigureRequest) {
         log.warn("Reconfiguring tasks with request: {}", taskReconfigureRequest);
         TaskReconfigureResponse response = new TaskReconfigureResponse();
+        assertTasksBelongToCaseType(
+            taskReconfigureRequest.getTasks().stream().map(task -> task.getId().toString()).collect(Collectors.toSet()),
+            taskReconfigureRequest.getCaseTypeId()
+        );
         taskReconfigureRequest.getTasks().forEach(task -> {
             Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                 .findByIdAndStateInObtainPessimisticWriteLock(task.getId().toString(), List.of(
@@ -899,7 +904,6 @@ public class TaskManagementService {
                 optionalTaskResource.get(),
                 task
             );
-            //Added just to double confirm can delete after adding all tests
             taskMandatoryFieldsValidator.validateTaskMandatoryFields(taskResource);
             taskResource.setLastReconfigurationTime(OffsetDateTime.now());
             taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
@@ -908,6 +912,12 @@ public class TaskManagementService {
         });
 
         return response;
+    }
+
+    private void assertTasksBelongToCaseType(Set<String> taskIds, String caseTypeId) {
+        if (cftTaskDatabaseService.existsByTaskIdInAndCaseTypeIdNot(taskIds.stream().toList(), caseTypeId)) {
+            throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
     }
 
     private void checkCompletePermissions(String taskId, AccessControlResponse accessControlResponse,

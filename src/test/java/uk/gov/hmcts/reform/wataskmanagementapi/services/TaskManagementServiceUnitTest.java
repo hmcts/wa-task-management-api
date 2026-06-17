@@ -48,6 +48,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskReconfigurePayload;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskReconfigureRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTasksRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminationAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
@@ -69,6 +73,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -3234,5 +3239,41 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             assertTrue(expectedRolePermission.getPermissions().contains(CLAIM));
 
         }
+    }
+
+    @Test
+    void should_reject_bulk_termination_when_task_case_type_does_not_match_request_case_type() {
+        UUID taskId = UUID.randomUUID();
+        TerminateTasksRequest request = new TerminateTasksRequest();
+        request.setAction(TerminationAction.CANCEL);
+        request.setCaseTypeId("NFD");
+        request.setTaskIds(Set.of(taskId));
+
+        when(cftTaskDatabaseService.existsByTaskIdInAndCaseTypeIdNot(List.of(taskId.toString()), "NFD"))
+            .thenReturn(true);
+
+        assertThatThrownBy(() -> taskManagementService.terminateTasks(request))
+            .isInstanceOf(GenericForbiddenException.class);
+
+        verify(cftTaskDatabaseService, never()).findByIdAndObtainPessimisticWriteLock(taskId.toString());
+    }
+
+    @Test
+    void should_reject_reconfiguration_when_task_case_type_does_not_match_request_case_type() {
+        UUID taskId = UUID.randomUUID();
+        TaskReconfigurePayload payload = new TaskReconfigurePayload();
+        payload.setId(taskId);
+
+        TaskReconfigureRequest request = new TaskReconfigureRequest();
+        request.setCaseTypeId("NFD");
+        request.setTasks(List.of(payload));
+
+        when(cftTaskDatabaseService.existsByTaskIdInAndCaseTypeIdNot(List.of(taskId.toString()), "NFD"))
+            .thenReturn(true);
+
+        assertThatThrownBy(() -> taskManagementService.reconfigureTasks(request))
+            .isInstanceOf(GenericForbiddenException.class);
+
+        verify(cftTaskDatabaseService, never()).findByIdAndStateInObtainPessimisticWriteLock(anyString(), anyList());
     }
 }

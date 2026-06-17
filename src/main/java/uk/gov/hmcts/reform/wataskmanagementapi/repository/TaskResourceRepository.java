@@ -73,6 +73,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     List<TaskResource> findAllByTaskIdIn(List<String> taskIds, Sort order);
 
+    boolean existsByTaskIdInAndCaseTypeIdNot(List<String> taskIds, String caseTypeId);
+
     @Query(value = GET_TASK_ID_BY_CASE_ID, nativeQuery = true)
     List<TaskResourceCaseQueryBuilder> getTaskIdsByCaseId(final @Param("caseId") String caseId);
 

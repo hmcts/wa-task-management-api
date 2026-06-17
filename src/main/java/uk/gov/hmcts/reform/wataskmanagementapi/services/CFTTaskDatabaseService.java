@@ -31,6 +31,7 @@ import java.util.Set;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseTypeId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 
 @Slf4j
@@ -176,10 +177,11 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
     }
 
-    public List<TaskResource> findAllBy(String caseId, List<String> taskTypes) {
+    public List<TaskResource> findAllBy(String caseId, List<String> taskTypes, String caseTypeId) {
         Specification<TaskResource> specification = (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(searchByCaseTypeId(caseTypeId, builder, root));
             if (StringUtils.isNotBlank(caseId)) {
                 predicates.add(searchByCaseId(caseId, builder, root));
             }
@@ -191,6 +193,10 @@ public class CFTTaskDatabaseService {
         };
 
         return tasksRepository.findAll(specification);
+    }
+
+    public boolean existsByTaskIdInAndCaseTypeIdNot(List<String> taskIds, String caseTypeId) {
+        return tasksRepository.existsByTaskIdInAndCaseTypeIdNot(taskIds, caseTypeId);
     }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
