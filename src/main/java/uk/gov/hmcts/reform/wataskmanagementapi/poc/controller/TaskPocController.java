@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.poc.controller;
 
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -11,19 +9,24 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.api.TasksApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.mapper.GetTasksResponseMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTaskResponseItem;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTaskResponseItem;
 import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -34,17 +37,18 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-
-public class TaskPocController extends BaseController implements TasksApi {
+public class TaskPocController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
     private final GetTasksResponseMapper responseMapper;
 
-    @Override
-    public ResponseEntity<GetTasksResponse> getTasks(String serviceAuthorization,
-                                                     String caseId,
-                                                     List<String> taskTypes) {
+    @GetMapping(value = "/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GetTasksResponse> getTasks(
+        @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
+        @RequestParam(value = "case_id", required = false) String caseId,
+        @RequestParam(value = "task_types", required = false) List<String> taskTypes
+    ) {
         checkExclusiveAccess(serviceAuthorization);
         validateGetTasksFilters(caseId, taskTypes);
 
@@ -57,11 +61,14 @@ public class TaskPocController extends BaseController implements TasksApi {
             .body(new GetTasksResponse(taskItems, (long) taskItems.size()));
     }
 
-    @Override
-    @PostMapping(value = "/tasks", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource> createTask(
-        @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
-        @Parameter(name = "CreateTaskRequest", description = "", required = true) @RequestBody CreateTaskRequest createTaskRequest
+    @PostMapping(
+        value = "/tasks",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<TaskResource> createTask(
+        @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
+        @Valid @RequestBody CreateTaskRequest createTaskRequest
     ) {
         checkExclusiveAccess(serviceAuthorization);
         TaskResource savedTask = taskManagementService.addTask(createTaskRequest.getTask());
@@ -72,10 +79,14 @@ public class TaskPocController extends BaseController implements TasksApi {
             .body(savedTask);
     }
 
-    @PostMapping(value = "/tasks/terminate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+        value = "/tasks/terminate",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<Void> terminateTasks(
-        @NotNull @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
-        @Parameter(name = "TerminateTasksRequest", description = "", required = true) @Valid @RequestBody TerminateTasksRequest terminateTasksRequest
+        @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
+        @Valid @RequestBody TerminateTasksRequest terminateTasksRequest
     ) {
         checkExclusiveAccess(serviceAuthorization);
 
@@ -86,10 +97,14 @@ public class TaskPocController extends BaseController implements TasksApi {
             .build();
     }
 
-    @PutMapping(value = "/tasks/reconfigure", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(
+        value = "/tasks/reconfigure",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<TaskReconfigureResponse> reconfigureTasks(
-        @NotNull @Parameter(name = "ServiceAuthorization", description = "Service-to-service authorization token", required = true, in = ParameterIn.HEADER) @RequestHeader(value = "ServiceAuthorization", required = true) String serviceAuthorization,
-        @Parameter(name = "TaskReconfigureRequest", description = "", required = true) @Valid @RequestBody TaskReconfigureRequest taskReconfigureRequest
+        @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
+        @Valid @RequestBody TaskReconfigureRequest taskReconfigureRequest
     ) {
         checkExclusiveAccess(serviceAuthorization);
         TaskReconfigureResponse response = taskManagementService.reconfigureTasks(taskReconfigureRequest);
@@ -125,4 +140,3 @@ public class TaskPocController extends BaseController implements TasksApi {
     }
 
 }
-

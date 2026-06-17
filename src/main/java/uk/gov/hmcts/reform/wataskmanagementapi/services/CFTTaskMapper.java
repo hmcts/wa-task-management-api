@@ -905,39 +905,52 @@ public class CFTTaskMapper {
     public TaskResource mapToTaskResourceForReconfigure(TaskResource taskResource, TaskReconfigurePayload task) {
         log.info("mapping task attributes to taskResource");
 
-        taskResource.setCaseName(task.getCaseName());
-        taskResource.setRegion(task.getRegion());
-        taskResource.setLocation(task.getLocation());
-        taskResource.setLocationName(task.getLocationName());
-        taskResource.setDescription(task.getDescription());
-        taskResource.setTitle(task.getTitle());
-        taskResource.setDueDateTime(task.getDueDateTime());
-        taskResource.setPriorityDate(task.getPriorityDate());
-        taskResource.setMajorPriority(task.getMajorPriority());
-        taskResource.setMinorPriority(task.getMinorPriority());
+        taskResource.setCaseName(valueOrExisting(task.getCaseName(), taskResource.getCaseName()));
+        taskResource.setRegion(valueOrExisting(task.getRegion(), taskResource.getRegion()));
+        taskResource.setLocation(valueOrExisting(task.getLocation(), taskResource.getLocation()));
+        taskResource.setLocationName(valueOrExisting(task.getLocationName(), taskResource.getLocationName()));
+        taskResource.setDescription(valueOrExisting(task.getDescription(), taskResource.getDescription()));
+        taskResource.setTitle(valueOrExisting(task.getTitle(), taskResource.getTitle()));
+        taskResource.setDueDateTime(valueOrExisting(task.getDueDateTime(), taskResource.getDueDateTime()));
+        taskResource.setPriorityDate(valueOrExisting(task.getPriorityDate(), taskResource.getPriorityDate()));
+        taskResource.setMajorPriority(valueOrExisting(
+            task.getMajorPriority(),
+            defaultIfNull(taskResource.getMajorPriority(), 5000)
+        ));
+        taskResource.setMinorPriority(valueOrExisting(
+            task.getMinorPriority(),
+            defaultIfNull(taskResource.getMinorPriority(), 500)
+        ));
 
         String taskId = task.getId().toString();
-        Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
-        taskResource.setTaskRoleResources(taskRoleResources);
-        taskResource.setCaseCategory(task.getCaseCategory());
-        WorkTypeResource workTypeResource = new WorkTypeResource(
-            task.getWorkType()
-        );
-        taskResource.setWorkTypeResource(workTypeResource);
-        taskResource.setRoleCategory(task.getRoleCategory());
-        taskResource.setNextHearingDate(task.getNextHearingDate());
-        taskResource.setNextHearingId(task.getNextHearingId());
-        Map<String, String> additionalProperties = Collections.emptyMap();
+        if (task.getPermissions() != null) {
+            Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
+            taskResource.setTaskRoleResources(taskRoleResources);
+        }
+        taskResource.setCaseCategory(valueOrExisting(task.getCaseCategory(), taskResource.getCaseCategory()));
+        if (task.getWorkType() != null) {
+            taskResource.setWorkTypeResource(new WorkTypeResource(task.getWorkType()));
+        }
+        taskResource.setRoleCategory(valueOrExisting(task.getRoleCategory(), taskResource.getRoleCategory()));
+        taskResource.setNextHearingDate(valueOrExisting(task.getNextHearingDate(), taskResource.getNextHearingDate()));
+        taskResource.setNextHearingId(valueOrExisting(task.getNextHearingId(), taskResource.getNextHearingId()));
         if (task.getAdditionalProperties() != null) {
-            additionalProperties = task.getAdditionalProperties().entrySet()
+            Map<String, String> additionalProperties = task.getAdditionalProperties().entrySet()
                 .stream()
                 .collect(Collectors.toMap(
                     Map.Entry::getKey,
                     e -> String.valueOf(e.getValue())
                 ));
+            taskResource.setAdditionalProperties(additionalProperties);
         }
-        taskResource.setAdditionalProperties(additionalProperties);
         return taskResource;
     }
-}
 
+    private <T> T valueOrExisting(T value, T existingValue) {
+        return value == null ? existingValue : value;
+    }
+
+    private <T> T defaultIfNull(T value, T defaultValue) {
+        return value == null ? defaultValue : value;
+    }
+}
