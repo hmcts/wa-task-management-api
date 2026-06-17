@@ -175,7 +175,7 @@ project.ext {
 checkstyle {
   maxWarnings = 0
   toolVersion = '10.26.1'
-  getConfigDirectory().set(new File(rootDir, 'config/checkstyle'))
+  getConfigDirectory().set(layout.projectDirectory.dir('config/checkstyle'))
 }
 
 pmd {
