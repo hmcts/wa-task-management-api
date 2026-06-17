@@ -14,6 +14,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskPermission;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskReconfigurePayload;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
@@ -30,9 +33,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskPermission;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigurePayload;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;

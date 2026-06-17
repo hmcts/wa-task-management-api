@@ -27,10 +27,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CreateTaskRequestTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskReconfigureRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTasksRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminationAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskReconfigureResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
@@ -55,11 +60,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundExcepti
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequestTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminationAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.sql.SQLException;

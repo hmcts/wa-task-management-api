@@ -1,4 +1,4 @@
--- Manual script to enable decentralisation-poc rollback in demo.
+-- Manual script to enable decentralisation rollback in demo.
 
 BEGIN;
 

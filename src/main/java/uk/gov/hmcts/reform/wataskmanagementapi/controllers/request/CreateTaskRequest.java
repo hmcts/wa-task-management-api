@@ -1,20 +1,18 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.poc.request;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 @Getter
 @Setter
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class TaskReconfigureRequest {
+public class CreateTaskRequest {
 
     @Valid
-    @NotEmpty
-    private List<TaskReconfigurePayload> tasks;
+    @NotNull
+    private CreateTaskRequestTask task;
 }

@@ -1,10 +1,10 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.poc.mapper;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponseItem;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTaskResponseItem;
 
 import java.util.List;
 

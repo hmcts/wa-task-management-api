@@ -60,8 +60,7 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 @Slf4j
 @ControllerAdvice(basePackages = {
     "uk.gov.hmcts.reform.wataskmanagementapi.controllers",
-    "uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers",
-    "uk.gov.hmcts.reform.wataskmanagementapi.poc.controller"
+    "uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers"
 })
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @SuppressWarnings({"PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",

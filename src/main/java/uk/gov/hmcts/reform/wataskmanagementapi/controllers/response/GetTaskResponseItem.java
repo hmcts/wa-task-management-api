@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.poc.request;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;

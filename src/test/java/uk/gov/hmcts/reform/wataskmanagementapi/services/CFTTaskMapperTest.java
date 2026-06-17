@@ -1425,7 +1425,7 @@ class CFTTaskMapperTest {
             objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {});
         Map<String, Object> camundaTaskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        //Added external_task_id and in poc work
+        //Added external_task_id and in work
         assertEquals(dbTaskAttributes.size() - 17, camundaTaskAttributes.size());
         assertEquals(dbTaskAttributes.get("taskName"), camundaTaskAttributes.get("name"));
         assertEquals(dbTaskAttributes.get("state"), camundaTaskAttributes.get("taskState"));

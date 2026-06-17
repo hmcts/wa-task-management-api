@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.poc.controller;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -17,17 +17,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.BaseController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.mapper.GetTasksResponseMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CreateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskReconfigureRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTasksRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.ApiFirstGetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponseItem;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskReconfigureResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.mapper.GetTasksResponseMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.CreateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTaskResponseItem;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TaskReconfigureResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.poc.request.TerminateTasksRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.List;
@@ -37,14 +36,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-public class TaskPocController extends BaseController {
+public class ApiFirstTaskController extends BaseController {
 
     private final TaskManagementService taskManagementService;
     private final ClientAccessControlService clientAccessControlService;
     private final GetTasksResponseMapper responseMapper;
 
     @GetMapping(value = "/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTasksResponse> getTasks(
+    public ResponseEntity<ApiFirstGetTasksResponse> getTasks(
         @NotNull @RequestHeader(value = "ServiceAuthorization") String serviceAuthorization,
         @RequestParam(value = "case_id", required = false) String caseId,
         @RequestParam(value = "task_types", required = false) List<String> taskTypes
@@ -58,7 +57,7 @@ public class TaskPocController extends BaseController {
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(new GetTasksResponse(taskItems, (long) taskItems.size()));
+            .body(new ApiFirstGetTasksResponse(taskItems, (long) taskItems.size()));
     }
 
     @PostMapping(
