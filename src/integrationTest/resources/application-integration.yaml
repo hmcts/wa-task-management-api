@@ -1,4 +1,9 @@
 spring:
+  test:
+    context:
+      cache:
+        # Keep only one Spring test context alive to avoid retaining multiple Hikari pools.
+        maxSize: 1
   datasource:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db?TC_INITSCRIPT=initDb.sql

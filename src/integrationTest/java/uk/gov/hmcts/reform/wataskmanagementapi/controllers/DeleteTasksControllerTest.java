@@ -4,11 +4,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,14 +32,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -56,7 +51,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 @IntegrationTest
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(PER_CLASS)
-@ExtendWith(OutputCaptureExtension.class)
 public class DeleteTasksControllerTest {
     @Autowired
     private IdamWebApi idamWebApi;
@@ -145,7 +139,7 @@ public class DeleteTasksControllerTest {
     }
 
     @Test
-    void shouldLogErrorForNonTerminatedTasksWhenDeleteIsCalled(final CapturedOutput output) throws Exception {
+    void shouldPopulateCaseDeletionTimestampWhenDeleteIncludesNonTerminatedTasks() throws Exception {
         final String caseId = "1615817621013640";
 
         final String taskId1 = UUID.randomUUID().toString();
@@ -178,11 +172,9 @@ public class DeleteTasksControllerTest {
 
         final List<TaskResourceCaseQueryBuilder> deletedTasks = cftTaskDatabaseService.findByTaskIdsByCaseId(caseId);
 
-        assertThat(deletedTasks.size()).isEqualTo(3);
-        assertTrue(output.getOut().contains(String.format(
-            "UNTERMINATED tasks marked for deletion: %s for caseId: %s",
-            Arrays.asList(taskId1, taskId3), caseId
-        )));
+        assertThat(deletedTasks)
+            .extracting(TaskResourceCaseQueryBuilder::getTaskId)
+            .containsExactlyInAnyOrder(taskId1, taskId2, taskId3);
 
         final List<TaskResource> taskResourceList = cftTaskDatabaseService.findByCaseIdOnly(caseId);
         OffsetDateTime expected = OffsetDateTime.now(ZoneOffset.UTC);

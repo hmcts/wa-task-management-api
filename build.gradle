@@ -205,7 +205,6 @@ sonarqube {
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/cft/replicarepository/**"
-    property "sonar.coverage.exclusions", "src/main/java/**"
     property "sonar.cpd.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/services/calendar/**," +
       "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/controllers/TaskActionsController.java,"
   }

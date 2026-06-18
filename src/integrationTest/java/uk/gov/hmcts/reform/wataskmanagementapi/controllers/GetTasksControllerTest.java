@@ -233,6 +233,20 @@ class GetTasksControllerTest {
     }
 
     @Test
+    void should_return_bad_request_when_case_type_id_is_missing() throws Exception {
+        mockMvc.perform(
+                get("/tasks")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("case_id", "1615817621013640")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpectAll(
+                status().isBadRequest(),
+                content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
+                jsonPath("$.detail").value("Bad Request: case_type_id cannot be blank")
+            );
+    }
+
+    @Test
     void should_return_bad_request_when_case_id_is_blank() throws Exception {
         mockMvc.perform(
                 get("/tasks")
@@ -260,6 +274,21 @@ class GetTasksControllerTest {
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
                 jsonPath("$.detail").value("Bad Request: task_types list cannot contain a blank item")
             );
+    }
+
+    @Test
+    void should_return_forbidden_when_service_lacks_case_type_access() throws Exception {
+        String caseTypeId = "WaCaseType";
+        when(clientAccessControlService.hasExclusiveCaseTypeAccess(SERVICE_AUTHORIZATION_TOKEN, caseTypeId))
+            .thenReturn(false);
+
+        mockMvc.perform(
+                get("/tasks")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("case_id", "1615817621013640")
+                    .param("case_type_id", caseTypeId)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isForbidden());
     }
 
     @Test

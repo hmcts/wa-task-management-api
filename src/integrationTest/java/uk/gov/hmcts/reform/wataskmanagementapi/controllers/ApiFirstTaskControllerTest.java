@@ -205,6 +205,24 @@ class ApiFirstTaskControllerTest {
     }
 
     @Test
+    void should_forbid_terminate_when_task_case_type_does_not_match_request_case_type() throws Exception {
+        String taskId = UUID.randomUUID().toString();
+        insertApiFirstTask(taskId, CFTTaskState.UNASSIGNED, "OtherCaseType");
+
+        mockMvc.perform(
+                post("/tasks/terminate")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(terminateTasksRequest("cancel", CASE_TYPE_ID, taskId)))
+            .andExpect(status().isForbidden());
+
+        TaskResource task = taskResourceRepository.findById(taskId).orElseThrow();
+        assertThat(task.getState()).isEqualTo(CFTTaskState.UNASSIGNED);
+        assertThat(task.getTerminationReason()).isNull();
+        verify(camundaService, never()).deleteCftTaskState(taskId);
+    }
+
+    @Test
     void should_reconfigure_api_first_tasks_and_skip_non_reconfigurable_tasks() throws Exception {
         String reconfigurableTaskId = UUID.randomUUID().toString();
         String completedTaskId = UUID.randomUUID().toString();
@@ -244,6 +262,23 @@ class ApiFirstTaskControllerTest {
             .andExpect(status().isForbidden());
     }
 
+    @Test
+    void should_forbid_reconfigure_when_task_case_type_does_not_match_request_case_type() throws Exception {
+        String taskId = UUID.randomUUID().toString();
+        insertApiFirstTask(taskId, CFTTaskState.UNASSIGNED, "OtherCaseType");
+
+        mockMvc.perform(
+                put("/tasks/reconfigure")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(reconfigureTasksRequest(taskId, UUID.randomUUID().toString())))
+            .andExpect(status().isForbidden());
+
+        TaskResource task = taskResourceRepository.findById(taskId).orElseThrow();
+        assertThat(task.getTitle()).isEqualTo("Original title");
+        assertThat(task.getLastReconfigurationTime()).isNull();
+    }
+
     private String createTaskRequest(UUID externalTaskId) {
         return """
             {
@@ -277,13 +312,17 @@ class ApiFirstTaskControllerTest {
     }
 
     private String terminateTasksRequest(String action, String taskId) {
+        return terminateTasksRequest(action, CASE_TYPE_ID, taskId);
+    }
+
+    private String terminateTasksRequest(String action, String caseTypeId, String taskId) {
         return """
             {
               "action": "%s",
               "case_type_id": "%s",
               "task_ids": ["%s"]
             }
-            """.formatted(action, CASE_TYPE_ID, taskId);
+            """.formatted(action, caseTypeId, taskId);
     }
 
     private String reconfigureTasksRequest(String reconfigurableTaskId, String skippedTaskId) {
@@ -306,6 +345,10 @@ class ApiFirstTaskControllerTest {
     }
 
     private void insertApiFirstTask(String taskId, CFTTaskState state) {
+        insertApiFirstTask(taskId, state, CASE_TYPE_ID);
+    }
+
+    private void insertApiFirstTask(String taskId, CFTTaskState state, String caseTypeId) {
         TaskResource task = new TaskResource(taskId, "Original task", "reviewTask", state);
         task.setExternalTaskId(UUID.randomUUID().toString());
         task.setCreated(OffsetDateTime.now());
@@ -319,7 +362,9 @@ class ApiFirstTaskControllerTest {
         task.setWorkTypeResource(new WorkTypeResource("decision_making_work"));
         task.setRoleCategory("JUDICIAL");
         task.setCaseId("1615817621013640");
-        task.setCaseTypeId(CASE_TYPE_ID);
+        task.setCaseTypeId(caseTypeId);
+        task.setCaseCategory("caseCategory");
+        task.setCaseName("Original case");
         task.setJurisdiction("WA");
         task.setRegion("1");
         task.setLocation("765324");
