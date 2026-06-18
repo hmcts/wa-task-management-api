@@ -7,9 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -22,13 +20,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.repository.WorkTypeResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
 import java.time.OffsetDateTime;
@@ -46,8 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-@SpringBootTest
-@ActiveProfiles({"integration"})
+@IntegrationTest
 @AutoConfigureMockMvc(addFilters = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class GetTasksControllerTest {
@@ -70,8 +67,6 @@ class GetTasksControllerTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-    @Autowired
-    private WorkTypeResourceRepository workTypeResourceRepository;
     @Autowired
     private EntityManager entityManager;
     @Autowired
@@ -234,6 +229,95 @@ class GetTasksControllerTest {
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
                 jsonPath("$.detail")
                     .value("Bad Request: At least one query/filter parameter must be included in the request.")
+            );
+    }
+
+    @Test
+    void should_return_bad_request_when_case_id_is_blank() throws Exception {
+        mockMvc.perform(
+                get("/tasks")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("case_id", " ")
+                    .param("case_type_id", "WaCaseType")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpectAll(
+                status().isBadRequest(),
+                content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
+                jsonPath("$.detail").value("Bad Request: case_id cannot be blank")
+            );
+    }
+
+    @Test
+    void should_return_bad_request_when_task_types_contains_blank_item() throws Exception {
+        mockMvc.perform(
+                get("/tasks")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("task_types", "reviewTask, ")
+                    .param("case_type_id", "WaCaseType")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpectAll(
+                status().isBadRequest(),
+                content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
+                jsonPath("$.detail").value("Bad Request: task_types list cannot contain a blank item")
+            );
+    }
+
+    @Test
+    void should_return_tasks_when_only_case_id_is_provided() throws Exception {
+        String caseId = "1615817621013640";
+        String caseTypeId = "WaCaseType";
+        String matchingTaskId = UUID.randomUUID().toString();
+
+        insertMinimalTask(matchingTaskId, caseId, caseTypeId, "reviewTask");
+        insertMinimalTask(UUID.randomUUID().toString(), "1615817621013641", caseTypeId, "reviewTask");
+        insertMinimalTask(UUID.randomUUID().toString(), caseId, "OtherCaseType", "reviewTask");
+
+        when(clientAccessControlService.hasExclusiveCaseTypeAccess(SERVICE_AUTHORIZATION_TOKEN, caseTypeId))
+            .thenReturn(true);
+
+        mockMvc.perform(
+                get("/tasks")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("case_id", caseId)
+                    .param("case_type_id", caseTypeId)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpectAll(
+                status().isOk(),
+                content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
+                jsonPath("$.total_records").value(1),
+                jsonPath("$.tasks", hasSize(1)),
+                jsonPath("$.tasks[0].id").value(matchingTaskId),
+                jsonPath("$.tasks[0].case_id").value(caseId),
+                jsonPath("$.tasks[0].case_type_id").value(caseTypeId)
+            );
+    }
+
+    @Test
+    void should_return_tasks_when_only_task_types_are_provided() throws Exception {
+        String caseTypeId = "WaCaseType";
+        String matchingTaskId = UUID.randomUUID().toString();
+
+        insertMinimalTask(matchingTaskId, "1615817621013640", caseTypeId, "reviewTask");
+        insertMinimalTask(UUID.randomUUID().toString(), "1615817621013640", caseTypeId, "otherTask");
+        insertMinimalTask(UUID.randomUUID().toString(), "1615817621013640", "OtherCaseType", "reviewTask");
+
+        when(clientAccessControlService.hasExclusiveCaseTypeAccess(SERVICE_AUTHORIZATION_TOKEN, caseTypeId))
+            .thenReturn(true);
+
+        mockMvc.perform(
+                get("/tasks")
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .param("task_types", "reviewTask")
+                    .param("case_type_id", caseTypeId)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpectAll(
+                status().isOk(),
+                content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
+                jsonPath("$.total_records").value(1),
+                jsonPath("$.tasks", hasSize(1)),
+                jsonPath("$.tasks[0].id").value(matchingTaskId),
+                jsonPath("$.tasks[0].type").value("reviewTask"),
+                jsonPath("$.tasks[0].case_type_id").value(caseTypeId)
             );
     }
 

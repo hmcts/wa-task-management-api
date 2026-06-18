@@ -18,6 +18,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskPermission;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskReconfigurePayload;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
@@ -44,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -116,6 +120,111 @@ class CFTTaskMapperTest {
     @BeforeEach
     void setUp() {
         cftTaskMapper = new CFTTaskMapper(objectMapper);
+    }
+
+    @Test
+    void should_map_api_first_task_request_to_task_resource() {
+        UUID externalTaskId = UUID.randomUUID();
+        CreateTaskRequestTask request = newApiFirstTaskRequest(externalTaskId);
+        request.setTitle(null);
+
+        TaskResource taskResource = cftTaskMapper.mapToApiFirstTaskResource(request);
+
+        assertNotNull(taskResource.getTaskId());
+        assertEquals(externalTaskId.toString(), taskResource.getExternalTaskId());
+        assertEquals("reviewTask", taskResource.getTaskType());
+        assertEquals("Review task", taskResource.getTaskName());
+        assertEquals("Review task", taskResource.getTitle());
+        assertEquals(UNCONFIGURED, taskResource.getState());
+        assertEquals(TaskSystem.SELF, taskResource.getTaskSystem());
+        assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification());
+        assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeCode().getExecutionCode());
+        assertEquals("decision_making_work", taskResource.getWorkTypeResource().getId());
+        assertEquals("1615817621013640", taskResource.getCaseId());
+        assertEquals("WaCaseType", taskResource.getCaseTypeId());
+        assertEquals(Map.of("applicant", "Jane Citizen", "count", "7"), taskResource.getAdditionalProperties());
+
+        assertThat(taskResource.getTaskRoleResources())
+            .singleElement()
+            .satisfies(role -> {
+                assertEquals("tribunal-caseworker", role.getRoleName());
+                assertEquals("JUDICIAL", role.getRoleCategory());
+                assertTrue(role.getRead());
+                assertTrue(role.getClaim());
+                assertTrue(role.getComplete());
+                assertFalse(role.getCancel());
+                assertEquals(1, role.getAssignmentPriority());
+                assertFalse(role.getAutoAssignable());
+                assertArrayEquals(new String[]{"WA"}, role.getAuthorizations());
+                assertEquals(taskResource.getTaskId(), role.getTaskId());
+            });
+    }
+
+    @Test
+    void should_map_reconfigure_payload_to_existing_task_resource() {
+        UUID taskId = UUID.randomUUID();
+        TaskResource taskResource = existingApiFirstTask(taskId.toString());
+
+        TaskResource reconfigured = cftTaskMapper.mapToTaskResourceForReconfigure(
+            taskResource,
+            reconfigurePayload(taskId)
+        );
+
+        assertEquals("Reconfigured title", reconfigured.getTitle());
+        assertEquals("Reconfigured case", reconfigured.getCaseName());
+        assertEquals("Reconfigured category", reconfigured.getCaseCategory());
+        assertEquals("2", reconfigured.getRegion());
+        assertEquals("765325", reconfigured.getLocation());
+        assertEquals("New court", reconfigured.getLocationName());
+        assertEquals("Reconfigured description", reconfigured.getDescription());
+        assertEquals(OffsetDateTime.parse("2026-02-20T10:15:00Z"), reconfigured.getDueDateTime());
+        assertEquals(OffsetDateTime.parse("2026-02-15T09:00:00Z"), reconfigured.getPriorityDate());
+        assertEquals(44, reconfigured.getMajorPriority());
+        assertEquals(33, reconfigured.getMinorPriority());
+        assertEquals("follow_up", reconfigured.getWorkTypeResource().getId());
+        assertEquals("LEGAL_OPERATIONS", reconfigured.getRoleCategory());
+        assertEquals("next-hearing-456", reconfigured.getNextHearingId());
+        assertEquals(OffsetDateTime.parse("2026-02-22T11:30:00Z"), reconfigured.getNextHearingDate());
+        assertEquals(Map.of("priority", "high", "count", "7"), reconfigured.getAdditionalProperties());
+
+        assertEquals("1615817621013640", reconfigured.getCaseId());
+        assertEquals("WaCaseType", reconfigured.getCaseTypeId());
+        assertEquals("reviewTask", reconfigured.getTaskType());
+        assertThat(reconfigured.getTaskRoleResources())
+            .singleElement()
+            .satisfies(role -> {
+                assertEquals("case-manager", role.getRoleName());
+                assertEquals("LEGAL_OPERATIONS", role.getRoleCategory());
+                assertTrue(role.getRead());
+                assertTrue(role.getComplete());
+                assertEquals(2, role.getAssignmentPriority());
+                assertTrue(role.getAutoAssignable());
+                assertArrayEquals(new String[]{"WA"}, role.getAuthorizations());
+                assertEquals(taskId.toString(), role.getTaskId());
+            });
+    }
+
+    @Test
+    void should_preserve_existing_reconfigure_values_and_default_missing_priorities() {
+        UUID taskId = UUID.randomUUID();
+        TaskResource taskResource = existingApiFirstTask(taskId.toString());
+        taskResource.setMajorPriority(null);
+        taskResource.setMinorPriority(null);
+        TaskReconfigurePayload payload = new TaskReconfigurePayload();
+        payload.setId(taskId);
+
+        TaskResource reconfigured = cftTaskMapper.mapToTaskResourceForReconfigure(taskResource, payload);
+
+        assertEquals("Original title", reconfigured.getTitle());
+        assertEquals("Original case", reconfigured.getCaseName());
+        assertEquals("decision_making_work", reconfigured.getWorkTypeResource().getId());
+        assertEquals(Map.of("existing", "value"), reconfigured.getAdditionalProperties());
+        assertEquals(5000, reconfigured.getMajorPriority());
+        assertEquals(500, reconfigured.getMinorPriority());
+        assertThat(reconfigured.getTaskRoleResources())
+            .singleElement()
+            .extracting(TaskRoleResource::getRoleName)
+            .isEqualTo("tribunal-caseworker");
     }
 
     @Test
@@ -2894,6 +3003,130 @@ class CFTTaskMapperTest {
             CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())
         );
         return attributes;
+    }
+
+    private CreateTaskRequestTask newApiFirstTaskRequest(UUID externalTaskId) {
+        CreateTaskRequestTask request = new CreateTaskRequestTask();
+        request.setExternalTaskId(externalTaskId);
+        request.setType("reviewTask");
+        request.setName("Review task");
+        request.setTitle("Review task title");
+        request.setCreated(OffsetDateTime.parse("2026-01-10T08:45:00Z"));
+        request.setExecutionType(ExecutionType.MANUAL);
+        request.setCaseId("1615817621013640");
+        request.setCaseTypeId("WaCaseType");
+        request.setCaseCategory("caseCategory");
+        request.setCaseName("A test case");
+        request.setJurisdiction("WA");
+        request.setRegion("1");
+        request.setLocation("765324");
+        request.setLocationName("Taylor House");
+        request.setWorkType("decision_making_work");
+        request.setRoleCategory("JUDICIAL");
+        request.setSecurityClassification(
+            uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.SecurityClassification.PUBLIC
+        );
+        request.setDescription("Task description");
+        request.setDueDateTime(OffsetDateTime.parse("2026-01-20T10:15:00Z"));
+        request.setPriorityDate(OffsetDateTime.parse("2026-01-15T09:00:00Z"));
+        request.setMajorPriority(22);
+        request.setMinorPriority(11);
+        request.setTaskSystem(TaskSystem.SELF);
+        request.setNextHearingDate(OffsetDateTime.parse("2026-01-22T11:30:00Z"));
+        request.setNextHearingId("next-hearing-123");
+        request.setAdditionalProperties(Map.of("applicant", "Jane Citizen", "count", 7));
+        request.setPermissions(List.of(taskPermission(
+            "tribunal-caseworker",
+            "JUDICIAL",
+            List.of(PermissionTypes.READ, PermissionTypes.CLAIM, PermissionTypes.COMPLETE),
+            1,
+            false
+        )));
+        return request;
+    }
+
+    private TaskResource existingApiFirstTask(String taskId) {
+        TaskResource taskResource = new TaskResource(taskId, "Original task", "reviewTask", CFTTaskState.UNASSIGNED);
+        taskResource.setExternalTaskId(UUID.randomUUID().toString());
+        taskResource.setTitle("Original title");
+        taskResource.setDescription("Original description");
+        taskResource.setCaseId("1615817621013640");
+        taskResource.setCaseTypeId("WaCaseType");
+        taskResource.setCaseCategory("caseCategory");
+        taskResource.setCaseName("Original case");
+        taskResource.setJurisdiction("WA");
+        taskResource.setRegion("1");
+        taskResource.setLocation("765324");
+        taskResource.setLocationName("Taylor House");
+        taskResource.setWorkTypeResource(new WorkTypeResource("decision_making_work"));
+        taskResource.setRoleCategory("JUDICIAL");
+        taskResource.setDueDateTime(OffsetDateTime.parse("2026-01-20T10:15:00Z"));
+        taskResource.setPriorityDate(OffsetDateTime.parse("2026-01-15T09:00:00Z"));
+        taskResource.setMajorPriority(22);
+        taskResource.setMinorPriority(11);
+        taskResource.setNextHearingId("next-hearing-123");
+        taskResource.setNextHearingDate(OffsetDateTime.parse("2026-01-22T11:30:00Z"));
+        taskResource.setAdditionalProperties(Map.of("existing", "value"));
+        taskResource.setTaskRoleResources(Set.of(new TaskRoleResource(
+            "tribunal-caseworker",
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            new String[]{"WA"},
+            1,
+            false,
+            "JUDICIAL",
+            taskId,
+            OffsetDateTime.parse("2026-01-10T08:45:00Z")
+        )));
+        return taskResource;
+    }
+
+    private TaskReconfigurePayload reconfigurePayload(UUID taskId) {
+        TaskReconfigurePayload payload = new TaskReconfigurePayload();
+        payload.setId(taskId);
+        payload.setTitle("Reconfigured title");
+        payload.setCaseCategory("Reconfigured category");
+        payload.setCaseName("Reconfigured case");
+        payload.setRegion("2");
+        payload.setLocation("765325");
+        payload.setLocationName("New court");
+        payload.setWorkType("follow_up");
+        payload.setRoleCategory("LEGAL_OPERATIONS");
+        payload.setDescription("Reconfigured description");
+        payload.setDueDateTime(OffsetDateTime.parse("2026-02-20T10:15:00Z"));
+        payload.setPriorityDate(OffsetDateTime.parse("2026-02-15T09:00:00Z"));
+        payload.setMajorPriority(44);
+        payload.setMinorPriority(33);
+        payload.setNextHearingDate(OffsetDateTime.parse("2026-02-22T11:30:00Z"));
+        payload.setNextHearingId("next-hearing-456");
+        payload.setAdditionalProperties(Map.of("priority", "high", "count", 7));
+        payload.setPermissions(List.of(taskPermission(
+            "case-manager",
+            "LEGAL_OPERATIONS",
+            List.of(PermissionTypes.READ, PermissionTypes.COMPLETE),
+            2,
+            true
+        )));
+        return payload;
+    }
+
+    private TaskPermission taskPermission(String roleName,
+                                          String roleCategory,
+                                          List<PermissionTypes> permissions,
+                                          int assignmentPriority,
+                                          boolean autoAssignable) {
+        TaskPermission permission = new TaskPermission();
+        permission.setRoleName(roleName);
+        permission.setRoleCategory(roleCategory);
+        permission.setPermissions(permissions);
+        permission.setAuthorisations(List.of("WA"));
+        permission.setAssignmentPriority(assignmentPriority);
+        permission.setAutoAssignable(autoAssignable);
+        return permission;
     }
 
     private String writeValueAsString(Map<String, String> data) {
