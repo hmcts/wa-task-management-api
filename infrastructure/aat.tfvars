@@ -1,2 +1,2 @@
-is_qpa_enabled        = true
-pgsql_storage_mb      = 262144
+is_qpa_enabled   = true
+pgsql_storage_mb = 262144
