@@ -11,23 +11,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SecurityConfigurationTest {
 
-    private static final String ALLOWED_ISSUER = "https://idam-web-public.aat.platform.hmcts.net/o";
-    private static final String DIFFERENT_ISSUER = "https://hmcts-access.service.gov.uk/o";
+    private static final String IDAM_WEB_ISSUER = "https://idam-web-public.aat.platform.hmcts.net/o";
+    private static final String FORGEROCK_ISSUER =
+        "https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/realms/root/realms/hmcts";
+    private static final String UNTRUSTED_ISSUER = "https://untrusted.example.com/o";
 
     @Test
-    void shouldValidateJwtWithAllowedIssuer() {
+    void shouldValidateJwtWithAnyAllowedIssuer() {
+        List<String> allowedIssuers = List.of(IDAM_WEB_ISSUER, FORGEROCK_ISSUER);
+
         OAuth2TokenValidatorResult result = SecurityConfiguration
-            .jwtValidator(List.of(ALLOWED_ISSUER))
-            .validate(jwtWithIssuer(ALLOWED_ISSUER, Instant.now().plusSeconds(60)));
+            .jwtValidator(allowedIssuers)
+            .validate(jwtWithIssuer(FORGEROCK_ISSUER, Instant.now().plusSeconds(60)));
 
         assertThat(result.hasErrors()).isFalse();
     }
 
     @Test
-    void shouldRejectJwtWithDifferentIssuer() {
+    void shouldRejectJwtWithUntrustedIssuer() {
         OAuth2TokenValidatorResult result = SecurityConfiguration
-            .jwtValidator(List.of(ALLOWED_ISSUER))
-            .validate(jwtWithIssuer(DIFFERENT_ISSUER, Instant.now().plusSeconds(60)));
+            .jwtValidator(List.of(IDAM_WEB_ISSUER, FORGEROCK_ISSUER))
+            .validate(jwtWithIssuer(UNTRUSTED_ISSUER, Instant.now().plusSeconds(60)));
 
         assertThat(result.hasErrors()).isTrue();
     }
@@ -35,8 +39,8 @@ class SecurityConfigurationTest {
     @Test
     void shouldKeepDefaultJwtValidation() {
         OAuth2TokenValidatorResult result = SecurityConfiguration
-            .jwtValidator(List.of(ALLOWED_ISSUER))
-            .validate(jwtWithIssuer(ALLOWED_ISSUER, Instant.now().minusSeconds(60)));
+            .jwtValidator(List.of(IDAM_WEB_ISSUER))
+            .validate(jwtWithIssuer(IDAM_WEB_ISSUER, Instant.now().minusSeconds(60)));
 
         assertThat(result.hasErrors()).isTrue();
     }
