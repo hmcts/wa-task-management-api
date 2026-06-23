@@ -22,6 +22,13 @@ Unit tests must remain clear, deterministic, and resistant to implementation-onl
 *   Prefer high-signal assertions using AssertJ; avoid low-value checks like assertNotNull when deep field equality (usingRecursiveComparison()) is available.
 *   Keep tests focused: one behavior per test where practical, avoiding large omnibus cases that obscure failure diagnosis.
 
+### V. Collaboration, Scope, And Uncertainty
+* Ask, do not assume. If intent, architecture, or requirements are unclear, ask before writing code. Never make silent assumptions. When running unattended, choose the most reasonable interpretation, proceed, and record the assumption instead of blocking.
+* Keep the solution proportional to the problem. Implement the simplest solution for simple problems and better-designed solutions for harder problems. Do not over-engineer or add flexibility before it is needed.
+* Do not touch unrelated code. If you discover bad code or design smells outside the requested scope, surface them for discussion so they can be addressed separately.
+* Flag uncertainty explicitly. If unsure, ask first. When useful, conduct a small, localised, low-risk experiment, then share the hypothesis and result for discussion. Confidence without certainty causes more damage than admitting a gap.
+* Suggest better approaches when they would improve the outcome, especially when they have longer-lasting impact than a tactical change.
+
 ## Active Technologies
 *   Backend: Java 21, Spring Boot 3.4.x, Spring Data JPA, Spring Security, Lombok.
 *   Integrations: Camunda (Workflow), CCD (Core Case Data), Role Assignment Service (AM), IDAM/S2S (Auth).
@@ -41,6 +48,15 @@ Use subagents to parallelize work that can be done independently, then consolida
 For verification after code changes, use subagents by default and run independent checks in parallel:
 *   Spawn one subagent each for ./gradlew check (Checkstyle/PMD), ./gradlew test (unit tests), and ./gradlew integration (Testcontainer-backed tests).
 *   Run these checks in parallel unless a concrete dependency requires sequencing.
+
+## Agent Workflow Efficiency
+Optimise for fast, correct progress with the smallest reliable feedback loop:
+*   Start with targeted discovery: read the relevant README/OpenAPI/specs, then use `rg` or `rg --files` to find the smallest set of code, tests, and migrations needed for the task.
+*   Batch independent read-only inspection where possible, especially related file reads, searches, and git diffs.
+*   Prefer focused tests first (the changed class, repository, mapper, or integration path), then broaden to `./gradlew check test integration` when the change is ready or risk justifies it.
+*   Keep context small and current: summarise findings, record assumptions, and avoid carrying stale hypotheses once the code contradicts them.
+*   Escalate deliberately: use an ExecPlan only for genuinely complex work, subagents for independent workstreams, and full builds when narrower checks cannot give enough confidence.
+*   Report only actionable findings in progress updates and final responses: changed files, verification results, known risks, and suggested follow-up issues.
 
 ## Project Structure
 uk.gov.hmcts.reform.wataskmanagementapi/
