@@ -40,17 +40,19 @@ class SecurityConfigurationTest {
     void shouldKeepDefaultJwtValidation() {
         OAuth2TokenValidatorResult result = SecurityConfiguration
             .jwtValidator(List.of(IDAM_WEB_ISSUER))
-            .validate(jwtWithIssuer(IDAM_WEB_ISSUER, Instant.now().minusSeconds(60)));
+            .validate(jwtWithIssuer(IDAM_WEB_ISSUER, Instant.now().minusSeconds(120)));
 
         assertThat(result.hasErrors()).isTrue();
     }
 
     private Jwt jwtWithIssuer(String issuer, Instant expiresAt) {
+        Instant issuedAt = expiresAt.minusSeconds(60);
+
         return Jwt.withTokenValue("token")
             .header("alg", "none")
             .claim("iss", issuer)
             .subject("user")
-            .issuedAt(Instant.now())
+            .issuedAt(issuedAt)
             .expiresAt(expiresAt)
             .build();
     }
