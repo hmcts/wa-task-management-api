@@ -69,7 +69,9 @@ idam:
     baseUrl: ${IDAM_URL:http://sidam-api}
   security:
     allowed-issuers:
-      - https://sidam-simulator/o
+      - ${OPEN_ID_IDAM_URL:https://sidam-simulator/o}
+      - ${OPEN_ID_HMCTS_ACCESS_URL:http://sidam-api/o}
+      - ${OIDC_ISSUER:https://forgerock-am.service.core-compute-idam-aat2.internal:8443/openam/oauth2/realms/root/realms/hmcts}
   system:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
