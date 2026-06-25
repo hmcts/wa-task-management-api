@@ -67,6 +67,11 @@ idam:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler,ccd_case_disposer,civil_service,sscs}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
+  security:
+    allowed-issuers:
+      - ${OPEN_ID_IDAM_URL:https://sidam-simulator/o}
+      - ${OPEN_ID_HMCTS_ACCESS_URL:http://sidam-simulator/o}
+      - ${OIDC_ISSUER:http://fr-am:8080/openam/oauth2/hmcts}
   system:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
