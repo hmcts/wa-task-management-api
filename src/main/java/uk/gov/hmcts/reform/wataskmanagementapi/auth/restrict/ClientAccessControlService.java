@@ -1,16 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.ClientAccessProperties;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-@Slf4j
 @Service
 public class ClientAccessControlService {
 
@@ -19,14 +18,14 @@ public class ClientAccessControlService {
     private final ServiceAuthTokenValidator serviceAuthTokenValidator;
     private final List<String> privilegedAccessClients;
     private final List<String> exclusiveAccessClients;
+    private final Map<String, List<String>> serviceCaseTypeAccess;
 
-    @Autowired
     public ClientAccessControlService(ServiceAuthTokenValidator serviceAuthTokenValidator,
-                                      @Value("${config.privilegedAccessClients}") List<String> privilegedAccessClients,
-                                      @Value("${config.exclusiveAccessClients}") List<String> exclusiveAccessClients) {
+                                      ClientAccessProperties clientAccessProperties) {
         this.serviceAuthTokenValidator = serviceAuthTokenValidator;
-        this.privilegedAccessClients = privilegedAccessClients;
-        this.exclusiveAccessClients = exclusiveAccessClients;
+        this.privilegedAccessClients = clientAccessProperties.getPrivilegedAccessClients();
+        this.exclusiveAccessClients = clientAccessProperties.getExclusiveAccessClients();
+        this.serviceCaseTypeAccess = clientAccessProperties.getServiceCaseTypeAccess();
     }
 
 
@@ -75,5 +74,21 @@ public class ClientAccessControlService {
         String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
 
         return exclusiveAccessClients.contains(serviceName);
+    }
+
+    public boolean hasExclusiveCaseTypeAccess(String serviceAuthToken, String caseTypeId) {
+        Objects.requireNonNull(serviceAuthToken, MSG_SRV_AUTH_MUST_NOT_BE_NULL);
+        if (!StringUtils.hasText(caseTypeId)) {
+            return false;
+        }
+
+        String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
+        if (!exclusiveAccessClients.contains(serviceName)) {
+            return false;
+        }
+
+        List<String> allowedCaseTypes = serviceCaseTypeAccess.get(serviceName);
+
+        return allowedCaseTypes == null || allowedCaseTypes.contains(caseTypeId);
     }
 }

@@ -23,6 +23,7 @@ public final class TaskQuerySpecification {
     private static final String TASK_TYPE = "taskType";
     private static final String ASSIGNEE = "assignee";
     private static final String CASE_ID = "caseId";
+    private static final String CASE_TYPE_ID = "caseTypeId";
     private static final String JURISDICTION = "jurisdiction";
     private static final String WORK_TYPE = "workTypeResource";
     private static final String WORK_TYPE_ID = "id";
@@ -70,6 +71,12 @@ public final class TaskQuerySpecification {
                                            CriteriaBuilder builder,
                                            Root<TaskResource> root) {
         return builder.equal(root.get(CASE_ID), caseId);
+    }
+
+    public static Predicate searchByCaseTypeId(String caseTypeId,
+                                               CriteriaBuilder builder,
+                                               Root<TaskResource> root) {
+        return builder.equal(root.get(CASE_TYPE_ID), caseTypeId);
     }
 
     public static Predicate searchByCaseIds(List<String> caseIds,

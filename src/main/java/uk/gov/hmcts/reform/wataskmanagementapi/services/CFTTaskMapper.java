@@ -14,6 +14,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CreateTaskRequestTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskPermission;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskReconfigurePayload;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
@@ -47,6 +50,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -138,6 +142,83 @@ public class CFTTaskMapper {
             readDate(attributes, CamundaVariableDefinition.NEXT_HEARING_DATE, null),
             priorityDate
         );
+    }
+
+    public TaskResource mapToApiFirstTaskResource(CreateTaskRequestTask request) {
+        log.info("mapping task attributes to taskResource");
+
+        ExecutionType executionType = ExecutionType.fromJson(request.getExecutionType().getValue());
+        ExecutionTypeResource executionTypeResource = new ExecutionTypeResource(
+            executionType,
+            executionType.getName(),
+            executionType.getDescription()
+
+        );
+        String taskId = UUID.randomUUID().toString();
+
+        Set<TaskRoleResource> taskRoleResources = mapPermissions(request.getPermissions(), taskId);
+
+        WorkTypeResource workTypeResource = new WorkTypeResource(
+            request.getWorkType()
+        );
+        Map<String, String> additionalProperties = Collections.emptyMap();
+        if (request.getAdditionalProperties() != null) {
+            additionalProperties = request.getAdditionalProperties().entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> String.valueOf(e.getValue())
+                ));
+        }
+        String taskTitle = request.getTitle();
+        String taskName = request.getName();
+        Integer majorPriority = request.getMajorPriority();
+        Integer minorPriority = request.getMinorPriority();
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            taskName,
+            request.getType(),
+            request.getDueDateTime(),
+            CFTTaskState.UNCONFIGURED,
+            TaskSystem.valueOf(request.getTaskSystem().getValue()),
+            SecurityClassification.valueOf(request.getSecurityClassification().getValue()),
+            taskTitle != null ? taskTitle : taskName,
+            request.getDescription(),
+            new ArrayList<NoteResource>(),
+            majorPriority,
+            minorPriority,
+            null, //Need to get from taskPayload assignee
+            false, //autoAssigned
+            executionTypeResource,
+            workTypeResource,
+            request.getRoleCategory(),
+            false, //has_warnings
+            null, //assignment_expiry
+            request.getCaseId(),
+            request.getCaseTypeId(),
+            request.getCaseName(),
+            request.getJurisdiction(),
+            request.getRegion(),
+            request.getRegionName(),
+            request.getLocation(),
+            request.getLocationName(),
+            null, //business_context
+            null, //termination_reason
+            request.getCreated(), // We set created time from request, can change it to now() if needed
+            taskRoleResources, //task_roles
+            request.getCaseCategory(),
+            additionalProperties,
+            request.getNextHearingId(), //next_hearing_id
+            request.getNextHearingDate(), //next_hearing_date
+
+            request.getPriorityDate()
+        );
+        taskResource.setExternalTaskId(
+            Optional.ofNullable(request.getExternalTaskId())
+                .map(Object::toString)
+                .orElse(null)
+        );
+        return taskResource;
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
@@ -439,6 +520,60 @@ public class CFTTaskMapper {
                     autoAssignable,
                     roleCategory,
                     taskResource.getTaskId(),
+                    ZonedDateTime.now().toOffsetDateTime(),
+                    permissionsFound.contains(PermissionTypes.COMPLETE),
+                    permissionsFound.contains(PermissionTypes.COMPLETE_OWN),
+                    permissionsFound.contains(PermissionTypes.CANCEL_OWN),
+                    permissionsFound.contains(PermissionTypes.CLAIM),
+                    permissionsFound.contains(PermissionTypes.UNCLAIM),
+                    permissionsFound.contains(PermissionTypes.ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNCLAIM_ASSIGN),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_CLAIM),
+                    permissionsFound.contains(PermissionTypes.UNASSIGN_ASSIGN)
+                );
+            }).collect(Collectors.toSet());
+    }
+
+    private Set<TaskRoleResource> mapPermissions(
+        List<TaskPermission> permissions, String taskId
+    ) {
+
+        return permissions.stream()
+            .map(permission -> {
+
+                final String roleName = permission.getRoleName();
+                log.info("Permission found: {}", permission.getPermissions());
+                final Set<PermissionTypes> permissionsFound = permission.getPermissions().stream()
+                    .map(p -> PermissionTypes.from(p.value()).orElseThrow(() -> new IllegalArgumentException(
+                        "Invalid Permission Type:" + p)))
+                    .collect(Collectors.toSet());
+
+
+                List<String> authorisations = permission.getAuthorisations();
+
+
+                Integer assignmentPriority = permission.getAssignmentPriority();
+
+                boolean autoAssignable = permission.getAutoAssignable();
+
+
+                String roleCategory = permission.getRoleCategory();
+
+
+                return new TaskRoleResource(
+                    roleName,
+                    permissionsFound.contains(PermissionTypes.READ),
+                    permissionsFound.contains(PermissionTypes.OWN),
+                    permissionsFound.contains(PermissionTypes.EXECUTE),
+                    permissionsFound.contains(PermissionTypes.MANAGE),
+                    permissionsFound.contains(PermissionTypes.CANCEL),
+                    permissionsFound.contains(PermissionTypes.REFER),
+                    authorisations.toArray(new String[0]),
+                    assignmentPriority,
+                    autoAssignable,
+                    roleCategory,
+                    taskId,
                     ZonedDateTime.now().toOffsetDateTime(),
                     permissionsFound.contains(PermissionTypes.COMPLETE),
                     permissionsFound.contains(PermissionTypes.COMPLETE_OWN),
@@ -766,5 +901,56 @@ public class CFTTaskMapper {
 
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
-}
 
+    public TaskResource mapToTaskResourceForReconfigure(TaskResource taskResource, TaskReconfigurePayload task) {
+        log.info("mapping task attributes to taskResource");
+
+        taskResource.setCaseName(valueOrExisting(task.getCaseName(), taskResource.getCaseName()));
+        taskResource.setRegion(valueOrExisting(task.getRegion(), taskResource.getRegion()));
+        taskResource.setLocation(valueOrExisting(task.getLocation(), taskResource.getLocation()));
+        taskResource.setLocationName(valueOrExisting(task.getLocationName(), taskResource.getLocationName()));
+        taskResource.setDescription(valueOrExisting(task.getDescription(), taskResource.getDescription()));
+        taskResource.setTitle(valueOrExisting(task.getTitle(), taskResource.getTitle()));
+        taskResource.setDueDateTime(valueOrExisting(task.getDueDateTime(), taskResource.getDueDateTime()));
+        taskResource.setPriorityDate(valueOrExisting(task.getPriorityDate(), taskResource.getPriorityDate()));
+        taskResource.setMajorPriority(valueOrExisting(
+            task.getMajorPriority(),
+            defaultIfNull(taskResource.getMajorPriority(), 5000)
+        ));
+        taskResource.setMinorPriority(valueOrExisting(
+            task.getMinorPriority(),
+            defaultIfNull(taskResource.getMinorPriority(), 500)
+        ));
+
+        String taskId = task.getId().toString();
+        if (task.getPermissions() != null) {
+            Set<TaskRoleResource> taskRoleResources = mapPermissions(task.getPermissions(), taskId);
+            taskResource.setTaskRoleResources(taskRoleResources);
+        }
+        taskResource.setCaseCategory(valueOrExisting(task.getCaseCategory(), taskResource.getCaseCategory()));
+        if (task.getWorkType() != null) {
+            taskResource.setWorkTypeResource(new WorkTypeResource(task.getWorkType()));
+        }
+        taskResource.setRoleCategory(valueOrExisting(task.getRoleCategory(), taskResource.getRoleCategory()));
+        taskResource.setNextHearingDate(valueOrExisting(task.getNextHearingDate(), taskResource.getNextHearingDate()));
+        taskResource.setNextHearingId(valueOrExisting(task.getNextHearingId(), taskResource.getNextHearingId()));
+        if (task.getAdditionalProperties() != null) {
+            Map<String, String> additionalProperties = task.getAdditionalProperties().entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> String.valueOf(e.getValue())
+                ));
+            taskResource.setAdditionalProperties(additionalProperties);
+        }
+        return taskResource;
+    }
+
+    private <T> T valueOrExisting(T value, T existingValue) {
+        return value == null ? existingValue : value;
+    }
+
+    private <T> T defaultIfNull(T value, T defaultValue) {
+        return value == null ? defaultValue : value;
+    }
+}

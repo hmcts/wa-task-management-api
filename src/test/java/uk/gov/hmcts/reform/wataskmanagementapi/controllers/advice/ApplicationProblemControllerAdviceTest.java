@@ -26,6 +26,7 @@ import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.violations.Violation;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskSecondaryKeyConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
@@ -47,6 +48,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.Customiz
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptySet;
@@ -82,6 +84,19 @@ class ApplicationProblemControllerAdviceTest {
             "some_field_name",
             applicationProblemControllerAdvice.formatFieldName("some_field_name")
         );
+    }
+
+    @Test
+    void should_return_no_content_for_task_creation_idempotency_hit() {
+        TaskSecondaryKeyConflictException exception = new TaskSecondaryKeyConflictException(
+            UUID.randomUUID(),
+            "E2E",
+            new RuntimeException("duplicate")
+        );
+
+        ResponseEntity<Void> response = applicationProblemControllerAdvice.handleTaskSecondaryKeyConflict(exception);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
