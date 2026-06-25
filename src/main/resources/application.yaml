@@ -69,8 +69,9 @@ idam:
     baseUrl: ${IDAM_URL:http://sidam-api}
   security:
     allowed-issuers:
-      - ${OPEN_ID_IDAM_URL:http://sidam-api}/o}
-      - ${OPEN_ID_HMCTS_ACCESS_URL:http://sidam-api}/o}
+      - ${IDAM_SECURITY_ALLOWED_ISSUERS_0:http://sidam-simulator/o}
+      - ${IDAM_SECURITY_ALLOWED_ISSUERS_1:http://sidam-simulator/o}
+      - ${IDAM_SECURITY_ALLOWED_ISSUERS_2:http://sidam-simulator/o}
   system:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
