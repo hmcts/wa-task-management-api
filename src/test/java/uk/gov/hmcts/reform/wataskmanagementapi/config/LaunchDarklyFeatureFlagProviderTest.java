@@ -57,7 +57,7 @@ class LaunchDarklyFeatureFlagProviderTest {
     @ParameterizedTest
     @CsvSource(value = {
         "NULL, some user id, test@test.com, featureFlag must not be null",
-        "WA_TASK_SEARCH_GIN_INDEX, NULL, test@test.com, userId must not be null"}, nullValues = "NULL")
+        "WA_DELETE_TASK_BY_CASE_ID, NULL, test@test.com, userId must not be null"}, nullValues = "NULL")
     void getBooleanValue_edge_case_scenarios(
         FeatureFlag featureFlag, String userId, String email, String expectedMessage
     ) {
