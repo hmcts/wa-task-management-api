@@ -19,3 +19,7 @@ logging:
       type.descriptor.sql.BasicBinder: debug
       engine: debug
     uk.gov.hmcts.reform: debug
+idam:
+  security:
+    allowed-issuers:
+      - http://localhost:5556/o

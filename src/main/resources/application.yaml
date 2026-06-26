@@ -69,9 +69,9 @@ idam:
     baseUrl: ${IDAM_URL:http://sidam-api}
   security:
     allowed-issuers:
-      - ${IDAM_SECURITY_ALLOWED_ISSUER_0:localhost:5062/o}
-      - ${IDAM_SECURITY_ALLOWED_ISSUER_1:localhost:5062/o}
-      - ${IDAM_SECURITY_ALLOWED_ISSUER_2:localhost:5062/o}
+      - ${IDAM_SECURITY_ALLOWED_ISSUER_0:http://localhost:5556/o}
+      - ${IDAM_SECURITY_ALLOWED_ISSUER_1:http://localhost:5556/o}
+      - ${IDAM_SECURITY_ALLOWED_ISSUER_2:http://localhost:5556/o}
   system:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
