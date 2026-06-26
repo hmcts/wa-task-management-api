@@ -9,9 +9,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class IdamSecurityPropertiesTest {
 
-    private static final String IDAM_SECURITY_ALLOWED_ISSUER_0 = "https://idam-web-public.aat.platform.hmcts.net/o";
-    private static final String IDAM_SECURITY_ALLOWED_ISSUER_1 = "https://idam-access.aat.platform.hmcts.net/o";
-    private static final String IDAM_SECURITY_ALLOWED_ISSUER_2 = "https://forgerock-am.service.core-compute-idam-perftest.internal:8443/openam/oauth2/realms/root/realms/hmcts";
+    private static final String IDAM_SECURITY_ALLOWED_ISSUER_0 = "https://someurl0/o";
+    private static final String IDAM_SECURITY_ALLOWED_ISSUER_1 = "https://someurl1/o";
+    private static final String IDAM_SECURITY_ALLOWED_ISSUER_2 = "https://fsomeurl2";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withUserConfiguration(TestConfiguration.class);
@@ -25,7 +25,11 @@ class IdamSecurityPropertiesTest {
                 "idam.security.allowed-issuers[2]=" + IDAM_SECURITY_ALLOWED_ISSUER_2
             )
             .run(context -> assertThat(context.getBean(IdamSecurityProperties.class).getAllowedIssuers())
-                .containsExactly(IDAM_SECURITY_ALLOWED_ISSUER_0, IDAM_SECURITY_ALLOWED_ISSUER_1, IDAM_SECURITY_ALLOWED_ISSUER_2));
+                .containsExactly(
+                    IDAM_SECURITY_ALLOWED_ISSUER_0,
+                    IDAM_SECURITY_ALLOWED_ISSUER_1,
+                    IDAM_SECURITY_ALLOWED_ISSUER_2
+                ));
     }
 
     @Configuration
