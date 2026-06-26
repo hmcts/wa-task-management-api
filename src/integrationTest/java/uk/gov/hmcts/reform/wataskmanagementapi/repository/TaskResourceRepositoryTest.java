@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCriteria;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
@@ -39,6 +41,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestCo
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -315,33 +318,34 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(taskId, taskIds.get(0));
     }
 
     @Test
-    void given_task_is_indexed_then_materialised_signatures_and_hashes_are_populated() {
+    void given_task_is_indexed_then_task_search_permissions_are_populated() {
         reindexTasks(taskId);
 
-        Boolean searchColumnsPopulated = jdbcTemplate.queryForObject(
+        Boolean searchPermissionsPopulated = jdbcTemplate.queryForObject(
             """
-                SELECT '*:IA:*:*:1:765324' = ANY(filter_signatures)
-                   AND 'IA:*:*:tribunal-caseofficer:*:r:U:*' = ANY(role_signatures)
-                   AND CARDINALITY(filter_signature_hashes) > 0
-                   AND CARDINALITY(role_signature_hashes) > 0
-                FROM cft_task_db.tasks
-                WHERE task_id = ?
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM cft_task_db.task_search_permissions
+                    WHERE task_id = ?
+                      AND role_name = 'tribunal-caseofficer'
+                      AND permission = 'r'
+                      AND authorization_value IS NULL
+                )
                 """,
             Boolean.class,
             taskId
         );
 
-        assertThat(searchColumnsPopulated).isTrue();
+        assertThat(searchPermissionsPopulated).isTrue();
     }
 
     @Test
-    void given_indexed_task_when_relevant_task_role_changes_then_materialised_role_signatures_are_refreshed() {
+    void given_indexed_task_when_relevant_task_role_changes_then_task_search_permissions_are_refreshed() {
         reindexTasks(taskId);
         TaskRoleResource taskRole = taskRoleResourceRepository.findByTaskId(taskId).get(0);
 
@@ -355,24 +359,24 @@ class TaskResourceRepositoryTest {
     }
 
     @Test
-    void given_hash_candidate_matches_when_exact_role_signature_does_not_then_task_is_not_returned() {
+    void given_exact_role_signature_does_not_match_then_task_is_not_returned() {
         reindexTasks(taskId);
 
         jdbcTemplate.update(
             """
-                UPDATE cft_task_db.tasks
-                SET role_signature_hashes = cft_task_db.signature_hashes(ARRAY[?]::TEXT[])
+                UPDATE cft_task_db.task_search_permissions
+                SET role_name = ?
                 WHERE task_id = ?
                 """,
-            "IA:*:*:case-manager:*:r:U:*",
+            "case-manager",
             taskId
         );
 
-        assertThat(searchTasksForRole("IA:*:*:case-manager:*:r:U:*")).isEmpty();
+        assertThat(searchTasksForRole("IA:*:*:tribunal-caseofficer:*:r:U:*")).isEmpty();
     }
 
     @Test
-    void given_search_schema_then_gist_hash_indexes_replace_legacy_gin_index() {
+    void given_search_schema_then_btree_permission_indexes_exist_alongside_legacy_gin_index() {
         reindexTasks(taskId);
 
         List<String> indexDefinitions = jdbcTemplate.queryForList(
@@ -381,8 +385,14 @@ class TaskResourceRepositoryTest {
                 FROM pg_indexes
                 WHERE schemaname = 'cft_task_db'
                   AND indexname IN (
-                      'search_filter_signature_hashes_idx',
-                      'search_role_signature_hashes_idx'
+                      'task_search_permissions_auth_idx',
+                      'task_search_permissions_lookup_idx',
+                      'task_search_permissions_null_auth_idx',
+                      'search_active_tasks_sort_idx',
+                      'search_assignee_idx',
+                      'search_case_id_idx',
+                      'search_task_filters_idx',
+                      'search_task_type_idx'
                   )
                 ORDER BY indexname
                 """,
@@ -397,13 +407,73 @@ class TaskResourceRepositoryTest {
                 """,
             Integer.class
         );
+        Integer replacementGinIndexCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM pg_indexes
+                WHERE schemaname = 'cft_task_db'
+                  AND indexname IN (
+                      'search_signatures_idx',
+                      'search_filter_signature_hashes_idx',
+                      'search_role_signature_hashes_idx'
+                  )
+                """,
+            Integer.class
+        );
+        Integer materialisedSignatureColumnCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM information_schema.columns
+                WHERE table_schema = 'cft_task_db'
+                  AND table_name = 'tasks'
+                  AND column_name IN (
+                      'filter_signatures',
+                      'role_signatures',
+                      'filter_signature_hashes',
+                      'role_signature_hashes'
+                  )
+                """,
+            Integer.class
+        );
+        Integer materialisedSignatureTriggerCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM pg_trigger
+                WHERE tgrelid IN ('cft_task_db.tasks'::regclass, 'cft_task_db.task_roles'::regclass)
+                  AND tgname IN (
+                      'refresh_task_search_columns_on_tasks',
+                      'refresh_task_search_columns_on_task_roles'
+                  )
+                """,
+            Integer.class
+        );
+        Integer materialisedSignatureFunctionCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM pg_proc proc
+                JOIN pg_namespace namespace
+                  ON namespace.oid = proc.pronamespace
+                WHERE namespace.nspname = 'cft_task_db'
+                  AND proc.proname IN (
+                      'refresh_task_search_columns',
+                      'refresh_task_role_search_columns',
+                      'materialise_filter_signatures',
+                      'materialise_role_signatures',
+                      'signature_hashes',
+                      'canonical_signatures'
+                  )
+                """,
+            Integer.class
+        );
 
         assertThat(indexDefinitions)
-            .anySatisfy(index -> assertThat(index)
-                .contains("USING gist (filter_signature_hashes cft_task_db.gist__intbig_ops)"))
-            .anySatisfy(index -> assertThat(index)
-                .contains("USING gist (role_signature_hashes cft_task_db.gist__intbig_ops)"));
-        assertThat(legacyGinIndexCount).isZero();
+            .hasSize(8)
+            .allSatisfy(index -> assertThat(index).contains("USING btree"));
+        assertThat(legacyGinIndexCount).isOne();
+        assertThat(replacementGinIndexCount).isZero();
+        assertThat(materialisedSignatureColumnCount).isZero();
+        assertThat(materialisedSignatureTriggerCount).isZero();
+        assertThat(materialisedSignatureFunctionCount).isZero();
     }
 
     @Test
@@ -426,8 +496,7 @@ class TaskResourceRepositoryTest {
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(2, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
         assertEquals(taskId2, taskIds.get(1));
@@ -452,8 +521,7 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
     }
@@ -477,8 +545,7 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
     }
@@ -502,8 +569,7 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
     }
@@ -527,8 +593,7 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
     }
@@ -553,8 +618,7 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId2, taskIds.get(0));
     }
@@ -578,8 +642,7 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId2, taskIds.get(0));
     }
@@ -603,8 +666,7 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(1, taskIds.size());
         assertEquals(taskId2, taskIds.get(0));
     }
@@ -628,8 +690,7 @@ class TaskResourceRepositoryTest {
             .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of(), request);
+        List<String> taskIds = searchTasks(filterSignature, roleSignature, List.of(), request);
         assertEquals(2, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
         assertEquals(taskId2, taskIds.get(1));
@@ -654,8 +715,12 @@ class TaskResourceRepositoryTest {
             .users(List.of("someAssignee", "anotherAssignee"))
             .build();
 
-        List<String> taskIds = taskResourceRepository.searchTasksIds(0,25, filterSignature, roleSignature,
-            List.of("1623278362430413", "88888888888888"), request);
+        List<String> taskIds = searchTasks(
+            filterSignature,
+            roleSignature,
+            List.of("1623278362430413", "88888888888888"),
+            request
+        );
         assertEquals(1, taskIds.size());
         assertEquals(taskId, taskIds.get(0));
     }
@@ -836,14 +901,130 @@ class TaskResourceRepositoryTest {
     }
 
     private List<String> searchTasksForRole(String roleSignature) {
-        return taskResourceRepository.searchTasksIds(
-            0,
-            25,
+        return searchTasks(
             Set.of("*:IA:*:*:1:765324"),
             Set.of(roleSignature),
             List.of(),
             SearchRequest.builder().build()
         );
+    }
+
+    private List<String> searchTasks(Set<String> filterSignatures,
+                                     Set<String> roleSignatures,
+                                     List<String> excludeCaseIds,
+                                     SearchRequest searchRequest) {
+        return taskResourceRepository.searchTasksIds(
+            0,
+            25,
+            toRoleCriteria(roleSignatures),
+            excludeCaseIds,
+            withFilterCriteria(searchRequest, filterSignatures)
+        );
+    }
+
+    private SearchRequest withFilterCriteria(SearchRequest searchRequest, Set<String> filterSignatures) {
+        SearchFilterCriteria filterCriteria = SearchFilterCriteria.from(filterSignatures);
+        return SearchRequest.builder()
+            .cftTaskStates(searchRequest.getCftTaskStates())
+            .jurisdictions(defaultIfEmpty(searchRequest.getJurisdictions(), filterCriteria.jurisdictions()))
+            .locations(defaultIfEmpty(searchRequest.getLocations(), filterCriteria.locations()))
+            .regions(defaultIfEmpty(searchRequest.getRegions(), filterCriteria.regions()))
+            .caseIds(searchRequest.getCaseIds())
+            .users(searchRequest.getUsers())
+            .taskTypes(searchRequest.getTaskTypes())
+            .workTypes(defaultIfEmpty(searchRequest.getWorkTypes(), filterCriteria.workTypes()))
+            .roleCategories(defaultIfEmpty(searchRequest.getRoleCategories(), filterCriteria.roleCategories()))
+            .requestContext(requestContext(searchRequest))
+            .sortingParameters(searchRequest.getSortingParameters())
+            .build();
+    }
+
+    private <T> List<T> defaultIfEmpty(List<T> existingValues, List<T> defaultValues) {
+        return existingValues == null || existingValues.isEmpty() ? defaultValues : existingValues;
+    }
+
+    private RequestContext requestContext(SearchRequest searchRequest) {
+        if (searchRequest.isAvailableTasksOnly()) {
+            return RequestContext.AVAILABLE_TASKS;
+        } else if (searchRequest.isAllWork()) {
+            return RequestContext.ALL_WORK;
+        }
+        return null;
+    }
+
+    private List<TaskSearchRoleCriteria> toRoleCriteria(Set<String> roleSignatures) {
+        return roleSignatures.stream()
+            .map(this::toRoleCriteria)
+            .toList();
+    }
+
+    private TaskSearchRoleCriteria toRoleCriteria(String roleSignature) {
+        String[] parts = roleSignature.split(":", 8);
+        return new TaskSearchRoleCriteria(
+            nullIfWildcard(parts[0]),
+            nullIfWildcard(parts[1]),
+            nullIfWildcard(parts[2]),
+            parts[3],
+            nullIfWildcard(parts[4]),
+            parts[5],
+            parts[6],
+            nullIfWildcard(parts[7])
+        );
+    }
+
+    private String nullIfWildcard(String value) {
+        return "*".equals(value) ? null : value;
+    }
+
+    private record SearchFilterCriteria(List<String> jurisdictions,
+                                        List<RoleCategory> roleCategories,
+                                        List<String> workTypes,
+                                        List<String> regions,
+                                        List<String> locations) {
+
+        private static SearchFilterCriteria from(Set<String> filterSignatures) {
+            Set<String> jurisdictions = new LinkedHashSet<>();
+            Set<RoleCategory> roleCategories = new LinkedHashSet<>();
+            Set<String> workTypes = new LinkedHashSet<>();
+            Set<String> regions = new LinkedHashSet<>();
+            Set<String> locations = new LinkedHashSet<>();
+
+            for (String filterSignature : filterSignatures) {
+                String[] parts = filterSignature.split(":", -1);
+                addIfConstrained(jurisdictions, parts[1]);
+                if (!"*".equals(parts[2])) {
+                    roleCategories.add(expandRoleCategory(parts[2]));
+                }
+                addIfConstrained(workTypes, parts[3]);
+                addIfConstrained(regions, parts[4]);
+                addIfConstrained(locations, parts[5]);
+            }
+
+            return new SearchFilterCriteria(
+                List.copyOf(jurisdictions),
+                List.copyOf(roleCategories),
+                List.copyOf(workTypes),
+                List.copyOf(regions),
+                List.copyOf(locations)
+            );
+        }
+
+        private static void addIfConstrained(Set<String> values, String value) {
+            if (!"*".equals(value)) {
+                values.add(value);
+            }
+        }
+
+        private static RoleCategory expandRoleCategory(String value) {
+            return switch (value) {
+                case "J" -> RoleCategory.JUDICIAL;
+                case "L" -> RoleCategory.LEGAL_OPERATIONS;
+                case "A" -> RoleCategory.ADMIN;
+                case "C" -> RoleCategory.CTSC;
+                case "E" -> RoleCategory.ENFORCEMENT;
+                default -> throw new IllegalArgumentException("Invalid filter role category: " + value);
+            };
+        }
     }
 
     private TaskResource createTask(String taskId, OffsetDateTime lastUpdated) {
