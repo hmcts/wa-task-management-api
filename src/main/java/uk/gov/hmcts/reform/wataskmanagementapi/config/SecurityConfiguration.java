@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,9 +17,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
@@ -25,10 +27,13 @@ import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+@Slf4j
 @Configuration
+@Getter
 @ConfigurationProperties(prefix = "security")
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -39,9 +44,6 @@ public class SecurityConfiguration {
 
     private final List<String> anonymousPaths = new ArrayList<>();
     private final ServiceAuthFilter serviceAuthFiler;
-
-    @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
-    private String issuerUri;
 
     @Autowired
     public SecurityConfiguration(final ServiceAuthFilter serviceAuthFiler) {
@@ -83,18 +85,29 @@ public class SecurityConfiguration {
 
     @Bean
     @Primary
-    JwtDecoder jwtDecoder() {
-        NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder) JwtDecoders.fromOidcIssuerLocation(issuerUri);
+    JwtDecoder jwtDecoder(
+        OAuth2ResourceServerProperties resourceServerProperties,
+        IdamSecurityProperties idamSecurityProperties
+    ) {
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
+            .withJwkSetUri(resourceServerProperties.getJwt().getJwkSetUri())
+            .build();
 
-        OAuth2TokenValidator<Jwt> withTimestamp = new JwtTimestampValidator();
-        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(withTimestamp);
-
-        jwtDecoder.setJwtValidator(validator);
+        jwtDecoder.setJwtValidator(jwtValidator(idamSecurityProperties.getAllowedIssuers()));
 
         return jwtDecoder;
     }
 
-    public List<String> getAnonymousPaths() {
-        return anonymousPaths;
+    static OAuth2TokenValidator<Jwt> jwtValidator(List<String> allowedIssuers) {
+        return new DelegatingOAuth2TokenValidator<>(
+            JwtValidators.createDefault(),
+            allowedIssuersValidator(allowedIssuers)
+        );
+    }
+
+    static OAuth2TokenValidator<Jwt> allowedIssuersValidator(List<String> allowedIssuers) {
+        Set<String> allowedIssuerSet = Set.copyOf(allowedIssuers);
+        log.info("Temp issuer set log: {}", allowedIssuerSet);
+        return new JwtClaimValidator<>("iss", issuer -> issuer != null && allowedIssuerSet.contains(issuer));
     }
 }
