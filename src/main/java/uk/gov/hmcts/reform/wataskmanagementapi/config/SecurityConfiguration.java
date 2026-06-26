@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,7 +31,9 @@ import java.util.Set;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+@Slf4j
 @Configuration
+@Getter
 @ConfigurationProperties(prefix = "security")
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -103,11 +107,7 @@ public class SecurityConfiguration {
 
     static OAuth2TokenValidator<Jwt> allowedIssuersValidator(List<String> allowedIssuers) {
         Set<String> allowedIssuerSet = Set.copyOf(allowedIssuers);
-        //return new JwtClaimValidator<>("iss", allowedIssuerSet::contains);
+        log.info("Temp issuer set log: {}", allowedIssuerSet);
         return new JwtClaimValidator<>("iss", issuer -> issuer != null && allowedIssuerSet.contains(issuer));
-    }
-
-    public List<String> getAnonymousPaths() {
-        return anonymousPaths;
     }
 }
