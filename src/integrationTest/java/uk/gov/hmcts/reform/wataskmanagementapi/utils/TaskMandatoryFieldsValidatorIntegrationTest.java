@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
-import com.launchdarkly.sdk.LDValue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,21 +10,18 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.JsonParserUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 
 import java.time.OffsetDateTime;
@@ -35,8 +31,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 
 @SuppressWarnings("checkstyle:LineLength")
 @Slf4j
@@ -51,20 +45,11 @@ public class TaskMandatoryFieldsValidatorIntegrationTest {
     @Autowired
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
-    @Autowired
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    @Autowired
-    private JsonParserUtils jsonParserUtils;
-
     private String taskId;
 
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
-        doReturn(LDValue.parse("{\"jurisdictions\":[\"WA\"]}")).when(launchDarklyFeatureFlagProvider)
-            .getJsonValue(any(), any());
-
     }
 
     @ParameterizedTest
@@ -178,32 +163,8 @@ public class TaskMandatoryFieldsValidatorIntegrationTest {
     void should_throw_illegal_argument_exception_when_property_value_cannot_be_found() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, true, List.of("field1", "field2"),
-            jsonParserUtils);
+            List.of("field1", "field2"));
         assertThrows(IllegalArgumentException.class, () -> validator.validate(task));
-    }
-
-    @Test
-    @DisplayName("should skip validation when mandatory field check is disabled")
-    void should_skip_validation_when_mandatory_field_check_disabled() {
-        TaskResource task = getTaskResource(taskId);
-        TaskMandatoryFieldsValidator validator =
-            new TaskMandatoryFieldsValidator(null, false,
-                                             List.of("field1", "field2"), jsonParserUtils);
-        assertDoesNotThrow(() -> validator.validate(task));
-    }
-
-    @Test
-    @DisplayName("should skip validation when jurisdiction is excluded")
-    void should_skip_validation_when_jurisdiction_excluded() {
-        TaskResource task = getTaskResource(taskId);
-        task.setCaseId(null);
-        task.setJurisdiction("WA");
-
-        TaskMandatoryFieldsValidator spyValidator = Mockito.spy(taskMandatoryFieldsValidator);
-        spyValidator.validate(task);
-
-        Mockito.verify(spyValidator, Mockito.never()).validateTaskMandatoryFields(task);
     }
 
     @Test
@@ -211,7 +172,7 @@ public class TaskMandatoryFieldsValidatorIntegrationTest {
     void should_throw_IllegalArgumentException_when_property_value_cannot_be_found() {
         TaskResource task = getTaskResource(taskId);
         TaskMandatoryFieldsValidator validator = new TaskMandatoryFieldsValidator(
-            launchDarklyFeatureFlagProvider, true, List.of("invalidField"), jsonParserUtils);
+             List.of("invalidField"));
         assertThrows(IllegalArgumentException.class, () -> validator.validateTaskMandatoryFields(task));
     }
 

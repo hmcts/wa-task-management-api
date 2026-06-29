@@ -36,8 +36,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -128,9 +126,6 @@ class PostTaskCompleteByIdControllerTest {
     IntegrationTestUtils integrationTestUtils;
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
-    @MockitoBean
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     @BeforeAll
     void setUp() {
         mockServices = new ServiceMocks(
@@ -145,9 +140,6 @@ class PostTaskCompleteByIdControllerTest {
     void beforeEach() {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
-
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                                       anyString(), anyString())).thenReturn(false);
 
         when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
@@ -686,9 +678,6 @@ class PostTaskCompleteByIdControllerTest {
             String completionProcess) throws Exception {
             mockServices.mockUserInfo();
 
-            lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                                           anyString(), anyString())).thenReturn(true);
-
             List<RoleAssignment> roleAssignments = new ArrayList<>();
 
             RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -749,75 +738,6 @@ class PostTaskCompleteByIdControllerTest {
                 assertEquals(TerminationProcess.fromValue(completionProcess).get(),
                              taskResource.get().getTerminationProcess());
             }
-        }
-
-        @ParameterizedTest
-        @CsvSource(value = {
-            "EXUI_USER_COMPLETION",
-            "EXUI_CASE-EVENT_COMPLETION"
-        })
-        void should_succeed_and_return_204_and_not_update_completion_process_when_flag_disabled(
-            String completionProcess) throws Exception {
-            mockServices.mockUserInfo();
-
-            lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                                           anyString(), anyString())).thenReturn(false);
-
-            List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-            RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
-                .testRolesWithGrantType(TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC)
-                .roleAssignmentAttribute(
-                    RoleAssignmentAttribute.builder()
-                        .jurisdiction("IA")
-                        .caseType("Asylum")
-                        .caseId("completeCaseId1")
-                        .build()
-                )
-                .build();
-
-            roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
-
-            RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(roleAssignments);
-
-            TaskRoleResource taskRoleResource = new TaskRoleResource(
-                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleName(),
-                false, true, true, false, false, false,
-                new String[]{}, 1, false,
-                TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
-            );
-            insertDummyTaskInDb("IA", "Asylum", taskId, taskRoleResource);
-
-            when(idamService.getUserInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
-            when(roleAssignmentServiceApi.getRolesForUser(
-                any(), any(), any()
-            )).thenReturn(accessControlResponse);
-            when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-                .thenReturn(new AccessControlResponse(mockedUserInfo, roleAssignments));
-
-            when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-
-            doNothing().when(camundaServiceApi).assignTask(any(), any(), any());
-            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-
-            mockMvc.perform(
-                    post(ENDPOINT_BEING_TESTED)
-                        .param(REQ_PARAM_COMPLETION_PROCESS, completionProcess)
-                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                        .contentType(APPLICATION_JSON_VALUE)
-                )
-                .andExpect(status().isNoContent());
-
-            Optional<TaskResource> taskResource = cftTaskDatabaseService.findByIdOnly(taskId);
-
-            assertTrue(taskResource.isPresent());
-            assertEquals(COMPLETED, taskResource.get().getState());
-            assertEquals(IDAM_USER_ID, taskResource.get().getAssignee());
-            assertNotNull(taskResource.get().getLastUpdatedTimestamp());
-            assertEquals(IDAM_USER_ID, taskResource.get().getLastUpdatedUser());
-            assertEquals(TaskAction.COMPLETED.getValue(), taskResource.get().getLastUpdatedAction());
-            assertNull(taskResource.get().getTerminationProcess());
         }
 
         @Test
