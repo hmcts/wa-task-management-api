@@ -61,6 +61,24 @@ class SecurityConfigurationTest {
     }
 
     @Test
+    void jwtValidatorWithAllowedIssuersValidatorEnabledRejectsInvalidIssuer() {
+        OAuth2TokenValidatorResult invalidIssuerResult = SecurityConfiguration
+                .jwtValidator(List.of(VALID_ISSUER), true)
+                .validate(jwtWithIssuer(INVALID_ISSUER, VALID_EXPIRY));
+
+        assertThat(invalidIssuerResult.hasErrors()).isTrue();
+    }
+
+    @Test
+    void jwtValidatorWithAllowedIssuersValidatorDisabledAllowsInvalidIssuer() {
+        OAuth2TokenValidatorResult invalidIssuerResult = SecurityConfiguration
+                .jwtValidator(List.of(VALID_ISSUER), false)
+                .validate(jwtWithIssuer(INVALID_ISSUER, VALID_EXPIRY));
+
+        assertThat(invalidIssuerResult.hasErrors()).isFalse();
+    }
+
+    @Test
     void jwtValidatorWithExpiredIssuer() {
         OAuth2TokenValidatorResult expiredTokenResult = SecurityConfiguration
                 .jwtValidator(List.of(VALID_ISSUER))
