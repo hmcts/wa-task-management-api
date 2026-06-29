@@ -46,7 +46,7 @@ java:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
     IDAM_SECURITY_ALLOWED_ISSUER_0: "https://forgerock-am.service.core-compute-idam-{{ .Values.global.environment }}.internal:8443/openam/oauth2/realms/root/realms/hmcts"
-    IDAM_SECURITY_ALLOWED_ISSUER_1: "https://hmcts-access.{{ .Values.global.environment }}.platform.hmcts.net"
+    IDAM_SECURITY_ALLOWED_ISSUER_1: "https://hmcts-access.{{ .Values.global.environment }}.platform.hmcts.net/o"
     IDAM_SECURITY_ALLOWED_ISSUER_2: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net/o"
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"

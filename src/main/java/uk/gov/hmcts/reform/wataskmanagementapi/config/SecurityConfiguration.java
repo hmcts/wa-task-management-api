@@ -107,7 +107,6 @@ public class SecurityConfiguration {
 
     static OAuth2TokenValidator<Jwt> allowedIssuersValidator(List<String> allowedIssuers) {
         Set<String> allowedIssuerSet = Set.copyOf(allowedIssuers);
-        log.info("Temp issuer set log: {}", allowedIssuerSet);
         return new JwtClaimValidator<>("iss", issuer -> issuer != null && allowedIssuerSet.contains(issuer));
     }
 }
