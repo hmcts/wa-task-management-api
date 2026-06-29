@@ -304,7 +304,7 @@ repositories {
 def versions = [
   junit         : '5.14.3',
   junitPlatform : '1.14.3',
-  reformLogging : '6.1.9',
+  reformLogging : '8.0.0',
   springDoc     : '2.2.0',
   serenity      : '3.9.8',
   gradlePitest  : '1.15.0',
@@ -376,19 +376,19 @@ dependencies {
 
   implementation group: 'net.minidev', name: 'json-smart', version: '2.5.2'
 
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.13.1'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.14.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
   implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.6.0'
-  implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
+  implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.11.0'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
 
-  implementation group: 'org.hibernate', name: 'hibernate-core', version: '6.6.42.Final'
-  implementation group: 'org.hibernate', name: 'hibernate-validator', version: '8.0.3.Final'
+  implementation group: 'org.hibernate', name: 'hibernate-core', version: '6.6.53.Final'
+  implementation group: 'org.hibernate', name: 'hibernate-validator', version: '8.0.4.Final'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.25.3'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.25.3'
-  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.17'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.26.0'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.26.0'
+  implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.18'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
@@ -396,13 +396,13 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.1.1'
 
-  implementation group: 'com.auth0', name: 'java-jwt', version: '4.5.0'
+  implementation group: 'com.auth0', name: 'java-jwt', version: '4.5.2'
 
   implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.21.2'
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
 
-  implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.9'
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.11'
 
   implementation group: 'io.hypersistence', name: 'hypersistence-utils-hibernate-63', version: '3.8.3'
 
