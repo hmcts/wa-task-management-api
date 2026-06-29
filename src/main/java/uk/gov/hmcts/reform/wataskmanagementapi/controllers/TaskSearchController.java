@@ -28,8 +28,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -60,7 +58,6 @@ public class TaskSearchController extends BaseController {
     private final AccessControlService accessControlService;
     private final CftQueryService cftQueryService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Value("${config.search.defaultMaxResults}")
     private int defaultMaxResults;
@@ -69,14 +66,12 @@ public class TaskSearchController extends BaseController {
     @Autowired
     public TaskSearchController(AccessControlService accessControlService,
                                 CftQueryService cftQueryService,
-                                CFTTaskDatabaseService cftTaskDatabaseService,
-                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider
+                                CFTTaskDatabaseService cftTaskDatabaseService
     ) {
         super();
         this.accessControlService = accessControlService;
         this.cftQueryService = cftQueryService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.",
@@ -117,47 +112,22 @@ public class TaskSearchController extends BaseController {
                 .cacheControl(CacheControl.noCache())
                 .body(response);
         }
-        AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
-
         log.info("Search request received '{}', first_result '{}', max_result '{}'", searchTaskRequest,
             firstResult, maxResults);
-
-        boolean isIndexSearchEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_TASK_SEARCH_GIN_INDEX,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
 
         SearchRequest searchRequest = SearchTaskRequestMapper.map(searchTaskRequest);
         log.info("Search request mapped to '{}', first_result '{}', max_result '{}'", searchRequest,
             Optional.ofNullable(firstResult).orElse(0),
             Optional.ofNullable(maxResults).orElse(defaultMaxResults));
 
-        if (isIndexSearchEnabled) {
-            log.info("Search tasks using search_index");
-            response = cftTaskDatabaseService.searchForTasks(
-                Optional.ofNullable(firstResult).orElse(0),
-                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-                searchRequest,
-                accessControlResponse);
-        } else {
-            log.info("Search tasks using Hibernate Queries");
-            response = cftQueryService.searchForTasks(
-                Optional.ofNullable(firstResult).orElse(0),
-                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
-                searchRequest,
-                accessControlResponse
-            );
+        log.info("Search tasks using search_index");
+        AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
-        }
-        boolean isCompletionProcessUpdateEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_COMPLETION_PROCESS_UPDATE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-        if (!isCompletionProcessUpdateEnabled && response != null && response.getTasks() != null) {
-            response.getTasks().forEach(task -> task.setTerminationProcess(null));
-        }
+        response = cftTaskDatabaseService.searchForTasks(
+            Optional.ofNullable(firstResult).orElse(0),
+            Optional.ofNullable(maxResults).orElse(defaultMaxResults),
+            searchRequest,
+            accessControlResponse);
 
         return ResponseEntity
             .ok()
