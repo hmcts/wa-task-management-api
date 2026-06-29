@@ -68,6 +68,7 @@ idam:
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
   security:
+    allowed-issuers-validator-enabled: ${IDAM_SECURITY_ALLOWED_ISSUERS_VALIDATOR_ENABLED:true}
     allowed-issuers:
       - ${IDAM_SECURITY_ALLOWED_ISSUER_0:http://localhost:5556/o}
       - ${IDAM_SECURITY_ALLOWED_ISSUER_1:http://localhost:5556/o}

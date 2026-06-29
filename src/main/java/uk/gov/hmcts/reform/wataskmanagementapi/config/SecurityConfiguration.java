@@ -93,12 +93,23 @@ public class SecurityConfiguration {
             .withJwkSetUri(resourceServerProperties.getJwt().getJwkSetUri())
             .build();
 
-        jwtDecoder.setJwtValidator(jwtValidator(idamSecurityProperties.getAllowedIssuers()));
+        jwtDecoder.setJwtValidator(jwtValidator(
+            idamSecurityProperties.getAllowedIssuers(),
+            idamSecurityProperties.isAllowedIssuersValidatorEnabled()
+        ));
 
         return jwtDecoder;
     }
 
     static OAuth2TokenValidator<Jwt> jwtValidator(List<String> allowedIssuers) {
+        return jwtValidator(allowedIssuers, true);
+    }
+
+    static OAuth2TokenValidator<Jwt> jwtValidator(List<String> allowedIssuers, boolean allowedIssuersValidatorEnabled) {
+        if (!allowedIssuersValidatorEnabled) {
+            return JwtValidators.createDefault();
+        }
+
         return new DelegatingOAuth2TokenValidator<>(
             JwtValidators.createDefault(),
             allowedIssuersValidator(allowedIssuers)
