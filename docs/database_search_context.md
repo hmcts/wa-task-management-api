@@ -2,13 +2,13 @@
 
 This document describes the current indexed task-search implementation in the WA Task Management API.
 
-The active indexed-search path is a PostgreSQL-specific, signature-compatible design that avoids new GIN indexes. The repository still receives request-side filter and role signatures. Java parses filter signatures into concrete task-column predicates, while PostgreSQL parses role signatures and matches them against ordinary task columns plus a small relational permission table.
+The active indexed-search path is selected by the `wa-search-index-search-enabled` LaunchDarkly flag. When enabled, searches use the legacy `search_index` GIN expression index. When disabled, searches use the PostgreSQL-specific, signature-compatible relational design that avoids new GIN indexes. The current LaunchDarkly boolean default is `true`, so the legacy path is used if LaunchDarkly cannot supply a value.
 
 The legacy `search_index` GIN expression index is intentionally retained during the transition so `TaskResourceSearchIndexComparisonTest` can compare the old and new search paths against the same dataset. A follow-up migration should drop it only after accuracy and production-scale timings are accepted.
 
 ## Current Shape
 
-There are two indexed search paths in `TaskResourceCustomRepositoryImpl`:
+There are two indexed search paths in `TaskResourceCustomRepositoryImpl`, selected by `CFTTaskSearchService`:
 
 * `searchTasksIdsOld(...)` and `searchTasksCountOld(...)` use the legacy `search_index` expression GIN path.
 * `searchTasksIds(...)` and `searchTasksCount(...)` use the no-GIN relational path.
