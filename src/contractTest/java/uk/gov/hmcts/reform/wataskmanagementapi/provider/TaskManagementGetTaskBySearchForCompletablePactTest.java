@@ -50,8 +50,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
         testTarget.setControllers(new TaskSearchController(
             accessControlService,
             cftQueryService,
-            cftTaskDatabaseService,
-            launchDarklyFeatureFlagProvider
+            cftTaskDatabaseService
         ));
 
         if (context != null) {

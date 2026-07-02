@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 
 import java.util.List;
@@ -20,10 +19,6 @@ import java.util.Optional;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class CompletionProcessValidatorTest {
@@ -49,10 +44,8 @@ class CompletionProcessValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {"EXUI_USER_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"})
     void should_return_completion_process_when_valid_value_passed_for_validation(String validCompletionProcess) {
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                                       any(), anyString())).thenReturn(true);
         Optional<String> result =
-            completionProcessValidator.validate(validCompletionProcess, "taskId123", mockAccessControlResponse);
+            completionProcessValidator.validate(validCompletionProcess, "taskId123");
         assertTrue(result.isPresent());
         assertEquals(validCompletionProcess, result.get());
     }
@@ -61,21 +54,8 @@ class CompletionProcessValidatorTest {
     @NullAndEmptySource
     @ValueSource(strings = {"INVALID_PROCESS", "RANDOM_VALUE"})
     void should_return_empty_completion_process_when_invalid_or_blank_value_passed(String invalidCompletionProcess) {
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                                       any(), anyString())).thenReturn(true);
         Optional<String> result =
-            completionProcessValidator.validate(invalidCompletionProcess, "taskId123", mockAccessControlResponse);
-        assertTrue(result.isEmpty());
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"EXUI_USER_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"})
-    void should_return_empty_completion_process_when_flag_is_disabled(String validCompletionProcess) {
-        lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(eq(FeatureFlag.WA_COMPLETION_PROCESS_UPDATE),
-                                                                       any(), anyString())).thenReturn(false);
-
-        Optional<String> result =
-            completionProcessValidator.validate(validCompletionProcess, "taskId123", mockAccessControlResponse);
+            completionProcessValidator.validate(invalidCompletionProcess, "taskId123");
         assertTrue(result.isEmpty());
     }
 }
