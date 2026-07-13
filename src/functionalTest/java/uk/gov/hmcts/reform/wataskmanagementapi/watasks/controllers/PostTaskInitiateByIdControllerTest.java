@@ -91,7 +91,8 @@ public class PostTaskInitiateByIdControllerTest {
         }
 
         if (assigneeCaseWorkerWithIncorrectRoles != null) {
-            taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCaseWorkerWithIncorrectRoles.getHeaders());
+            taskFunctionalTestsApiUtils.getCommon()
+                .clearAllRoleAssignments(assigneeCaseWorkerWithIncorrectRoles.getHeaders());
             authorizationProvider.deleteAccount(assigneeCaseWorkerWithIncorrectRoles.getAccount().getUsername());
         }
 
@@ -306,6 +307,10 @@ public class PostTaskInitiateByIdControllerTest {
                 "multipleAssigneeTestTask", "Multiple Assignee Test Task"
             );
         String taskId = taskVariables.getTaskId();
+        multiAssigneeCaseWorker1 =
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test1");
+        multiAssigneeCaseWorker2 =
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test2");
 
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();
@@ -319,13 +324,6 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.task_state", equalTo("assigned"))
                 .body("task.assignee", equalTo("8b48c4bd-6281-32f8-a880-a3be29d3b952"));
         };
-
-
-        multiAssigneeCaseWorker1 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test1");
-
-        multiAssigneeCaseWorker2 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test2");
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
             multiAssigneeCaseWorker1.getHeaders(),
