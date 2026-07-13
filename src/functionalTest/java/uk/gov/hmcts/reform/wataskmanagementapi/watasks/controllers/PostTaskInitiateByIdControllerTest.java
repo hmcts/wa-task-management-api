@@ -85,23 +85,23 @@ public class PostTaskInitiateByIdControllerTest {
 
     @After
     public void tearDown() {
-        if (assigneeCaseWorker != null) {
+        if (assigneeCaseWorker != null && assigneeCaseWorker.getAccount() != null) {
             taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCaseWorker.getHeaders());
             authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
         }
 
-        if (assigneeCaseWorkerWithIncorrectRoles != null) {
+        if (assigneeCaseWorkerWithIncorrectRoles != null && assigneeCaseWorkerWithIncorrectRoles.getAccount() != null) {
             taskFunctionalTestsApiUtils.getCommon()
                 .clearAllRoleAssignments(assigneeCaseWorkerWithIncorrectRoles.getHeaders());
             authorizationProvider.deleteAccount(assigneeCaseWorkerWithIncorrectRoles.getAccount().getUsername());
         }
 
-        if (multiAssigneeCaseWorker1 != null) {
+        if (multiAssigneeCaseWorker1 != null && multiAssigneeCaseWorker1.getAccount() != null) {
             taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(multiAssigneeCaseWorker1.getHeaders());
             authorizationProvider.deleteAccount(multiAssigneeCaseWorker1.getAccount().getUsername());
         }
 
-        if (multiAssigneeCaseWorker2 != null) {
+        if (multiAssigneeCaseWorker2 != null && multiAssigneeCaseWorker2.getAccount() != null) {
             taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(multiAssigneeCaseWorker2.getHeaders());
             authorizationProvider.deleteAccount(multiAssigneeCaseWorker2.getAccount().getUsername());
         }
