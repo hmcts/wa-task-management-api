@@ -87,14 +87,10 @@ public class PostTaskInitiateByIdControllerTest {
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
         userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_CFTC_ROLE);
 
-        taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerEmailPrefix + emailSuffix);
-        taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix);
-        taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker1EmailPrefix + emailSuffix);
-        taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker2EmailPrefix + emailSuffix);
+        authorizationProvider.deleteAccount(assigneeCaseWorkerEmailPrefix + emailSuffix);
+        authorizationProvider.deleteAccount(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix);
+        authorizationProvider.deleteAccount(multiAssigneeCaseWorker1EmailPrefix + emailSuffix);
+        authorizationProvider.deleteAccount(multiAssigneeCaseWorker2EmailPrefix + emailSuffix);
     }
 
     @Test
@@ -247,6 +243,7 @@ public class PostTaskInitiateByIdControllerTest {
         );
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCaseWorker.getHeaders());
     }
 
     @Test
@@ -286,6 +283,9 @@ public class PostTaskInitiateByIdControllerTest {
         );
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignments(assigneeCaseWorkerWithIncorrectRoles.getHeaders());
+
     }
 
     @Test
@@ -337,6 +337,10 @@ public class PostTaskInitiateByIdControllerTest {
         );
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignments(multiAssigneeCaseWorker1.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignments(multiAssigneeCaseWorker2.getHeaders());
     }
 
     @Test
