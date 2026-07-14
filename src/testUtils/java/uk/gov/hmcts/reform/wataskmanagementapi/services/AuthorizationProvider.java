@@ -48,25 +48,8 @@ public class AuthorizationProvider {
     private IdamServiceApi idamServiceApi;
     @Autowired
     private AuthTokenGenerator serviceAuthTokenGenerator;
-    @Value("${idam.test.userCleanupEnabled:false}")
-    private boolean testUserDeletionEnabled;
 
     public void deleteAccount(String username) {
-
-        if (testUserDeletionEnabled) {
-            //If error is thrown while deleting the user, it will be caught and logged
-            try {
-                log.info("Deleting test account '{}'", username);
-                idamServiceApi.deleteTestUser(username);
-            } catch (FeignException e) {
-                log.error("Failed to delete test account '{}'", username, e);
-            }
-        } else {
-            log.info("Test User deletion feature flag was not enabled, user '{}' was not deleted", username);
-        }
-    }
-
-    public void forceDeleteAccount(String username) {
         try {
             log.info("Deleting test account '{}'", username);
             idamServiceApi.deleteTestUser(username);

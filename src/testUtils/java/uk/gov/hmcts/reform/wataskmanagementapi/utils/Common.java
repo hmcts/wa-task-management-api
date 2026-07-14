@@ -290,7 +290,7 @@ public class Common {
     public void clearAllRoleAssignmentsAndDeleteUser(String email) {
         Headers headers = authorizationProvider.getHeaders(email);
         clearAllRoleAssignments(headers);
-        authorizationProvider.forceDeleteAccount(email);
+        authorizationProvider.deleteAccount(email);
     }
 
     public void setupWAOrganisationalRoleAssignment(Headers headers) {
