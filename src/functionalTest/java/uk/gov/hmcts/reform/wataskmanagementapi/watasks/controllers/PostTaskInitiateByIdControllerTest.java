@@ -88,13 +88,17 @@ public class PostTaskInitiateByIdControllerTest {
         userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_CFTC_ROLE);
 
         taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerEmailPrefix + emailSuffix);
+            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerEmailPrefix + emailSuffix,
+                                                  assigneeCaseWorker.getHeaders());
         taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix);
+            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix,
+                                                  assigneeCaseWorkerWithIncorrectRoles.getHeaders());
         taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker1EmailPrefix + emailSuffix);
+            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker1EmailPrefix + emailSuffix,
+                                                  multiAssigneeCaseWorker1.getHeaders());
         taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker2EmailPrefix + emailSuffix);
+            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker2EmailPrefix + emailSuffix,
+                                                  multiAssigneeCaseWorker2.getHeaders());
     }
 
     @Test
