@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -287,10 +288,13 @@ public class Common {
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
     }
 
-    public void clearAllRoleAssignmentsAndDeleteUser(String email, Headers headers) {
-        if (headers.exist() && headers.hasHeaderWithName(AUTHORIZATION)
-            && headers.hasHeaderWithName(SERVICE_AUTHORIZATION)) {
-            clearAllRoleAssignments(headers);
+    public void clearAllRoleAssignmentsAndDeleteUser(String email, TestAuthenticationCredentials account) {
+        if (account != null) {
+            Headers headers = account.getHeaders();
+            if (headers.exist() && headers.hasHeaderWithName(AUTHORIZATION)
+                && headers.hasHeaderWithName(SERVICE_AUTHORIZATION)) {
+                clearAllRoleAssignments(headers);
+            }
         }
         authorizationProvider.deleteAccount(email);
     }

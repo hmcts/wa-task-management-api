@@ -89,16 +89,16 @@ public class PostTaskInitiateByIdControllerTest {
 
         taskFunctionalTestsApiUtils.getCommon()
             .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerEmailPrefix + emailSuffix,
-                                                  assigneeCaseWorker.getHeaders());
+                                                  assigneeCaseWorker);
         taskFunctionalTestsApiUtils.getCommon()
             .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix,
-                                                  assigneeCaseWorkerWithIncorrectRoles.getHeaders());
+                                                  assigneeCaseWorkerWithIncorrectRoles);
         taskFunctionalTestsApiUtils.getCommon()
             .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker1EmailPrefix + emailSuffix,
-                                                  multiAssigneeCaseWorker1.getHeaders());
+                                                  multiAssigneeCaseWorker1);
         taskFunctionalTestsApiUtils.getCommon()
             .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker2EmailPrefix + emailSuffix,
-                                                  multiAssigneeCaseWorker2.getHeaders());
+                                                  multiAssigneeCaseWorker2);
     }
 
     @Test
