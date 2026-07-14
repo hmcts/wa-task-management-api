@@ -287,6 +287,12 @@ public class Common {
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
     }
 
+    public void clearAllRoleAssignmentsAndDeleteUser(String email) {
+        Headers headers = authorizationProvider.getHeaders(email);
+        clearAllRoleAssignments(headers);
+        authorizationProvider.forceDeleteAccount(email);
+    }
+
     public void setupWAOrganisationalRoleAssignment(Headers headers) {
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);

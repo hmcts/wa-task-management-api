@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
@@ -88,25 +87,14 @@ public class PostTaskInitiateByIdControllerTest {
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
         userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_CFTC_ROLE);
 
-        Headers assigneeCaseWorkerHeaders =
-            authorizationProvider.getHeaders(assigneeCaseWorkerEmailPrefix + emailSuffix);
-        Headers assigneeCaseWorkerWithIncorrectRolesHeaders =
-            authorizationProvider.getHeaders(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix);
-        Headers multiAssigneeCaseWorker1Headers =
-            authorizationProvider.getHeaders(multiAssigneeCaseWorker1EmailPrefix + emailSuffix);
-        Headers multiAssigneeCaseWorker2Headers =
-            authorizationProvider.getHeaders(multiAssigneeCaseWorker2EmailPrefix + emailSuffix);
-
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCaseWorkerHeaders);
-        authorizationProvider.forceDeleteAccount(assigneeCaseWorkerEmailPrefix + emailSuffix);
         taskFunctionalTestsApiUtils.getCommon()
-            .clearAllRoleAssignments(assigneeCaseWorkerWithIncorrectRolesHeaders);
-        authorizationProvider.forceDeleteAccount(
-            assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix);
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(multiAssigneeCaseWorker1Headers);
-        authorizationProvider.forceDeleteAccount(multiAssigneeCaseWorker1EmailPrefix + emailSuffix);
-        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(multiAssigneeCaseWorker2Headers);
-        authorizationProvider.forceDeleteAccount(multiAssigneeCaseWorker2EmailPrefix + emailSuffix);
+            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerEmailPrefix + emailSuffix);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker1EmailPrefix + emailSuffix);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker2EmailPrefix + emailSuffix);
     }
 
     @Test
