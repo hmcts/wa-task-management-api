@@ -88,7 +88,6 @@ public class PostTaskInitiateByIdControllerTest {
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
         userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_CFTC_ROLE);
 
-
         Headers assigneeCaseWorkerHeaders =
             authorizationProvider.getHeaders(assigneeCaseWorkerEmailPrefix + emailSuffix);
         Headers assigneeCaseWorkerWithIncorrectRolesHeaders =
@@ -99,7 +98,7 @@ public class PostTaskInitiateByIdControllerTest {
             authorizationProvider.getHeaders(multiAssigneeCaseWorker2EmailPrefix + emailSuffix);
 
         taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCaseWorkerHeaders);
-        authorizationProvider.deleteAccount(assigneeCaseWorkerEmailPrefix + emailSuffix);
+        authorizationProvider.forceDeleteAccount(assigneeCaseWorkerEmailPrefix + emailSuffix);
         taskFunctionalTestsApiUtils.getCommon()
             .clearAllRoleAssignments(assigneeCaseWorkerWithIncorrectRolesHeaders);
         authorizationProvider.forceDeleteAccount(
