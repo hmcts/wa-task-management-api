@@ -66,6 +66,15 @@ public class AuthorizationProvider {
         }
     }
 
+    public void forceDeleteAccount(String username) {
+        try {
+            log.info("Deleting test account '{}'", username);
+            idamServiceApi.deleteTestUser(username);
+        } catch (FeignException e) {
+            log.error("Failed to delete test account '{}'", username, e);
+        }
+    }
+
     public Header getServiceAuthorizationHeader() {
         return new Header(SERVICE_AUTHORIZATION, serviceAuthTokenGenerator.generate());
     }
@@ -111,6 +120,16 @@ public class AuthorizationProvider {
 
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
+
+    public Headers getHeaders(String email) {
+        Headers authenticationHeaders = new Headers(
+            getAuthorization(email, idamTestAccountPassword),
+            getServiceAuthorizationHeader()
+        );
+
+        return authenticationHeaders;
+    }
+
 
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
