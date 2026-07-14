@@ -283,15 +283,15 @@ public class Common {
     }
 
     public void clearAllRoleAssignments(Headers headers) {
-        if (headers.exist() && headers.hasHeaderWithName(AUTHORIZATION)
-            && headers.hasHeaderWithName(SERVICE_AUTHORIZATION)) {
-            UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-            clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-        }
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
     }
 
     public void clearAllRoleAssignmentsAndDeleteUser(String email, Headers headers) {
-        clearAllRoleAssignments(headers);
+        if (headers.exist() && headers.hasHeaderWithName(AUTHORIZATION)
+            && headers.hasHeaderWithName(SERVICE_AUTHORIZATION)) {
+            clearAllRoleAssignments(headers);
+        }
         authorizationProvider.deleteAccount(email);
     }
 
