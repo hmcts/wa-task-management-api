@@ -285,7 +285,7 @@ dependencyManagement {
       entry 'selenium-support'
     }
 
-    dependencySet(group: 'ch.qos.logback', version: '1.5.32') {
+    dependencySet(group: 'ch.qos.logback', version: '1.5.38') {
       entry 'logback-classic'
       entry 'logback-core'
     }
@@ -361,7 +361,7 @@ dependencies {
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.2.1'
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.17'
 
   implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.5'
 
@@ -393,7 +393,7 @@ dependencies {
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
 
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.4'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.1.1'
 
   implementation group: 'com.auth0', name: 'java-jwt', version: '4.5.2'
