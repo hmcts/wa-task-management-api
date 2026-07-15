@@ -125,10 +125,6 @@ public class TaskActionsController extends BaseController {
             accessControlResponse
         );
 
-        if (!completionProcessValidator.isCompletionProcessFeatureEnabled(accessControlResponse)) {
-            task.setTerminationProcess(null);
-        }
-
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -245,7 +241,7 @@ public class TaskActionsController extends BaseController {
                  accessControlResponse.getUserInfo().getUid());
 
         String validatedCompletionProcess =
-            completionProcessValidator.validate(completionProcess, taskId, accessControlResponse).orElse(null);
+            completionProcessValidator.validate(completionProcess, taskId).orElse(null);
 
         if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             taskManagementService.completeTask(taskId, accessControlResponse, validatedCompletionProcess);
@@ -289,7 +285,7 @@ public class TaskActionsController extends BaseController {
         LOG.info("Task Action: Cancel task request for task-id {}, user {}", taskId,
             accessControlResponse.getUserInfo().getUid());
         String validatedCancellationProcess =
-            cancellationProcessValidator.validate(cancellationProcess, taskId, accessControlResponse).orElse(null);
+            cancellationProcessValidator.validate(cancellationProcess, taskId).orElse(null);
 
 
         taskManagementService.cancelTask(taskId, accessControlResponse, validatedCancellationProcess);
