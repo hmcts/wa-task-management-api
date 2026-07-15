@@ -93,23 +93,12 @@ public class SecurityConfiguration {
             .withJwkSetUri(resourceServerProperties.getJwt().getJwkSetUri())
             .build();
 
-        jwtDecoder.setJwtValidator(jwtValidator(
-            idamSecurityProperties.getAllowedIssuers(),
-            idamSecurityProperties.isAllowedIssuersValidatorEnabled()
-        ));
+        jwtDecoder.setJwtValidator(jwtValidator(idamSecurityProperties.getAllowedIssuers()));
 
         return jwtDecoder;
     }
 
     static OAuth2TokenValidator<Jwt> jwtValidator(List<String> allowedIssuers) {
-        return jwtValidator(allowedIssuers, true);
-    }
-
-    static OAuth2TokenValidator<Jwt> jwtValidator(List<String> allowedIssuers, boolean allowedIssuersValidatorEnabled) {
-        if (!allowedIssuersValidatorEnabled) {
-            return JwtValidators.createDefault();
-        }
-
         return new DelegatingOAuth2TokenValidator<>(
             JwtValidators.createDefault(),
             allowedIssuersValidator(allowedIssuers)
@@ -118,7 +107,6 @@ public class SecurityConfiguration {
 
     static OAuth2TokenValidator<Jwt> allowedIssuersValidator(List<String> allowedIssuers) {
         Set<String> allowedIssuerSet = Set.copyOf(allowedIssuers);
-        log.info("Temp issuer set log: {}", allowedIssuerSet);
         return new JwtClaimValidator<>("iss", issuer -> issuer != null && allowedIssuerSet.contains(issuer));
     }
 }
