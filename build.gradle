@@ -175,11 +175,6 @@ pitest {
     'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
     'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
-  jvmArgs = [
-    '-Xmx2048m',
-    '--add-opens=java.base/java.lang=ALL-UNNAMED',
-    '-XX:+EnableDynamicAgentLoading'
-  ]
   threads = 10
   outputFormats = ['XML', 'HTML']
   timestampedReports = false
