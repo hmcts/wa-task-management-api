@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
@@ -115,6 +116,7 @@ public class TaskTestUtils {
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId(caseId);
         taskResource.setTitle("title");
+        taskResource.setTaskSystem(TaskSystem.SELF);
         if (null != assignee) {
             taskResource.setAssignee(assignee);
         }
@@ -341,6 +343,11 @@ public class TaskTestUtils {
             new ConfigurationDmnEvaluationResponse(
                 stringValue("nextHearingDate"),
                 stringValue("2021-05-09T20:15"),
+                booleanValue(canReconfigure)
+            ),
+            new ConfigurationDmnEvaluationResponse(
+                stringValue("securityClassification"),
+                stringValue("PUBLIC"),
                 booleanValue(canReconfigure)
             )
         );

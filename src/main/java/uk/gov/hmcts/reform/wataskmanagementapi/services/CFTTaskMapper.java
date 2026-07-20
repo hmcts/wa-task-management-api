@@ -264,7 +264,6 @@ public class CFTTaskMapper {
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
         /*
         Below fields are not required for reconfiguration
-        securityClassification
         notes
         autoAssigned
         assignmentExpiry

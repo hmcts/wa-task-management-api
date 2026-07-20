@@ -123,7 +123,7 @@ class TaskEntityToReconfigureInputVariableDefMapperTest {
         reconfigInputAttributeKeys = reconfigInputAttributes.keySet();
         dbTaskAttributeKeys.removeAll(reconfigInputAttributeKeys);
         Set<String> expectedOnlyInDbTaskAttributes = Set.of("lastUpdatedUser", "taskName", "dueDateTime",
-                  "caseCategory", "securityClassification", "lastReconfigurationTime", "reconfigureRequestTime",
+                  "caseCategory", "lastReconfigurationTime", "reconfigureRequestTime",
                   "autoAssigned", "state", "taskSystem", "indexed", "lastUpdatedTimestamp", "lastUpdatedAction",
                   "taskRoleResources", "executionTypeCode", "businessContext", "terminationReason", "notes",
                   "assignmentExpiry", "workTypeResource", "caseDeletionTimestamp");

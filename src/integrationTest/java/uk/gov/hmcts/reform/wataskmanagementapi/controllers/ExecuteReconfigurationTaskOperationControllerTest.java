@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
@@ -419,6 +420,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                 assertNotNull(task.getLastUpdatedTimestamp());
                 assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                 assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
+                assertEquals(SecurityClassification.PUBLIC, task.getSecurityClassification());
             });
         });
     }
@@ -441,8 +443,8 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             anyString()
         )).thenReturn(List.of(
             new ConfigurationDmnEvaluationResponse(
-                stringValue("securityClassification"),
-                stringValue("PRIVATE"),
+                stringValue("taskSystem"),
+                stringValue("ctsc"),
                 booleanValue(true)
             ),
             new ConfigurationDmnEvaluationResponse(
@@ -517,7 +519,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
                     assertNotNull(task.getLastUpdatedTimestamp());
                     assertEquals(SYSTEM_USER_1, task.getLastUpdatedUser());
                     assertEquals(TaskAction.CONFIGURE.getValue(), task.getLastUpdatedAction());
-                    assertEquals(SecurityClassification.PUBLIC, task.getSecurityClassification());
+                    assertEquals(TaskSystem.SELF, task.getTaskSystem());
                 });
             });
     }

@@ -53,6 +53,8 @@ public class ReconfigureInputVariableDefinition {
     private OffsetDateTime nextHearingDate;
 
     private OffsetDateTime priorityDate;
-    
+
     private TerminationProcess terminationProcess;
+
+    private SecurityClassification securityClassification;
 }
