@@ -651,6 +651,9 @@ public class CFTTaskMapper {
                 case TITLE:
                     taskResource.setTitle((String) value);
                     break;
+                case SECURITY_CLASSIFICATION:
+                    taskResource.setSecurityClassification(SecurityClassification.valueOf((String) value));
+                    break;
                 default:
                     break;
             }

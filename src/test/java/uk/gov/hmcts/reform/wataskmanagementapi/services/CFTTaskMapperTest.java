@@ -2401,6 +2401,12 @@ class CFTTaskMapperTest {
         );
         assertEquals(
             "updatedTaskTitle", taskResource.getTitle());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "securityClassification",
+                                               "RESTRICTED", true
+        );
+        assertEquals(
+            SecurityClassification.RESTRICTED, taskResource.getSecurityClassification());
     }
 
     @Test
