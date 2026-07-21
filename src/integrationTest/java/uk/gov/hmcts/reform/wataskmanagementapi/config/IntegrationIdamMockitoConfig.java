@@ -74,7 +74,7 @@ public class IntegrationIdamMockitoConfig {
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
             .scope("openid", "profile")
-            .authorizationUri("http://localhost/oauth2/authorize")
+            .authorizationUri("http://localhost/o/token?grant_type=password")
             .tokenUri("http://localhost/oauth2/token")
             .userInfoUri("http://localhost/userinfo")
             .userNameAttributeName("sub")

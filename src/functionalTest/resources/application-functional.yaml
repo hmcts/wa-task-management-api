@@ -18,7 +18,6 @@ ccd_gateway:
 
 idam:
   test:
-    userCleanupEnabled: ${ENABLE_TEST_USER_DELETION:false}
     username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
     password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
     test-account-pw: ${IDAM_TEST_ACCOUNT_PW:password}
@@ -40,7 +39,6 @@ spring:
 config:
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil,PUBLICLAW,PRIVATELAW,EMPLOYMENT,ST_CIC}
   allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil,generalapplication,CARE_SUPERVISION_EPO,PRLAPPS,ET_EnglandWales,ET_EnglandWales_Listings,ET_EnglandWales_Multiple,ET_Scotland,ET_Scotland_Listings,ET_Scotland_Multiple,ET_Admin,privatelaw_exceptionrecord,benefit,CriminalInjuriesCompensation}
-  taskMandatoryFieldCheckEnabled: ${MANDATORY_TASK_FIELD_CHECK_ENABLED:true}
   taskMandatoryFields: ${MANDATORY_TASK_FIELDS:taskName,taskId,taskType,dueDateTime,state,securityClassification,title,majorPriority,minorPriority,executionTypeCode,caseId,caseTypeId,caseCategory,caseName,jurisdiction,region,location,created,roleCategory,workTypeResource}
   initiationRequestRequiredFields: ${INITIATION_REQUEST_REQUIRED_FIELDS:name,taskType,caseId}
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}

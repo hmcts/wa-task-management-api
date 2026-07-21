@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.launchdarkly.sdk.LDValue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -112,8 +110,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
     private RoleAssignmentService roleAssignmentService;
     @Autowired
     private IdamWebApi idamWebApi;
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
@@ -1320,9 +1316,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
 
     @Test
     void should_not_execute_reconfigure_if_task_validation_fails(CapturedOutput output) throws Exception {
-        String jsonString = "{\"jurisdictions\":[\"WA\"]}";
-        lenient().when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any()))
-            .thenReturn(LDValue.parse(jsonString));
         String caseIdToday = "caseId" + OffsetDateTime.now();
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);

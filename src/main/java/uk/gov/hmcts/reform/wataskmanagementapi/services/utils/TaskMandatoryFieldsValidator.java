@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.launchdarkly.sdk.LDValue;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -9,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.WorkTypeResource;
@@ -29,12 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 @SuppressWarnings({
     "PMD.CognitiveComplexity"})
 public class TaskMandatoryFieldsValidator {
-
-    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    private final boolean taskMandatoryFieldCheckEnabled;
     private final List<String> taskMandatoryFields;
-    public static final LDValue MANDATORY_FIELD_CHECK_FLAG_VARIANT = LDValue.of("jurisdictions");
-    private final JsonParserUtils jsonParserUtils;
 
     private final List<String> tmSpecificMandatoryFields = List.of("taskId", "state","executionTypeCode","created",
                                                                    "dueDateTime", "majorPriority", "minorPriority");
@@ -42,20 +33,12 @@ public class TaskMandatoryFieldsValidator {
     /**
      * Constructor for TaskMandatoryFieldsValidator.
      *
-     * @param launchDarklyFeatureFlagProvider the LaunchDarkly feature flag provider
-     * @param taskMandatoryFieldCheckEnabled  flag to enable or disable mandatory field check
      * @param taskMandatoryFields             list of mandatory fields to be checked
      */
     @Autowired
-    public TaskMandatoryFieldsValidator(LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                                        @Value("${config.taskMandatoryFieldCheckEnabled}")
-                                        Boolean taskMandatoryFieldCheckEnabled,
-                                        @Value("${config.taskMandatoryFields}") List<String> taskMandatoryFields,
-                                        JsonParserUtils jsonParserUtils) {
-        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
-        this.taskMandatoryFieldCheckEnabled = taskMandatoryFieldCheckEnabled;
+    public TaskMandatoryFieldsValidator(@Value("${config.taskMandatoryFields}") List<String> taskMandatoryFields) {
+
         this.taskMandatoryFields = taskMandatoryFields;
-        this.jsonParserUtils = jsonParserUtils;
     }
 
     /**
@@ -64,49 +47,8 @@ public class TaskMandatoryFieldsValidator {
      * @param task the task to be validated
      */
     public void validate(TaskResource task) {
-        if (taskMandatoryFieldCheckEnabled) {
-            log.info("Validating mandatory fields for task {}", task.getTaskId());
-            LDValue mandatoryFieldCheckEnabledServices = launchDarklyFeatureFlagProvider.getJsonValue(
-                FeatureFlag.WA_MANDATORY_FIELD_CHECK,
-                LDValue.of("{\"jurisdictions\": []}")
-            );
-
-            if (mandatoryFieldCheckEnabledServices == null) {
-                log.warn("Mandatory field check enabled services is null, skipping validation.");
-                return;
-            }
-
-            JsonNode excludedJurisdictionsArray =
-                jsonParserUtils.parseJson(mandatoryFieldCheckEnabledServices.toJsonString(),
-                                          MANDATORY_FIELD_CHECK_FLAG_VARIANT.stringValue());
-            if (excludedJurisdictionsArray == null) {
-                log.warn("Excluded jurisdictions array is null, skipping jurisdiction check.");
-                validateTaskMandatoryFields(task);
-                return;
-            }
-
-            if (!isJurisdictionExcluded(task, excludedJurisdictionsArray)) {
-                validateTaskMandatoryFields(task);
-            }
-        }
-    }
-
-    /**
-     * Checks if the task's jurisdiction is excluded.
-     *
-     * @param task the task to be checked
-     * @param excludedJurisdictionsArray the array of excluded jurisdictions
-     * @return true if the jurisdiction is excluded, false otherwise
-     */
-    private boolean isJurisdictionExcluded(TaskResource task, JsonNode excludedJurisdictionsArray) {
-        for (JsonNode jurisdiction : excludedJurisdictionsArray) {
-            if (jurisdiction.asText().equals(task.getJurisdiction())) {
-                log.warn("Task {} is excluded from mandatory field check due to jurisdiction being excluded {}",
-                         task.getTaskId(), task.getJurisdiction());
-                return true;
-            }
-        }
-        return false;
+        log.info("Validating mandatory fields for task {}", task.getTaskId());
+        validateTaskMandatoryFields(task);
     }
 
     /**
