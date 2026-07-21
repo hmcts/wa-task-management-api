@@ -109,12 +109,8 @@ class PostTaskSearchControllerTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @MockitoSpyBean
-    private CftQueryService cftQueryService;
     @Mock
     private UserInfo mockedUserInfo;
     @Autowired
@@ -122,15 +118,9 @@ class PostTaskSearchControllerTest {
     @Autowired
     IntegrationTestUtils integrationTestUtils;
 
-    @Autowired
-    TaskResourceRepository taskResourceRepository;
-
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
     private ServiceMocks mockServices;
-
-    IntegrationTestIndexUtils integrationTestIndexUtils = new IntegrationTestIndexUtils();
-
 
     @BeforeAll
     void setUp() {
@@ -243,8 +233,6 @@ class PostTaskSearchControllerTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        integrationTestIndexUtils.indexRecord(taskResourceRepository);
-
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
         ));
@@ -310,7 +298,6 @@ class PostTaskSearchControllerTest {
                                                                workTypeResource,
                                                                taskRoleResource);
 
-        integrationTestIndexUtils.indexRecord(taskResourceRepository);
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -380,7 +367,6 @@ class PostTaskSearchControllerTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        integrationTestIndexUtils.indexRecord(taskResourceRepository);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, IN, singletonList("IA"))
@@ -427,7 +413,6 @@ class PostTaskSearchControllerTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
-        integrationTestIndexUtils.indexRecord(taskResourceRepository);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, IN, singletonList("SSCS"))
@@ -1815,6 +1800,7 @@ class PostTaskSearchControllerTest {
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId(caseId);
+        taskResource.setIndexed(true);
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
@@ -1853,6 +1839,7 @@ class PostTaskSearchControllerTest {
         taskResource.setWorkTypeResource(workTypeResource);
         taskResource.setNotes(warnings);
         taskResource.setHasWarnings(true);
+        taskResource.setIndexed(true);
         taskResource.setAdditionalProperties(Map.of("roleAssignmentId", roleAssignmentId));
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
