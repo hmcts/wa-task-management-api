@@ -31,12 +31,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification;
@@ -117,6 +115,10 @@ class PostTaskSearchControllerTest {
     protected MockMvc mockMvc;
     @Autowired
     IntegrationTestUtils integrationTestUtils;
+    @Autowired
+    TaskResourceRepository taskResourceRepository;
+
+    IntegrationTestIndexUtils integrationTestIndexUtils = new IntegrationTestIndexUtils();
 
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
@@ -175,6 +177,7 @@ class PostTaskSearchControllerTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskInDb(caseId, taskId, "IA", "Asylum", taskRoleResource);
+        integrationTestIndexUtils.updateIndexedAttribute(taskResourceRepository, singletonList(taskId));
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             roleAssignments
         );
@@ -229,6 +232,7 @@ class PostTaskSearchControllerTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskInDb(caseId, taskId, "SSCS", "Asylum", taskRoleResource);
+        integrationTestIndexUtils.updateIndexedAttribute(taskResourceRepository, singletonList(taskId));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -299,6 +303,7 @@ class PostTaskSearchControllerTest {
                                                                taskRoleResource);
 
 
+        integrationTestIndexUtils.updateIndexedAttribute(taskResourceRepository, singletonList(taskId));
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -360,9 +365,14 @@ class PostTaskSearchControllerTest {
             TestRolesWithGrantType.STANDARD_TRIBUNAL_CASE_WORKER_PUBLIC.getRoleCategory().name()
         );
 
-        insertDummyTaskInDb(caseId, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
-        insertDummyTaskInDb(caseId, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
-        insertDummyTaskInDb(caseId, UUID.randomUUID().toString(),"IA","Asylum", taskRoleResource);
+        String taskId1 = UUID.randomUUID().toString();
+        insertDummyTaskInDb(caseId, taskId1,"IA","Asylum", taskRoleResource);
+        String taskId2 = UUID.randomUUID().toString();
+        insertDummyTaskInDb(caseId, taskId2,"IA","Asylum", taskRoleResource);
+        String taskId3 = UUID.randomUUID().toString();
+        insertDummyTaskInDb(caseId, taskId3,"IA","Asylum", taskRoleResource);
+
+        integrationTestIndexUtils.updateIndexedAttribute(taskResourceRepository, asList(taskId1, taskId2, taskId3));
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
@@ -409,7 +419,7 @@ class PostTaskSearchControllerTest {
         );
 
         insertDummyTaskInDb(caseId, taskId, "SSCS", "Asylum", taskRoleResource);
-
+        integrationTestIndexUtils.updateIndexedAttribute(taskResourceRepository, singletonList(taskId));
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
@@ -1800,7 +1810,6 @@ class PostTaskSearchControllerTest {
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
         taskResource.setCaseId(caseId);
-        taskResource.setIndexed(true);
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
@@ -1839,7 +1848,6 @@ class PostTaskSearchControllerTest {
         taskResource.setWorkTypeResource(workTypeResource);
         taskResource.setNotes(warnings);
         taskResource.setHasWarnings(true);
-        taskResource.setIndexed(true);
         taskResource.setAdditionalProperties(Map.of("roleAssignmentId", roleAssignmentId));
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
