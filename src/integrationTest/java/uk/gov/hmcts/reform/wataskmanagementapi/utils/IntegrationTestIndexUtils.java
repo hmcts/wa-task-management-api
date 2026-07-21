@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class IntegrationTestIndexUtils {
