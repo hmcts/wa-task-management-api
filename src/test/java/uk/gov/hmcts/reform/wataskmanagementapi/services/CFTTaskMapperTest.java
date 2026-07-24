@@ -2407,6 +2407,12 @@ class CFTTaskMapperTest {
         );
         assertEquals(
             SecurityClassification.RESTRICTED, taskResource.getSecurityClassification());
+
+        cftTaskMapper.reconfigureTaskAttribute(taskResource, "securityClassification",
+                                               "INVALID_CLASSIFICATION", true
+        );
+        assertEquals(
+            SecurityClassification.RESTRICTED, taskResource.getSecurityClassification());
     }
 
     @Test

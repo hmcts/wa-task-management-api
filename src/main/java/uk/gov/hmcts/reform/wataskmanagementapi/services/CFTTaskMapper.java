@@ -651,7 +651,10 @@ public class CFTTaskMapper {
                     taskResource.setTitle((String) value);
                     break;
                 case SECURITY_CLASSIFICATION:
-                    taskResource.setSecurityClassification(SecurityClassification.valueOf((String) value));
+                    if (Arrays.stream(SecurityClassification.values())
+                        .anyMatch(classification -> classification.name().equals(value))) {
+                        taskResource.setSecurityClassification(SecurityClassification.valueOf((String) value));
+                    }
                     break;
                 default:
                     break;
@@ -769,4 +772,3 @@ public class CFTTaskMapper {
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
 }
-
