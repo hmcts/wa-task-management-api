@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
@@ -82,16 +81,18 @@ public class CamundaService {
     private final TaskMapper taskMapper;
     private final AuthTokenGenerator authTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final CamundaRetryService camundaRetryService;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
-                          CamundaObjectMapper camundaObjectMapper) {
+                          CamundaObjectMapper camundaObjectMapper, CamundaRetryService camundaRetryService) {
         this.camundaServiceApi = camundaServiceApi;
         this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
         this.camundaObjectMapper = camundaObjectMapper;
+        this.camundaRetryService = camundaRetryService;
     }
 
     public <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
@@ -356,6 +357,64 @@ public class CamundaService {
         }
     }
 
+    /**
+     * Retrieves the process instance ID for the given task ID.
+     *
+     * @param taskId the task ID for which the process instance ID is to be retrieved.
+     * @return an Optional containing the process instance ID, or an empty Optional if not found.
+     */
+    public Optional<String> getProcessInstanceId(String taskId) {
+        Map<String, Object> body = Map.of(
+            VALUE_TASK_ID_IN, singleton(taskId)
+        );
+
+        try {
+            List<HistoryVariableInstance> results = camundaServiceApi.searchHistory(
+                authTokenGenerator.generate(),
+                body
+            );
+
+            return results.stream()
+                .map(HistoryVariableInstance::getProcessInstanceId)
+                .findFirst();
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem when fetching the process instance ID", ex);
+        }
+    }
+
+    /**
+     * Retrieves a specific variable from the history for the given task ID and variable name.
+     *
+     * @param taskId       the task ID for which the variable is to be retrieved.
+     * @param variableName the name of the variable to retrieve.
+     * @return an Optional containing the HistoryVariableInstance, or an empty Optional if not found.
+     */
+    public Optional<HistoryVariableInstance> getVariableFromHistory(String taskId, String variableName) {
+        try {
+            Optional<String> processInstanceId = getProcessInstanceId(taskId);
+
+            if (processInstanceId.isEmpty()) {
+                log.info("No processInstanceId found for taskId '{}'", taskId);
+                return Optional.empty();
+            }
+
+            Map<String, Object> body = Map.of(
+                "processInstanceId", processInstanceId.get()
+            );
+
+            List<HistoryVariableInstance> results = camundaServiceApi.searchHistory(
+                authTokenGenerator.generate(),
+                body
+            );
+
+            return results.stream()
+                .filter(r -> r.getName().equals(variableName))
+                .findFirst();
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem when fetching variable from history", ex);
+        }
+    }
+
     private Map<String, CamundaVariable> performGetVariablesAction(String id) {
         try {
             return camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
@@ -392,7 +451,7 @@ public class CamundaService {
         }
 
         try {
-            camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
+            camundaRetryService.assignTaskWithRetry(taskId, body);
             log.info("Task id '{}' assigned to user id: '{}'", taskId, userId);
         } catch (FeignException ex) {
             throw new CamundaTaskAssignException(ex);
@@ -408,7 +467,7 @@ public class CamundaService {
     private void performClaimTaskAction(String taskId, Map<String, String> body) {
         updateTaskStateTo(taskId, TaskState.ASSIGNED);
         try {
-            camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
+            camundaRetryService.claimTaskWithRetry(taskId, body);
             log.info("Task id '{}' successfully claimed", taskId);
         } catch (FeignException ex) {
             CamundaExceptionMessage camundaException =
@@ -444,7 +503,7 @@ public class CamundaService {
         }
 
         try {
-            camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
+            camundaRetryService.completeTaskWithRetry(taskId);
             log.info("Task '{}' completed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem completing the task '{}'", taskId);
@@ -464,7 +523,7 @@ public class CamundaService {
             updateTaskStateTo(taskId, TaskState.UNASSIGNED);
         }
         try {
-            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
+            camundaRetryService.unclaimTaskWithRetry(taskId);
             log.info("Task id '{}' unclaimed", taskId);
         } catch (FeignException ex) {
             log.error("There was a problem while claiming task id '{}'", taskId);
@@ -487,7 +546,7 @@ public class CamundaService {
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
 
         try {
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+            camundaRetryService.addLocalVariablesToTaskWithRetry(taskId, camundaLocalVariables);
         } catch (FeignException ex) {
             log.error(
                 "There was a problem updating task '{}', cft task state could not be updated to '{}'",
@@ -511,7 +570,7 @@ public class CamundaService {
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
 
         try {
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+            camundaRetryService.addLocalVariablesToTaskWithRetry(taskId, camundaLocalVariables);
         } catch (FeignException ex) {
             log.error(
                 "There was a problem updating task '{}', task state could not be updated to '{}'",
@@ -532,7 +591,7 @@ public class CamundaService {
         Map<String, String> body = new ConcurrentHashMap<>();
         body.put("escalationCode", ESCALATION_CODE);
         try {
-            camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
+            camundaRetryService.bpmnEscalationWithRetry(taskId, body);
             log.info("Task id '{}' cancelled", taskId);
         } catch (FeignException ex) {
             log.error("Task id '{}' could not be cancelled", taskId);

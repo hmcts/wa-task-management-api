@@ -5,11 +5,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CompletionProcessValidator;
 
+import java.util.List;
 import java.util.Optional;
 
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,16 +25,27 @@ class CompletionProcessValidatorTest {
 
     private CompletionProcessValidator completionProcessValidator;
 
+    AccessControlResponse mockAccessControlResponse;
+    @Mock
+    private RoleAssignment mockedRoleAssignment;
+
+    @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @BeforeEach
     void setUp() {
-        completionProcessValidator = new CompletionProcessValidator();
+        completionProcessValidator = new CompletionProcessValidator(launchDarklyFeatureFlagProvider);
+        mockAccessControlResponse = new AccessControlResponse(
+            new UserInfo("id", "idamId", List.of("Admin"), "surname", "email", "familyName"),
+            singletonList(mockedRoleAssignment)
+        );
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"EXUI_USER_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"})
-    void validate_returns_completion_process_when_valid(String validCompletionProcess) {
-        Optional<String> result = completionProcessValidator.validate(validCompletionProcess, "taskId123", true);
+    void should_return_completion_process_when_valid_value_passed_for_validation(String validCompletionProcess) {
+        Optional<String> result =
+            completionProcessValidator.validate(validCompletionProcess, "taskId123");
         assertTrue(result.isPresent());
         assertEquals(validCompletionProcess, result.get());
     }
@@ -35,16 +53,9 @@ class CompletionProcessValidatorTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {"INVALID_PROCESS", "RANDOM_VALUE"})
-    void validate_returns_empty_for_invalid_or_blank_completion_process(String invalidCompletionProcess) {
-        Optional<String> result = completionProcessValidator.validate(invalidCompletionProcess, "taskId123", true);
-        assertTrue(result.isEmpty());
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"EXUI_USER_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"})
-    void validate_returns_empty_when_update_completion_process_flag_is_disabled(String validCompletionProcess) {
-
-        Optional<String> result = completionProcessValidator.validate(validCompletionProcess, "taskId123", false);
+    void should_return_empty_completion_process_when_invalid_or_blank_value_passed(String invalidCompletionProcess) {
+        Optional<String> result =
+            completionProcessValidator.validate(invalidCompletionProcess, "taskId123");
         assertTrue(result.isEmpty());
     }
 }

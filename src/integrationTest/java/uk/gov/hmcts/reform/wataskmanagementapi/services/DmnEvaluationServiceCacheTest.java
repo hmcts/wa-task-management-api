@@ -6,15 +6,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.DmnRequest;
 
 import java.util.concurrent.TimeUnit;
@@ -25,8 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-@SpringBootTest
-@ActiveProfiles("integration")
+@IntegrationTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DmnEvaluationServiceCacheTest {
 
@@ -36,8 +34,13 @@ public class DmnEvaluationServiceCacheTest {
     @MockitoBean
     private CamundaServiceApi camundaServiceApi;
 
-    @Autowired
+    @MockitoSpyBean
     private DmnEvaluationService dmnEvaluationService;
+
+    @BeforeEach
+    void setup() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+    }
 
     /*
      * This class provides us change system time to test caching
@@ -56,11 +59,6 @@ public class DmnEvaluationServiceCacheTest {
     @Nested
     @DisplayName("Retrieve task type")
     class Test1 {
-        @BeforeEach
-        void setup() {
-            when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        }
-
         @Test
         void should_call_camunda_api_once_when_retrieving_task_type_dmn() {
             String dmnKey = "wa-task-types-";
@@ -91,11 +89,6 @@ public class DmnEvaluationServiceCacheTest {
     @Nested
     @DisplayName("Evaluate task type")
     class Test2 {
-        @BeforeEach
-        void setup() {
-            when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        }
-
         @Test
         void should_call_camunda_api_once_when_evaluating_task_type_dmn() {
 
@@ -127,11 +120,6 @@ public class DmnEvaluationServiceCacheTest {
     @Nested
     @DisplayName("Cache expire")
     class Test3 {
-        @BeforeEach
-        void setup() {
-            when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
-        }
-
         @Test
         void should_use_cache_until_expires_then_call_service() {
 

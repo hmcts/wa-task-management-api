@@ -52,7 +52,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -239,8 +238,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             .attributes(specificAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -254,8 +253,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             .attributes(stdAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -268,8 +267,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -281,8 +280,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             .attributes(excludeddAttributes)
             .grantType(GrantType.EXCLUDED)
             .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 

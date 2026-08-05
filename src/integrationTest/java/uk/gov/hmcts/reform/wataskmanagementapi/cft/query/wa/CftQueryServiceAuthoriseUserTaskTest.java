@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
@@ -28,7 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,6 @@ import static java.util.Collections.emptyList;
 @Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/authorise_user_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CftQueryServiceAuthoriseUserTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
@@ -79,8 +77,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -116,8 +114,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -153,7 +151,7 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
             .authorisations(List.of("DIVORCE"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -190,8 +188,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("NO Role"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -225,8 +223,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .authorisations(emptyList())
@@ -257,8 +255,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .authorisations(emptyList())
@@ -289,8 +287,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -326,8 +324,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)

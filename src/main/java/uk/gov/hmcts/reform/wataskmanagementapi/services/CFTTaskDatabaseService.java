@@ -99,8 +99,8 @@ public class CFTTaskDatabaseService {
         return tasksRepository.save(task);
     }
 
-    public void deleteTasks(final List<String> taskIds) {
-        tasksRepository.deleteAllById(taskIds);
+    public void markTasksToDeleteByTaskId(final List<String> taskIds) {
+        tasksRepository.updateTaskDeletionTimestampByTaskIds(taskIds);
     }
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {

@@ -1,0 +1,15 @@
+{
+  "division": "england-and-wales",
+  "events": [
+    {
+      "title": "Spring bank holiday override",
+      "date": "2026-05-25",
+      "working_day": true
+    },
+    {
+      "title": "Christmas Day",
+      "date": "2026-12-25",
+      "working_day": false
+    }
+  ]
+}

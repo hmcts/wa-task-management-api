@@ -13,7 +13,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.executors.ExecutorServiceConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.SensitiveTaskEventLog;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
@@ -28,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(ExecutorServiceConfig.class)
+@Import({ExecutorServiceConfig.class, JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 @Testcontainers
 @Sql("/scripts/cleanup/data.sql")
 @Slf4j
@@ -43,6 +45,9 @@ public class CleanUpSensitiveLogsDataTest {
     @Autowired
     private SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
@@ -54,7 +59,7 @@ public class CleanUpSensitiveLogsDataTest {
 
     @BeforeEach
     void setUp() {
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
 
         cftSensitiveTaskEventLogsDatabaseService = new CFTSensitiveTaskEventLogsDatabaseService(

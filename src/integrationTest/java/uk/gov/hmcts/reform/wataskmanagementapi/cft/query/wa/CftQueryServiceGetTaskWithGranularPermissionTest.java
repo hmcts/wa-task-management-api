@@ -12,12 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin;
@@ -38,6 +39,8 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionJoin.OR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CLAIM;
@@ -55,8 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/wa/get_task_granular_permission_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssignmentHelper {
+public class CftQueryServiceGetTaskWithGranularPermissionTest {
 
     @MockitoBean
     private CamundaService camundaService;
@@ -65,6 +67,8 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
 
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     private CftQueryService cftQueryService;
 
@@ -83,11 +87,10 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -97,7 +100,7 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .authorisations(singletonList("373"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .buildSingleType(PermissionTypes.READ);
@@ -116,11 +119,10 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -130,7 +132,7 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .authorisations(singletonList("373"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
@@ -156,11 +158,10 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -170,7 +171,7 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .authorisations(singletonList("373"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         PermissionRequirements requirements = PermissionRequirementBuilder.builder()
             .initPermissionRequirement(asList(CLAIM, OWN), PermissionJoin.AND)
@@ -194,11 +195,10 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -208,7 +208,7 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .authorisations(singletonList("373"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, requirements);
         Assertions.assertThat(task.isPresent()).isTrue();
@@ -225,11 +225,10 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
-        RoleAssignmentHelper.RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentHelper
-            .RoleAssignmentRequest.builder()
+        RoleAssignmentRequest roleAssignmentRequest = RoleAssignmentRequest.builder()
             .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_ADMIN)
             .roleAssignmentAttribute(
-                RoleAssignmentHelper.RoleAssignmentAttribute.builder()
+                RoleAssignmentAttribute.builder()
                     .jurisdiction(WA_JURISDICTION)
                     .caseType(WA_CASE_TYPE)
                     .region("1")
@@ -239,7 +238,7 @@ public class CftQueryServiceGetTaskWithGranularPermissionTest extends RoleAssign
             .authorisations(singletonList("373"))
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, requirements);
         Assertions.assertThat(task.isPresent()).isFalse();

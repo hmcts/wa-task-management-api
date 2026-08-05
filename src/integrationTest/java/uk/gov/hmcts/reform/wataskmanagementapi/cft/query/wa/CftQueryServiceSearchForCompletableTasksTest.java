@@ -8,12 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -35,6 +36,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.WA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
@@ -47,8 +50,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/wa/search_for_completable_tasks_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignmentHelper {
+public class CftQueryServiceSearchForCompletableTasksTest {
 
     private PermissionRequirements permissionsRequired = PermissionRequirementBuilder.builder()
         .buildSingleRequirementWithOr(OWN, EXECUTE);
@@ -61,6 +63,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+    RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
 
     private CftQueryService cftQueryService;
 
@@ -89,7 +93,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -133,7 +137,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -177,7 +181,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         //excluded
         roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -191,7 +195,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -233,7 +237,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -275,7 +279,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         //excluded
         roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -289,7 +293,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -331,7 +335,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -373,7 +377,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         //excluded
         roleAssignmentRequest = RoleAssignmentRequest.builder()
@@ -387,7 +391,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
             )
             .build();
 
-        createRoleAssignment(roleAssignments, roleAssignmentRequest);
+        roleAssignmentHelper.createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(

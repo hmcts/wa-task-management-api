@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.RoleCode;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAccount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,21 +48,13 @@ public class AuthorizationProvider {
     private IdamServiceApi idamServiceApi;
     @Autowired
     private AuthTokenGenerator serviceAuthTokenGenerator;
-    @Value("${idam.test.userCleanupEnabled:false}")
-    private boolean testUserDeletionEnabled;
 
     public void deleteAccount(String username) {
-
-        if (testUserDeletionEnabled) {
-            //If error is thrown while deleting the user, it will be caught and logged
-            try {
-                log.info("Deleting test account '{}'", username);
-                idamServiceApi.deleteTestUser(username);
-            } catch (FeignException e) {
-                log.error("Failed to delete test account '{}'", username, e);
-            }
-        } else {
-            log.info("Test User deletion feature flag was not enabled, user '{}' was not deleted", username);
+        try {
+            log.info("Deleting test account '{}'", username);
+            idamServiceApi.deleteTestUser(username);
+        } catch (FeignException e) {
+            log.error("Failed to delete test account '{}'", username, e);
         }
     }
 
@@ -99,40 +92,9 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
-    public TestAuthenticationCredentials getNewLawFirm() {
-        /*
-         * This user is used to create cases in ccd
-         */
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
+    public TestAuthenticationCredentials getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(String email) {
 
-        Headers authenticationHeaders = new Headers(
-            getAuthorizationOnly(lawfirm),
-            getServiceAuthorizationHeader()
-        );
-
-        return new TestAuthenticationCredentials(lawfirm, authenticationHeaders);
-    }
-
-    public TestAuthenticationCredentials getJudgeAuthorization(String emailPrefix) {
-        /*
-         * This user is used to create cases in ccd
-         */
-        TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
-
-        Headers headers = new Headers(
-            getJudgeAuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-
-        return new TestAuthenticationCredentials(lawfirm, headers);
-    }
-
-    public TestAuthenticationCredentials getAdminCaseworker(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        TestAccount caseworker = getIdamLawFirmCredentials(emailPrefix);
+        TestAccount caseworker = getIdamWaTribunalCaseworkerCredentialsWithStaticEmailAndStaticID(email);
 
         Headers authenticationHeaders = new Headers(
             getAuthorizationOnly(caseworker),
@@ -142,19 +104,15 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
-    public TestAuthenticationCredentials getAdminUserAuthorization(String emailPrefix) {
-        /*
-         * This user is used to create cases in ccd
-         */
-        TestAccount caseworker = getAdministativeCredentials(emailPrefix);
-
+    public Headers getHeaders(String email) {
         Headers authenticationHeaders = new Headers(
-            getAdminUserAuthorizationOnly(emailPrefix),
+            getAuthorization(email, idamTestAccountPassword),
             getServiceAuthorizationHeader()
         );
-        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
 
+        return authenticationHeaders;
     }
+
 
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
@@ -162,29 +120,8 @@ public class AuthorizationProvider {
 
     }
 
-    public Header getLawFirmAuthorizationOnly() {
-
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
-
-    }
-
     public Header getAuthorizationOnly(TestAccount account) {
         return getAuthorization(account.getUsername(), account.getPassword());
-    }
-
-    public Header getJudgeAuthorizationOnly(String emailPrefix) {
-
-        TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
-
-    }
-
-    public Header getAdminUserAuthorizationOnly(String emailPrefix) {
-
-        TestAccount lawfirm = getAdministativeCredentials(emailPrefix);
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
-
     }
 
     public UserInfo getUserInfo(String userToken) {
@@ -197,30 +134,6 @@ public class AuthorizationProvider {
 
     public Headers getServiceAuthorizationHeadersOnly() {
         return new Headers(getServiceAuthorizationHeader());
-    }
-
-    public Headers getWACaseworkerAAuthorization(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        return new Headers(
-            getWACaseworkerAAuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-    }
-
-    public Header getWACaseworkerAAuthorizationOnly(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
-            new RoleCode("payments"),
-            new RoleCode("caseworker-wa"));
-        TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
-        return getAuthorization(testAccount.getUsername(), testAccount.getPassword());
-
-    }
-
-    public String getUserId(Headers headers) {
-        return getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
     private Header getAuthorization(String username, String password) {
@@ -248,27 +161,15 @@ public class AuthorizationProvider {
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
-    private TestAccount getIdamJudgeCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-            new RoleCode("caseworker-ia-judiciary"),
-            new RoleCode("payments")
-        );
-        return generateIdamTestAccount(emailPrefix, requiredRoles);
-    }
-
-    private TestAccount getAdministativeCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-            new RoleCode("caseworker-ia-admofficer"),
-            new RoleCode("payments")
-        );
-        return generateIdamTestAccount(emailPrefix, requiredRoles);
-    }
-
     private TestAccount getIdamWaTribunalCaseworkerCredentials(String emailPrefix) {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
             new RoleCode("payments"),
             new RoleCode("caseworker-wa"));
         return generateIdamTestAccount(emailPrefix, requiredRoles);
+    }
+
+    private TestAccount getIdamWaTribunalCaseworkerCredentialsWithStaticEmailAndStaticID(String email) {
+        return generateIdamTestAccountWithStaticEmailAndStaticID(email, Collections.emptyList());
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
@@ -304,6 +205,41 @@ public class AuthorizationProvider {
                     log.info("Attempting to create a new test account {}", email);
                     body.put("email", email);
                     idamServiceApi.createTestUser(body);
+                    accountCreated.set(true);
+                } catch (FeignException e) {
+                    log.error("Failed to create test account, retrying...", e);
+                    accountCreated.set(false);
+                }
+                return accountCreated.get();
+            });
+
+        log.info("Test account created successfully");
+        return new TestAccount(email.get(), idamTestAccountPassword);
+    }
+
+    private TestAccount generateIdamTestAccountWithStaticEmailAndStaticID(String emailId,
+                                                                          List<RoleCode> requiredRoles) {
+        RoleCode userGroup = new RoleCode("caseworker");
+
+        Map<String, Object> body = new ConcurrentHashMap<>();
+        String staticEmail = emailId + "@fake.hmcts.net";
+        body.put("id",UUID.nameUUIDFromBytes(staticEmail.getBytes()).toString());
+        body.put("password", idamTestAccountPassword);
+        body.put("forename", "WAFTAccount");
+        body.put("surname", "Functional");
+        body.put("roles", requiredRoles);
+        body.put("userGroup", userGroup);
+        AtomicBoolean accountCreated = new AtomicBoolean(false);
+        AtomicReference<String> email = new AtomicReference<>("");
+        await().ignoreException(Exception.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(120, SECONDS)
+            .until(() -> {
+                try {
+                    email.set(staticEmail);
+                    log.info("Attempting to create a new test account {}", email);
+                    body.put("email", email);
+                    idamServiceApi.createTestUser(true,body);
                     accountCreated.set(true);
                 } catch (FeignException e) {
                     log.error("Failed to create test account, retrying...", e);

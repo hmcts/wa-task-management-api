@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -28,6 +29,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -103,19 +106,40 @@ public class Common {
 
     public TestVariables setupWATaskAndRetrieveIds() {
         return setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
     }
 
     public TestVariables setupWATaskAndRetrieveIds(String taskType, String taskName) {
-        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json", taskType, taskName);
+        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json", taskType, taskName);
     }
 
     public TestVariables setupWATaskAndRetrieveIds(String resourceFileName, String taskType, String taskName) {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, WA_JURISDICTION, WA_CASE_TYPE, taskType, taskName)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType, taskName, DEFAULT_WARNINGS);
+    }
+
+    public TestVariables setupWATaskAndRetrieveIdsWithCustomHearingDate(String resourceFileName, String taskType, String taskName, OffsetDateTime nextHearingDate) {
+
+        String caseId = given.iCreateWACcdCaseWithCustomHearignDate("WA",
+                                                                    "WaCaseType",
+                                                                    "CREATE",
+                                                                    "START_PROGRESS",resourceFileName,
+                                                                    nextHearingDate
+                                                                    );
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, WA_JURISDICTION, WA_CASE_TYPE, taskType, taskName)
@@ -202,9 +226,30 @@ public class Common {
 
     }
 
+    public TestVariables setupWATaskWithCancellationProcessAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
+        String caseId = given.iCreateWACcdCase(resourceFileName);
+
+        Map<String, CamundaValue<?>> processVariables =
+            given.createDefaultTaskVariables(caseId, WA_JURISDICTION,
+                                             WA_CASE_TYPE, taskType, DEFAULT_TASK_NAME, additionalProperties);
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId(), taskType,
+                                 DEFAULT_TASK_NAME, DEFAULT_WARNINGS);
+
+    }
+
     public TestVariables setupWATaskWithWarningsAndRetrieveIds(String taskType, String taskName) {
 
-        String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data.json");
+        String caseId = given.iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
         WarningValues warnings = new WarningValues(
             asList(
                 new Warning("Code1", "Text1"),
@@ -241,6 +286,17 @@ public class Common {
     public void clearAllRoleAssignments(Headers headers) {
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+    }
+
+    public void clearAllRoleAssignmentsAndDeleteUser(String email, TestAuthenticationCredentials account) {
+        if (account != null) {
+            Headers headers = account.getHeaders();
+            if (headers.exist() && headers.hasHeaderWithName(AUTHORIZATION)
+                && headers.hasHeaderWithName(SERVICE_AUTHORIZATION)) {
+                clearAllRoleAssignments(headers);
+            }
+        }
+        authorizationProvider.deleteAccount(email);
     }
 
     public void setupWAOrganisationalRoleAssignment(Headers headers) {
@@ -471,6 +527,44 @@ public class Common {
             GrantType.SPECIFIC.name(),
             RoleCategory.LEGAL_OPERATIONS.name(),
             toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.PUBLIC.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
+    public void setupCaseManagerForSpecificAccessWithAuthorizations(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        createStandardTribunalCaseworker(userInfo, headers, jurisdiction, caseType);
+
+        log.info("Creating Case manager Case Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "case-manager",
+            toJsonString(Map.of(
+                "caseId", caseId,
+                "caseType", caseType,
+                "jurisdiction", jurisdiction,
+                "substantive", "Y"
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of("testAuth")),
             RoleType.CASE.name(),
             Classification.PUBLIC.name(),
             "staff-organisational-role-mapping",
@@ -1102,7 +1196,7 @@ public class Common {
             } else {
                 assignmentRequestBody = assignmentRequestBody.replace(
                     "{END_TIME_PLACEHOLDER}",
-                    ZonedDateTime.now().plusHours(2).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
+                    ZonedDateTime.now(ZoneOffset.UTC).plusHours(2).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
                 );
             }
 

@@ -1,19 +1,29 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.opentest4j.AssertionFailedError;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReplicaTaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.ReportableTaskRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.SubscriptionCreator;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskAssignmentsRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.replicarepository.TaskHistoryResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.ReplicaIntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.db.MIReplicaDBDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.ReportableTaskResource;
@@ -22,6 +32,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskHistoryResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.replica.ReplicaTaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -38,7 +50,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
@@ -47,31 +58,82 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.TERMINATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.ENVIRONMENT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_PRIMARY_DB_PASS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_PRIMARY_DB_USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_PUBLICATION_URL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_REPLICA_DB_PASS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ReplicaIntegrationTestUtils.TEST_REPLICA_DB_USER;
 
 /**
  * We test logical replication in here.
  */
-@ActiveProfiles("replica")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ReplicaIntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
 @Slf4j
-class MIReplicaReportingServiceTest extends ReplicaBaseTest {
+@Import(AwaitilityIntegrationTestConfig.class)
+class MIReplicaReportingServiceTest {
 
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
+
+    @Autowired
+    private TaskHistoryResourceRepository taskHistoryResourceRepository;
+    @Autowired
+    private ReportableTaskRepository reportableTaskRepository;
+    @Autowired
+    private TaskAssignmentsRepository taskAssignmentsRepository;
+    @Autowired
+    private MIReportingService miReportingService;
+
+    @Value("${spring.datasource.jdbcUrl}")
+    private String primaryJdbcUrl;
+
+    @Value("${spring.datasource-replica.jdbcUrl}")
+    private String replicaJdbcUrl;
+
+    @Autowired
+    private ReplicaTaskResourceRepository replicaTaskResourceRepository;
+
+    ReplicaIntegrationTestUtils replicaIntegrationTestUtils;
+
+    @BeforeAll
+    void init() {
+        replicaIntegrationTestUtils = new ReplicaIntegrationTestUtils(
+            taskResourceRepository,
+            taskHistoryResourceRepository,
+            reportableTaskRepository,
+            taskAssignmentsRepository,
+            miReportingService,
+            primaryJdbcUrl,
+            replicaJdbcUrl
+        );
+        replicaIntegrationTestUtils.setUp();
+    }
+
+    @AfterAll
+    void tearDown() {
+        replicaIntegrationTestUtils.tearDown();
+    }
 
     @Test
     void should_save_task_and_get_task_from_replica_tables() {
         TaskResource taskResource = createAndSaveTask();
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
-                        = miReportingServiceForTest.findByTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByTaskId(taskResource.getTaskId());
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(1, taskHistoryResourceList.size());
@@ -93,13 +155,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     void should_save_task_and_get_task_from_reportable_task() {
         TaskResource taskResource = createAndSaveTask();
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(taskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -142,13 +203,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
         log.info("Operation {} and saved taskResource", operation);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
-                        = miReportingServiceForTest.findByTaskId(savedTaskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals("UPDATE".equals(operation) ? 2 : 1, taskHistoryResourceList.size());
@@ -202,13 +262,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(savedTaskResource.getTaskId());
                     log.info("Operation {} and reportableTaskList size {}", operation,
                              reportableTaskList.size());
 
@@ -247,6 +306,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         "CTSC,CTSC,CIVIL,Civil,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         "JUDICIAL,Judicial,IA,Immigration and Asylum,Asylum,Asylum,ASSIGNED,AutoAssign,Assigned",
         "ADMIN,Admin,PUBLICLAW,Public Law,PUBLICLAW,Public Law,UNASSIGNED,Configure,Unassigned",
+        "ENFORCEMENT,Enforcement,EMPLOYMENT,Employment,CIVIL,Civil,UNASSIGNED,Configure,Unassigned",
         ",,WA,WA,WaCaseType,WaCaseType,ASSIGNED,AutoAssign,Assigned",
         "TEST,TEST,TEST,TEST,TEST,TEST,UNASSIGNED,Configure,Unassigned"
     })
@@ -264,13 +324,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
         checkHistory(savedTaskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
+                    log.info("Found reportable task");
+
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -282,6 +343,88 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(reportableTaskStateLabel, reportableTaskList.get(0).getStateLabel());
                     return true;
                 });
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "COMPLETED, completedUserId, Complete, terminatedUserId, Terminate, completed, completedUserId, Completed",
+        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, Terminate, deleted, cancelledUserId, Cancelled",
+        "CANCELLED, cancelledUserId, Cancel, terminatedUserId, Terminate, cancelled, cancelledUserId,"
+            + "Cancelled",
+        "UNCONFIGURED, userId, Unconfigured, terminatedUserId, Terminate, deleted, terminatedUserId,"
+            + "Cancelled"
+    })
+    void should_save_task_and_get_outcome_and_agent_name_from_reportable_task(
+        String stateBeforeTermination, String lastUpdatedUserBeforeTermination, String updateActionBeforeTermination,
+        String lastUpdatedUser, String finalUpdateAction, String terminationReason,
+        String expectedAgentName, String expectedOutcome) {
+        String taskId = UUID.randomUUID().toString();
+        // Create and save initial task resource with UNASSIGNED state
+        TaskResource savedTaskResource = createAndSaveThisTask(taskId, "someTaskName",
+                                        UNASSIGNED, "Configure", "someAssignee");
+        checkHistory(taskId, 1);
+
+        await()
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(UNASSIGNED.getValue(), reportableTaskList.get(0).getState());
+                    return true;
+                });
+        log.info("Updating task to state: {}", stateBeforeTermination);
+        savedTaskResource.setState(CFTTaskState.valueOf(stateBeforeTermination));
+        savedTaskResource.setLastUpdatedUser(lastUpdatedUserBeforeTermination);
+        savedTaskResource.setLastUpdatedAction(updateActionBeforeTermination);
+        savedTaskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+
+        taskResourceRepository.save(savedTaskResource);
+        log.info("Updated task Resource {}", savedTaskResource);
+
+        checkHistory(taskId, 2);
+        await()
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(stateBeforeTermination, reportableTaskList.get(0).getState());
+                    return true;
+                });
+
+        savedTaskResource.setState(TERMINATED);
+        savedTaskResource.setLastUpdatedUser(lastUpdatedUser);
+        savedTaskResource.setLastUpdatedAction(finalUpdateAction);
+        savedTaskResource.setTerminationReason(terminationReason);
+        savedTaskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
+        taskResourceRepository.save(savedTaskResource);
+
+        await()
+            .until(
+                () -> {
+                    List<ReportableTaskResource> reportableTaskList
+                        = miReportingService.findByReportingTaskId(savedTaskResource.getTaskId());
+
+                    assertFalse(reportableTaskList.isEmpty());
+                    assertEquals(1, reportableTaskList.size());
+                    log.info("Found reportable task:{}",reportableTaskList.get(0));
+                    assertEquals(savedTaskResource.getTaskId(), reportableTaskList.get(0).getTaskId());
+                    assertEquals(TERMINATED.getValue(), reportableTaskList.get(0).getState());
+                    assertEquals(expectedAgentName, reportableTaskList.get(0).getAgentName());
+                    assertEquals(expectedOutcome, reportableTaskList.get(0).getOutcome());
+                    return true;
+                });
+
+
     }
 
     @ParameterizedTest
@@ -306,13 +449,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
         checkHistory(taskId, 2);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -324,8 +466,10 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
     @ParameterizedTest
     @CsvSource(value = {
-        "COMPLETED,EXUI_CASE-EVENT_COMPLETION,Automated",
-        "COMPLETED,EXUI_USER_COMPLETION,Manual",
+        "COMPLETED,EXUI_CASE-EVENT_COMPLETION,Automated Completion",
+        "COMPLETED,EXUI_USER_COMPLETION,Manual Completion",
+        "CANCELLED,CASE_EVENT_CANCELLATION,Automated Cancellation",
+        "CANCELLED,EXUI_USER_CANCELLATION,Manual Cancellation",
         "COMPLETED,,"
     })
     void should_save_task_and_get_transformed_termination_process_label_from_reportable_task(
@@ -333,17 +477,16 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource taskResource = createAndSaveTask();
         taskResource.setState(CFTTaskState.valueOf(taskState));
         taskResource.setTerminationProcess(
-            terminationProcess != null ? TerminationProcess.fromValue(terminationProcess) : null);
+            TerminationProcess.fromValue(terminationProcess).orElse(null));
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.now());
         TaskResource savedTaskResource = taskResourceRepository.save(taskResource);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(savedTaskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(savedTaskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -369,13 +512,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                         CFTTaskState.valueOf(taskState), lastUpdatedAction, "someAssignee");
         checkHistory(taskId, 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(20, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     if (taskAssignmentExists) {
                         assertFalse(taskAssignmentsList.isEmpty());
@@ -385,13 +527,15 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         assertEquals(taskResource.getAssignee(), taskAssignmentsList.get(0).getAssignee());
                         assertNull(taskAssignmentsList.get(0).getAssignmentEnd());
                         assertNull(taskAssignmentsList.get(0).getAssignmentEndReason());
-                        assertFalse(containerReplica.getLogs().contains(taskResource.getTaskId()
+                        assertFalse(replicaIntegrationTestUtils.getContainerReplica()
+                                        .getLogs().contains(taskResource.getTaskId()
                                          + " : Task with an incomplete history for assignments check"));
                         return true;
                     } else {
                         assertTrue(taskAssignmentsList.isEmpty());
                         if (! ("UNASSIGNED".equals(taskState) && "Configure".equals(lastUpdatedAction))) {
-                            assertTrue(containerReplica.getLogs().contains(taskResource.getTaskId()
+                            assertTrue(replicaIntegrationTestUtils.getContainerReplica()
+                                           .getLogs().contains(taskResource.getTaskId()
                                          + " : Task with an incomplete history for assignments check"));
                         } // This is to cover "UNASSIGNED,Configure,false,true"
                         // where the taskHistory is valid but taskAssignment is not created yet.
@@ -399,25 +543,22 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     }
                 });
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollDelay(2, SECONDS)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                     if (reportableTaskExists) {
                         assertFalse(reportableTaskList.isEmpty());
                         assertEquals(1, reportableTaskList.size());
                         assertEquals(taskId, reportableTaskList.get(0).getTaskId());
-                        assertFalse(containerReplica.getLogs().contains(taskId
+                        assertFalse(replicaIntegrationTestUtils.getContainerReplica().getLogs().contains(taskId
                                                         + " : Task with an incomplete history"));
                         return true;
                     } else {
                         assertTrue(reportableTaskList.isEmpty());
-                        assertTrue(containerReplica.getLogs().contains(taskId
+                        assertTrue(replicaIntegrationTestUtils.getContainerReplica().getLogs().contains(taskId
                                                         + " : Task with an incomplete history"));
                         return true;
                     }
@@ -429,13 +570,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         TaskResource taskResource = createAndSaveAndAssignTask();
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(taskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -470,13 +610,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResourceRepository.save(taskResource);
         checkHistory(taskId, 2);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(2, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(taskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -498,13 +637,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResource.setLastUpdatedTimestamp(OffsetDateTime.parse("2022-06-09T20:15:45.345875+01:00"));
         taskResourceRepository.save(taskResource);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -523,13 +660,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                         "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
@@ -550,13 +686,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             null, "someRoleCategory", "someTaskName");
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
@@ -577,13 +712,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                         "someLocation", "someRoleCategory", null);
         checkHistory(taskResource.getTaskId(), 1);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
@@ -607,7 +741,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         "UNASSIGNED,Unassign,UNASSIGNED, null",
         "UNASSIGNED,AutoUnassign,UNASSIGNED, null",
         "UNASSIGNED,Unclaim,UNCLAIMED, null",
-        "ASSIGNED,AutoCancel,CANCELLED, AUTO_CANCELLED",
+        "TERMINATED,Terminate,TERMINATED, TERMINATED",
         "ASSIGNED,Cancel,CANCELLED, USER_CANCELLED",
     })
     void should_save_task_and_check_task_assignments(String newState, String lastAction, String endReason,
@@ -621,13 +755,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResource.setState(ASSIGNED);
         taskResourceRepository.save(taskResource);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByAssignmentsTaskId(taskId);
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
@@ -659,13 +791,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         checkHistory(taskId, 3);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     if (lastAction.matches("AutoUnassignAssign|UnassignAssign|UnassignClaim|UnclaimAssign|Assign")) {
@@ -682,13 +813,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -708,19 +837,17 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertNotNull(reportableTaskList.get(0).getLastUpdatedDate());
 
                     List<TaskHistoryResource> taskHistoryList
-                        = miReportingServiceForTest.findByTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByTaskId(taskId);
                     assertEquals(3, taskHistoryList.size());
                     return true;
                 });
 
         if (lastAction.equals("Complete")) {
-            await().ignoreException(AssertionFailedError.class)
-                .pollInterval(1, SECONDS)
-                .atMost(10, SECONDS)
+            await()
                 .until(
                     () -> {
                         List<ReportableTaskResource> reportableTaskList
-                            = miReportingServiceForTest.findByReportingTaskId(taskId);
+                            = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                         assertEquals("9 days 00:00:10", reportableTaskList.get(0).getHandlingTime());
                         assertTrue(reportableTaskList.get(0).getProcessingTime().startsWith("15 days"));
@@ -756,13 +883,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         taskResourceRepository.save(taskResource);
         checkHistory(taskResource.getTaskId(), 4);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(2, taskAssignmentsList.size());
@@ -796,15 +922,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         TaskResourceRepository mocktaskResourceRepository = mock(TaskResourceRepository.class);
         when(mocktaskResourceRepository.countPublications()).thenReturn(0);
-        subscriptionCreatorForTest = new SubscriptionCreator(TEST_REPLICA_DB_USER, TEST_REPLICA_DB_PASS,
+        SubscriptionCreator subscriptionCreatorForTest = new
+            SubscriptionCreator(TEST_REPLICA_DB_USER, TEST_REPLICA_DB_PASS,
             TEST_PRIMARY_DB_USER, TEST_PRIMARY_DB_PASS, TEST_PUBLICATION_URL, ENVIRONMENT);
         MIReportingService service = new MIReportingService(null, mocktaskResourceRepository,
             reportableTaskRepository,
             taskAssignmentsRepository,
             subscriptionCreatorForTest);
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(5, SECONDS)
-            .atMost(60, SECONDS)
+        await()
             .until(() -> {
                 assertFalse(service.isPublicationPresent());
                 return true;
@@ -815,7 +940,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
     @Test
     void given_unknown_task_id_what_happens() {
         List<TaskHistoryResource> taskHistoryResourceList
-            = miReportingServiceForTest.findByTaskId("1111111");
+            = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByTaskId("1111111");
         assertTrue(taskHistoryResourceList.isEmpty());
     }
 
@@ -833,21 +958,21 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         createAndSaveThisTask(taskId, "someTaskName",
             CFTTaskState.valueOf(initialState), lastAction);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                     if ((initialState.equals("UNASSIGNED") && lastAction.equals("Configure"))
                         || (initialState.equals("ASSIGNED") && lastAction.equals("AutoAssign"))) {
                         assertFalse(reportableTaskList.isEmpty());
-                        assertFalse(containerReplica.getLogs().contains(taskId + " : Task with an incomplete history"));
+                        assertFalse(replicaIntegrationTestUtils.getContainerReplica()
+                                        .getLogs().contains(taskId + " : Task with an incomplete history"));
                     } else {
                         assertTrue(reportableTaskList.isEmpty());
-                        assertTrue(containerReplica.getLogs().contains(taskId + " : Task with an incomplete history"));
+                        assertTrue(replicaIntegrationTestUtils.getContainerReplica()
+                                       .getLogs().contains(taskId + " : Task with an incomplete history"));
                     }
                     return true;
                 });
@@ -1075,13 +1200,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         createAndSaveTaskWithLastReconfigurationTime(taskId,
             "SecondTask", CFTTaskState.valueOf(state), lastAction);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -1089,7 +1212,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals("SecondTask", reportableTaskList.get(0).getTaskName());
 
                     List<TaskHistoryResource> taskHistoryList
-                        = miReportingServiceForTest.findByTaskId(taskId);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByTaskId(taskId);
                     assertEquals(2, taskHistoryList.size());
                     return true;
                 });
@@ -1103,13 +1226,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                         "someTaskName");
 
         List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
@@ -1125,13 +1247,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 });
 
         List<OffsetDateTime> origReportableTaskReportRefreshTimes = new ArrayList<>();
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(taskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -1142,9 +1263,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     return true;
                 });
 
-        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
-                                                           containerReplica.getUsername(),
-                                                           containerReplica.getPassword());
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getJdbcUrl(),
+                                                           replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getUsername(),
+                                                           replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getPassword());
         // Mark filters to select both the tasks
         miReplicaDBDao.callMarkReportTasksForRefresh(null, null, null,
                                       null, null, OffsetDateTime.now(), taskResource.getCreated().minusDays(2L));
@@ -1154,13 +1278,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         Assertions.assertTrue(optionalReplicaTaskResource.isPresent());
         OffsetDateTime taskRequestRefreshTime = optionalReplicaTaskResource.get().getReportRefreshRequestTime();
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(taskResource.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -1174,7 +1297,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                                                            within(100, ChronoUnit.MILLIS));
 
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(taskResource.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByAssignmentsTaskId(taskResource.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
@@ -1217,15 +1341,14 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         List<OffsetDateTime> origTaskAssignmentReportRefreshTimes = new ArrayList<>();
 
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        tasks.forEach(task -> await()
             .until(
                 () -> {
 
                     if ("ASSIGNED".equals(task.getState().getValue())) {
                         List<TaskAssignmentsResource> taskAssignmentsList
-                            = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
+                            = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                            .findByAssignmentsTaskId(task.getTaskId());
 
                         assertFalse(taskAssignmentsList.isEmpty());
                         assertEquals(1, taskAssignmentsList.size());
@@ -1242,13 +1365,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 }));
 
         List<OffsetDateTime> origReportableTaskReportRefreshTimes = new ArrayList<>();
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        tasks.forEach(task -> await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(task.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -1263,9 +1385,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         List<String> caseIds = tasks.stream().map(TaskResource::getCaseId).toList();
         List<String> taskStates =   tasks.stream().map(x -> x.getState().getValue()).toList();
 
-        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
-                                                           containerReplica.getUsername(),
-                                                           containerReplica.getPassword());
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getJdbcUrl(),
+                                                           replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getUsername(),
+                                                           replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getPassword());
 
         Sort sort = Sort.by(Sort.Order.asc("caseName"));
         List<ReplicaTaskResource> replicaTaskResources =
@@ -1359,13 +1484,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     .orElse(OffsetDateTime.now().minusYears(1L));
 
             expectedMarkedTasks.forEach(taskId ->
-                await().ignoreException(AssertionFailedError.class)
-                .pollInterval(1, SECONDS)
-                .atMost(30, SECONDS)
+                await()
                 .until(
                     () -> {
                         List<ReportableTaskResource> reportableTaskList
-                            = miReportingServiceForTest.findByReportingTaskId(taskId);
+                            = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(taskId);
 
                         assertFalse(reportableTaskList.isEmpty());
                         assertEquals(1, reportableTaskList.size());
@@ -1382,7 +1505,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                         if ("ASSIGNED".equals(reportableTaskList.get(0).getState())) {
 
                             List<TaskAssignmentsResource> taskAssignmentsList
-                                = miReportingServiceForTest.findByAssignmentsTaskId(taskId);
+                                = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                                .findByAssignmentsTaskId(taskId);
 
                             assertFalse(taskAssignmentsList.isEmpty());
                             assertEquals(1, taskAssignmentsList.size());
@@ -1738,13 +1862,11 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
 
     private void checkHistory(String id, int records) {
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(10, SECONDS)
+        await()
             .until(
                 () -> {
                     List<TaskHistoryResource> taskHistoryResourceList
-                        = miReportingServiceForTest.findByTaskId(id);
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByTaskId(id);
 
                     assertFalse(taskHistoryResourceList.isEmpty());
                     assertEquals(records, taskHistoryResourceList.size());
@@ -1772,13 +1894,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             tasks.add(taskResource);
         });
 
-        tasks.forEach(task -> await().ignoreException(AssertionFailedError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(30, SECONDS)
+        tasks.forEach(task -> await()
             .until(
                 () -> {
                     List<ReportableTaskResource> reportableTaskList
-                        = miReportingServiceForTest.findByReportingTaskId(task.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                        .findByReportingTaskId(task.getTaskId());
 
                     assertFalse(reportableTaskList.isEmpty());
                     assertEquals(1, reportableTaskList.size());
@@ -1787,7 +1908,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                     assertEquals(task.getState().getValue(), reportableTaskResource.getState());
 
                     List<TaskAssignmentsResource> taskAssignmentsList
-                        = miReportingServiceForTest.findByAssignmentsTaskId(task.getTaskId());
+                        = replicaIntegrationTestUtils.getMiReportingServiceForTest()
+                            .findByAssignmentsTaskId(task.getTaskId());
 
                     assertFalse(taskAssignmentsList.isEmpty());
                     assertEquals(1, taskAssignmentsList.size());
@@ -1796,9 +1918,12 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
                 }));
 
         List<String> taskIds = tasks.stream().map(TaskResource::getTaskId).toList();
-        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(containerReplica.getJdbcUrl(),
-                                                             containerReplica.getUsername(),
-                                                             containerReplica.getPassword());
+        MIReplicaDBDao miReplicaDBDao = new MIReplicaDBDao(replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getJdbcUrl(),
+                                                             replicaIntegrationTestUtils.getContainerReplica()
+                                                                 .getUsername(),
+                                                             replicaIntegrationTestUtils.getContainerReplica()
+                                                               .getPassword());
 
         Sort sort = Sort.by(Sort.Order.asc("caseName"));
         List<ReplicaTaskResource> replicaTaskResources =
@@ -1810,7 +1935,8 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
         assertTrue(taskRefreshTimestamps.isEmpty());
 
         miReplicaDBDao.callMarkReportTasksForRefresh(null, taskIds, null,
-                                      null, null, OffsetDateTime.now(), tasks.get(0).getCreated().minusDays(5));
+                                      null, null, OffsetDateTime.now(),
+                                                     tasks.get(0).getCreated().minusDays(5));
 
         replicaTaskResources = replicaTaskResourceRepository.findAllByTaskIdIn(taskIds, sort);
         taskRefreshTimestamps = replicaTaskResources.stream()
@@ -1823,9 +1949,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         miReplicaDBDao.callRefreshReportTasks(maxRowsToProcess);
 
-        await().ignoreException(AssertionFailedError.class)
-            .pollInterval(5, SECONDS)
-            .atMost(30, SECONDS)
+        await()
             .until(
                 () -> {
                     List<ReplicaTaskResource> replicaTaskResourceList =
@@ -1846,7 +1970,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
 
         taskIds.forEach(x -> {
             List<ReportableTaskResource> reportableTaskList
-                = miReportingServiceForTest.findByReportingTaskId(x);
+                = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByReportingTaskId(x);
 
             assertFalse(reportableTaskList.isEmpty());
             assertEquals(1, reportableTaskList.size());
@@ -1856,7 +1980,7 @@ class MIReplicaReportingServiceTest extends ReplicaBaseTest {
             }
 
             List<TaskAssignmentsResource> taskAssignmentsList
-                = miReportingServiceForTest.findByAssignmentsTaskId(x);
+                = replicaIntegrationTestUtils.getMiReportingServiceForTest().findByAssignmentsTaskId(x);
 
             assertFalse(taskAssignmentsList.isEmpty());
             assertEquals(1, taskAssignmentsList.size());

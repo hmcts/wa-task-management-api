@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -49,6 +50,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils.CancellationProcessValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
@@ -65,12 +67,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
@@ -167,7 +171,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Spy
     CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    TerminationProcessHelper terminationProcessHelper;
     @Mock
     ConfigureTaskService configureTaskService;
     @Mock
@@ -216,7 +220,10 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
     @Mock
     private UserInfo userInfo;
 
-    private Map<String, Object> requestParamMap = new HashMap<>();
+    @Autowired
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
+
+    private CancellationProcessValidator cancellationProcessValidator;
 
     @Test
     void unclaimTask_succeed_when_task_assignee_differs_from_user_and_has_unassign_gp_flag_on() {
@@ -389,8 +396,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             entityManager,
             idamTokenGenerator,
             cftSensitiveTaskEventLogsDatabaseService,
-            taskMandatoryFieldsValidator
-        );
+            taskMandatoryFieldsValidator,
+            terminationProcessHelper);
 
 
         taskId = UUID.randomUUID().toString();
@@ -1462,7 +1469,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, null);
 
             assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
             verify(camundaService, times(1)).cancelTask(taskId);
@@ -1481,7 +1488,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1504,7 +1512,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1537,7 +1546,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1552,7 +1562,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
@@ -1568,7 +1579,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             PermissionRequirementBuilder.builder().buildSingleType(CANCEL);
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse, null))
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
@@ -1625,7 +1636,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, null);
 
             verify(camundaServiceApi, never()).bpmnEscalation(any(), anyString(), anyMap());
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
@@ -1689,7 +1700,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             Set<TaskRoleResource> taskRoleResourcesItems = new HashSet<>(List.of(taskRoleResource));
 
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
-            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse, null))
                 .isInstanceOf(TaskCancelException.class);
 
             verify(camundaServiceApi, never()).bpmnEscalation(any(), anyString(), anyMap());
@@ -1722,7 +1733,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             taskRoleResourcesItems.add(taskRoleResource);
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, null);
 
             assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
             verify(camundaService, times(1)).cancelTask(taskId);
@@ -1754,7 +1765,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             taskRoleResourcesItems.add(taskRoleResource);
             when(taskResource.getTaskRoleResources()).thenReturn(taskRoleResourcesItems);
 
-            taskManagementService.cancelTask(taskId, accessControlResponse);
+            taskManagementService.cancelTask(taskId, accessControlResponse, null);
 
             assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
             verify(camundaService, times(1)).cancelTask(taskId);
@@ -1788,7 +1799,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
 
-            taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap);
+            taskManagementService.completeTask(taskId, accessControlResponse, null);
             boolean taskStateIsCompletedAlready = taskResource.getState().equals(CFTTaskState.COMPLETED);
             verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
@@ -1814,7 +1825,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
                 accessControlResponse,
-                requestParamMap
+                null
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
@@ -1845,7 +1856,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
                 accessControlResponse,
-                requestParamMap
+                null
             ))
                 .isInstanceOf(TaskStateIncorrectException.class)
                 .hasNoCause()
@@ -1864,7 +1875,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
                 accessControlResponse,
-                requestParamMap
+                null
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
@@ -1880,7 +1891,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
             TaskResource taskResource = spy(TaskResource.class);
             when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse, requestParamMap))
+            assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse, null))
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
@@ -1900,7 +1911,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
@@ -1934,7 +1946,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(true),
-                    requestParamMap
+                    null
                 );
                 boolean taskStateIsAssignedAlready = TaskState.ASSIGNED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -1965,7 +1977,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        requestParamMap
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -1985,7 +1997,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        requestParamMap
+                        null
                     ));
                 assertEquals("Task Not Found Error: The task could not be found.",
                     exception.getMessage());
@@ -2030,7 +2042,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false),
-                    requestParamMap
+                    null
                 );
                 boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
                     .equals(mockedVariables.get("taskState"));
@@ -2055,7 +2067,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        requestParamMap
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -2087,7 +2099,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        requestParamMap
+                        null
                     ));
                 assertEquals(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
@@ -2107,7 +2119,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        requestParamMap
+                        null
                     ));
                 assertEquals("Task Not Found Error: The task could not be found.",
                     exception.getMessage());
@@ -2129,7 +2141,8 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
                 taskId,
-                accessControlResponse
+                accessControlResponse,
+                null
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
@@ -2161,7 +2174,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(true),
-                    requestParamMap
+                    null
                 );
                 boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
                     .equals(taskResource.getState().getValue());
@@ -2187,7 +2200,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        requestParamMap
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -2208,7 +2221,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(true),
-                        requestParamMap
+                        null
                     ));
                 assertEquals("Task Not Found Error: The task could not be found.",
                     exception.getMessage());
@@ -2250,7 +2263,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false),
-                    requestParamMap
+                    null
                 );
                 boolean taskStateIsCompletedAlready = CFTTaskState.COMPLETED.getValue()
                     .equals(taskResource.getState().getValue());
@@ -2284,7 +2297,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false),
-                    requestParamMap
+                    null
                 );
                 boolean taskStateIsCompletedAlready = CFTTaskState.COMPLETED.getValue()
                     .equals(taskResource.getState().getValue());
@@ -2320,7 +2333,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false),
-                    requestParamMap
+                    null
                 );
                 boolean taskStateIsCompletedAlready = CFTTaskState.TERMINATED.getValue()
                     .equals(taskResource.getState().getValue());
@@ -2349,7 +2362,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        requestParamMap
+                        null
                     ));
                 assertEquals("Role Assignment Verification: "
                              + "The request failed the Role Assignment checks performed.",
@@ -2379,7 +2392,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        requestParamMap
+                        null
                     ));
                 assertEquals(
                     String.format("Could not complete task with id: %s as task was not previously assigned", taskId),
@@ -2408,7 +2421,7 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                         taskId,
                         accessControlResponse,
                         new CompletionOptions(false),
-                        requestParamMap
+                        null
                     ));
                 assertEquals(
                     "Task Not Found Error: The task could not be found.",
@@ -2457,6 +2470,30 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 .when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(ServiceMandatoryFieldValidationException.class);
+        }
+
+        @Test
+        void should_propagate_assignee_configuration_exception_when_initiating_task() {
+            when(cftTaskMapper.readDate(any(), any(CamundaVariableDefinition.class), any())).thenCallRealMethod();
+            doReturn(taskResource).when(cftTaskMapper).mapToTaskResource(eq(taskId), anyMap());
+
+            OffsetDateTime offsetDueDate = OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER);
+            when(taskResource.getTaskType()).thenReturn(A_TASK_TYPE);
+            when(taskResource.getTaskId()).thenReturn(taskId);
+            when(taskResource.getCaseId()).thenReturn("aCaseId");
+            when(taskResource.getTaskName()).thenReturn(A_TASK_NAME);
+            when(taskResource.getDueDateTime()).thenReturn(offsetDueDate);
+
+            doThrow(new AssigneeConfigurationException(ErrorMessages.MULTIPLE_ASSIGNEE_RULE_ERROR.getDetail()))
+                .when(configureTaskService).configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class));
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(AssigneeConfigurationException.class)
+                .hasMessage("Assignee Configuration Error: Multiple assignee should be declared as separate rules.");
+
+            verify(configureTaskService).configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class));
+            verifyNoInteractions(taskAutoAssignmentService, camundaService);
+            verify(cftTaskDatabaseService, never()).saveTask(any(TaskResource.class));
         }
 
         @Test
@@ -2582,6 +2619,24 @@ class TaskManagementServiceUnitTest extends CamundaHelpers {
                 assertEquals("completed", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+            }
+
+
+
+            @Test
+            void should_invoke_set_termination_process_from_helper_when_task_termination_runs() {
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+                taskManagementService.terminateTask(taskId, new TerminateInfo("deleted"));
+                verify(terminationProcessHelper, times(1))
+                    .setTerminationProcessOnTerminateTask(anyString(), any());
+                assertEquals(TERMINATED, taskResource.getState());
+                assertEquals("deleted", taskResource.getTerminationReason());
             }
 
             @Test

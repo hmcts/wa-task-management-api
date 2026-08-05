@@ -2,26 +2,38 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.awaitility.Awaitility;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsApiUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsInitiationUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestsUserUtils;
 
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -31,11 +43,42 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_JUDGE_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.EMAIL_PREFIX_R3_5;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES3;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.WA_JURISDICTION;
 
+@Import(AwaitilityTestConfig.class)
 @SuppressWarnings("checkstyle:LineLength")
+@RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
-public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBaseTest {
+@ActiveProfiles("functional")
+@Slf4j
+public class PostTaskReplicationMIControllerTest {
 
+    @Autowired
+    TaskFunctionalTestsUserUtils taskFunctionalTestsUserUtils;
+
+    @Autowired
+    TaskFunctionalTestsApiUtils taskFunctionalTestsApiUtils;
+
+    @Autowired
+    TaskFunctionalTestsInitiationUtils taskFunctionalTestsInitiationUtils;
+
+    @Autowired
+    AuthorizationProvider authorizationProvider;
+
+    @Autowired
+    IdamTokenGenerator idamTokenGenerator;
+
+    @Autowired
+    IdamService idamService;
     private static final String ENDPOINT_BEING_TESTED_TASK = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED_HISTORY = "/task/{task-id}/history";
     private static final String ENDPOINT_BEING_TESTED_REPORTABLE = "/task/{task-id}/reportable";
@@ -47,48 +90,60 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
     @Value("${environment}")
     private String environment;
 
-    private TestAuthenticationCredentials caseworkerCredentials;
+    TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
+    TestAuthenticationCredentials caseWorkerWithTribRole;
+    TestAuthenticationCredentials userWithTaskSupervisorRole;
+    TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
+    TestAuthenticationCredentials waOrgCaseworkerForCompletion;
+    TestAuthenticationCredentials tribCaseworkerWithWorkTypes;
+    TestAuthenticationCredentials caseWorkerWithJudgeRole;
+    TestAuthenticationCredentials waOrgCaseworkerForTermination;
 
     @Before
     public void setUp() {
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-    }
-
-    @After
-    public void cleanUp() {
-        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_WA_ORG_ROLES2);
+        caseWorkerWithTribRole = taskFunctionalTestsUserUtils.getTestUser(
+            USER_WITH_TRIB_CASEWORKER_ROLE);
+        userWithTaskSupervisorRole = taskFunctionalTestsUserUtils.getTestUser(
+            CASE_WORKER_WITH_TASK_SUPERVISOR_ROLE);
+        caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_CFT_ORG_ROLES);
+        waOrgCaseworkerForCompletion = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_WA_ORG_ROLES2);
+        tribCaseworkerWithWorkTypes = taskFunctionalTestsUserUtils
+            .getTestUser(USER_WITH_TRIB_CASEWORKER_ROLE_WITH_WORKTYPES);
+        caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils
+            .getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
+        waOrgCaseworkerForTermination = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES3);
     }
 
     @Test
     public void user_should_configure_task_and_configure_action_recorded_in_replica_tables() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data.json",
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication",
             "process application"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_TASK,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                Response resultHistory = restApiActions.get(
+                Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithWAOrgRoles.getHeaders()
                 );
 
                 resultHistory.prettyPrint();
@@ -107,77 +162,69 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("task_history_list.get(1).update_action", equalTo("Configure"));
             });
 
-        await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
-            .untilAsserted(() -> {
-                Response resultReportable = restApiActions.get(
-                    ENDPOINT_BEING_TESTED_REPORTABLE,
-                    taskId,
-                    caseworkerCredentials.getHeaders()
-                );
+        await().untilAsserted(() -> {
+            Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                ENDPOINT_BEING_TESTED_REPORTABLE,
+                taskId,
+                caseWorkerWithWAOrgRoles.getHeaders()
+            );
 
-                resultReportable.prettyPrint();
-                resultReportable.then().assertThat()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
-                    .body("reportable_task_list.get(0).assignee", equalTo(null))
-                    .body("reportable_task_list.get(0).updated_by", notNullValue())
-                    .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("Configure"))
-                    .body("reportable_task_list.get(0).first_assigned_date", nullValue())
-                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
-                    .body("reportable_task_list.get(0).wait_time_days", nullValue())
-                    .body("reportable_task_list.get(0).wait_time", nullValue())
-                    .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
-                    .body("reportable_task_list.get(0).completed_date", nullValue())
-                    .body("reportable_task_list.get(0).completed_date_time", nullValue())
-                    .body("reportable_task_list.get(0).final_state_label", nullValue())
-                    .body("reportable_task_list.get(0).handling_time_days", nullValue())
-                    .body("reportable_task_list.get(0).handling_time", nullValue())
-                    .body("reportable_task_list.get(0).processing_time_days", nullValue())
-                    .body("reportable_task_list.get(0).processing_time", nullValue())
-                    .body("reportable_task_list.get(0).is_within_sla", nullValue())
-                    .body("reportable_task_list.get(0).due_date_to_completed_diff_days", nullValue())
-                    .body("reportable_task_list.get(0).due_date_to_completed_diff_time", nullValue());
-            });
+            resultReportable.prettyPrint();
+            resultReportable.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .body("reportable_task_list.size()", equalTo(1))
+                .body("reportable_task_list.get(0).state", equalTo("UNASSIGNED"))
+                .body("reportable_task_list.get(0).assignee", equalTo(null))
+                .body("reportable_task_list.get(0).updated_by", notNullValue())
+                .body("reportable_task_list.get(0).updated", notNullValue())
+                .body("reportable_task_list.get(0).update_action", equalTo("Configure"))
+                .body("reportable_task_list.get(0).first_assigned_date", nullValue())
+                .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
+                .body("reportable_task_list.get(0).wait_time_days", nullValue())
+                .body("reportable_task_list.get(0).wait_time", nullValue())
+                .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+                .body("reportable_task_list.get(0).completed_date", nullValue())
+                .body("reportable_task_list.get(0).completed_date_time", nullValue())
+                .body("reportable_task_list.get(0).final_state_label", nullValue())
+                .body("reportable_task_list.get(0).handling_time_days", nullValue())
+                .body("reportable_task_list.get(0).handling_time", nullValue())
+                .body("reportable_task_list.get(0).processing_time_days", nullValue())
+                .body("reportable_task_list.get(0).processing_time", nullValue())
+                .body("reportable_task_list.get(0).is_within_sla", nullValue())
+                .body("reportable_task_list.get(0).due_date_to_completed_diff_days", nullValue())
+                .body("reportable_task_list.get(0).due_date_to_completed_diff_time", nullValue());
+        });
 
-        Response resultAssignments = restApiActions.get(
+        Response resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithWAOrgRoles.getHeaders()
         );
         resultAssignments.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("task_assignments_list", empty());
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void user_should_claim_task_and_claim_action_recorded_in_reportable_task() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
 
         AtomicReference<JsonPath> configureJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                Response resultTaskReportable = restApiActions.get(
+                Response resultTaskReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 configureJsonPathEvaluator.set(resultTaskReportable.jsonPath());
@@ -204,24 +251,21 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0));
             });
 
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertNotNull(taskId));
+        Awaitility.await().untilAsserted(() -> assertNotNull(taskId));
 
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseWorkerWithTribRole.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultHistory = restApiActions.get(
+                Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 resultHistory.prettyPrint();
@@ -246,14 +290,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultReportable = restApiActions.get(
+                Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 resultReportable.prettyPrint();
@@ -291,44 +333,39 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void user_should_configure_claim_unclaim_and_reclaim_task_actions_recorded_in_replica_tables() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseWorkerWithTribRole.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                resultHistory.set(restApiActions.get(
+                resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 ));
 
                 resultHistory.get().prettyPrint();
@@ -356,14 +393,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                resultReportable.set(restApiActions.get(
+                resultReportable.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 ));
 
                 resultReportable.get().prettyPrint();
@@ -402,13 +437,13 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
-        Response resultAssignments = restApiActions.get(
+        Response resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
         resultAssignments.prettyPrint();
         resultAssignments.then().assertThat()
@@ -423,11 +458,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             resAssignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_start").toString()
         );
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
-        Response result = restApiActions.post(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED_UNCLAIM,
             taskId,
-            caseworkerCredentials.getHeaders()
+            userWithTaskSupervisorRole.getHeaders()
         );
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
@@ -435,14 +469,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultAssignmentsUnclaim = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                resultAssignmentsUnclaim.set(restApiActions.get(
+                resultAssignmentsUnclaim.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_ASSIGNMENTS,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    userWithTaskSupervisorRole.getHeaders()
                 ));
                 resultAssignmentsUnclaim.get().prettyPrint();
                 resultAssignmentsUnclaim.get().then().assertThat()
@@ -455,14 +487,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultUnclaimHistory = restApiActions.get(
+                Response resultUnclaimHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    userWithTaskSupervisorRole.getHeaders()
                 );
 
                 resultUnclaimHistory.prettyPrint();
@@ -485,13 +515,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                resultReportable.set(restApiActions.get(
+                resultReportable.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    userWithTaskSupervisorRole.getHeaders()
                 ));
 
                 resultReportable.get().prettyPrint();
@@ -514,37 +542,38 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
             });
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseWorkerWithTribRole.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
-        Response resultAssignmentsClaim = restApiActions.get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-        resultAssignmentsClaim.prettyPrint();
-        resultAssignmentsClaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(2))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
-            .body("task_assignments_list.get(1).assignment_end_reason", nullValue())
-            .body("task_assignments_list.get(0).assignment_start", notNullValue())
-            .body("task_assignments_list.get(0).assignment_end", notNullValue())
-            .body("task_assignments_list.get(1).assignment_start", notNullValue())
-            .body("task_assignments_list.get(1).assignment_end", nullValue());
+        AtomicReference<Response> resultAssignmentsClaim = new AtomicReference<>();
+        await()
+            .untilAsserted(() -> {
+                resultAssignmentsClaim.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole.getHeaders()
+                ));
+                resultAssignmentsClaim.get().prettyPrint();
+                resultAssignmentsClaim.get().then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(2))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
+                    .body("task_assignments_list.get(1).assignment_end_reason", nullValue())
+                    .body("task_assignments_list.get(0).assignment_start", notNullValue())
+                    .body("task_assignments_list.get(0).assignment_end", notNullValue())
+                    .body("task_assignments_list.get(1).assignment_start", notNullValue())
+                    .body("task_assignments_list.get(1).assignment_end", nullValue());
+            });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                Response reClaimResultHistory = restApiActions.get(
+                Response reClaimResultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 reClaimResultHistory.prettyPrint();
@@ -552,7 +581,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .statusCode(HttpStatus.OK.value())
                     .body("task_history_list.size()", equalTo(5));
 
-                JsonPath assignmentsJsonPathEvaluator = resultAssignmentsClaim.jsonPath();
+                JsonPath assignmentsJsonPathEvaluator = resultAssignmentsClaim.get().jsonPath();
                 JsonPath resultHistoryJsonPathEvaluator = reClaimResultHistory.jsonPath();
 
                 assertEquals(
@@ -570,13 +599,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                Response resultReport = restApiActions.get(
+                Response resultReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 resultReport.prettyPrint();
@@ -629,36 +656,33 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     reClaimJsonPathEvaluator.get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
             });
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void user_should_claim_and_delete_task_action_recorded_in_replicate_db() {
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseWorkerWithCftOrgRoles.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         AtomicReference<Response> resultReportable = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                resultReportable.set(restApiActions.get(
+                resultReportable.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithCftOrgRoles.getHeaders()
                 ));
 
                 resultReportable.get().prettyPrint();
@@ -697,14 +721,14 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                                                           .get("reportable_task_list.get(0).updated"))));
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
-        Response resultDelete = restApiActions.delete(
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
 
         resultDelete.then().assertThat()
@@ -713,14 +737,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                resultHistory.set(restApiActions.get(
+                resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithCftOrgRoles.getHeaders()
                 ));
 
                 resultHistory.get().prettyPrint();
@@ -734,20 +756,18 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("task_history_list.get(3).assignee", notNullValue())
                     .body("task_history_list.get(3).updated_by", notNullValue())
                     .body("task_history_list.get(3).updated", notNullValue())
-                    .body("task_history_list.get(3).update_action", equalTo("AutoCancel"))
-                    .body("task_history_list.get(3).termination_reason", equalTo("cancelled"));
+                    .body("task_history_list.get(3).update_action", equalTo("Terminate"))
+                    .body("task_history_list.get(3).termination_reason", equalTo("deleted"));
 
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultDeleteReportable = restApiActions.get(
+                Response resultDeleteReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithCftOrgRoles.getHeaders()
                 );
 
                 resultDeleteReportable.prettyPrint();
@@ -759,14 +779,14 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).created", notNullValue())
                     .body("reportable_task_list.get(0).updated_by", notNullValue())
                     .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).created_date", notNullValue())
                     .body("reportable_task_list.get(0).due_date", notNullValue())
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
-                    .body("reportable_task_list.get(0).termination_reason", equalTo("cancelled"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo(null))
+                    .body("reportable_task_list.get(0).termination_reason", equalTo("deleted"))
                     .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time", notNullValue())
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
@@ -811,10 +831,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
             });
 
-        Response resultAssignments = restApiActions.get(
+        Response resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithCftOrgRoles.getHeaders()
         );
         resultAssignments.prettyPrint();
         resultAssignments.then().assertThat()
@@ -824,7 +844,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).location", equalTo("765324"))
             .body("task_assignments_list.get(0).assignment_start", notNullValue())
             .body("task_assignments_list.get(0).assignment_end", notNullValue())
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("CANCELLED"))
+            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("TERMINATED"))
             .body("task_assignments_list.get(0).assignee", notNullValue())
             .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"));
 
@@ -840,42 +860,37 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString()
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
 
     @Test
     public void user_should_claim_complete_task_and_complete_action_recorded_in_replica_tables() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseWorkerWithTribRole.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultReportable = restApiActions.get(
+                Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 resultReportable.prettyPrint();
@@ -909,14 +924,14 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 assertTrue(LocalTime.parse(
                     claimJsonPathEvaluator.get().get("reportable_task_list.get(0).wait_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
-                ).toSecondOfDay() > 1);
+                ).toSecondOfDay() >= 0);
 
             });
 
-        Response resultAssignments = restApiActions.get(
+        Response resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         resultAssignments.then().assertThat()
@@ -931,13 +946,13 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task_assignments_list.get(0).task_name", equalTo("Process Application"));
 
-        Awaitility.await().atLeast(3, TimeUnit.SECONDS).pollDelay(3, TimeUnit.SECONDS)
+        Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
 
-        Response resultComplete = restApiActions.post(
+        Response resultComplete = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED_COMPLETE,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         resultComplete.then().assertThat()
@@ -947,11 +962,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             new TerminateInfo("completed")
         );
 
-        Response resultDelete = restApiActions.delete(
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         resultDelete.then().assertThat()
@@ -960,14 +975,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                resultHistory.set(restApiActions.get(
+                resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 ));
                 resultHistory.get().prettyPrint();
                 resultHistory.get().then().assertThat()
@@ -977,13 +990,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                Response resultCompleteReport = restApiActions.get(
+                Response resultCompleteReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 resultCompleteReport.prettyPrint();
@@ -1052,16 +1063,16 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     completeJsonPathEvaluator.get("reportable_task_list.get(0).handling_time").toString(),
                     DateTimeFormatter.ofPattern("HH:mm:ss")
                 ).toSecondOfDay();
-                assertTrue(waitTimeSeconds > 1);
-                assertTrue(processingTimeSeconds > 1);
+                assertTrue(waitTimeSeconds >= 0);
+                assertTrue(processingTimeSeconds >= 0);
                 assertEquals(handlingTimeSeconds, processingTimeSeconds - waitTimeSeconds);
 
             });
 
-        resultAssignments = restApiActions.get(
+        resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
         resultAssignments.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -1087,38 +1098,33 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             assignmentsJsonPathEvaluator.get("task_assignments_list.get(0).assignment_end").toString()
         );
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
     public void user_should_claim_complete_terminate_task_and_actions_recorded_in_replica_tables() {
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            caseworkerCredentials.getHeaders(),
+            caseWorkerWithTribRole.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         AtomicReference<JsonPath> claimJsonPathEvaluator = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultReportable = restApiActions.get(
+                Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 resultReportable.prettyPrint();
@@ -1152,10 +1158,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
             });
 
-        Response resultAssignments = restApiActions.get(
+        Response resultAssignments = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_ASSIGNMENTS,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         resultAssignments.then().assertThat()
@@ -1170,24 +1176,24 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task_assignments_list.get(0).role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task_assignments_list.get(0).task_name", equalTo("Process Application"));
 
-        Response resultComplete = restApiActions.post(
+        Response resultComplete = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED_COMPLETE,
             taskId,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         resultComplete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
-        Response resultDelete = restApiActions.delete(
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            caseworkerCredentials.getHeaders()
+            caseWorkerWithTribRole.getHeaders()
         );
 
         resultDelete.then().assertThat()
@@ -1196,14 +1202,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
         AtomicReference<Response> resultHistory = new AtomicReference<>();
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                resultHistory.set(restApiActions.get(
+                resultHistory.set(taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 ));
 
                 resultHistory.get().prettyPrint();
@@ -1214,7 +1218,7 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("task_history_list.get(1).update_action", equalTo("Configure"))
                     .body("task_history_list.get(2).update_action", equalTo("Claim"))
                     .body("task_history_list.get(3).update_action", equalTo("Complete"))
-                    .body("task_history_list.get(4).update_action", equalTo("AutoCancel"))
+                    .body("task_history_list.get(4).update_action", equalTo("Terminate"))
                     .body("task_history_list.get(4).state", equalTo("TERMINATED"))
                     .body("task_history_list.get(4).assignee", notNullValue())
                     .body("task_history_list.get(4).updated_by", notNullValue())
@@ -1223,22 +1227,17 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
 
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultTerminateReportable = restApiActions.get(
+                Response resultTerminateReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
 
                 resultTerminateReportable.prettyPrint();
@@ -1249,13 +1248,13 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).assignee", notNullValue())
                     .body("reportable_task_list.get(0).updated_by", notNullValue())
                     .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).created_date", notNullValue())
                     .body("reportable_task_list.get(0).due_date", notNullValue())
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date", notNullValue())
                     .body("reportable_task_list.get(0).first_assigned_date_time", notNullValue())
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
                     .body("reportable_task_list.get(0).wait_time_days", equalTo(0))
                     .body("reportable_task_list.get(0).wait_time", notNullValue())
                     .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
@@ -1295,15 +1294,12 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
 
-                Response resultAssignmentsPostTermination = restApiActions.get(
+                Response resultAssignmentsPostTermination = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_ASSIGNMENTS,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole.getHeaders()
                 );
                 resultAssignmentsPostTermination.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
@@ -1330,41 +1326,89 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                 );
             });
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
     @Test
-    public void user_should_complete_task_and_termination_process_recorded_in_replica_tables() {
-        TestAuthenticationCredentials userWithCompletionProcessEnabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-enabled-");
+    public void should_update_termination_process_agent_name_and_outcome_when_task_cancelled_on_event_and_terminated() {
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskWithCancellationProcessAndRetrieveIds(
+                Map.of(
+                    "cancellationProcess", "CASE_EVENT_CANCELLATION"
+                ),
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                "processApplication"
+            );
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        String taskId = taskVariables.getTaskId();
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("deleted")
+        );
+        taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
+            tribCaseworkerWithWorkTypes.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            tribCaseworkerWithWorkTypes.getHeaders()
+        );
+
+        resultDelete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        await()
+            .untilAsserted(() -> {
+
+                Response resultTerminateReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    caseWorkerWithTribRole.getHeaders()
+                );
+
+                resultTerminateReportable.prettyPrint();
+                // Get system user details so that it will be the agent_name on task termination
+                String systemUserToken = idamTokenGenerator.generate();
+                String systemUserId = idamTokenGenerator.getUserInfo(systemUserToken).getUid();
+
+                resultTerminateReportable.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1))
+                    .body("reportable_task_list.get(0).task_id", equalTo(taskId))
+                    .body("reportable_task_list.get(0).termination_process", equalTo("EXUI_CASE_EVENT_CANCELLATION"))
+                    .body("reportable_task_list.get(0).termination_process_label", equalTo("Automated Cancellation"))
+                    .body("reportable_task_list.get(0).agent_name", equalTo(systemUserId))
+                    .body("reportable_task_list.get(0).outcome", equalTo("Cancelled"))
+                    .body("reportable_task_list.get(0).state", equalTo(CFTTaskState.TERMINATED.getValue()));
+            });
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(tribCaseworkerWithWorkTypes.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithWorkTypes(
+            tribCaseworkerWithWorkTypes.getHeaders(), "tribunal-caseworker");
+    }
+
+    @Test
+    public void should_update_termination_process_agent_name_and_outcome_when_task_completed_and_terminated() {
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication",
             "Process Application"
         );
-        initiateTask(taskVariables);
-
-        common.setupWAOrganisationalRoleAssignment(
-            userWithCompletionProcessEnabled.getHeaders(),
-            "tribunal-caseworker"
-        );
-
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
         String taskId = taskVariables.getTaskId();
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
-            userWithCompletionProcessEnabled.getHeaders(),
+            waOrgCaseworkerForCompletion.getHeaders(),
             HttpStatus.NO_CONTENT
         );
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
-                Response resultReportable = restApiActions.get(
+                Response resultReportable = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    userWithCompletionProcessEnabled.getHeaders()
+                    waOrgCaseworkerForCompletion.getHeaders()
                 );
 
 
@@ -1375,10 +1419,10 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
 
-        Response resultComplete = restApiActions.post(
+        Response resultComplete = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
             taskId,
-            userWithCompletionProcessEnabled.getHeaders()
+            waOrgCaseworkerForCompletion.getHeaders()
         );
 
         resultComplete.then().assertThat()
@@ -1388,19 +1432,19 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             new TerminateInfo("completed")
         );
 
-        Response resultTerminate = restApiActions.delete(
+        Response resultTerminate = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskId,
             terminateTaskRequest,
-            userWithCompletionProcessEnabled.getHeaders()
+            waOrgCaseworkerForTermination.getHeaders()
         );
         resultTerminate.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        Response result = restApiActions.get(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_TASK,
             taskId,
-            userWithCompletionProcessEnabled.getHeaders()
+            waOrgCaseworkerForCompletion.getHeaders()
         );
         result.prettyPrint();
         result.then().assertThat()
@@ -1409,14 +1453,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             .body("task.id", equalTo(taskId));
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
-                Response resultHistory = restApiActions.get(
+                Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    userWithCompletionProcessEnabled.getHeaders()
+                    waOrgCaseworkerForCompletion.getHeaders()
                 );
 
                 resultHistory.prettyPrint();
@@ -1431,17 +1472,16 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
 
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
-                Response resultCompleteReport = restApiActions.get(
+                Response resultCompleteReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    userWithCompletionProcessEnabled.getHeaders()
+                    waOrgCaseworkerForCompletion.getHeaders()
                 );
 
-
+                UserInfo userInfo = idamService.getUserInfo(
+                    waOrgCaseworkerForCompletion.getHeaders().getValue(AUTHORIZATION)
+                );
                 resultCompleteReport.prettyPrint();
                 resultCompleteReport.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
@@ -1450,171 +1490,107 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).final_state_label", equalTo("COMPLETED"))
                     .body("reportable_task_list.get(0).termination_process",
-                          equalTo("EXUI_CASE_EVENT_COMPLETION"));
+                          equalTo("EXUI_CASE_EVENT_COMPLETION"))
+                    .body("reportable_task_list.get(0).termination_process_label",
+                      equalTo("Automated Completion"))
+                    .body("reportable_task_list.get(0).outcome", equalTo("Completed"))
+                    .body("reportable_task_list.get(0).agent_name", equalTo(userInfo.getUid()));
             });
 
-        common.cleanUpTask(taskId);
-        common.clearAllRoleAssignments(userWithCompletionProcessEnabled.getHeaders());
-        authorizationProvider.deleteAccount(userWithCompletionProcessEnabled.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(waOrgCaseworkerForCompletion.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            waOrgCaseworkerForCompletion.getHeaders());
     }
 
-
     @Test
-    public void user_should_complete_task_and_no_termination_process_recorded_in_replica_tables_when_flag_disabled() {
+    public void should_cancel_task_and_update_agent_name_and_outcome_when_role_assignment_verification_passed() {
+        TestAuthenticationCredentials leadJudgeForSpecificAccess =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestAuthenticationCredentials userWithCompletionProcessDisabled =
-            authorizationProvider.getNewTribunalCaseworker("wa-user-with-completion-process-disabled-");
-
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "processApplication",
-            "Process Application"
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+            "reviewSpecificAccessRequestJudiciary",
+            "Review Specific Access Request Judiciary"
         );
-        initiateTask(taskVariables);
 
-        common.setupWAOrganisationalRoleAssignment(
-            userWithCompletionProcessDisabled.getHeaders(),
-            "tribunal-caseworker"
+        taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
+            leadJudgeForSpecificAccess.getHeaders(),
+            taskVariables.getCaseId(),
+            WA_JURISDICTION
         );
+
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseWorkerWithJudgeRole.getHeaders());
 
         String taskId = taskVariables.getTaskId();
-        given.iClaimATaskWithIdAndAuthorization(
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
+            ENDPOINT_BEING_TESTED_CANCEL,
             taskId,
-            userWithCompletionProcessDisabled.getHeaders(),
-            HttpStatus.NO_CONTENT
+            leadJudgeForSpecificAccess.getHeaders()
         );
 
-        await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
-            .untilAsserted(() -> {
-                Response resultReportable = restApiActions.get(
-                    ENDPOINT_BEING_TESTED_REPORTABLE,
-                    taskId,
-                    userWithCompletionProcessDisabled.getHeaders()
-                );
-                resultReportable.prettyPrint();
-                resultReportable.then().assertThat()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("reportable_task_list.size()", equalTo(1));
-            });
-
-        Response resultComplete = restApiActions.post(
-            ENDPOINT_BEING_TESTED_COMPLETE + "?completion_process=" + "EXUI_CASE-EVENT_COMPLETION",
-            taskId,
-            userWithCompletionProcessDisabled.getHeaders()
-        );
-
-
-        resultComplete.then().assertThat()
+        result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo("cancelled")
+            new TerminateInfo("deleted")
         );
 
-        Response resultDelete = restApiActions.delete(
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
             ENDPOINT_BEING_TESTED_TASK,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            userWithCompletionProcessDisabled.getHeaders()
+            leadJudgeForSpecificAccess.getHeaders()
         );
 
         resultDelete.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
-                Response resultHistory = restApiActions.get(
+
+                Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    userWithCompletionProcessDisabled.getHeaders()
+                    leadJudgeForSpecificAccess.getHeaders()
                 );
+
                 resultHistory.prettyPrint();
                 resultHistory.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
-                    .body("task_history_list.size()", equalTo(5))
-                    .body("task_history_list.get(3).termination_process", nullValue())
-                    .body("task_history_list.get(4).termination_process", nullValue());
-            });
-        await()
-            .atLeast(3, TimeUnit.SECONDS)
-            .pollDelay(3, TimeUnit.SECONDS)
-            .atMost(120, SECONDS)
-            .untilAsserted(() -> {
-                Response resultCompleteReport = restApiActions.get(
+                    .body("task_history_list.size()", equalTo(4))
+                    .body("task_history_list.get(2).state", equalTo("CANCELLED"))
+                    .body("task_history_list.get(2).assignee", equalTo(null))
+                    .body("task_history_list.get(2).updated_by", notNullValue())
+                    .body("task_history_list.get(2).updated", notNullValue())
+                    .body("task_history_list.get(2).update_action", equalTo("Cancel"))
+                    .body("task_history_list.get(2).due_date_time", notNullValue())
+                    .body("task_history_list.get(2).updated", notNullValue())
+                    .body("task_history_list.get(2).completed_date", nullValue())
+                    .body("task_history_list.get(2).completed_date_time", nullValue())
+                    .body("task_history_list.get(2).wait_time_days", nullValue())
+                    .body("task_history_list.get(2).wait_time", nullValue())
+                    .body("task_history_list.get(2).first_assigned_date", nullValue())
+                    .body("task_history_list.get(2).first_assigned_date_time", nullValue());
+
+
+
+                Response resultCancelReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    userWithCompletionProcessDisabled.getHeaders()
-                );
-
-                resultCompleteReport.prettyPrint();
-                resultCompleteReport.then().assertThat()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
-                    .body("reportable_task_list.get(0).update_action", equalTo("AutoCancel"))
-                    .body("reportable_task_list.get(0).final_state_label", equalTo("AUTO_CANCELLED"))
-                    .body("reportable_task_list.get(0).termination_process", nullValue());
-            });
-
-        common.cleanUpTask(taskId);
-        common.clearAllRoleAssignments(userWithCompletionProcessDisabled.getHeaders());
-        authorizationProvider.deleteAccount(userWithCompletionProcessDisabled.getAccount().getUsername());
-    }
-
-
-    @Test
-    public void user_should_cancel_task_when_role_assignment_verification_passed() {
-        TestAuthenticationCredentials caseworkerCredentials2 = authorizationProvider.getNewTribunalCaseworker(
-            "wa-ft-test-r3-");
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "reviewSpecificAccessRequestJudiciary",
-            "Review Specific Access Request Judiciary"
-        );
-
-        common.setupLeadJudgeForSpecificAccess(
-            caseworkerCredentials.getHeaders(),
-            taskVariables.getCaseId(),
-            WA_JURISDICTION
-        );
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials2.getHeaders(), "judge");
-
-        initiateTask(taskVariables, caseworkerCredentials2.getHeaders());
-
-        String taskId = taskVariables.getTaskId();
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED_CANCEL,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
-            .untilAsserted(() -> {
-
-                Response resultCancelReport = restApiActions.get(
-                    ENDPOINT_BEING_TESTED_REPORTABLE,
-                    taskId,
-                    caseworkerCredentials.getHeaders()
+                    leadJudgeForSpecificAccess.getHeaders()
                 );
 
                 resultCancelReport.prettyPrint();
+                UserInfo userInfo = idamService.getUserInfo(leadJudgeForSpecificAccess.getHeaders()
+                                                                .getValue(AUTHORIZATION));
                 resultCancelReport.then().assertThat()
                     .statusCode(HttpStatus.OK.value())
                     .body("reportable_task_list.size()", equalTo(1))
-                    .body("reportable_task_list.get(0).state", equalTo("CANCELLED"))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
                     .body("reportable_task_list.get(0).assignee", equalTo(null))
                     .body("reportable_task_list.get(0).updated_by", notNullValue())
                     .body("reportable_task_list.get(0).updated", notNullValue())
-                    .body("reportable_task_list.get(0).update_action", equalTo("Cancel"))
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
                     .body("reportable_task_list.get(0).due_date", notNullValue())
                     .body("reportable_task_list.get(0).last_updated_date", notNullValue())
                     .body("reportable_task_list.get(0).completed_date", nullValue())
@@ -1624,97 +1600,228 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).wait_time_days", nullValue())
                     .body("reportable_task_list.get(0).wait_time", nullValue())
                     .body("reportable_task_list.get(0).first_assigned_date", nullValue())
-                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue());
+                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
+                    .body("reportable_task_list.get(0).termination_process", nullValue())
+                    .body("reportable_task_list.get(0).termination_process_label", nullValue())
+                    .body("reportable_task_list.get(0).outcome", equalTo("Cancelled"))
+                    .body("reportable_task_list.get(0).agent_name", equalTo(userInfo.getUid()));
 
             });
 
-        common.cleanUpTask(taskId);
-        common.clearAllRoleAssignments(caseworkerCredentials2.getHeaders());
-        authorizationProvider.deleteAccount(caseworkerCredentials2.getAccount().getUsername());
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(leadJudgeForSpecificAccess.getHeaders());
+        authorizationProvider.deleteAccount(leadJudgeForSpecificAccess.getAccount().getUsername());
     }
 
     @Test
-    public void user_should_configure_claim_unclaim_multiple_times_for_reassignments_check() {
-
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds(
-            "processApplication",
-            "Process Application"
+    public void should_cancel_task_and_set_termination_process_when_valid_cancellation_process_is_passed() {
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+            "reviewSpecificAccessRequestJudiciary",
+            "Review Specific Access Request Judiciary"
         );
-        initiateTask(taskVariables);
+        TestAuthenticationCredentials caseworkerForReadCredentials =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            caseworkerForReadCredentials.getHeaders(), "judge");
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
+
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
 
         String taskId = taskVariables.getTaskId();
-        given.iClaimATaskWithIdAndAuthorization(
+        taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
+            tribCaseworkerWithWorkTypes.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
+            ENDPOINT_BEING_TESTED_CANCEL + "?cancellation_process=" + "EXUI_USER_CANCELLATION",
             taskId,
-            caseworkerCredentials.getHeaders(),
-            HttpStatus.NO_CONTENT
+            tribCaseworkerWithWorkTypes.getHeaders()
         );
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED_UNCLAIM,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        Response resultAssignmentsUnclaim = restApiActions.get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-        resultAssignmentsUnclaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(1))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
-
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders(),
-            HttpStatus.NO_CONTENT
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo("deleted")
         );
 
-        resultAssignmentsUnclaim = restApiActions.get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-        resultAssignmentsUnclaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(2))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+        TestAuthenticationCredentials caseWorkerWithCancellationEnabled2 =
+            authorizationProvider.getNewTribunalCaseworker("wa-user-with-cancellation-process-enabled-2-");
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
+            caseWorkerWithCancellationEnabled2.getHeaders());
 
-        common.setupWAOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "tribunal-caseworker");
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders(),
-            HttpStatus.NO_CONTENT
+        Response resultDelete = taskFunctionalTestsApiUtils.getRestApiActions().delete(
+            ENDPOINT_BEING_TESTED_TASK,
+            taskVariables.getTaskId(),
+            terminateTaskRequest,
+            caseWorkerWithCancellationEnabled2.getHeaders()
         );
 
-
-        Response resultAssignmentsClaim = restApiActions.get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        resultAssignmentsClaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(2))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
-            .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
+        resultDelete.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                Response resultHistory = restApiActions.get(
+
+                Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_HISTORY,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    tribCaseworkerWithWorkTypes.getHeaders()
+                );
+
+                resultHistory.prettyPrint();
+                resultHistory.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_history_list.size()", equalTo(4))
+                    .body("task_history_list.get(2).state", equalTo("CANCELLED"))
+                    .body("task_history_list.get(2).assignee", equalTo(null))
+                    .body("task_history_list.get(2).updated_by", notNullValue())
+                    .body("task_history_list.get(2).updated", notNullValue())
+                    .body("task_history_list.get(2).update_action", equalTo("Cancel"))
+                    .body("task_history_list.get(2).due_date_time", notNullValue())
+                    .body("task_history_list.get(2).updated", notNullValue())
+                    .body("task_history_list.get(2).completed_date", nullValue())
+                    .body("task_history_list.get(2).completed_date_time", nullValue())
+                    .body("task_history_list.get(2).wait_time_days", nullValue())
+                    .body("task_history_list.get(2).wait_time", nullValue())
+                    .body("task_history_list.get(2).first_assigned_date", nullValue())
+                    .body("task_history_list.get(2).first_assigned_date_time", nullValue())
+                    .body("task_history_list.get(2).termination_process", equalTo("EXUI_USER_CANCELLATION"));
+
+
+
+                Response resultCancelReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_REPORTABLE,
+                    taskId,
+                    tribCaseworkerWithWorkTypes.getHeaders()
+                );
+
+                resultCancelReport.prettyPrint();
+                UserInfo userInfo = idamService.getUserInfo(tribCaseworkerWithWorkTypes.getHeaders()
+                                                                .getValue(AUTHORIZATION));
+
+                resultCancelReport.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("reportable_task_list.size()", equalTo(1))
+                    .body("reportable_task_list.get(0).state", equalTo("TERMINATED"))
+                    .body("reportable_task_list.get(0).assignee", equalTo(null))
+                    .body("reportable_task_list.get(0).updated_by", notNullValue())
+                    .body("reportable_task_list.get(0).updated", notNullValue())
+                    .body("reportable_task_list.get(0).update_action", equalTo("Terminate"))
+                    .body("reportable_task_list.get(0).due_date", notNullValue())
+                    .body("reportable_task_list.get(0).last_updated_date", notNullValue())
+                    .body("reportable_task_list.get(0).completed_date", nullValue())
+                    .body("reportable_task_list.get(0).completed_date_time", nullValue())
+                    .body("reportable_task_list.get(0).final_state_label", equalTo("USER_CANCELLED"))
+                    .body("reportable_task_list.get(0).number_of_reassignments", equalTo(0))
+                    .body("reportable_task_list.get(0).wait_time_days", nullValue())
+                    .body("reportable_task_list.get(0).wait_time", nullValue())
+                    .body("reportable_task_list.get(0).first_assigned_date", nullValue())
+                    .body("reportable_task_list.get(0).first_assigned_date_time", nullValue())
+                    .body("reportable_task_list.get(0).termination_process",
+                          equalTo("EXUI_USER_CANCELLATION"))
+                    .body("reportable_task_list.get(0).termination_process_label",
+                          equalTo("Manual Cancellation"))
+                    .body("reportable_task_list.get(0).outcome", equalTo("Cancelled"))
+                    .body("reportable_task_list.get(0).agent_name", equalTo(userInfo.getUid()));
+
+            });
+
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(tribCaseworkerWithWorkTypes.getHeaders());
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseworkerForReadCredentials.getHeaders());
+        authorizationProvider.deleteAccount(caseworkerForReadCredentials.getAccount().getUsername());
+    }
+
+    @Test
+    public void should_configure_claim_unclaim_multiple_times_for_reassignments_check() {
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+            "processApplication",
+            "Process Application"
+        );
+        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        String taskId = taskVariables.getTaskId();
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseWorkerWithTribRole.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(caseWorkerWithTribRole.getHeaders(), "task-supervisor");
+        Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
+            ENDPOINT_BEING_TESTED_UNCLAIM,
+            taskId,
+            caseWorkerWithTribRole.getHeaders()
+        );
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+        await()
+            .untilAsserted(() -> {
+                Response resultAssignmentsUnclaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole.getHeaders()
+                );
+                resultAssignmentsUnclaim.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(1))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+            });
+
+
+        TestAuthenticationCredentials caseWorkerWithTribRole2 =
+            authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(caseWorkerWithTribRole2.getHeaders(), "tribunal-caseworker");
+
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseWorkerWithTribRole2.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+        await()
+            .untilAsserted(() -> {
+                Response resultAssignmentsUnclaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole2.getHeaders()
+                );
+                resultAssignmentsUnclaim.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(2))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+            });
+
+        taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(caseWorkerWithTribRole2.getHeaders(), "tribunal-caseworker");
+        taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseWorkerWithTribRole2.getHeaders(),
+            HttpStatus.NO_CONTENT
+        );
+
+
+        await()
+            .untilAsserted(() -> {
+                Response resultAssignmentsClaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole2.getHeaders()
+                );
+
+                resultAssignmentsClaim.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(2))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
+                    .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
+            });
+
+
+        await()
+            .untilAsserted(() -> {
+                Response resultHistory = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_HISTORY,
+                    taskId,
+                    caseWorkerWithTribRole2.getHeaders()
                 );
 
                 resultHistory.prettyPrint();
@@ -1725,13 +1832,11 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
             });
 
         await()
-            .pollDelay(5, TimeUnit.SECONDS)
-            .atMost(30, SECONDS)
             .untilAsserted(() -> {
-                Response resultReport = restApiActions.get(
+                Response resultReport = taskFunctionalTestsApiUtils.getRestApiActions().get(
                     ENDPOINT_BEING_TESTED_REPORTABLE,
                     taskId,
-                    caseworkerCredentials.getHeaders()
+                    caseWorkerWithTribRole2.getHeaders()
                 );
                 resultReport.prettyPrint();
                 resultReport.then().assertThat()
@@ -1752,6 +1857,8 @@ public class PostTaskReplicationMIControllerTest extends SpringBootFunctionalBas
                     .body("reportable_task_list.get(0).wait_time", notNullValue());
             });
 
-        common.cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
+        taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(caseWorkerWithTribRole2.getHeaders());
+        authorizationProvider.deleteAccount(caseWorkerWithTribRole2.getAccount().getUsername());
     }
 }

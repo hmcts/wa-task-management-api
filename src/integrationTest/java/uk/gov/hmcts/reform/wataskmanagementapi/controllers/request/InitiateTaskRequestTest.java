@@ -1,9 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
 import java.util.Map;
 
@@ -14,8 +19,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_ID;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class InitiateTaskRequestTest extends SpringBootIntegrationBaseTest {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
+class InitiateTaskRequestTest {
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @Test
     void given_snake_case_initiate_body_request_when_deserializes_it_keeps_attribute_list_and_operation_fields()
@@ -29,7 +38,7 @@ class InitiateTaskRequestTest extends SpringBootIntegrationBaseTest {
 
         InitiateTaskRequestMap initiateTaskRequest = new InitiateTaskRequestMap(INITIATION, taskAttributes);
 
-        String expectedInitiateBodyRequest = asJsonString(initiateTaskRequest);
+        String expectedInitiateBodyRequest = objectMapper.writeValueAsString(initiateTaskRequest);
 
         InitiateTaskRequestMap actual = objectMapper.readValue(
             expectedInitiateBodyRequest,

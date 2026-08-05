@@ -13,6 +13,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 
+import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -40,7 +42,7 @@ public class TaskManagerCancelTaskProviderTest extends SpringBootContractProvide
             clientAccessControlService,
             taskDeletionService,
             completionProcessValidator,
-            launchDarklyFeatureFlagProvider
+            cancellationProcessValidator
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -53,12 +55,35 @@ public class TaskManagerCancelTaskProviderTest extends SpringBootContractProvide
         setInitMock();
     }
 
+    @State({"cancel a task using taskId and with cancellation process"})
+    public void cancelTaskByIdWithCancellationProcess() {
+        setInitMockWithoutPrivilegedAccessWithCancellationProcess();
+    }
+
     private void setInitMock() {
-        doNothing().when(taskManagementService).cancelTask(any(), any());
+        doNothing().when(taskManagementService).cancelTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         UserInfo userInfo = mock((UserInfo.class));
         when(userInfo.getUid()).thenReturn("someUserId");
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+    }
+
+    private void setInitMockWithoutPrivilegedAccessWithCancellationProcess() {
+        doNothing().when(taskManagementService).cancelTask(any(), any(), any());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock((UserInfo.class));
+        when(userInfo.getUid()).thenReturn("someUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
+        when(cancellationProcessValidator.validate(anyString(), anyString())).thenAnswer(invocation -> {
+            if (Math.random() < 0.5) {
+                return Optional.of("EXUI_USER_CANCELLATION!");
+            } else {
+                return Optional.empty();
+            }
+        });
+
     }
 }

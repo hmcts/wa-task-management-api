@@ -1,13 +1,18 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.annotation.DirtiesContext;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
 import java.io.IOException;
 
@@ -16,8 +21,12 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
+class RoleAssignmentTest {
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @Test
     void deserialize_as_expected_for_unknown_values() throws IOException {
@@ -38,9 +47,10 @@ class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
                              + "\"authorisations\":[]"
                              + "}";
 
-        //ObjectMapper has default configuration as set in JacksonConfiguration.class
-        final RoleAssignment expected = objectMapper
-            .setPropertyNamingStrategy(LOWER_CAMEL_CASE)
+        ObjectMapper camelCaseMapper = objectMapper.copy()
+            .setPropertyNamingStrategy(LOWER_CAMEL_CASE);
+
+        final RoleAssignment expected = camelCaseMapper
             .readValue(jsonContent, RoleAssignment.class);
 
         RoleAssignment actual = getAssignmentForUnknownValues();

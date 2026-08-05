@@ -13,12 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -29,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequestMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -39,11 +38,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -53,18 +53,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.LOCATION;
 
 @ActiveProfiles("integration")
 @DataJpaTest
-@Import(AllowedJurisdictionConfiguration.class)
+@Import({AllowedJurisdictionConfiguration.class, JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/ia/data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
-public class CftQueryServiceITTest extends RoleAssignmentHelper {
+public class CftQueryServiceITTest {
 
     @MockitoBean
     private CamundaService camundaService;
@@ -76,11 +77,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private static final UserInfo userInfo = UserInfo.builder().email("user@test.com").uid("user").build();
 
     @BeforeEach
     void setUp() {
-        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
             allowedJurisdictionConfiguration
         );
@@ -791,8 +795,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(tcAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -806,8 +810,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(stcAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -820,8 +824,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .classification(classification)
             .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -835,8 +839,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(specificAttributes)
             .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -850,8 +854,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(stdAttributes)
             .grantType(GrantType.STANDARD)
             .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -864,8 +868,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .roleType(RoleType.CASE)
             .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -877,8 +881,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .attributes(excludeddAttributes)
             .grantType(GrantType.EXCLUDED)
             .roleType(RoleType.CASE)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
@@ -891,8 +895,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 

@@ -30,13 +30,15 @@ class TaskDeletionServiceTest {
     private TaskDeletionService taskDeletionService;
 
     @Test
-    void shouldDeletedTasksResponse() {
+    void shouldMarkTasksToDeleteByCaseId() {
         final String caseId = "123";
         final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder1 = mock(TaskResourceCaseQueryBuilder.class);
         final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder2 = mock(TaskResourceCaseQueryBuilder.class);
 
-        when(cftTaskDatabaseService.findByTaskIdsByCaseId(caseId)).thenReturn(List.of(taskResourceCaseQueryBuilder1,
-                taskResourceCaseQueryBuilder2));
+        when(cftTaskDatabaseService.findByTaskIdsByCaseId(caseId)).thenReturn(List.of(
+                taskResourceCaseQueryBuilder1,
+                taskResourceCaseQueryBuilder2
+        ));
 
         when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
         when(taskResourceCaseQueryBuilder2.getTaskId()).thenReturn("567");
@@ -44,16 +46,17 @@ class TaskDeletionServiceTest {
         when(taskResourceCaseQueryBuilder1.getState()).thenReturn(CFTTaskState.TERMINATED);
         when(taskResourceCaseQueryBuilder2.getState()).thenReturn(CFTTaskState.CANCELLED);
 
-        doNothing().when(cftTaskDatabaseService).deleteTasks(List.of("234", "567"));
+        doNothing().when(cftTaskDatabaseService).markTasksToDeleteByTaskId(List.of("234", "567"));
 
-        taskDeletionService.deleteTasksByCaseId(caseId);
+        taskDeletionService.markTasksToDeleteByCaseId(caseId);
 
-        verify(cftTaskDatabaseService, times(1)).findByTaskIdsByCaseId("123");
-        verify(cftTaskDatabaseService, times(1)).deleteTasks(List.of("234", "567"));
+        verify(cftTaskDatabaseService, times(1)).findByTaskIdsByCaseId(caseId);
+        verify(cftTaskDatabaseService, times(1)).markTasksToDeleteByTaskId(
+                List.of("234", "567"));
     }
 
     @Test
-    void shouldNotDeleteTasks(CapturedOutput output) {
+    void shouldLogWhenMarkTasksToDeleteFails(CapturedOutput output) {
         final String caseId = "123";
         final TaskResourceCaseQueryBuilder taskResourceCaseQueryBuilder1 = mock(TaskResourceCaseQueryBuilder.class);
 
@@ -61,13 +64,13 @@ class TaskDeletionServiceTest {
 
         when(taskResourceCaseQueryBuilder1.getTaskId()).thenReturn("234");
         when(taskResourceCaseQueryBuilder1.getState()).thenReturn(CFTTaskState.TERMINATED);
-        doThrow(new RuntimeException("some exception")).when(cftTaskDatabaseService).deleteTasks(List.of("234"));
 
-        taskDeletionService.deleteTasksByCaseId(caseId);
+        doThrow(new RuntimeException("some exception"))
+                .when(cftTaskDatabaseService).markTasksToDeleteByTaskId(List.of("234"));
+        taskDeletionService.markTasksToDeleteByCaseId(caseId);
 
-        assertThat(output.getOut().contains(String.format("Unable to delete all tasks for case id: %s",
+        assertThat(output.getOut().contains(String.format("Unable to mark to delete all tasks for case id: %s",
                 caseId)));
-
         assertThat(output.getOut().contains(String.format("Exception occurred:: %s", "some exception")));
     }
 }

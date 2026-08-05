@@ -9,12 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -29,11 +27,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_CASE_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper.IA_JURISDICTION;
 
 @ActiveProfiles("integration")
 @DataJpaTest
@@ -41,8 +42,7 @@ import java.util.Optional;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/ia/unclaim_task_data.sql")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
+public class CftQueryServiceUnClaimTaskTest {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
@@ -80,8 +80,8 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -107,8 +107,8 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -135,8 +135,8 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -160,8 +160,8 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -187,8 +187,8 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .authorisations(List.of("PROBATE", "SCSS"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
@@ -215,8 +215,8 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(OffsetDateTime.now().minusYears(1))
+            .endTime(OffsetDateTime.now().plusYears(1))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();

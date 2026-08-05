@@ -64,6 +64,9 @@ public enum ErrorMessages {
     INITIATE_TASK_PROCESS_ERROR(
         "The action could not be completed because there was a problem when initiating the task."),
 
+    MULTIPLE_ASSIGNEE_RULE_ERROR(
+        "Multiple assignee should be declared as separate rules."),
+
     DATABASE_CONFLICT_ERROR(
         "The action could not be completed because there was a conflict in the database."),
 

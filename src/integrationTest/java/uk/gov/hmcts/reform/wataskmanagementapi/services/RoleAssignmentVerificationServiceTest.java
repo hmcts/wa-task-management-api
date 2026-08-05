@@ -1,13 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.SensitiveTaskEventLogsRepository;
@@ -17,11 +19,15 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RoleAssignmentVerificationServiceTest extends SpringBootIntegrationBaseTest {
+@IntegrationTest
+@AutoConfigureMockMvc(addFilters = false)
+@TestInstance(PER_CLASS)
+public class RoleAssignmentVerificationServiceTest {
 
     @Autowired
     SensitiveTaskEventLogsRepository sensitiveTaskEventLogsRepository;
@@ -36,7 +42,7 @@ public class RoleAssignmentVerificationServiceTest extends SpringBootIntegration
 
     RoleAssignmentVerificationService roleAssignmentVerificationService;
 
-    @BeforeEach
+    @BeforeAll
     void setUp() {
         roleAssignmentVerificationService = new RoleAssignmentVerificationService(cftTaskDatabaseService,
             cftQueryService,
