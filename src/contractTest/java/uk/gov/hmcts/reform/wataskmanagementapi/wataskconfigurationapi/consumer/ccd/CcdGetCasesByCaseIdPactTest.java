@@ -35,6 +35,11 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
 
     private static final String TEST_CASE_ID = "1607103938250138";
     private static final String CCD_CASE_URL = "/cases/" + TEST_CASE_ID;
+    private static final String CCD_CASE_MEDIA_TYPE =
+        "application/vnd.uk.gov.hmcts.ccd-data-store-api.case.v2+json";
+    private static final String CCD_CASE_MEDIA_TYPE_REGEX =
+        "^application/vnd\\.uk\\.gov\\.hmcts\\.ccd-data-store-api\\.case\\.v2\\+json"
+            + "(; ?charset=UTF-8)?$";
 
     @Autowired
     CcdDataServiceApi ccdDataServiceApi;
@@ -57,16 +62,17 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
     @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "wa_task_management_api")
     public RequestResponsePact executeCcdGetCasesByCaseId(PactDslWithProvider builder) {
 
-        Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
+        Map<String, String> requestHeaders = Map.of("experimental", "true");
 
         return builder
             .given("a case exists")
             .uponReceiving("Provider receives a GET /cases/{caseId} request from a WA API")
             .path(CCD_CASE_URL)
             .method(HttpMethod.GET.toString())
+            .headers(requestHeaders)
             .willRespondWith()
             .status(HttpStatus.OK.value())
-            .headers(responseHeaders)
+            .matchHeader("Content-Type", CCD_CASE_MEDIA_TYPE_REGEX, CCD_CASE_MEDIA_TYPE)
             .body(createCasesResponse())
             .toPact();
     }
