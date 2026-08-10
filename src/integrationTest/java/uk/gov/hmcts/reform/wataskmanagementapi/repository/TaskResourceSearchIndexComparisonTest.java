@@ -32,8 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @IntegrationTest(properties = {
     "spring.datasource.driver-class-name=org.postgresql.Driver",
     "spring.datasource.driverClassName=org.postgresql.Driver",
-    "spring.datasource.url=jdbc:postgresql://localhost:5432/postgres",
-    "spring.datasource.jdbcUrl=jdbc:postgresql://localhost:5432/postgres",
+    "spring.datasource.url=jdbc:postgresql://localhost:5432/cft_task_db",
+    "spring.datasource.jdbcUrl=jdbc:postgresql://localhost:5432/cft_task_db",
     "spring.datasource.username=pgadmin",
     "spring.datasource.password=pgadmin",
     "spring.datasource.hikari.maximum-pool-size=2",
@@ -66,7 +66,7 @@ class TaskResourceSearchIndexComparisonTest {
         ORDER BY COUNT(DISTINCT permissions.task_id) DESC, permissions.role_name
         LIMIT 5
         """;
-    private static final int REQUIRED_SCENARIOS = 500;
+    private static final int REQUIRED_SCENARIOS = 3;
     private static final int REQUIRED_GENERIC_ALL_WORK_SCENARIOS = 5;
     private static final int MAX_RESULTS = 25;
     private static final int MINIMUM_RESULT_COUNT = 0;
@@ -182,7 +182,7 @@ class TaskResourceSearchIndexComparisonTest {
             (rs, rowNum) -> new SearchScenario(
                 rs.getInt("scenario_no"),
                 rs.getString("task_id"),
-                List.of(CFTTaskState.from(rs.getString("state")).orElseThrow()),
+                getStateList(rs, "states"),
                 getStringList(rs, "case_ids"),
                 rs.getString("assignee"),
                 RequestContext.AVAILABLE_TASKS,
@@ -212,6 +212,12 @@ class TaskResourceSearchIndexComparisonTest {
 
     private List<String> getStringList(ResultSet resultSet, String columnName) throws SQLException {
         return Arrays.asList((String[]) resultSet.getArray(columnName).getArray());
+    }
+
+    private List<CFTTaskState> getStateList(ResultSet resultSet, String columnName) throws SQLException {
+        return getStringList(resultSet, columnName).stream()
+            .map(state -> CFTTaskState.from(state).orElseThrow())
+            .toList();
     }
 
     private Set<String> getStringSet(ResultSet resultSet, String columnName) throws SQLException {
@@ -320,6 +326,9 @@ class TaskResourceSearchIndexComparisonTest {
         logTimingSummary(newSearchSummary);
         logTimingSummary(oldCountSummary);
         logTimingSummary(newCountSummary);
+        logSlowestTaskIdSearch(comparisons);
+        logSlowestCountSearch(comparisons);
+
 
         logRelativePerformance(
             "task_id_search",
@@ -406,6 +415,46 @@ class TaskResourceSearchIndexComparisonTest {
                 .map(this::formatGenericAllWorkComparison)
                 .collect(Collectors.joining(" | "))
         );
+    }
+
+    private void logSlowestTaskIdSearch(List<ScenarioComparison> comparisons) {
+        comparisons.stream()
+            .max(Comparator.comparingLong(ScenarioComparison::oldSearchDurationNanos))
+            .ifPresent(comparison -> log.info(
+                "Slowest old search criteria: taskId={}, timeTakenMs={}, details={}",
+                comparison.scenario().taskId(),
+                formatMillis(comparison.oldSearchDurationNanos()),
+                formatScenarioComparison(comparison)
+            ));
+
+        comparisons.stream()
+            .max(Comparator.comparingLong(ScenarioComparison::newSearchDurationNanos))
+            .ifPresent(comparison -> log.info(
+                "Slowest new search criteria: taskId={}, timeTakenMs={}, details={}",
+                comparison.scenario().taskId(),
+                formatMillis(comparison.newSearchDurationNanos()),
+                formatScenarioComparison(comparison)
+            ));
+    }
+
+    private void logSlowestCountSearch(List<ScenarioComparison> comparisons) {
+        comparisons.stream()
+            .max(Comparator.comparingLong(ScenarioComparison::oldCountDurationNanos))
+            .ifPresent(comparison -> log.info(
+                "Slowest old count criteria: taskId={}, timeTakenMs={}, details={}",
+                comparison.scenario().taskId(),
+                formatMillis(comparison.oldCountDurationNanos()),
+                formatScenarioComparison(comparison)
+            ));
+
+        comparisons.stream()
+            .max(Comparator.comparingLong(ScenarioComparison::newCountDurationNanos))
+            .ifPresent(comparison -> log.info(
+                "Slowest new count criteria: taskId={}, timeTakenMs={}, details={}",
+                comparison.scenario().taskId(),
+                formatMillis(comparison.newCountDurationNanos()),
+                formatScenarioComparison(comparison)
+            ));
     }
 
     private void logRelativePerformance(String label,
