@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -47,6 +48,8 @@ class TaskReconfigurationTransactionHandlerTest {
 
     @Mock
     private TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    @Mock
+    private TaskCurrentStateReader taskCurrentStateReader;
     @InjectMocks
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
 
@@ -66,6 +69,8 @@ class TaskReconfigurationTransactionHandlerTest {
             .thenReturn(taskResources.get(1));
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
             .thenReturn(taskResources.get(1));
+        when(taskCurrentStateReader.findCurrentState(taskResources.get(1).getTaskId()))
+            .thenReturn(Optional.of(CFTTaskState.ASSIGNED));
         when(cftTaskDatabaseService.saveTask(any()))
             .thenReturn(taskResources.get(1));
 
@@ -95,6 +100,8 @@ class TaskReconfigurationTransactionHandlerTest {
             .thenReturn(taskResources.get(1));
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
             .thenReturn(taskResources.get(1));
+        when(taskCurrentStateReader.findCurrentState(taskResources.get(1).getTaskId()))
+            .thenReturn(Optional.of(CFTTaskState.ASSIGNED));
         when(cftTaskDatabaseService.saveTask(any()))
             .thenReturn(taskResources.get(1));
 
@@ -127,6 +134,10 @@ class TaskReconfigurationTransactionHandlerTest {
         when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
+        when(taskCurrentStateReader.findCurrentState(taskResources.get(0).getTaskId()))
+            .thenReturn(Optional.of(CFTTaskState.UNASSIGNED));
+        when(taskCurrentStateReader.findCurrentState(taskResources.get(1).getTaskId()))
+            .thenReturn(Optional.of(CFTTaskState.ASSIGNED));
         when(cftTaskDatabaseService.saveTask(any()))
             .thenReturn(taskResources.get(0))
             .thenReturn(taskResources.get(1));
@@ -192,6 +203,27 @@ class TaskReconfigurationTransactionHandlerTest {
         );
     }
 
+    @Test
+    void should_not_save_reconfigured_task_if_state_is_not_active_before_persisting() {
+        List<TaskResource> taskResources = taskResourcesToReconfigure(OffsetDateTime.now());
+        TaskResource terminatedTask = taskResources.get(0);
+        terminatedTask.setState(CFTTaskState.TERMINATED);
+
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            taskResources.get(0).getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
+            .thenReturn(Optional.of(taskResources.get(0)));
+        when(configureTaskService.reconfigureCFTTask(any()))
+            .thenReturn(taskResources.get(0));
+        when(taskAutoAssignmentService.reAutoAssignCFTTask(any()))
+            .thenReturn(terminatedTask);
+        when(taskCurrentStateReader.findCurrentState(taskResources.get(0).getTaskId()))
+            .thenReturn(Optional.of(CFTTaskState.TERMINATED));
+
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId());
+
+        verify(cftTaskDatabaseService, never()).saveTask(any());
+    }
+
     private List<TaskResource> taskResourcesToReconfigure(OffsetDateTime reconfigureTime) {
         TaskResource taskResource1 = new TaskResource(
             "1234",
@@ -215,4 +247,3 @@ class TaskReconfigurationTransactionHandlerTest {
     }
 
 }
-
