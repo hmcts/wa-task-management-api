@@ -66,7 +66,7 @@ class TaskResourceSearchIndexComparisonTest {
         ORDER BY COUNT(DISTINCT permissions.task_id) DESC, permissions.role_name
         LIMIT 5
         """;
-    private static final int REQUIRED_SCENARIOS = 3;
+    private static final int REQUIRED_SCENARIOS = 500;
     private static final int REQUIRED_GENERIC_ALL_WORK_SCENARIOS = 5;
     private static final int MAX_RESULTS = 25;
     private static final int MINIMUM_RESULT_COUNT = 0;
