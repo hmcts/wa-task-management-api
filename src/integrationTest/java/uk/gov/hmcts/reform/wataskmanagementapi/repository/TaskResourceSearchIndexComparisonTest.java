@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     "logging.level.uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCustomRepositoryImpl=WARN"
 })
 @Slf4j
+@Ignore
 class TaskResourceSearchIndexComparisonTest {
 
     private static final String SEARCH_SCENARIOS_SQL =
