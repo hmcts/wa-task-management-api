@@ -107,3 +107,6 @@ When writing complex features (e.g., complex role assignment logic, new replicat
 
 ## Repo Skills
 *   gradle-dependency-upgrades: Upgrade dependencies via ./gradlew dependencyUpdates. Focus on Spring Boot version alignment, CVE remediation, and HMCTS shared library bumps. Ensure build.gradle and config/owasp/suppressions.xml are updated correctly for false-positive CVEs.
+
+## Git Strategy
+*   all git branches to be named after the parent ticket with a suffix describing changes (RWA-0001_add_agentsmd). Keep commits focused on the changes requested, do not add in unrelated commits. Only stage files related to PR. Never overwrite git history.
