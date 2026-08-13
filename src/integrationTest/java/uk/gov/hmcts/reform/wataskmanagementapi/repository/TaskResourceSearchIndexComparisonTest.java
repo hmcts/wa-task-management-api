@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -42,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
     "logging.level.uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCustomRepositoryImpl=WARN"
 })
 @Slf4j
-@Ignore
 class TaskResourceSearchIndexComparisonTest {
 
     private static final String SEARCH_SCENARIOS_SQL =
@@ -82,7 +81,7 @@ class TaskResourceSearchIndexComparisonTest {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    @Ignore("This test is for performance comparison and requires a local cft_task_db with at least 500 indexed task "
+    @Disabled("This test is for performance comparison and requires a local cft_task_db with at least 500 indexed task "
         + "scenarios")
     void should_return_same_task_ids_for_old_search_index_and_new_signature_search() {
         List<SearchScenario> scenarios = loadRealWorldSearchScenarios();
@@ -144,8 +143,8 @@ class TaskResourceSearchIndexComparisonTest {
     }
 
     @Test
-    @Ignore("This test is for performance comparison and requires a local cft_task_db with at least 5 generic all-work "
-        + "scenarios")
+    @Disabled("This test is for performance comparison and requires a local cft_task_db with at least 5 "
+        + "generic all-work scenarios")
     void should_return_generic_all_work_results_for_new_signature_search() {
         List<SearchScenario> scenarios = loadGenericAllWorkSearchScenarios();
 
