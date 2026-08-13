@@ -80,7 +80,9 @@ class TaskResourceSearchIndexComparisonTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Test @Ignore("This test is for performance comparison and requires a local cft_task_db with at least 500 indexed task scenarios")
+    @Test
+    @Ignore("This test is for performance comparison and requires a local cft_task_db with at least 500 indexed task "
+        + "scenarios")
     void should_return_same_task_ids_for_old_search_index_and_new_signature_search() {
         List<SearchScenario> scenarios = loadRealWorldSearchScenarios();
 
@@ -140,7 +142,9 @@ class TaskResourceSearchIndexComparisonTest {
         logPerformanceComparison(comparisons, fullPageScenarios, countComparedScenarios);
     }
 
-    @Test @Ignore("This test is for performance comparison and requires a local cft_task_db with at least 5 generic all-work scenarios")
+    @Test
+    @Ignore("This test is for performance comparison and requires a local cft_task_db with at least 5 generic all-work "
+        + "scenarios")
     void should_return_generic_all_work_results_for_new_signature_search() {
         List<SearchScenario> scenarios = loadGenericAllWorkSearchScenarios();
 
