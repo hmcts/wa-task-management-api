@@ -222,6 +222,12 @@ class TaskReconfigurationTransactionHandlerTest {
         taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId());
 
         verify(cftTaskDatabaseService, never()).saveTask(any());
+        when(taskCurrentStateReader.findCurrentState(taskResources.get(0).getTaskId()))
+            .thenReturn(Optional.empty());
+
+        taskReconfigurationTransactionHandler.reconfigureTaskResource(taskResources.get(0).getTaskId());
+
+        verify(cftTaskDatabaseService, never()).saveTask(any());
     }
 
     private List<TaskResource> taskResourcesToReconfigure(OffsetDateTime reconfigureTime) {
