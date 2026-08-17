@@ -71,10 +71,6 @@ public class CFTTaskSearchService {
                                                 List<RoleAssignment> roleAssignments,
                                                 List<String> excludeCaseIds) {
 
-        if (ROLE_ASSIGNMENTS_LOG_THRESHOLD <= roleAssignments.size()) {
-            log.info("Total volume of Role Assignments for current user: {}", roleAssignments.size());
-        }
-
         Set<String> filterSignature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
         Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
 
@@ -93,6 +89,16 @@ public class CFTTaskSearchService {
         return new SearchResult(taskIds, count);
     }
 
+    /**
+     * Searches for task ids using role criteria.
+     *
+     * @param firstResult     the first result to return
+     * @param maxResults      the maximum number of results to return
+     * @param searchRequest   the search request
+     * @param roleAssignments the role assignments
+     * @param excludeCaseIds  the case ids to exclude from the search
+     * @return a SearchResult containing the task ids and total count
+     */
     private SearchResult searchUsingRoleCriteria(int firstResult,
                                                  int maxResults,
                                                  SearchRequest searchRequest,
@@ -101,7 +107,8 @@ public class CFTTaskSearchService {
 
         List<TaskSearchRoleCriteria> roleCriteria = buildRoleCriteria(roleAssignments, searchRequest);
 
-        log.info("Task search excluded case ids {}", excludeCaseIds);
+        log.info("Task search for roleCriteria  {} \nexcluded case ids {}", roleCriteria, excludeCaseIds);
+
         List<String> taskIds = tasksRepository.searchTasksIds(
             firstResult, maxResults, roleCriteria, excludeCaseIds, searchRequest
         );
@@ -174,17 +181,19 @@ public class CFTTaskSearchService {
     private boolean matchesRoleAttribute(RoleAssignment roleAssignment,
                                          RoleAttributeDefinition attribute,
                                          List<String> requestedValues) {
+        var attributeValue = roleAssignment.getAttributeValue(attribute);
         return isEmpty(requestedValues)
-               || roleAssignment.getAttributeValue(attribute).isEmpty()
-               || requestedValues.contains(roleAssignment.getAttributeValue(attribute).get());
+               || attributeValue.isEmpty()
+               || requestedValues.contains(attributeValue.orElse(null));
     }
 
     private List<String> authorizations(RoleAssignment roleAssignment, SearchRequest searchRequest) {
         List<String> authorizationValues = new ArrayList<>();
         authorizationValues.add(null);
+        var caseId = roleAssignment.getAttributeValue(RoleAttributeDefinition.CASE_ID);
 
         if (searchRequest.isAvailableTasksOnly()
-            && roleAssignment.getAttributeValue(RoleAttributeDefinition.CASE_ID).isEmpty()
+            && caseId.isEmpty()
             && !isEmpty(roleAssignment.getAuthorisations())) {
             authorizationValues.addAll(roleAssignment.getAuthorisations());
         }

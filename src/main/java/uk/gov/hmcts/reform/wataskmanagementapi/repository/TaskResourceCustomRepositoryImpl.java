@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -73,8 +74,20 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";
 
     private static final String DB_COL_ASSIGNEE = "assignee";
+
+    private static final String DB_COL_JURISDICTION = "jurisdiction";
+
+    private static final String DB_COL_REGION = "region";
+
+    private static final String DB_COL_LOCATION = "location";
     private static final String COUNT_CLAUSE = "SELECT count(*) ";
     private static final String PAGINATION_CLAUSE = "OFFSET :firstResult LIMIT :maxResults";
+    private static final Pattern SAFE_CTE_PATTERN = Pattern.compile(
+        "^WITH request_role_criteria\\([a-z_, ]+\\) AS \\(VALUES "
+            + "[A-Z_a-z0-9:(),. '=]+\\) $"
+    );
+    private static final Pattern SAFE_CLAUSE_PATTERN = Pattern.compile("^[A-Z_a-z0-9:(),. '=<>-]*$");
+    private static final Pattern SAFE_ORDER_BY_PATTERN = Pattern.compile("^[A-Z_a-z0-9, ]*$");
 
     protected static final String RESULT_MAPPER = "TaskSearchResult";
     private static final int ONE = 1;
@@ -102,11 +115,11 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                        SearchRequest searchRequest) {
 
         RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
-        String queryString = String.format(BASE_QUERY_NEW,
-            searchRoleCriteria.cte(),
+        String queryString = buildValidatedQuery(BASE_QUERY_NEW,
+            validateCte(searchRoleCriteria.cte()),
             SELECT_CLAUSE,
-            extraConstraints(excludeCaseIds, searchRequest),
-            TaskSearchSortProvider.getSortOrderQuery(searchRequest),
+            validateClause(extraConstraints(excludeCaseIds, searchRequest)),
+            validateOrderBy(TaskSearchSortProvider.getSortOrderQuery(searchRequest)),
             PAGINATION_CLAUSE
         );
 
@@ -128,10 +141,10 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                         Set<String> roleSignature,
                                         List<String> excludeCaseIds,
                                         SearchRequest searchRequest) {
-        String queryString = String.format(baseQuery,
+        String queryString = buildValidatedQuery(baseQuery,
             SELECT_CLAUSE,
-            extraConstraints(excludeCaseIds, searchRequest),
-            TaskSearchSortProvider.getSortOrderQuery(searchRequest),
+            validateClause(extraConstraints(excludeCaseIds, searchRequest)),
+            validateOrderBy(TaskSearchSortProvider.getSortOrderQuery(searchRequest)),
             PAGINATION_CLAUSE
         );
 
@@ -163,10 +176,10 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                  SearchRequest searchRequest) {
 
         RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
-        String queryString = String.format(BASE_QUERY_NEW,
-            searchRoleCriteria.cte(),
+        String queryString = buildValidatedQuery(BASE_QUERY_NEW,
+            validateCte(searchRoleCriteria.cte()),
             COUNT_CLAUSE,
-            extraConstraints(excludeCaseIds, searchRequest),
+            validateClause(extraConstraints(excludeCaseIds, searchRequest)),
             "", "");
 
         log.info("Task count query [{}]", queryString);
@@ -185,9 +198,9 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                   List<String> excludeCaseIds,
                                   SearchRequest searchRequest) {
 
-        String queryString = String.format(baseQuery,
+        String queryString = buildValidatedQuery(baseQuery,
             COUNT_CLAUSE,
-            extraConstraints(excludeCaseIds, searchRequest),
+            validateClause(extraConstraints(excludeCaseIds, searchRequest)),
             "", "");
 
         log.info("Task count query [{}]", queryString);
@@ -213,6 +226,31 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         this.entityManager = em;
     }
 
+    private String buildValidatedQuery(String template, String... sqlFragments) {
+        return String.format(template, (Object[]) sqlFragments);
+    }
+
+    private String validateCte(String cte) {
+        if (EMPTY_ROLE_CRITERIA_CTE.equals(cte) || SAFE_CTE_PATTERN.matcher(cte).matches()) {
+            return cte;
+        }
+        throw new IllegalArgumentException("Unexpected SQL CTE fragment");
+    }
+
+    private String validateClause(String clause) {
+        if (SAFE_CLAUSE_PATTERN.matcher(clause).matches()) {
+            return clause;
+        }
+        throw new IllegalArgumentException("Unexpected SQL constraint fragment");
+    }
+
+    private String validateOrderBy(String orderByClause) {
+        if (SAFE_ORDER_BY_PATTERN.matcher(orderByClause).matches()) {
+            return orderByClause;
+        }
+        throw new IllegalArgumentException("Unexpected SQL order by fragment");
+    }
+
     private String extraConstraints(List<String> excludeCaseIds, SearchRequest searchRequest) {
         StringBuilder extraConstraints = new StringBuilder("");
         if (searchRequest.isAvailableTasksOnly()) {
@@ -233,9 +271,10 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         extraConstraints.append(buildListConstraint(searchRequest.getCaseIds(), "case_id", "caseId", true))
             .append(buildListConstraint(excludeCaseIds, "case_id", "excludedCaseId", false))
             .append(buildListConstraint(searchRequest.getTaskTypes(), "task_type", "taskType", true))
-            .append(buildListConstraint(searchRequest.getJurisdictions(), "jurisdiction", "jurisdiction", true))
-            .append(buildListConstraint(searchRequest.getLocations(), "location", "location", true))
-            .append(buildListConstraint(searchRequest.getRegions(), "region", "region", true))
+            .append(buildListConstraint(searchRequest.getJurisdictions(),
+                                        DB_COL_JURISDICTION, DB_COL_JURISDICTION, true))
+            .append(buildListConstraint(searchRequest.getLocations(), DB_COL_LOCATION, DB_COL_LOCATION, true))
+            .append(buildListConstraint(searchRequest.getRegions(), DB_COL_REGION, DB_COL_REGION, true))
             .append(buildListConstraint(searchRequest.getWorkTypes(), "work_type", "workType", true))
             .append(buildListConstraint(searchRequest.getRoleCategories(), "role_category", "roleCategory", true));
         return extraConstraints.toString();
@@ -340,15 +379,15 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         }
         List<String> jurisdictions = searchRequest.getJurisdictions();
         if (!CollectionUtils.isEmpty(jurisdictions)) {
-            setParameter(query, "jurisdiction", jurisdictions);
+            setParameter(query, DB_COL_JURISDICTION, jurisdictions);
         }
         List<String> locations = searchRequest.getLocations();
         if (!CollectionUtils.isEmpty(locations)) {
-            setParameter(query, "location", locations);
+            setParameter(query, DB_COL_LOCATION, locations);
         }
         List<String> regions = searchRequest.getRegions();
         if (!CollectionUtils.isEmpty(regions)) {
-            setParameter(query, "region", regions);
+            setParameter(query, DB_COL_REGION, regions);
         }
         List<String> workTypes = searchRequest.getWorkTypes();
         if (!CollectionUtils.isEmpty(workTypes)) {
