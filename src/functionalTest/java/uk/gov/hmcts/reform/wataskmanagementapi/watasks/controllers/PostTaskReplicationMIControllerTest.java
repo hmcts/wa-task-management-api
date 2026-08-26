@@ -1755,16 +1755,19 @@ public class PostTaskReplicationMIControllerTest {
         );
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+        await()
+            .untilAsserted(() -> {
+                Response resultAssignmentsUnclaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole.getHeaders()
+                );
+                resultAssignmentsUnclaim.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(1))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+            });
 
-        Response resultAssignmentsUnclaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseWorkerWithTribRole.getHeaders()
-        );
-        resultAssignmentsUnclaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(1))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
 
         TestAuthenticationCredentials caseWorkerWithTribRole2 =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
@@ -1776,15 +1779,18 @@ public class PostTaskReplicationMIControllerTest {
             HttpStatus.NO_CONTENT
         );
 
-        resultAssignmentsUnclaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseWorkerWithTribRole2.getHeaders()
-        );
-        resultAssignmentsUnclaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(2))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+        await()
+            .untilAsserted(() -> {
+                Response resultAssignmentsUnclaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole2.getHeaders()
+                );
+                resultAssignmentsUnclaim.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(2))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"));
+            });
 
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(caseWorkerWithTribRole2.getHeaders(), "tribunal-caseworker");
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
@@ -1794,17 +1800,21 @@ public class PostTaskReplicationMIControllerTest {
         );
 
 
-        Response resultAssignmentsClaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
-            ENDPOINT_BEING_TESTED_ASSIGNMENTS,
-            taskId,
-            caseWorkerWithTribRole2.getHeaders()
-        );
+        await()
+            .untilAsserted(() -> {
+                Response resultAssignmentsClaim = taskFunctionalTestsApiUtils.getRestApiActions().get(
+                    ENDPOINT_BEING_TESTED_ASSIGNMENTS,
+                    taskId,
+                    caseWorkerWithTribRole2.getHeaders()
+                );
 
-        resultAssignmentsClaim.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("task_assignments_list.size()", equalTo(2))
-            .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
-            .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
+                resultAssignmentsClaim.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("task_assignments_list.size()", equalTo(2))
+                    .body("task_assignments_list.get(0).assignment_end_reason", equalTo("UNCLAIMED"))
+                    .body("task_assignments_list.get(1).assignment_end_reason", nullValue());
+            });
+
 
         await()
             .untilAsserted(() -> {

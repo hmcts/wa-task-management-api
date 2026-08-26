@@ -48,7 +48,7 @@ module "wa_task_management_api_database_flexible" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=DTSPO-30107-additional-postgres-admins"
   product                    = var.product
   component                  = var.component
   name                       = "${var.postgres_db_component_name}-postgres-db-flexible"
@@ -101,11 +101,12 @@ module "wa_task_management_api_database_flexible_replica" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=DTSPO-30107-additional-postgres-admins"
   product                    = var.product
   component                  = var.component
   name                       = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
   pgsql_storage_mb           = var.replica_pgsql_storage_mb
+  pgsql_sku                  = var.replica_pgsql_sku
   location                   = var.location
   business_area              = var.business_area
   env                        = var.env
@@ -200,4 +201,3 @@ resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEXIBLE-REPLICA" {
   value        = "cft_task_db"
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
-

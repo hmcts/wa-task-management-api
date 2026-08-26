@@ -62,6 +62,11 @@ variable "pgsql_sku" {
   default     = "GP_Standard_D2s_v3"
 }
 
+variable "replica_pgsql_sku" {
+  description = "The replica PGSql flexible server instance sku"
+  default     = "GP_Standard_D2s_v3"
+}
+
 variable "jenkins_AAD_objectId" {}
 
 variable "aks_subscription_id" {}

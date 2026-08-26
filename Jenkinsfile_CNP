@@ -1,6 +1,6 @@
 #!groovy
 
-@Library("Infrastructure@2.0.0")
+@Library("Infrastructure@2.4.9")
 
 import uk.gov.hmcts.contino.AppPipelineDsl
 
@@ -80,7 +80,6 @@ withPipeline(type, product, component) {
 
     before('functionalTest:preview') {
         env.MAX_FT_TESTS_PARALLEL_FORKS = 5
-        env.ENABLE_TEST_USER_DELETION = true
     }
 
     afterSuccess('functionalTest:preview') {
@@ -91,7 +90,6 @@ withPipeline(type, product, component) {
     before('functionalTest:aat') {
         env.INITIATION_JOB_RUNNING = false
         env.MAX_FT_TESTS_PARALLEL_FORKS = 5
-        env.ENABLE_TEST_USER_DELETION = true
     }
 
     afterSuccess('functionalTest:aat') {
