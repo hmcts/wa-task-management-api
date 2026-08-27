@@ -120,7 +120,7 @@ public class TaskSearchController extends BaseController {
             Optional.ofNullable(firstResult).orElse(0),
             Optional.ofNullable(maxResults).orElse(defaultMaxResults));
 
-        log.info("Search tasks using search_index");
+        log.info("Search tasks using configured indexed search path");
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
         response = cftTaskDatabaseService.searchForTasks(
