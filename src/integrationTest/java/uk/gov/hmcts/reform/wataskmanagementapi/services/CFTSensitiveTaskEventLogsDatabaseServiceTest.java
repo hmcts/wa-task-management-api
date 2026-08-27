@@ -61,7 +61,12 @@ public class CFTSensitiveTaskEventLogsDatabaseServiceTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null);
+        cftTaskDatabaseService = new CFTTaskDatabaseService(
+            taskResourceRepository,
+            cftTaskMapper,
+            cftTaskSearchService
+        );
         cftSensitiveTaskEventLogsDatabaseService = new CFTSensitiveTaskEventLogsDatabaseService(
             sensitiveTaskEventLogsRepository,
             cftTaskDatabaseService,
