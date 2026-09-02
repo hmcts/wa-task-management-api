@@ -41,25 +41,41 @@ class TaskResourceCustomRepositoryImplTest {
             + "CAST(:rolePermission0 AS text), "
             + "CAST(:roleClassification0 AS text), "
             + "CAST(NULL AS text))) ";
-    private static final String ROLE_CRITERIA_CONSTRAINTS =
-        "AND EXISTS ("
-            + "SELECT 1 FROM {h-schema}task_search_permissions tsp "
-            + "JOIN request_role_criteria role_criteria "
+    private static final String ROLE_PERMISSION_JOIN =
+        "JOIN request_role_criteria role_criteria "
             + "ON role_criteria.role_name = tsp.role_name "
-            + "AND role_criteria.permission = tsp.permission "
-            + "WHERE tsp.task_id = t.task_id "
-            + "AND (role_criteria.jurisdiction IS NULL OR role_criteria.jurisdiction = t.jurisdiction) "
+            + "AND role_criteria.permission = tsp.permission ";
+    private static final String ROLE_PERMISSION_CONSTRAINTS =
+        "AND (role_criteria.jurisdiction IS NULL OR role_criteria.jurisdiction = t.jurisdiction) "
             + "AND (role_criteria.region IS NULL OR role_criteria.region = t.region) "
             + "AND (role_criteria.location IS NULL OR role_criteria.location = t.location) "
             + "AND (role_criteria.case_id IS NULL OR role_criteria.case_id = t.case_id) "
             + "AND (role_criteria.case_id IS NOT NULL "
-            + "OR tsp.authorization_value IS NOT DISTINCT FROM role_criteria.authorization_value) "
+            + "OR (role_criteria.authorization_value IS NULL AND tsp.authorization_value IS NULL) "
+            + "OR (role_criteria.authorization_value IS NOT NULL "
+            + "AND tsp.authorization_value = role_criteria.authorization_value)) "
             + "AND ("
             + "(t.security_classification::text = 'PUBLIC' AND role_criteria.classification IN ('U', 'P', 'R')) "
             + "OR (t.security_classification::text = 'PRIVATE' AND role_criteria.classification IN ('P', 'R')) "
             + "OR (t.security_classification::text = 'RESTRICTED' AND role_criteria.classification = 'R')"
-            + ")"
             + ") ";
+    private static final String PAGE_QUERY_PREFIX =
+        ROLE_CRITERIA_CTE
+            + "SELECT t.task_id FROM {h-schema}tasks t "
+            + "JOIN LATERAL (SELECT 1 FROM {h-schema}task_search_permissions tsp "
+            + ROLE_PERMISSION_JOIN
+            + "WHERE tsp.task_id = t.task_id "
+            + ROLE_PERMISSION_CONSTRAINTS
+            + "LIMIT 1) role_permission ON true "
+            + "WHERE indexed ";
+    private static final String COUNT_QUERY_PREFIX =
+        ROLE_CRITERIA_CTE
+            + "SELECT count(*) FROM (SELECT t.task_id FROM {h-schema}task_search_permissions tsp "
+            + ROLE_PERMISSION_JOIN
+            + "JOIN {h-schema}tasks t ON t.task_id = tsp.task_id "
+            + "WHERE indexed "
+            + ROLE_PERMISSION_CONSTRAINTS;
+    private static final String COUNT_QUERY_SUFFIX = "GROUP BY t.task_id) matching_tasks";
     private static final String OLD_SIGNATURE_CONSTRAINTS =
         "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, "
         + "t.region, t.location) && CAST(:filterSignature AS text[]) "
@@ -97,8 +113,7 @@ class TaskResourceCustomRepositoryImplTest {
         taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
             null, SearchRequest.builder().build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
+        String queryStr = PAGE_QUERY_PREFIX
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
                        + "OFFSET :firstResult LIMIT :maxResults";
@@ -117,8 +132,7 @@ class TaskResourceCustomRepositoryImplTest {
                         new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
                 .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
+        String queryStr = PAGE_QUERY_PREFIX
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY case_id ASC, case_name ASC, "
                           + "major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
@@ -135,9 +149,9 @@ class TaskResourceCustomRepositoryImplTest {
         taskResourceCustomRepository.searchTasksCount(roleCriteria, null,
             SearchRequest.builder().build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
-                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
+        String queryStr = COUNT_QUERY_PREFIX
+                       + "AND t.state IN ('ASSIGNED', 'UNASSIGNED') "
+                       + COUNT_QUERY_SUFFIX;
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);
@@ -165,8 +179,7 @@ class TaskResourceCustomRepositoryImplTest {
                 .users(List.of("user"))
                 .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
+        String queryStr = PAGE_QUERY_PREFIX
                        + "AND assignee IS NULL "
                        + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
                        + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
@@ -186,10 +199,10 @@ class TaskResourceCustomRepositoryImplTest {
             .users(List.of("user"))
             .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
-                       + "AND assignee IS NULL "
-                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
+        String queryStr = COUNT_QUERY_PREFIX
+                       + "AND t.assignee IS NULL "
+                       + "AND t.state IN ('ASSIGNED', 'UNASSIGNED') "
+                       + COUNT_QUERY_SUFFIX;
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);
@@ -205,8 +218,7 @@ class TaskResourceCustomRepositoryImplTest {
                     .taskTypes(List.of("TaskType"))
                 .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
+        String queryStr = PAGE_QUERY_PREFIX
                        + "AND assignee = :assignee "
                        + "AND state IN ('COMPLETED') "
                        + "AND case_id = :caseId "
@@ -234,12 +246,12 @@ class TaskResourceCustomRepositoryImplTest {
             .taskTypes(List.of("TaskType"))
             .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
-                       + "AND assignee = :assignee "
-                       + "AND state IN ('COMPLETED') "
-                       + "AND case_id = :caseId "
-                       + "AND task_type = :taskType ";
+        String queryStr = COUNT_QUERY_PREFIX
+                       + "AND t.assignee = :assignee "
+                       + "AND t.state IN ('COMPLETED') "
+                       + "AND t.case_id = :caseId "
+                       + "AND t.task_type = :taskType "
+                       + COUNT_QUERY_SUFFIX;
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);
@@ -258,8 +270,7 @@ class TaskResourceCustomRepositoryImplTest {
                 .taskTypes(List.of("TaskType", "TaskType2"))
                 .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
+        String queryStr = PAGE_QUERY_PREFIX
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -287,12 +298,12 @@ class TaskResourceCustomRepositoryImplTest {
             .taskTypes(List.of("TaskType", "TaskType2"))
             .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
-                       + "AND assignee IN (:assignee) "
-                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND case_id IN (:caseId) "
-                       + "AND task_type IN (:taskType) ";
+        String queryStr = COUNT_QUERY_PREFIX
+                       + "AND t.assignee IN (:assignee) "
+                       + "AND t.state IN ('COMPLETED', 'CONFIGURED') "
+                       + "AND t.case_id IN (:caseId) "
+                       + "AND t.task_type IN (:taskType) "
+                       + COUNT_QUERY_SUFFIX;
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);
@@ -311,8 +322,7 @@ class TaskResourceCustomRepositoryImplTest {
                 .taskTypes(List.of("TaskType", "TaskType2"))
                 .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
+        String queryStr = PAGE_QUERY_PREFIX
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -342,13 +352,13 @@ class TaskResourceCustomRepositoryImplTest {
             .taskTypes(List.of("TaskType", "TaskType2"))
             .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
-                       + "AND assignee IN (:assignee) "
-                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND case_id IN (:caseId) "
-                       + "AND case_id <> :excludedCaseId "
-                       + "AND task_type IN (:taskType) ";
+        String queryStr = COUNT_QUERY_PREFIX
+                       + "AND t.assignee IN (:assignee) "
+                       + "AND t.state IN ('COMPLETED', 'CONFIGURED') "
+                       + "AND t.case_id IN (:caseId) "
+                       + "AND t.case_id <> :excludedCaseId "
+                       + "AND t.task_type IN (:taskType) "
+                       + COUNT_QUERY_SUFFIX;
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);
@@ -368,8 +378,7 @@ class TaskResourceCustomRepositoryImplTest {
                 .taskTypes(List.of("TaskType", "TaskType2"))
                 .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
+        String queryStr = PAGE_QUERY_PREFIX
                        + "AND assignee IN (:assignee) "
                        + "AND state IN ('COMPLETED', 'CONFIGURED') "
                        + "AND case_id IN (:caseId) "
@@ -399,13 +408,13 @@ class TaskResourceCustomRepositoryImplTest {
             .taskTypes(List.of("TaskType", "TaskType2"))
             .build());
 
-        String queryStr = ROLE_CRITERIA_CTE + "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + ROLE_CRITERIA_CONSTRAINTS
-                       + "AND assignee IN (:assignee) "
-                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND case_id IN (:caseId) "
-                       + "AND case_id NOT IN (:excludedCaseId) "
-                       + "AND task_type IN (:taskType) ";
+        String queryStr = COUNT_QUERY_PREFIX
+                       + "AND t.assignee IN (:assignee) "
+                       + "AND t.state IN ('COMPLETED', 'CONFIGURED') "
+                       + "AND t.case_id IN (:caseId) "
+                       + "AND t.case_id NOT IN (:excludedCaseId) "
+                       + "AND t.task_type IN (:taskType) "
+                       + COUNT_QUERY_SUFFIX;
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);

@@ -523,4 +523,6 @@ FROM (VALUES
        expected_result_floor,
        filter_signatures,
        role_signatures
-     );
+     )
+WHERE scenario_no > 3
+LIMIT 100;

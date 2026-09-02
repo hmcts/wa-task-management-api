@@ -32,44 +32,50 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         + "t.security_classification) && CAST(:roleSignature AS text[]) "
         + "%s%s%s";
 
-    private static final String EMPTY_ROLE_CRITERIA_CTE =
-        "WITH request_role_criteria AS ("
-            + "SELECT CAST(NULL AS text) AS jurisdiction, "
-            + "CAST(NULL AS text) AS region, "
-            + "CAST(NULL AS text) AS location, "
-            + "CAST(NULL AS text) AS role_name, "
-            + "CAST(NULL AS text) AS case_id, "
-            + "CAST(NULL AS text) AS permission, "
-            + "CAST(NULL AS text) AS classification, "
-            + "CAST(NULL AS text) AS authorization_value "
-            + "WHERE false"
-            + ") ";
+    private static final String ROLE_PERMISSION_JOIN =
+        "JOIN request_role_criteria role_criteria "
+            + "ON role_criteria.role_name = tsp.role_name "
+            + "AND role_criteria.permission = tsp.permission ";
 
     private static final String ROLE_PERMISSION_CONSTRAINT =
-        "AND EXISTS ("
-            + "SELECT 1 FROM {h-schema}task_search_permissions tsp "
-            + "JOIN request_role_criteria role_criteria "
-            + "ON role_criteria.role_name = tsp.role_name "
-            + "AND role_criteria.permission = tsp.permission "
-            + "WHERE tsp.task_id = t.task_id "
-            + "AND (role_criteria.jurisdiction IS NULL OR role_criteria.jurisdiction = t.jurisdiction) "
+        "AND (role_criteria.jurisdiction IS NULL OR role_criteria.jurisdiction = t.jurisdiction) "
             + "AND (role_criteria.region IS NULL OR role_criteria.region = t.region) "
             + "AND (role_criteria.location IS NULL OR role_criteria.location = t.location) "
             + "AND (role_criteria.case_id IS NULL OR role_criteria.case_id = t.case_id) "
             + "AND (role_criteria.case_id IS NOT NULL "
-            + "OR tsp.authorization_value IS NOT DISTINCT FROM role_criteria.authorization_value) "
+            + "OR (role_criteria.authorization_value IS NULL AND tsp.authorization_value IS NULL) "
+            + "OR (role_criteria.authorization_value IS NOT NULL "
+            + "AND tsp.authorization_value = role_criteria.authorization_value)) "
             + "AND ("
             + "(t.security_classification::text = 'PUBLIC' AND role_criteria.classification IN ('U', 'P', 'R')) "
             + "OR (t.security_classification::text = 'PRIVATE' AND role_criteria.classification IN ('P', 'R')) "
             + "OR (t.security_classification::text = 'RESTRICTED' AND role_criteria.classification = 'R')"
-            + ")"
             + ") ";
+
+    private static final String LATERAL_ROLE_PERMISSION_JOIN =
+        "JOIN LATERAL ("
+            + "SELECT 1 FROM {h-schema}task_search_permissions tsp "
+            + ROLE_PERMISSION_JOIN
+            + "WHERE tsp.task_id = t.task_id "
+            + ROLE_PERMISSION_CONSTRAINT
+            + "LIMIT 1"
+            + ") role_permission ON true ";
 
     private static final String BASE_QUERY_NEW =
         "%s%sFROM {h-schema}tasks t "
+        + LATERAL_ROLE_PERMISSION_JOIN
         + "WHERE indexed "
-        + ROLE_PERMISSION_CONSTRAINT
         + "%s%s%s";
+
+    private static final String COUNT_QUERY_NEW =
+        "%sSELECT count(*) FROM ("
+            + "SELECT t.task_id FROM {h-schema}task_search_permissions tsp "
+            + ROLE_PERMISSION_JOIN
+            + "JOIN {h-schema}tasks t ON t.task_id = tsp.task_id "
+            + "WHERE indexed "
+            + ROLE_PERMISSION_CONSTRAINT
+            + "%sGROUP BY t.task_id"
+            + ") matching_tasks";
 
     private static final String SELECT_CLAUSE = "SELECT t.task_id ";
 
@@ -176,11 +182,9 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                  SearchRequest searchRequest) {
 
         RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
-        String queryString = buildValidatedQuery(BASE_QUERY_NEW,
+        String queryString = buildValidatedQuery(COUNT_QUERY_NEW,
             validateCte(searchRoleCriteria.cte()),
-            COUNT_CLAUSE,
-            validateClause(extraConstraints(excludeCaseIds, searchRequest)),
-            "", "");
+            validateClause(extraConstraints(excludeCaseIds, searchRequest, "t.")));
 
         log.info("Task count query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString);
@@ -231,7 +235,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     private String validateCte(String cte) {
-        if (EMPTY_ROLE_CRITERIA_CTE.equals(cte) || SAFE_CTE_PATTERN.matcher(cte).matches()) {
+        if (SAFE_CTE_PATTERN.matcher(cte).matches()) {
             return cte;
         }
         throw new IllegalArgumentException("Unexpected SQL CTE fragment");
@@ -252,31 +256,37 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     private String extraConstraints(List<String> excludeCaseIds, SearchRequest searchRequest) {
+        return extraConstraints(excludeCaseIds, searchRequest, "");
+    }
+
+    private String extraConstraints(List<String> excludeCaseIds, SearchRequest searchRequest, String tableAlias) {
         StringBuilder extraConstraints = new StringBuilder("");
         if (searchRequest.isAvailableTasksOnly()) {
-            extraConstraints.append("AND assignee IS NULL ");
+            extraConstraints.append("AND ").append(tableAlias).append(DB_COL_ASSIGNEE).append(" IS NULL ");
         } else {
             extraConstraints.append(buildListConstraint(searchRequest.getUsers(),
-                                                        DB_COL_ASSIGNEE, DB_COL_ASSIGNEE, true));
+                                                        tableAlias + DB_COL_ASSIGNEE, DB_COL_ASSIGNEE, true));
         }
         if (CollectionUtils.isEmpty(searchRequest.getCftTaskStates())) {
-            extraConstraints.append("AND state IN ('ASSIGNED', 'UNASSIGNED') ");
+            extraConstraints.append("AND ").append(tableAlias).append("state IN ('ASSIGNED', 'UNASSIGNED') ");
         } else {
             String states = searchRequest.getCftTaskStates()
                 .stream()
                 .map(s -> "'" + s.getValue() + "'")
                 .collect(Collectors.joining(", "));
-            extraConstraints.append("AND state IN (").append(states).append(") ");
+            extraConstraints.append("AND ").append(tableAlias).append("state IN (").append(states).append(") ");
         }
-        extraConstraints.append(buildListConstraint(searchRequest.getCaseIds(), "case_id", "caseId", true))
-            .append(buildListConstraint(excludeCaseIds, "case_id", "excludedCaseId", false))
-            .append(buildListConstraint(searchRequest.getTaskTypes(), "task_type", "taskType", true))
+        extraConstraints.append(buildListConstraint(searchRequest.getCaseIds(), tableAlias + "case_id", "caseId", true))
+            .append(buildListConstraint(excludeCaseIds, tableAlias + "case_id", "excludedCaseId", false))
+            .append(buildListConstraint(searchRequest.getTaskTypes(), tableAlias + "task_type", "taskType", true))
             .append(buildListConstraint(searchRequest.getJurisdictions(),
-                                        DB_COL_JURISDICTION, DB_COL_JURISDICTION, true))
-            .append(buildListConstraint(searchRequest.getLocations(), DB_COL_LOCATION, DB_COL_LOCATION, true))
-            .append(buildListConstraint(searchRequest.getRegions(), DB_COL_REGION, DB_COL_REGION, true))
-            .append(buildListConstraint(searchRequest.getWorkTypes(), "work_type", "workType", true))
-            .append(buildListConstraint(searchRequest.getRoleCategories(), "role_category", "roleCategory", true));
+                                        tableAlias + DB_COL_JURISDICTION, DB_COL_JURISDICTION, true))
+            .append(buildListConstraint(searchRequest.getLocations(),
+                                        tableAlias + DB_COL_LOCATION, DB_COL_LOCATION, true))
+            .append(buildListConstraint(searchRequest.getRegions(), tableAlias + DB_COL_REGION, DB_COL_REGION, true))
+            .append(buildListConstraint(searchRequest.getWorkTypes(), tableAlias + "work_type", "workType", true))
+            .append(buildListConstraint(searchRequest.getRoleCategories(),
+                                        tableAlias + "role_category", "roleCategory", true));
         return extraConstraints.toString();
     }
 
@@ -292,10 +302,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     private RoleSearchCriteria buildRoleSearchCriteria(Collection<TaskSearchRoleCriteria> roleCriteria) {
-        if (CollectionUtils.isEmpty(roleCriteria)) {
-            return new RoleSearchCriteria(EMPTY_ROLE_CRITERIA_CTE, List.of());
-        }
-
         List<RoleCriterion> criteria = new ArrayList<>();
         for (TaskSearchRoleCriteria criterion : roleCriteria) {
             criteria.add(RoleCriterion.from(criteria.size(), criterion));
