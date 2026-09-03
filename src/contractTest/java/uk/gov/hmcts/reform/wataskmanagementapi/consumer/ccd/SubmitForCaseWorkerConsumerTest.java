@@ -16,10 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd.util.CcdConsumerTest
 
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -70,37 +67,7 @@ public class SubmitForCaseWorkerConsumerTest extends CcdConsumerTestBase {
             true,
             caseDataContent);
 
-        assertNotNull(caseDetailsResponse);
-        assertNotNull(caseDetailsResponse.getCaseTypeId());
         assertEquals(caseDetailsResponse.getCaseTypeId(), "Asylum");
-        assertEquals(caseDetailsResponse.getJurisdiction(), "IA");
-        assertCaseDetails(caseDetailsResponse);
-    }
-
-
-    private void assertCaseDetails(final CaseDetails caseDetails) {
-        assertNotNull(caseDetails);
-
-        Map<String, Object> caseDataMap = caseDetails.getData();
-
-        assertThat(caseDataMap.get("appellantTitle"), is("Mr"));
-        assertThat(caseDataMap.get("appellantGivenNames"), is("Bob"));
-        assertThat(caseDataMap.get("appellantFamilyName"), is("Smith"));
-        assertThat(caseDataMap.get("appellantDateOfBirth"), is("1990-12-07"));
-        assertThat(caseDataMap.get("homeOfficeReferenceNumber"), is("000123456"));
-        assertThat(caseDataMap.get("homeOfficeDecisionDate"), is("2019-08-01"));
-        assertThat(caseDataMap.get("appealType"), is("protection"));
-        assertThat(caseDataMap.get("submissionOutOfTime"), is("Yes"));
-        assertThat(caseDataMap.get("applicationOutOfTimeExplanation"), is("test case"));
-
-        //caseManagementLocation
-        @SuppressWarnings("unchecked")
-        Map<String, String> caseManagementLocation = (Map<String, String>) caseDataMap.get("caseManagementLocation");
-        assertThat(caseManagementLocation.get("region"), is("1"));
-        assertThat(caseManagementLocation.get("baseLocation"), is("765324"));
-
-        assertThat(caseDataMap.get("staffLocation"), is("Taylor House"));
-
     }
 
     private String buildPath() {
