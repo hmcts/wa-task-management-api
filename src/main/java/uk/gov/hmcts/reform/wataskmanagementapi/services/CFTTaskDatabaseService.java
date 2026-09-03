@@ -1,13 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceCaseQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -15,34 +13,36 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSignatureBuilder;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 
-@Slf4j
 @Service
 @SuppressWarnings({
     "PMD.TooManyMethods"
 })
 public class CFTTaskDatabaseService {
 
-    private static final int ROLE_ASSIGNMENTS_LOG_THRESHOLD = 100;
-
     private final TaskResourceRepository tasksRepository;
     private final CFTTaskMapper cftTaskMapper;
+    private final CFTTaskSearchService cftTaskSearchService;
+
+    @Autowired
+    public CFTTaskDatabaseService(TaskResourceRepository tasksRepository,
+                                  CFTTaskMapper cftTaskMapper,
+                                  CFTTaskSearchService cftTaskSearchService) {
+        this.tasksRepository = tasksRepository;
+        this.cftTaskMapper = cftTaskMapper;
+        this.cftTaskSearchService = cftTaskSearchService;
+    }
 
     public CFTTaskDatabaseService(TaskResourceRepository tasksRepository,
                                   CFTTaskMapper cftTaskMapper) {
-        this.tasksRepository = tasksRepository;
-        this.cftTaskMapper = cftTaskMapper;
+        this(tasksRepository, cftTaskMapper, new CFTTaskSearchService(tasksRepository));
     }
 
     public Optional<TaskResource> findByIdAndObtainPessimisticWriteLock(String taskId) {
@@ -126,27 +126,14 @@ public class CFTTaskDatabaseService {
                                                  AccessControlResponse accessControlResponse) {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
-
-        if (ROLE_ASSIGNMENTS_LOG_THRESHOLD <= roleAssignments.size()) {
-            log.info("Total volume of Role Assignments for current user: {}", roleAssignments.size());
-        }
-
-        Set<String> filterSignature = SearchFilterSignatureBuilder.buildFilterSignatures(searchRequest);
-        Set<String> roleSignature = RoleSignatureBuilder.buildRoleSignatures(roleAssignments, searchRequest);
-        List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
-
-        log.info("Task search for filter signatures {} \nrole signatures {} \nexcluded case ids {}",
-                 filterSignature, roleSignature, excludeCaseIds
+        CFTTaskSearchService.SearchResult searchResult = cftTaskSearchService.searchForTaskIds(
+            firstResult, maxResults, searchRequest, roleAssignments
         );
-        List<String> taskIds = tasksRepository.searchTasksIds(
-            firstResult, maxResults, filterSignature, roleSignature, excludeCaseIds, searchRequest
-        );
+        List<String> taskIds = searchResult.taskIds();
 
         if (isEmpty(taskIds)) {
             return new GetTasksResponse<>(List.of(), 0);
         }
-
-        Long count = tasksRepository.searchTasksCount(filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
         Sort sort = TaskSearchSortProvider.getSortOrders(searchRequest);
         final List<TaskResource> taskResources = tasksRepository.findAllByTaskIdIn(taskIds, sort);
@@ -159,7 +146,7 @@ public class CFTTaskDatabaseService {
                      )
             ).toList();
 
-        return new GetTasksResponse<>(tasks, count);
+        return new GetTasksResponse<>(tasks, searchResult.totalRecords());
     }
 
     public List<TaskResource> findTaskToUpdateIndex() {
@@ -170,11 +157,4 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findTop5ByOrderByLastUpdatedTimestampDesc();
     }
 
-    private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
-        return roleAssignments.stream()
-            .filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
-            .map(ra -> ra.getAttributes().get(RoleAttributeDefinition.CASE_ID.value()))
-            .filter(Objects::nonNull)
-            .toList();
-    }
 }

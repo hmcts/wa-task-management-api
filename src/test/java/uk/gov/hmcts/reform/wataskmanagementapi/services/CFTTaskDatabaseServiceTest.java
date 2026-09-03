@@ -4,37 +4,46 @@ import jakarta.persistence.LockTimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCriteria;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -271,11 +280,10 @@ class CFTTaskDatabaseServiceTest {
             .locations(List.of("765324"))
             .build();
 
-        when(taskResourceRepository.searchTasksIds(1, 25,
-            Set.of("*:IA:*:*:*:765324"),
-            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-            List.of(),
-            searchRequest
+        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+            anyCollection(),
+            eq(List.of()),
+            eq(searchRequest)
         ))
             .thenReturn(List.of());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
@@ -287,6 +295,80 @@ class CFTTaskDatabaseServiceTest {
         );
         assertEquals(0, response.getTotalRecords());
         assertTrue(response.getTasks().isEmpty());
+    }
+
+    @Test
+    void should_build_all_work_role_criteria_with_wildcard_authorization() {
+        SearchRequest searchRequest = SearchRequest.builder()
+            .requestContext(RequestContext.ALL_WORK)
+            .build();
+        RoleAssignment roleAssignment = roleAssignment(
+            "task-supervisor",
+            Classification.RESTRICTED,
+            Map.of(),
+            List.of("skill-1")
+        );
+
+        List<TaskSearchRoleCriteria> roleCriteria = capturedRoleCriteriaFor(searchRequest, List.of(roleAssignment));
+
+        assertThat(roleCriteria)
+            .containsExactly(new TaskSearchRoleCriteria(
+                null,
+                null,
+                null,
+                "task-supervisor",
+                null,
+                "m",
+                "R",
+                null
+            ));
+    }
+
+    @Test
+    void should_build_available_task_role_criteria_with_authorizations_and_wildcard() {
+        SearchRequest searchRequest = SearchRequest.builder()
+            .requestContext(RequestContext.AVAILABLE_TASKS)
+            .build();
+        RoleAssignment roleAssignment = roleAssignment(
+            "tribunal-caseworker",
+            Classification.PRIVATE,
+            Map.of(RoleAttributeDefinition.JURISDICTION.value(), "IA"),
+            List.of("skill-1", "skill-2", "skill-1")
+        );
+
+        List<TaskSearchRoleCriteria> roleCriteria = capturedRoleCriteriaFor(searchRequest, List.of(roleAssignment));
+
+        assertThat(roleCriteria)
+            .containsExactly(
+                new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", null),
+                new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-1"),
+                new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-2")
+            );
+    }
+
+    @Test
+    void should_build_read_role_criteria_for_case_role_with_wildcard_authorization() {
+        SearchRequest searchRequest = SearchRequest.builder().build();
+        RoleAssignment roleAssignment = roleAssignment(
+            "case-manager",
+            Classification.PUBLIC,
+            Map.of(RoleAttributeDefinition.CASE_ID.value(), "case-1"),
+            List.of("skill-1")
+        );
+
+        List<TaskSearchRoleCriteria> roleCriteria = capturedRoleCriteriaFor(searchRequest, List.of(roleAssignment));
+
+        assertThat(roleCriteria)
+            .containsExactly(new TaskSearchRoleCriteria(
+                null,
+                null,
+                null,
+                "case-manager",
+                "case-1",
+                "r",
+                "U",
+                null
+            ));
     }
 
     @Test
@@ -307,20 +389,18 @@ class CFTTaskDatabaseServiceTest {
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(1, 25,
-            Set.of("*:IA:*:*:*:765324"),
-            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-            List.of(),
-            searchRequest
+        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+            anyCollection(),
+            eq(List.of()),
+            eq(searchRequest)
         ))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
         when(taskResourceRepository.searchTasksCount(
-            Set.of("*:IA:*:*:*:765324"),
-            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-            List.of(),
-            searchRequest
+            anyCollection(),
+            eq(List.of()),
+            eq(searchRequest)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -355,20 +435,18 @@ class CFTTaskDatabaseServiceTest {
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(1, 25,
-            Set.of("*:IA:*:*:*:765324"),
-            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-            List.of(),
-            searchRequest
+        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+            anyCollection(),
+            eq(List.of()),
+            eq(searchRequest)
         ))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
         when(taskResourceRepository.searchTasksCount(
-            Set.of("*:IA:*:*:*:765324"),
-            Set.of("*:*:*:hmcts-judiciary:*:r:U:*"),
-            List.of(),
-            searchRequest
+            anyCollection(),
+            eq(List.of()),
+            eq(searchRequest)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -403,20 +481,18 @@ class CFTTaskDatabaseServiceTest {
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithStandardGrantType(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(1, 25,
-            Set.of("*:IA:*:*:*:765324"),
-            Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
-            caseIds,
-            searchRequest
+        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+            anyCollection(),
+            eq(caseIds),
+            eq(searchRequest)
         ))
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
         when(taskResourceRepository.searchTasksCount(
-            Set.of("*:IA:*:*:*:765324"),
-            Set.of("IA:1:765324:hmcts-judiciary:*:r:U:*"),
-            caseIds,
-            searchRequest
+            anyCollection(),
+            eq(caseIds),
+            eq(searchRequest)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -465,20 +541,21 @@ class CFTTaskDatabaseServiceTest {
             .locations(List.of("12345"))
             .build();
 
-        List<RoleAssignment> roleAssignments = mock(List.class);
+        List<RoleAssignment> roleAssignments = spy(new ArrayList<>());
+        for (int index = 0; index < logThreshold; index++) {
+            roleAssignments.add(roleAssignmentWithoutAttributes(Classification.PUBLIC).get(0));
+        }
 
         when(taskResourceRepository.searchTasksIds(
             eq(1),
             eq(25),
-            any(Set.class),
-            any(Set.class),
+            anyCollection(),
             eq(List.of()),
             eq(searchRequest))
         ).thenReturn(List.of());
 
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
-        when(roleAssignments.size()).thenReturn(logThreshold);
 
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(
             1,
@@ -491,5 +568,47 @@ class CFTTaskDatabaseServiceTest {
         assertTrue(response.getTasks().isEmpty());
 
         verify(roleAssignments, times(2)).size();
+    }
+
+    private List<TaskSearchRoleCriteria> capturedRoleCriteriaFor(SearchRequest searchRequest,
+                                                                 List<RoleAssignment> roleAssignments) {
+        when(taskResourceRepository.searchTasksIds(
+            eq(0),
+            eq(25),
+            anyCollection(),
+            eq(List.of()),
+            eq(searchRequest))
+        ).thenReturn(List.of());
+
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
+
+        cftTaskDatabaseService.searchForTasks(0, 25, searchRequest, accessControlResponse);
+
+        ArgumentCaptor<Collection<TaskSearchRoleCriteria>> roleCriteriaCaptor = ArgumentCaptor.forClass(
+            Collection.class
+        );
+        verify(taskResourceRepository).searchTasksIds(
+            eq(0),
+            eq(25),
+            roleCriteriaCaptor.capture(),
+            eq(List.of()),
+            eq(searchRequest)
+        );
+
+        return List.copyOf(roleCriteriaCaptor.getValue());
+    }
+
+    private RoleAssignment roleAssignment(String roleName,
+                                          Classification classification,
+                                          Map<String, String> attributes,
+                                          List<String> authorisations) {
+        return RoleAssignment.builder()
+            .roleName(roleName)
+            .classification(classification)
+            .grantType(GrantType.STANDARD)
+            .attributes(attributes)
+            .authorisations(authorisations)
+            .build();
     }
 }
