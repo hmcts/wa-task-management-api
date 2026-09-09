@@ -285,7 +285,7 @@ class CFTTaskDatabaseServiceTest {
             .locations(List.of("765324"))
             .build();
 
-        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+        when(taskResourceRepository.searchTasksIdsUsingRoleCriteria(eq(1), eq(25),
             anyCollection(),
             eq(List.of()),
             eq(searchRequest)
@@ -394,7 +394,7 @@ class CFTTaskDatabaseServiceTest {
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+        when(taskResourceRepository.searchTasksIdsUsingRoleCriteria(eq(1), eq(25),
             anyCollection(),
             eq(List.of()),
             eq(searchRequest)
@@ -402,7 +402,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCount(
+        when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
             anyCollection(),
             eq(List.of()),
             eq(searchRequest)
@@ -440,7 +440,7 @@ class CFTTaskDatabaseServiceTest {
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithoutAttributes(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+        when(taskResourceRepository.searchTasksIdsUsingRoleCriteria(eq(1), eq(25),
             anyCollection(),
             eq(List.of()),
             eq(searchRequest)
@@ -448,7 +448,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCount(
+        when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
             anyCollection(),
             eq(List.of()),
             eq(searchRequest)
@@ -486,7 +486,7 @@ class CFTTaskDatabaseServiceTest {
         when(accessControlResponse.getRoleAssignments())
             .thenReturn(roleAssignmentWithStandardGrantType(Classification.PUBLIC));
 
-        when(taskResourceRepository.searchTasksIds(eq(1), eq(25),
+        when(taskResourceRepository.searchTasksIdsUsingRoleCriteria(eq(1), eq(25),
             anyCollection(),
             eq(caseIds),
             eq(searchRequest)
@@ -494,7 +494,7 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCount(
+        when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
             anyCollection(),
             eq(caseIds),
             eq(searchRequest)
@@ -551,7 +551,7 @@ class CFTTaskDatabaseServiceTest {
             roleAssignments.add(roleAssignmentWithoutAttributes(Classification.PUBLIC).get(0));
         }
 
-        when(taskResourceRepository.searchTasksIds(
+        when(taskResourceRepository.searchTasksIdsUsingRoleCriteria(
             eq(1),
             eq(25),
             anyCollection(),
@@ -577,7 +577,7 @@ class CFTTaskDatabaseServiceTest {
 
     private List<TaskSearchRoleCriteria> capturedRoleCriteriaFor(SearchRequest searchRequest,
                                                                  List<RoleAssignment> roleAssignments) {
-        when(taskResourceRepository.searchTasksIds(
+        when(taskResourceRepository.searchTasksIdsUsingRoleCriteria(
             eq(0),
             eq(25),
             anyCollection(),
@@ -593,7 +593,7 @@ class CFTTaskDatabaseServiceTest {
         ArgumentCaptor<Collection<TaskSearchRoleCriteria>> roleCriteriaCaptor = ArgumentCaptor.forClass(
             Collection.class
         );
-        verify(taskResourceRepository).searchTasksIds(
+        verify(taskResourceRepository).searchTasksIdsUsingRoleCriteria(
             eq(0),
             eq(25),
             roleCriteriaCaptor.capture(),

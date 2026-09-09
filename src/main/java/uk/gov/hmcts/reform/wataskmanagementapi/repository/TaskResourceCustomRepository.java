@@ -11,29 +11,29 @@ import java.util.Set;
 public interface TaskResourceCustomRepository {
 
     @Transactional
-    List<String> searchTasksIds(int firstResult,
-                                int maxResults,
-                                Collection<TaskSearchRoleCriteria> roleCriteria,
-                                List<String> excludeCaseIds,
-                                SearchRequest searchRequest);
+    List<String> searchTasksIdsUsingRoleCriteria(int firstResult,
+                                                 int maxResults,
+                                                 Collection<TaskSearchRoleCriteria> roleCriteria,
+                                                 List<String> excludeCaseIds,
+                                                 SearchRequest searchRequest);
 
     @Transactional
-    List<String> searchTasksIdsOld(int firstResult,
-                                   int maxResults,
-                                   Set<String> filterSignature,
-                                   Set<String> roleSignature,
-                                   List<String> excludeCaseIds,
-                                   SearchRequest searchRequest);
+    List<String> searchTasksIdsUsingSearchIndex(int firstResult,
+                                                int maxResults,
+                                                Set<String> filterSignature,
+                                                Set<String> roleSignature,
+                                                List<String> excludeCaseIds,
+                                                SearchRequest searchRequest);
 
     @Transactional
-    Long searchTasksCount(Collection<TaskSearchRoleCriteria> roleCriteria,
-                          List<String> excludeCaseIds,
-                          SearchRequest searchRequest);
+    Long searchTasksCountUsingRoleCriteria(Collection<TaskSearchRoleCriteria> roleCriteria,
+                                           List<String> excludeCaseIds,
+                                           SearchRequest searchRequest);
 
     @Transactional
-    Long searchTasksCountOld(Set<String> filterSignature,
-                             Set<String> roleSignature,
-                             List<String> excludeCaseIds,
-                             SearchRequest searchRequest);
+    Long searchTasksCountUsingSearchIndex(Set<String> filterSignature,
+                                          Set<String> roleSignature,
+                                          List<String> excludeCaseIds,
+                                          SearchRequest searchRequest);
 
 }

@@ -153,6 +153,9 @@ Classification is equivalent to the legacy `classifications` view:
 | `PRIVATE` | `P`, `R` |
 | `RESTRICTED` | `R` |
 
+The relational count query stops after `config.search.countLimit` matching tasks to bound query work. The setting
+defaults to `10000` and can be overridden with `TASK_SEARCH_COUNT_LIMIT`.
+
 ## Indexes
 
 `V1.0.43__create_task_search_permissions.sql` creates a B-tree lookup index:

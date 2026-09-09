@@ -39,6 +39,7 @@ public class CFTTaskDatabaseService {
         this.cftTaskMapper = cftTaskMapper;
         this.cftTaskSearchService = cftTaskSearchService;
     }
+
     public Optional<TaskResource> findByIdAndObtainPessimisticWriteLock(String taskId) {
         return tasksRepository.findById(taskId);
     }

@@ -124,11 +124,11 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> searchTasksIds(int firstResult,
-                                       int maxResults,
-                                       Collection<TaskSearchRoleCriteria> roleCriteria,
-                                       List<String> excludeCaseIds,
-                                       SearchRequest searchRequest) {
+    public List<String> searchTasksIdsUsingRoleCriteria(int firstResult,
+                                                        int maxResults,
+                                                        Collection<TaskSearchRoleCriteria> roleCriteria,
+                                                        List<String> excludeCaseIds,
+                                                        SearchRequest searchRequest) {
 
         RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
         String queryString = String.format(BASE_QUERY_NEW,
@@ -150,18 +150,21 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     @SuppressWarnings("unchecked")
-    private List<String> searchTasksIds(String baseQuery,
-                                        int firstResult,
-                                        int maxResults,
-                                        Set<String> filterSignature,
-                                        Set<String> roleSignature,
-                                        List<String> excludeCaseIds,
-                                        SearchRequest searchRequest) {
-        String queryString = String.format(baseQuery,
-            SELECT_CLAUSE,
-            extraConstraints(excludeCaseIds, searchRequest),
-            TaskSearchSortProvider.getSortOrderQuery(searchRequest),
-            PAGINATION_CLAUSE
+
+
+    @Override
+    public List<String> searchTasksIdsUsingSearchIndex(int firstResult,
+                                                       int maxResults,
+                                                       Set<String> filterSignature,
+                                                       Set<String> roleSignature,
+                                                       List<String> excludeCaseIds,
+                                                       SearchRequest searchRequest) {
+
+        String queryString = String.format(BASE_QUERY,
+                                           SELECT_CLAUSE,
+                                           extraConstraints(excludeCaseIds, searchRequest),
+                                           TaskSearchSortProvider.getSortOrderQuery(searchRequest),
+                                           PAGINATION_CLAUSE
         );
 
         log.info("Task search query [{}]", queryString);
@@ -175,21 +178,9 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     @Override
-    public List<String> searchTasksIdsOld(int firstResult,
-                                          int maxResults,
-                                          Set<String> filterSignature,
-                                          Set<String> roleSignature,
-                                          List<String> excludeCaseIds,
-                                          SearchRequest searchRequest) {
-
-        return searchTasksIds(BASE_QUERY, firstResult, maxResults, filterSignature, roleSignature,
-                              excludeCaseIds, searchRequest);
-    }
-
-    @Override
-    public Long searchTasksCount(Collection<TaskSearchRoleCriteria> roleCriteria,
-                                 List<String> excludeCaseIds,
-                                 SearchRequest searchRequest) {
+    public Long searchTasksCountUsingRoleCriteria(Collection<TaskSearchRoleCriteria> roleCriteria,
+                                                  List<String> excludeCaseIds,
+                                                  SearchRequest searchRequest) {
 
         RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
         String queryString = String.format(COUNT_QUERY_NEW,
@@ -206,16 +197,16 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         return taskCount;
     }
 
-    private Long searchTasksCount(String baseQuery,
-                                  Set<String> filterSignature,
-                                  Set<String> roleSignature,
-                                  List<String> excludeCaseIds,
-                                  SearchRequest searchRequest) {
+    @Override
+    public Long searchTasksCountUsingSearchIndex(Set<String> filterSignature,
+                                                 Set<String> roleSignature,
+                                                 List<String> excludeCaseIds,
+                                                 SearchRequest searchRequest) {
 
-        String queryString = String.format(baseQuery,
-            COUNT_CLAUSE,
-            extraConstraints(excludeCaseIds, searchRequest),
-            "", "");
+        String queryString = String.format(BASE_QUERY,
+                                           COUNT_CLAUSE,
+                                           extraConstraints(excludeCaseIds, searchRequest),
+                                           "", "");
 
         log.info("Task count query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString);
@@ -225,15 +216,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         log.info("Total number of tasks {}", taskCount);
 
         return taskCount;
-    }
-
-    @Override
-    public Long searchTasksCountOld(Set<String> filterSignature,
-                                    Set<String> roleSignature,
-                                    List<String> excludeCaseIds,
-                                    SearchRequest searchRequest) {
-
-        return searchTasksCount(BASE_QUERY, filterSignature, roleSignature, excludeCaseIds, searchRequest);
     }
 
     private String extraConstraints(List<String> excludeCaseIds, SearchRequest searchRequest) {

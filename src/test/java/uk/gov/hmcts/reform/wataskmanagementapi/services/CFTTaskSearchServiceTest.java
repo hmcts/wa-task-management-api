@@ -30,7 +30,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.WA_SEARCH_INDEX_SEARCH_ENABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.WA_TASK_SEARCH_GIN_INDEX;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
@@ -82,14 +82,14 @@ class CFTTaskSearchServiceTest {
         );
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            WA_SEARCH_INDEX_SEARCH_ENABLED,
+            WA_TASK_SEARCH_GIN_INDEX,
             SERVICE_USER_ID,
             SERVICE_EMAIL
         )).thenReturn(true);
-        when(tasksRepository.searchTasksIdsOld(
+        when(tasksRepository.searchTasksIdsUsingSearchIndex(
             eq(1), eq(25), anySet(), anySet(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(List.of("task-1"));
-        when(tasksRepository.searchTasksCountOld(
+        when(tasksRepository.searchTasksCountUsingSearchIndex(
             anySet(), anySet(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(1L);
 
@@ -102,7 +102,7 @@ class CFTTaskSearchServiceTest {
 
         ArgumentCaptor<Set<String>> filterSignatureCaptor = ArgumentCaptor.forClass(Set.class);
         ArgumentCaptor<Set<String>> roleSignatureCaptor = ArgumentCaptor.forClass(Set.class);
-        verify(tasksRepository).searchTasksIdsOld(
+        verify(tasksRepository).searchTasksIdsUsingSearchIndex(
             eq(1),
             eq(25),
             filterSignatureCaptor.capture(),
@@ -112,7 +112,7 @@ class CFTTaskSearchServiceTest {
         );
         assertThat(filterSignatureCaptor.getValue()).containsExactly("A:IA:*:*:1:765324");
         assertThat(roleSignatureCaptor.getValue()).containsExactly("IA:1:765324:hmcts-judiciary:*:r:U:*");
-        verify(tasksRepository, never()).searchTasksIds(
+        verify(tasksRepository, never()).searchTasksIdsUsingRoleCriteria(
             eq(1), eq(25), anyCollection(), anyList(), eq(searchRequest)
         );
     }
@@ -140,14 +140,14 @@ class CFTTaskSearchServiceTest {
         );
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            WA_SEARCH_INDEX_SEARCH_ENABLED,
+            WA_TASK_SEARCH_GIN_INDEX,
             SERVICE_USER_ID,
             SERVICE_EMAIL
         )).thenReturn(false);
-        when(tasksRepository.searchTasksIds(
+        when(tasksRepository.searchTasksIdsUsingRoleCriteria(
             eq(2), eq(50), anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(List.of("task-2", "task-3"));
-        when(tasksRepository.searchTasksCount(
+        when(tasksRepository.searchTasksCountUsingRoleCriteria(
             anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(2L);
 
@@ -161,7 +161,7 @@ class CFTTaskSearchServiceTest {
         ArgumentCaptor<Collection<TaskSearchRoleCriteria>> roleCriteriaCaptor = ArgumentCaptor.forClass(
             Collection.class
         );
-        verify(tasksRepository).searchTasksIds(
+        verify(tasksRepository).searchTasksIdsUsingRoleCriteria(
             eq(2),
             eq(50),
             roleCriteriaCaptor.capture(),
@@ -179,7 +179,7 @@ class CFTTaskSearchServiceTest {
                 "R",
                 null
             ));
-        verify(tasksRepository, never()).searchTasksIdsOld(
+        verify(tasksRepository, never()).searchTasksIdsUsingSearchIndex(
             eq(2), eq(50), anySet(), anySet(), anyList(), eq(searchRequest)
         );
     }
@@ -198,11 +198,12 @@ class CFTTaskSearchServiceTest {
         );
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            WA_SEARCH_INDEX_SEARCH_ENABLED,
+            WA_TASK_SEARCH_GIN_INDEX,
             SERVICE_USER_ID,
             SERVICE_EMAIL
         )).thenReturn(false);
-        when(tasksRepository.searchTasksIds(eq(0), eq(25), anyCollection(), eq(List.of()), eq(searchRequest)))
+        when(tasksRepository.searchTasksIdsUsingRoleCriteria(
+            eq(0), eq(25), anyCollection(), eq(List.of()), eq(searchRequest)))
             .thenReturn(List.of());
 
         cftTaskSearchService.searchForTaskIds(0, 25, searchRequest, List.of(roleAssignment));
@@ -210,7 +211,7 @@ class CFTTaskSearchServiceTest {
         ArgumentCaptor<Collection<TaskSearchRoleCriteria>> roleCriteriaCaptor = ArgumentCaptor.forClass(
             Collection.class
         );
-        verify(tasksRepository).searchTasksIds(
+        verify(tasksRepository).searchTasksIdsUsingRoleCriteria(
             eq(0),
             eq(25),
             roleCriteriaCaptor.capture(),
@@ -223,7 +224,8 @@ class CFTTaskSearchServiceTest {
                 new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-1"),
                 new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-2")
             );
-        verify(tasksRepository, never()).searchTasksCount(anyCollection(), anyList(), eq(searchRequest));
+        verify(tasksRepository, never()).searchTasksCountUsingRoleCriteria(
+            anyCollection(), anyList(), eq(searchRequest));
     }
 
     @Test
@@ -238,11 +240,12 @@ class CFTTaskSearchServiceTest {
         );
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            WA_SEARCH_INDEX_SEARCH_ENABLED,
+            WA_TASK_SEARCH_GIN_INDEX,
             SERVICE_USER_ID,
             SERVICE_EMAIL
         )).thenReturn(true);
-        when(tasksRepository.searchTasksIdsOld(eq(0), eq(25), anySet(), anySet(), eq(List.of()), eq(searchRequest)))
+        when(tasksRepository.searchTasksIdsUsingSearchIndex(
+            eq(0), eq(25), anySet(), anySet(), eq(List.of()), eq(searchRequest)))
             .thenReturn(List.of());
 
         CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
@@ -251,7 +254,8 @@ class CFTTaskSearchServiceTest {
 
         assertThat(result.taskIds()).isEmpty();
         assertThat(result.totalRecords()).isZero();
-        verify(tasksRepository, never()).searchTasksCountOld(anySet(), anySet(), anyList(), eq(searchRequest));
+        verify(tasksRepository, never())
+            .searchTasksCountUsingSearchIndex(anySet(), anySet(), anyList(), eq(searchRequest));
     }
 
     private RoleAssignment roleAssignment(String roleName,

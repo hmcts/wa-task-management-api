@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.WA_SEARCH_INDEX_SEARCH_ENABLED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.WA_TASK_SEARCH_GIN_INDEX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder.MANAGE_PERMISSION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder.OWN_AND_CLAIM_PERMISSION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder.READ_PERMISSION;
@@ -72,7 +72,7 @@ public class CFTTaskSearchService {
         log.info("Task search for filter signatures {} \nrole signatures {} \nexcluded case ids {}",
                  filterSignature, roleSignature, excludeCaseIds
         );
-        List<String> taskIds = tasksRepository.searchTasksIdsOld(
+        List<String> taskIds = tasksRepository.searchTasksIdsUsingSearchIndex(
             firstResult, maxResults, filterSignature, roleSignature, excludeCaseIds, searchRequest
         );
 
@@ -80,7 +80,8 @@ public class CFTTaskSearchService {
             return new SearchResult(List.of(), 0);
         }
 
-        Long count = tasksRepository.searchTasksCountOld(filterSignature, roleSignature, excludeCaseIds, searchRequest);
+        Long count = tasksRepository.searchTasksCountUsingSearchIndex(
+            filterSignature, roleSignature, excludeCaseIds, searchRequest);
         return new SearchResult(taskIds, count);
     }
 
@@ -95,7 +96,7 @@ public class CFTTaskSearchService {
 
         log.info("Task search for roleCriteria  {} \nexcluded case ids {}", roleCriteria, excludeCaseIds);
 
-        List<String> taskIds = tasksRepository.searchTasksIds(
+        List<String> taskIds = tasksRepository.searchTasksIdsUsingRoleCriteria(
             firstResult, maxResults, roleCriteria, excludeCaseIds, searchRequest
         );
 
@@ -103,7 +104,7 @@ public class CFTTaskSearchService {
             return new SearchResult(List.of(), 0);
         }
 
-        Long count = tasksRepository.searchTasksCount(roleCriteria, excludeCaseIds, searchRequest);
+        Long count = tasksRepository.searchTasksCountUsingRoleCriteria(roleCriteria, excludeCaseIds, searchRequest);
         return new SearchResult(taskIds, count);
     }
 
@@ -193,7 +194,7 @@ public class CFTTaskSearchService {
     private boolean isSearchIndexSearchEnabled() {
         return launchDarklyFeatureFlagProvider != null
             && launchDarklyFeatureFlagProvider.getBooleanValue(
-            WA_SEARCH_INDEX_SEARCH_ENABLED,
+            WA_TASK_SEARCH_GIN_INDEX,
             SERVICE_USER_ID,
             SERVICE_EMAIL
         );

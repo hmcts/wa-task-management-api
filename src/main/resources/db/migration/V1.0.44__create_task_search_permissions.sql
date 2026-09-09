@@ -73,6 +73,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS refresh_task_search_permissions_on_tasks ON cft_task_db.tasks;
 CREATE TRIGGER refresh_task_search_permissions_on_tasks
     AFTER INSERT OR DELETE OR UPDATE OF indexed
     ON cft_task_db.tasks
@@ -105,6 +106,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS refresh_task_search_permissions_on_task_roles ON cft_task_db.task_roles;
 CREATE TRIGGER refresh_task_search_permissions_on_task_roles
     AFTER INSERT OR DELETE OR UPDATE OF task_id, role_name, read, manage, own, claim, authorizations
     ON cft_task_db.task_roles

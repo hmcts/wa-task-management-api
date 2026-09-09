@@ -919,7 +919,7 @@ class TaskResourceRepositoryTest {
                                      Set<String> roleSignatures,
                                      List<String> excludeCaseIds,
                                      SearchRequest searchRequest) {
-        return taskResourceRepository.searchTasksIds(
+        return taskResourceRepository.searchTasksIdsUsingRoleCriteria(
             0,
             25,
             toRoleCriteria(roleSignatures),

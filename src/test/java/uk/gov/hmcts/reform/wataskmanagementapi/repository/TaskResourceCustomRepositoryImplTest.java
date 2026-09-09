@@ -112,7 +112,7 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_request_is_empty_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
+        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
             null, SearchRequest.builder().build());
 
         String queryStr = PAGE_QUERY_PREFIX
@@ -128,7 +128,7 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_request_with_order_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
+        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
             null, SearchRequest.builder()
                     .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT),
                         new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
@@ -148,8 +148,8 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_request_is_empty_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCount(roleCriteria, null,
-            SearchRequest.builder().build());
+        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
+                                                                       SearchRequest.builder().build());
 
         String queryStr = COUNT_QUERY_PREFIX
                        + "AND t.state IN ('ASSIGNED', 'UNASSIGNED') "
@@ -161,8 +161,8 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_request_is_empty_then_build_old_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountOld(filterSignature, roleSignature,null,
-            SearchRequest.builder().build());
+        taskResourceCustomRepository.searchTasksCountUsingSearchIndex(filterSignature, roleSignature, null,
+                                                                      SearchRequest.builder().build());
 
         String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
                        + OLD_SIGNATURE_CONSTRAINTS
@@ -175,7 +175,7 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_request_for_available_task_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
+        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
             null, SearchRequest.builder()
                 .requestContext(RequestContext.AVAILABLE_TASKS)
                 .users(List.of("user"))
@@ -195,8 +195,8 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_request_for_available_task_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCount(roleCriteria, null,
-            SearchRequest.builder()
+        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
+                                                                       SearchRequest.builder()
             .requestContext(RequestContext.AVAILABLE_TASKS)
             .users(List.of("user"))
             .build());
@@ -212,7 +212,7 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_single_search_filter_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
+        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
             null, SearchRequest.builder()
                 .users(List.of("user"))
                     .cftTaskStates(List.of(CFTTaskState.COMPLETED))
@@ -240,8 +240,8 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_single_search_filter_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCount(roleCriteria, null,
-            SearchRequest.builder()
+        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
+                                                                       SearchRequest.builder()
             .users(List.of("user"))
             .cftTaskStates(List.of(CFTTaskState.COMPLETED))
             .caseIds(List.of("caseId"))
@@ -264,7 +264,7 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_multiple_search_filter_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
+        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
             null, SearchRequest.builder()
                 .users(List.of("user", "user2"))
                 .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
@@ -292,8 +292,8 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_multiple_search_filter_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCount(roleCriteria, null,
-            SearchRequest.builder()
+        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
+                                                                       SearchRequest.builder()
             .users(List.of("user", "user2"))
             .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
             .caseIds(List.of("caseId", "caseId2"))
@@ -316,7 +316,7 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_multiple_search_filter_and_excluded_case_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
+        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
             List.of("caseId"), SearchRequest.builder()
                 .users(List.of("user", "user2"))
                 .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
@@ -346,8 +346,8 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_multiple_search_filter_and_excluded_case_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCount(roleCriteria, List.of("caseId"),
-            SearchRequest.builder()
+        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, List.of("caseId"),
+                                                                       SearchRequest.builder()
             .users(List.of("user", "user2"))
             .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
             .caseIds(List.of("caseId", "caseId2"))
@@ -372,7 +372,7 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_multiple_search_filter_and_multiple_excluded_case_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIds(1, 25, roleCriteria,
+        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
             List.of("caseId", "caseId2"), SearchRequest.builder()
                 .users(List.of("user", "user2"))
                 .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
@@ -402,8 +402,8 @@ class TaskResourceCustomRepositoryImplTest {
 
     @Test
     void when_search_with_multiple_search_filter_and_multiple_excluded_case_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCount(roleCriteria, List.of("caseId", "caseId2"),
-            SearchRequest.builder()
+        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, List.of("caseId", "caseId2"),
+                                                                       SearchRequest.builder()
             .users(List.of("user", "user2"))
             .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
             .caseIds(List.of("caseId", "caseId2"))
