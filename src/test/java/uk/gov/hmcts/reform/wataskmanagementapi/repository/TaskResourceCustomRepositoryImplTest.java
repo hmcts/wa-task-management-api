@@ -77,7 +77,7 @@ class TaskResourceCustomRepositoryImplTest {
             + ROLE_PERMISSION_CONSTRAINTS
             + "LIMIT 1) role_permission ON true "
             + "WHERE indexed ";
-    private static final String COUNT_QUERY_SUFFIX = "LIMIT 10001) matching_tasks";
+    private static final String COUNT_QUERY_SUFFIX = "LIMIT 10000) matching_tasks";
     private static final String OLD_SIGNATURE_CONSTRAINTS =
         "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, "
         + "t.region, t.location) && CAST(:filterSignature AS text[]) "
