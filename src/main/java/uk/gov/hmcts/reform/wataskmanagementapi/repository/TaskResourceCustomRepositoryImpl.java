@@ -118,7 +118,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             + LATERAL_ROLE_PERMISSION_JOIN
             + "WHERE indexed "
             + "%s"
-            + "LIMIT 10000"
+            + "LIMIT :countLimit"
             + ") matching_tasks";
 
 
@@ -189,7 +189,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     @Override
     public Long searchTasksCount(Collection<TaskSearchRoleCriteria> roleCriteria,
                                  List<String> excludeCaseIds,
-                                 SearchRequest searchRequest) {
+                                 SearchRequest searchRequest,
+                                 long countLimit) {
 
         RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
         String queryString = String.format(COUNT_QUERY_NEW,
@@ -199,6 +200,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         log.info("Task count query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString);
         addParameters(query, searchRoleCriteria, excludeCaseIds, searchRequest);
+        query.setParameter("countLimit", countLimit);
 
         Long taskCount = ((Number) query.getSingleResult()).longValue();
         log.info("Total number of tasks {}", taskCount);

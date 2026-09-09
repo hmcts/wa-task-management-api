@@ -28,7 +28,8 @@ public interface TaskResourceCustomRepository {
     @Transactional
     Long searchTasksCount(Collection<TaskSearchRoleCriteria> roleCriteria,
                           List<String> excludeCaseIds,
-                          SearchRequest searchRequest);
+                          SearchRequest searchRequest,
+                          long countLimit);
 
     @Transactional
     Long searchTasksCountOld(Set<String> filterSignature,

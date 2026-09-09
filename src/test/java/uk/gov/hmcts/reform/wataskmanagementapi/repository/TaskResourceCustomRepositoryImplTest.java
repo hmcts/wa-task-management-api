@@ -29,6 +29,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCus
 
 @ExtendWith(MockitoExtension.class)
 class TaskResourceCustomRepositoryImplTest {
+
+    private static final String COUNT_QUERY_SUFFIX = "LIMIT :countLimit) matching_tasks";
+    private static final long COUNT_LIMIT = 5001;
+
     private static final String ROLE_CRITERIA_CTE =
         "WITH request_role_criteria("
             + "jurisdiction, region, location, role_name, case_id, permission, classification, authorization_value"
@@ -77,7 +81,6 @@ class TaskResourceCustomRepositoryImplTest {
             + ROLE_PERMISSION_CONSTRAINTS
             + "LIMIT 1) role_permission ON true "
             + "WHERE indexed ";
-    private static final String COUNT_QUERY_SUFFIX = "LIMIT 10001) matching_tasks";
     private static final String OLD_SIGNATURE_CONSTRAINTS =
         "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, "
         + "t.region, t.location) && CAST(:filterSignature AS text[]) "
@@ -149,7 +152,7 @@ class TaskResourceCustomRepositoryImplTest {
     @Test
     void when_search_request_is_empty_then_build_count_query_with_signatures() {
         taskResourceCustomRepository.searchTasksCount(roleCriteria, null,
-            SearchRequest.builder().build());
+            SearchRequest.builder().build(), COUNT_LIMIT);
 
         String queryStr = COUNT_QUERY_PREFIX
                        + "AND t.state IN ('ASSIGNED', 'UNASSIGNED') "
@@ -157,6 +160,7 @@ class TaskResourceCustomRepositoryImplTest {
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);
+        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
     }
 
     @Test
@@ -199,7 +203,7 @@ class TaskResourceCustomRepositoryImplTest {
             SearchRequest.builder()
             .requestContext(RequestContext.AVAILABLE_TASKS)
             .users(List.of("user"))
-            .build());
+            .build(), COUNT_LIMIT);
 
         String queryStr = COUNT_QUERY_PREFIX
                        + "AND t.assignee IS NULL "
@@ -208,6 +212,7 @@ class TaskResourceCustomRepositoryImplTest {
         verify(entityManager).createNativeQuery(queryStr);
         InOrder inOrder = inOrder(query);
         verifyNewSignatureParameters(inOrder);
+        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
     }
 
     @Test
@@ -246,7 +251,7 @@ class TaskResourceCustomRepositoryImplTest {
             .cftTaskStates(List.of(CFTTaskState.COMPLETED))
             .caseIds(List.of("caseId"))
             .taskTypes(List.of("TaskType"))
-            .build());
+            .build(), COUNT_LIMIT);
 
         String queryStr = COUNT_QUERY_PREFIX
                        + "AND t.assignee = :assignee "
@@ -260,6 +265,7 @@ class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("assignee", "user");
         inOrder.verify(query).setParameter("caseId", "caseId");
         inOrder.verify(query).setParameter("taskType", "TaskType");
+        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
     }
 
     @Test
@@ -298,7 +304,7 @@ class TaskResourceCustomRepositoryImplTest {
             .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
             .caseIds(List.of("caseId", "caseId2"))
             .taskTypes(List.of("TaskType", "TaskType2"))
-            .build());
+            .build(), COUNT_LIMIT);
 
         String queryStr = COUNT_QUERY_PREFIX
                        + "AND t.assignee IN (:assignee) "
@@ -312,6 +318,7 @@ class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
+        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
     }
 
     @Test
@@ -352,7 +359,7 @@ class TaskResourceCustomRepositoryImplTest {
             .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
             .caseIds(List.of("caseId", "caseId2"))
             .taskTypes(List.of("TaskType", "TaskType2"))
-            .build());
+            .build(), COUNT_LIMIT);
 
         String queryStr = COUNT_QUERY_PREFIX
                        + "AND t.assignee IN (:assignee) "
@@ -368,6 +375,7 @@ class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("excludedCaseId", "caseId");
+        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
     }
 
     @Test
@@ -408,7 +416,7 @@ class TaskResourceCustomRepositoryImplTest {
             .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
             .caseIds(List.of("caseId", "caseId2"))
             .taskTypes(List.of("TaskType", "TaskType2"))
-            .build());
+            .build(), COUNT_LIMIT);
 
         String queryStr = COUNT_QUERY_PREFIX
                        + "AND t.assignee IN (:assignee) "
@@ -424,6 +432,7 @@ class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("excludedCaseId", List.of("caseId", "caseId2"));
+        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
     }
 
     private void verifyNewSignatureParameters(InOrder inOrder) {

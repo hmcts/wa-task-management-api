@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.SearchResult;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -39,6 +40,7 @@ public class CFTTaskDatabaseService {
         this.cftTaskMapper = cftTaskMapper;
         this.cftTaskSearchService = cftTaskSearchService;
     }
+
     public Optional<TaskResource> findByIdAndObtainPessimisticWriteLock(String taskId) {
         return tasksRepository.findById(taskId);
     }
@@ -120,13 +122,13 @@ public class CFTTaskDatabaseService {
                                                  AccessControlResponse accessControlResponse) {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
-        CFTTaskSearchService.SearchResult searchResult = cftTaskSearchService.searchForTaskIds(
+        SearchResult searchResult = cftTaskSearchService.searchForTaskIds(
             firstResult, maxResults, searchRequest, roleAssignments
         );
         List<String> taskIds = searchResult.taskIds();
 
         if (isEmpty(taskIds)) {
-            return new GetTasksResponse<>(List.of(), 0);
+            return new GetTasksResponse<>(List.of(), searchResult.totalRecords(), searchResult.hasMoreRecords());
         }
 
         Sort sort = TaskSearchSortProvider.getSortOrders(searchRequest);
@@ -140,7 +142,7 @@ public class CFTTaskDatabaseService {
                      )
             ).toList();
 
-        return new GetTasksResponse<>(tasks, searchResult.totalRecords());
+        return new GetTasksResponse<>(tasks, searchResult.totalRecords(), searchResult.hasMoreRecords());
     }
 
     public List<TaskResource> findTaskToUpdateIndex() {

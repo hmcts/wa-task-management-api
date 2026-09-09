@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCriteria;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.SearchResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -49,7 +53,7 @@ class CFTTaskSearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        cftTaskSearchService = new CFTTaskSearchService(tasksRepository, launchDarklyFeatureFlagProvider);
+        cftTaskSearchService = new CFTTaskSearchService(tasksRepository, launchDarklyFeatureFlagProvider, 5000);
     }
 
     @Test
@@ -91,14 +95,15 @@ class CFTTaskSearchServiceTest {
         )).thenReturn(List.of("task-1"));
         when(tasksRepository.searchTasksCountOld(
             anySet(), anySet(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
-        )).thenReturn(1L);
+        )).thenReturn(6000L);
 
-        CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
+        SearchResult result = cftTaskSearchService.searchForTaskIds(
             1, 25, searchRequest, roleAssignments
         );
 
         assertThat(result.taskIds()).containsExactly("task-1");
-        assertThat(result.totalRecords()).isEqualTo(1);
+        assertThat(result.totalRecords()).isEqualTo(6000);
+        assertThat(result.hasMoreRecords()).isFalse();
 
         ArgumentCaptor<Set<String>> filterSignatureCaptor = ArgumentCaptor.forClass(Set.class);
         ArgumentCaptor<Set<String>> roleSignatureCaptor = ArgumentCaptor.forClass(Set.class);
@@ -148,15 +153,16 @@ class CFTTaskSearchServiceTest {
             eq(2), eq(50), anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(List.of("task-2", "task-3"));
         when(tasksRepository.searchTasksCount(
-            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
+            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest), eq(5001L)
         )).thenReturn(2L);
 
-        CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
+        SearchResult result = cftTaskSearchService.searchForTaskIds(
             2, 50, searchRequest, roleAssignments
         );
 
         assertThat(result.taskIds()).containsExactly("task-2", "task-3");
         assertThat(result.totalRecords()).isEqualTo(2);
+        assertThat(result.hasMoreRecords()).isFalse();
 
         ArgumentCaptor<Collection<TaskSearchRoleCriteria>> roleCriteriaCaptor = ArgumentCaptor.forClass(
             Collection.class
@@ -223,7 +229,9 @@ class CFTTaskSearchServiceTest {
                 new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-1"),
                 new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-2")
             );
-        verify(tasksRepository, never()).searchTasksCount(anyCollection(), anyList(), eq(searchRequest));
+        verify(tasksRepository, never()).searchTasksCount(
+            anyCollection(), anyList(), eq(searchRequest), anyLong()
+        );
     }
 
     @Test
@@ -245,13 +253,85 @@ class CFTTaskSearchServiceTest {
         when(tasksRepository.searchTasksIdsOld(eq(0), eq(25), anySet(), anySet(), eq(List.of()), eq(searchRequest)))
             .thenReturn(List.of());
 
-        CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
+        SearchResult result = cftTaskSearchService.searchForTaskIds(
             0, 25, searchRequest, List.of(roleAssignment)
         );
 
         assertThat(result.taskIds()).isEmpty();
         assertThat(result.totalRecords()).isZero();
+        assertThat(result.hasMoreRecords()).isFalse();
         verify(tasksRepository, never()).searchTasksCountOld(anySet(), anySet(), anyList(), eq(searchRequest));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "1, 1, false",
+        "2, 2, false",
+        "3, 2, true"
+    })
+    void should_apply_configurable_total_records_cap(long count, long expectedTotalRecords, boolean expectedHasMore) {
+        SearchRequest searchRequest = SearchRequest.builder().build();
+        RoleAssignment roleAssignment = roleAssignment(
+            "hmcts-judiciary",
+            Classification.PUBLIC,
+            GrantType.STANDARD,
+            Map.of(),
+            List.of()
+        );
+        CFTTaskSearchService serviceWithSmallCap = new CFTTaskSearchService(
+            tasksRepository, launchDarklyFeatureFlagProvider, 2
+        );
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            WA_SEARCH_INDEX_SEARCH_ENABLED,
+            SERVICE_USER_ID,
+            SERVICE_EMAIL
+        )).thenReturn(false);
+        when(tasksRepository.searchTasksIds(
+            eq(0), eq(25), anyCollection(), eq(List.of()), eq(searchRequest)
+        )).thenReturn(List.of("task-1"));
+        when(tasksRepository.searchTasksCount(
+            anyCollection(), eq(List.of()), eq(searchRequest), eq(3L)
+        )).thenReturn(count);
+
+        SearchResult result = serviceWithSmallCap.searchForTaskIds(
+            0, 25, searchRequest, List.of(roleAssignment)
+        );
+
+        assertThat(result.taskIds()).containsExactly("task-1");
+        assertThat(result.totalRecords()).isEqualTo(expectedTotalRecords);
+        assertThat(result.hasMoreRecords()).isEqualTo(expectedHasMore);
+    }
+
+    @Test
+    void should_not_count_an_empty_page_after_the_first_page() {
+        SearchRequest searchRequest = SearchRequest.builder().build();
+        RoleAssignment roleAssignment = roleAssignment(
+            "hmcts-judiciary",
+            Classification.PUBLIC,
+            GrantType.STANDARD,
+            Map.of(),
+            List.of()
+        );
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            WA_SEARCH_INDEX_SEARCH_ENABLED,
+            SERVICE_USER_ID,
+            SERVICE_EMAIL
+        )).thenReturn(false);
+        when(tasksRepository.searchTasksIds(
+            eq(6000), eq(25), anyCollection(), eq(List.of()), eq(searchRequest)
+        )).thenReturn(List.of());
+        SearchResult result = cftTaskSearchService.searchForTaskIds(
+            6000, 25, searchRequest, List.of(roleAssignment)
+        );
+
+        assertThat(result.taskIds()).isEmpty();
+        assertThat(result.totalRecords()).isZero();
+        assertThat(result.hasMoreRecords()).isFalse();
+        verify(tasksRepository, never()).searchTasksCount(
+            anyCollection(), anyList(), eq(searchRequest), anyLong()
+        );
     }
 
     private RoleAssignment roleAssignment(String roleName,

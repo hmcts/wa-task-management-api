@@ -153,6 +153,28 @@ Classification is equivalent to the legacy `classifications` view:
 | `PRIVATE` | `P`, `R` |
 | `RESTRICTED` | `R` |
 
+### Count plan
+
+The paged task-ID query keeps its task-first lateral permission lookup because
+the page limit lets PostgreSQL stop as soon as enough rows have been found. The
+count query instead builds matching permission facts first and applies
+them with `EXISTS`. This permits a parallel semi-join and ensures duplicate
+permission or role-criteria rows never cause a task to be counted twice.
+
+The count separates permission facts into three authorization branches:
+
+* case roles, which deliberately ignore permission authorization;
+* organisational roles without an authorization value; and
+* organisational roles with an authorization value.
+
+Separating these branches preserves the role semantics while allowing the
+non-null authorization branch to use its targeted partial index. To bound query
+cost, the count reads at most one row beyond `config.search.totalRecordsCap`.
+Counts up to the cap are exact; above it the response returns the cap with
+`has_more: true`. This is count-overflow metadata, not a page-relative
+`has_next`; clients can continue paging until a short or empty page. The count
+cap does not limit the paged task-ID query.
+
 ## Indexes
 
 `V1.0.43__create_task_search_permissions.sql` creates a B-tree lookup index:
@@ -160,6 +182,16 @@ Classification is equivalent to the legacy `classifications` view:
 ```sql
 CREATE INDEX task_search_permissions_lookup_idx
     ON cft_task_db.task_search_permissions (permission, role_name, task_id, authorization_value);
+```
+
+`V1.0.47__add_task_search_permission_authorization_index.sql` adds a small
+partial index for the non-null organisational authorization branch:
+
+```sql
+CREATE INDEX CONCURRENTLY task_search_permissions_authorization_lookup_idx
+    ON cft_task_db.task_search_permissions
+       (permission, role_name, authorization_value, task_id)
+    WHERE authorization_value IS NOT NULL;
 ```
 
 The table primary key also supports task-first permission checks:
@@ -229,6 +261,12 @@ Adds the no-GIN derived permission table, refresh functions, refresh triggers, a
 Adds B-tree indexes for the no-GIN query path. It deliberately keeps the legacy `search_index` for comparison.
 
 The fresh migration path does not add task-level materialised signature columns such as `filter_signatures`, `role_signatures`, `filter_signature_hashes`, or `role_signature_hashes`.
+
+### `V1.0.47__add_task_search_permission_authorization_index.sql`
+
+Adds the partial authorization-first permission index used by the exact count
+query. The migration builds it concurrently and runs outside a Flyway
+transaction so task and task-role writes can continue while it is created.
 
 ## Validation
 

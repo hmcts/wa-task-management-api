@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -12,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCrite
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSignatureBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.SearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +36,15 @@ public class CFTTaskSearchService {
 
     private final TaskResourceRepository tasksRepository;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private final int totalRecordsCap;
 
     @Autowired
     public CFTTaskSearchService(TaskResourceRepository tasksRepository,
-                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                                @Value("${config.search.totalRecordsCap}") int totalRecordsCap) {
         this.tasksRepository = tasksRepository;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.totalRecordsCap = totalRecordsCap;
     }
 
     public SearchResult searchForTaskIds(int firstResult,
@@ -77,11 +82,11 @@ public class CFTTaskSearchService {
         );
 
         if (isEmpty(taskIds)) {
-            return new SearchResult(List.of(), 0);
+            return new SearchResult(List.of(), 0, false);
         }
 
         Long count = tasksRepository.searchTasksCountOld(filterSignature, roleSignature, excludeCaseIds, searchRequest);
-        return new SearchResult(taskIds, count);
+        return new SearchResult(taskIds, count, false);
     }
 
 
@@ -100,11 +105,13 @@ public class CFTTaskSearchService {
         );
 
         if (isEmpty(taskIds)) {
-            return new SearchResult(List.of(), 0);
+            return new SearchResult(List.of(), 0, false);
         }
 
-        Long count = tasksRepository.searchTasksCount(roleCriteria, excludeCaseIds, searchRequest);
-        return new SearchResult(taskIds, count);
+        Long count = tasksRepository.searchTasksCount(
+            roleCriteria, excludeCaseIds, searchRequest, (long) totalRecordsCap + 1
+        );
+        return toCappedSearchResult(taskIds, count);
     }
 
     private List<String> buildExcludedCaseIds(List<RoleAssignment> roleAssignments) {
@@ -187,7 +194,8 @@ public class CFTTaskSearchService {
         return READ_PERMISSION;
     }
 
-    public record SearchResult(List<String> taskIds, long totalRecords) {
+    private SearchResult toCappedSearchResult(List<String> taskIds, long count) {
+        return new SearchResult(taskIds, Math.min(count, totalRecordsCap), count > totalRecordsCap);
     }
 
     private boolean isSearchIndexSearchEnabled() {

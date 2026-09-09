@@ -79,7 +79,7 @@ class CFTTaskDatabaseServiceTest {
 
     @BeforeEach
     void setUp() {
-        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null);
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null, 5000);
         cftTaskDatabaseService = new CFTTaskDatabaseService(
             taskResourceRepository,
             cftTaskMapper,
@@ -299,6 +299,7 @@ class CFTTaskDatabaseServiceTest {
             accessControlResponse
         );
         assertEquals(0, response.getTotalRecords());
+        assertThat(response.getHasMoreRecords()).isFalse();
         assertTrue(response.getTasks().isEmpty());
     }
 
@@ -405,9 +406,10 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.searchTasksCount(
             anyCollection(),
             eq(List.of()),
-            eq(searchRequest)
+            eq(searchRequest),
+            eq(5001L)
         ))
-            .thenReturn(1L);
+            .thenReturn(5001L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
             eq(taskResource),
             anyList()
@@ -416,7 +418,8 @@ class CFTTaskDatabaseServiceTest {
         GetTasksResponse<Task> response = cftTaskDatabaseService.searchForTasks(1, 25, searchRequest,
             accessControlResponse
         );
-        assertEquals(1, response.getTotalRecords());
+        assertEquals(5000, response.getTotalRecords());
+        assertThat(response.getHasMoreRecords()).isTrue();
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
     }
@@ -451,7 +454,8 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.searchTasksCount(
             anyCollection(),
             eq(List.of()),
-            eq(searchRequest)
+            eq(searchRequest),
+            eq(5001L)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -463,6 +467,7 @@ class CFTTaskDatabaseServiceTest {
             accessControlResponse
         );
         assertEquals(1, response.getTotalRecords());
+        assertThat(response.getHasMoreRecords()).isFalse();
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
     }
@@ -497,7 +502,8 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.searchTasksCount(
             anyCollection(),
             eq(caseIds),
-            eq(searchRequest)
+            eq(searchRequest),
+            eq(5001L)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -509,6 +515,7 @@ class CFTTaskDatabaseServiceTest {
             accessControlResponse
         );
         assertEquals(1, response.getTotalRecords());
+        assertThat(response.getHasMoreRecords()).isFalse();
         assertEquals(1, response.getTasks().size());
         assertEquals(task, response.getTasks().get(0));
     }
@@ -558,7 +565,6 @@ class CFTTaskDatabaseServiceTest {
             eq(List.of()),
             eq(searchRequest))
         ).thenReturn(List.of());
-
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
 
