@@ -61,7 +61,8 @@ class UpdateSearchIndexServiceTest {
 
     @Test
     void should_process_update_search_index_operation_for_not_found_task() {
-        TaskResource resource = new TaskResource("1", "newTask", "review", CFTTaskState.UNASSIGNED);
+        TaskResource resource = new TaskResource(
+            "1", "newTask", "review", CFTTaskState.UNASSIGNED);
         when(cftTaskDatabaseService.findTaskToUpdateIndex()).thenReturn(List.of(resource));
 
         Map<String, Object> resourceMap = updateSearchIndexService.performOperation(request).getResponseMap();
@@ -73,9 +74,11 @@ class UpdateSearchIndexServiceTest {
 
     @Test
     void should_process_update_search_index_operation_if_task_not_found() {
-        TaskResource resource = new TaskResource("1", "newTask", "review", CFTTaskState.UNASSIGNED);
+        TaskResource resource = new TaskResource(
+            "1", "newTask", "review", CFTTaskState.UNASSIGNED);
         when(cftTaskDatabaseService.findTaskToUpdateIndex()).thenReturn(List.of(resource));
-        when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock("1")).thenReturn(Optional.empty());
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            "1", List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED))).thenReturn(Optional.empty());
 
         Map<String, Object> resourceMap = updateSearchIndexService.performOperation(request).getResponseMap();
         int tasks = (int) resourceMap.get("successfulTaskResources");
@@ -88,7 +91,8 @@ class UpdateSearchIndexServiceTest {
     void should_process_update_search_index_operation_and_save_task() {
         TaskResource resource = new TaskResource("1", "newTask", "review", CFTTaskState.UNASSIGNED);
         when(cftTaskDatabaseService.findTaskToUpdateIndex()).thenReturn(List.of(resource));
-        when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock("1"))
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            "1", List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .thenReturn(Optional.of(resource));
         when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(resource);
 
@@ -96,8 +100,26 @@ class UpdateSearchIndexServiceTest {
         int tasks = (int) resourceMap.get("successfulTaskResources");
         assertEquals(1, tasks);
         verify(cftTaskDatabaseService, times(1)).findTaskToUpdateIndex();
-        verify(cftTaskDatabaseService, times(1)).findByIdAndWaitAndObtainPessimisticWriteLock("1");
+        verify(cftTaskDatabaseService, times(1)).findByIdAndStateInObtainPessimisticWriteLock(
+            "1", List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
         verify(cftTaskDatabaseService, times(1)).saveTask(any(TaskResource.class));
+    }
+
+    @Test
+    void should_not_process_update_search_index_operation_when_task_state_terminated() {
+        TaskResource resource = new TaskResource("1", "newTask", "review", CFTTaskState.TERMINATED);
+        when(cftTaskDatabaseService.findTaskToUpdateIndex()).thenReturn(List.of(resource));
+        when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            "1", List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
+            .thenReturn(Optional.empty());
+
+        Map<String, Object> resourceMap = updateSearchIndexService.performOperation(request).getResponseMap();
+        int tasks = (int) resourceMap.get("successfulTaskResources");
+        assertEquals(0, tasks);
+        verify(cftTaskDatabaseService, times(1)).findTaskToUpdateIndex();
+        verify(cftTaskDatabaseService, times(1)).findByIdAndStateInObtainPessimisticWriteLock(
+            "1", List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+        verify(cftTaskDatabaseService, times(0)).saveTask(any(TaskResource.class));
     }
 
     @Test
@@ -105,7 +127,8 @@ class UpdateSearchIndexServiceTest {
         TaskResource resource = spy(TaskResource.class);
         when(resource.getTaskId()).thenReturn("1");
         when(cftTaskDatabaseService.findTaskToUpdateIndex()).thenReturn(List.of(resource, resource));
-        lenient().when(cftTaskDatabaseService.findByIdAndWaitAndObtainPessimisticWriteLock("1"))
+        lenient().when(cftTaskDatabaseService.findByIdAndStateInObtainPessimisticWriteLock(
+            "1", List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .thenReturn(Optional.of(resource));
         lenient().when(cftTaskDatabaseService.saveTask(argThat(t -> t.getTaskId().equals("1")))).thenReturn(resource);
 
@@ -113,7 +136,8 @@ class UpdateSearchIndexServiceTest {
         int tasks = (int) resourceMap.get("successfulTaskResources");
         assertEquals(2, tasks);
         verify(cftTaskDatabaseService, times(1)).findTaskToUpdateIndex();
-        verify(cftTaskDatabaseService, times(2)).findByIdAndWaitAndObtainPessimisticWriteLock("1");
+        verify(cftTaskDatabaseService, times(2)).findByIdAndStateInObtainPessimisticWriteLock(
+            "1", List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
         verify(cftTaskDatabaseService, times(2)).saveTask(any(TaskResource.class));
     }
 
