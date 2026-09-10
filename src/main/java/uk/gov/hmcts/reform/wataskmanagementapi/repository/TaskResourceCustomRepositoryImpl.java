@@ -139,7 +139,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             PAGINATION_CLAUSE
         );
 
-        log.info("Task search query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString, RESULT_MAPPER);
         addParameters(query, firstResult, maxResults, searchRoleCriteria, excludeCaseIds, searchRequest);
 
@@ -167,7 +166,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                            PAGINATION_CLAUSE
         );
 
-        log.info("Task search query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString, RESULT_MAPPER);
         addParameters(query, firstResult, maxResults, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
@@ -187,7 +185,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             searchRoleCriteria.cte(),
             extraConstraints(excludeCaseIds, searchRequest, "t."));
 
-        log.info("Task count query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString);
         addParameters(query, searchRoleCriteria, excludeCaseIds, searchRequest);
 
@@ -208,7 +205,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                            extraConstraints(excludeCaseIds, searchRequest),
                                            "", "");
 
-        log.info("Task count query [{}]", queryString);
         Query query = entityManager.createNativeQuery(queryString);
         addParameters(query, filterSignature, roleSignature, excludeCaseIds, searchRequest);
 
