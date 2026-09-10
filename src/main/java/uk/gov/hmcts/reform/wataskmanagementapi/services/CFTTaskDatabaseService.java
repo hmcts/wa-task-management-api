@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.SearchResult;
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -121,7 +122,7 @@ public class CFTTaskDatabaseService {
                                                  AccessControlResponse accessControlResponse) {
 
         List<RoleAssignment> roleAssignments = accessControlResponse.getRoleAssignments();
-        CFTTaskSearchService.SearchResult searchResult = cftTaskSearchService.searchForTaskIds(
+        SearchResult searchResult = cftTaskSearchService.searchForTaskIds(
             firstResult, maxResults, searchRequest, roleAssignments
         );
         List<String> taskIds = searchResult.taskIds();

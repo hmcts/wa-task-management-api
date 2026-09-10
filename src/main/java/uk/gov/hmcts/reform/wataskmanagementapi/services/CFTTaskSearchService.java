@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCrite
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSignatureBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.signature.SearchFilterSignatureBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.SearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -192,9 +193,6 @@ public class CFTTaskSearchService {
             return MANAGE_PERMISSION;
         }
         return READ_PERMISSION;
-    }
-
-    public record SearchResult(List<String> taskIds, long totalRecords) {
     }
 
     private boolean isSearchIndexSearchEnabled() {

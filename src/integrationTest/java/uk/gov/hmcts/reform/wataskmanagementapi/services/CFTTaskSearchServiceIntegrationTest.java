@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.SearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ class CFTTaskSearchServiceIntegrationTest {
     void should_apply_configured_count_limit_without_limiting_task_page() {
         indexMatchingTasks();
 
-        CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchUsingRoleCriteria(
+        SearchResult result = cftTaskSearchService.searchUsingRoleCriteria(
             0,
             10,
             SearchRequest.builder().build(),

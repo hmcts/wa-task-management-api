@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCriteria;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.SearchResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -96,7 +97,7 @@ class CFTTaskSearchServiceTest {
             anySet(), anySet(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(1L);
 
-        CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
+        SearchResult result = cftTaskSearchService.searchForTaskIds(
             1, 25, searchRequest, roleAssignments
         );
 
@@ -154,7 +155,7 @@ class CFTTaskSearchServiceTest {
             anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest), eq(COUNT_LIMIT)
         )).thenReturn(2L);
 
-        CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
+        SearchResult result = cftTaskSearchService.searchForTaskIds(
             2, 50, searchRequest, roleAssignments
         );
 
@@ -254,7 +255,7 @@ class CFTTaskSearchServiceTest {
             eq(0), eq(25), anySet(), anySet(), eq(List.of()), eq(searchRequest)))
             .thenReturn(List.of());
 
-        CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
+        SearchResult result = cftTaskSearchService.searchForTaskIds(
             0, 25, searchRequest, List.of(roleAssignment)
         );
 
