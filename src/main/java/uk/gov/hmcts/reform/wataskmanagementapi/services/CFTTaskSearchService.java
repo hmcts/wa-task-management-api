@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -34,12 +35,15 @@ public class CFTTaskSearchService {
 
     private final TaskResourceRepository tasksRepository;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private final int countLimit;
 
     @Autowired
     public CFTTaskSearchService(TaskResourceRepository tasksRepository,
-                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                                @Value("${config.search.countLimit}") int countLimit) {
         this.tasksRepository = tasksRepository;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.countLimit = countLimit;
     }
 
     public SearchResult searchForTaskIds(int firstResult,
@@ -104,7 +108,9 @@ public class CFTTaskSearchService {
             return new SearchResult(List.of(), 0);
         }
 
-        Long count = tasksRepository.searchTasksCountUsingRoleCriteria(roleCriteria, excludeCaseIds, searchRequest);
+        Long count = tasksRepository.searchTasksCountUsingRoleCriteria(
+            roleCriteria, excludeCaseIds, searchRequest, countLimit
+        );
         return new SearchResult(taskIds, count);
     }
 

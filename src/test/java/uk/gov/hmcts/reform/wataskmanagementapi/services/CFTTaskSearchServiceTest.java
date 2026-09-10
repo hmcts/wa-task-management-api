@@ -39,6 +39,7 @@ class CFTTaskSearchServiceTest {
     private static final String SERVICE_USER_ID = "wa-task-management-api";
     private static final String SERVICE_EMAIL = "wa-task-management-api@hmcts.net";
     private static final String EXCLUDED_CASE_ID = "case-excluded";
+    private static final int COUNT_LIMIT = 123;
 
     @Mock
     private TaskResourceRepository tasksRepository;
@@ -49,7 +50,9 @@ class CFTTaskSearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        cftTaskSearchService = new CFTTaskSearchService(tasksRepository, launchDarklyFeatureFlagProvider);
+        cftTaskSearchService = new CFTTaskSearchService(
+            tasksRepository, launchDarklyFeatureFlagProvider, COUNT_LIMIT
+        );
     }
 
     @Test
@@ -148,7 +151,7 @@ class CFTTaskSearchServiceTest {
             eq(2), eq(50), anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(List.of("task-2", "task-3"));
         when(tasksRepository.searchTasksCountUsingRoleCriteria(
-            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
+            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest), eq(COUNT_LIMIT)
         )).thenReturn(2L);
 
         CFTTaskSearchService.SearchResult result = cftTaskSearchService.searchForTaskIds(
@@ -179,6 +182,9 @@ class CFTTaskSearchServiceTest {
                 "R",
                 null
             ));
+        verify(tasksRepository).searchTasksCountUsingRoleCriteria(
+            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest), eq(COUNT_LIMIT)
+        );
         verify(tasksRepository, never()).searchTasksIdsUsingSearchIndex(
             eq(2), eq(50), anySet(), anySet(), anyList(), eq(searchRequest)
         );
@@ -225,7 +231,7 @@ class CFTTaskSearchServiceTest {
                 new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-2")
             );
         verify(tasksRepository, never()).searchTasksCountUsingRoleCriteria(
-            anyCollection(), anyList(), eq(searchRequest));
+            anyCollection(), anyList(), eq(searchRequest), eq(COUNT_LIMIT));
     }
 
     @Test

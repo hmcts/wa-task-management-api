@@ -79,7 +79,9 @@ class CFTTaskDatabaseServiceTest {
 
     @BeforeEach
     void setUp() {
-        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null);
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(
+            taskResourceRepository, null, 10_000
+        );
         cftTaskDatabaseService = new CFTTaskDatabaseService(
             taskResourceRepository,
             cftTaskMapper,
@@ -405,7 +407,8 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
             anyCollection(),
             eq(List.of()),
-            eq(searchRequest)
+            eq(searchRequest),
+            eq(10_000)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -451,7 +454,8 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
             anyCollection(),
             eq(List.of()),
-            eq(searchRequest)
+            eq(searchRequest),
+            eq(10_000)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -497,7 +501,8 @@ class CFTTaskDatabaseServiceTest {
         when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
             anyCollection(),
             eq(caseIds),
-            eq(searchRequest)
+            eq(searchRequest),
+            eq(10_000)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(

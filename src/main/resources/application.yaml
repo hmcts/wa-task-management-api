@@ -22,6 +22,7 @@ config:
   initiationRequestRequiredFields: ${INITIATION_REQUEST_REQUIRED_FIELDS:name,taskType,caseId}
   search:
     defaultMaxResults: 50
+    countLimit: ${TASK_SEARCH_COUNT_LIMIT:10000}
   fieldsToExcludeFromTrim: ${FIELDS_TO_EXCLUDE_FROM_TRIM:description,title,caseName}
   dmnConfigFieldsWithInternalDefaults: ${DMN_CONFIG_FIELDS_WITH_INTERNAL_DEFAULTS:title}
 

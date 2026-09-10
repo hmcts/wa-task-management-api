@@ -385,13 +385,12 @@ class TaskResourceRepositoryTest {
                 FROM pg_indexes
                 WHERE schemaname = 'cft_task_db'
                   AND indexname IN (
-                      'task_search_permissions_auth_idx',
                       'task_search_permissions_authorization_lookup_idx',
-                      'task_search_permissions_lookup_idx',
-                      'task_search_permissions_null_auth_idx',
+                      'task_search_permissions_task_lookup_idx',
                       'search_active_tasks_sort_idx',
+                      'search_active_tasks_permission_lookup_idx',
                       'search_assignee_idx',
-                      'search_case_id_idx',
+                      'search_available_tasks_count_idx',
                       'search_task_filters_idx',
                       'search_task_type_idx'
                   )
@@ -468,7 +467,7 @@ class TaskResourceRepositoryTest {
         );
 
         assertThat(indexDefinitions)
-            .hasSize(9)
+            .hasSize(8)
             .allSatisfy(index -> assertThat(index).contains("USING btree"));
         assertThat(indexDefinitions)
             .anySatisfy(index -> assertThat(index)
