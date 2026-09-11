@@ -23,7 +23,15 @@
   "automergeSchedule": "after 8:30am and before 10:30am Monday to Thursday",
   "prCreation": "not-pending",
   "automergeType": "pr",
+  "minimumReleaseAge": "30 days",
   "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "automerge": true
+    },
     {
       "matchDatasources": [
         "terraform-module",
@@ -44,7 +52,7 @@
         "patch"
       ],
       "prPriority": 80,
-      "automerge": false,
+      "automerge": true,
       "groupName": "Spring Upgrade - Non Major",
       "automergeSchedule": "after 8am and before 11am every Tuesday"
     },
@@ -59,7 +67,7 @@
         "patch"
       ],
       "prPriority": 20,
-      "automerge": false,
+      "automerge": true,
       "groupName": "QA & Nightly Checks - Non Major",
       "automergeSchedule": "after 8am and before 11am every first day of month"
     },
