@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTSensitiveTaskEventLogsDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskSearchService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,7 +61,12 @@ public class CleanUpSensitiveLogsDataTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null, 5000);
+        cftTaskDatabaseService = new CFTTaskDatabaseService(
+            taskResourceRepository,
+            cftTaskMapper,
+            cftTaskSearchService
+        );
 
         cftSensitiveTaskEventLogsDatabaseService = new CFTSensitiveTaskEventLogsDatabaseService(
             sensitiveTaskEventLogsRepository,

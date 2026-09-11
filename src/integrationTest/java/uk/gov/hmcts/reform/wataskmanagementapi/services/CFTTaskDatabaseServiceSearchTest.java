@@ -67,7 +67,12 @@ class CFTTaskDatabaseServiceSearchTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
-        cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository, cftTaskMapper);
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null, 5000);
+        cftTaskDatabaseService = new CFTTaskDatabaseService(
+            taskResourceRepository,
+            cftTaskMapper,
+            cftTaskSearchService
+        );
     }
 
     // ** Filter Signature **
@@ -129,6 +134,36 @@ class CFTTaskDatabaseServiceSearchTest {
                     "8d6cc5cf-c973-11eb-aaaa-400000000001", "1623278362440001"
                 ).toArray()
             );
+    }
+
+    @Test
+    void should_cap_total_records_without_limiting_later_pages() {
+        List<RoleAssignment> roleAssignments = roleAssignmentsTribunalCaseWorkerWithPublicAndPrivateClasification();
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignments);
+        indexRecord();
+
+        CFTTaskSearchService searchServiceWithSmallCap = new CFTTaskSearchService(taskResourceRepository, null, 2);
+        CFTTaskDatabaseService databaseServiceWithSmallCap = new CFTTaskDatabaseService(
+            taskResourceRepository,
+            new CFTTaskMapper(objectMapper),
+            searchServiceWithSmallCap
+        );
+        SearchRequest searchRequest = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED))
+            .jurisdictions(List.of("WA", "IA"))
+            .locations(List.of("765324", "765325"))
+            .roleCategories(List.of(RoleCategory.JUDICIAL, RoleCategory.CTSC))
+            .workTypes(List.of("hearing_work", "follow_up"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
+            .build();
+
+        GetTasksResponse<Task> response = databaseServiceWithSmallCap.searchForTasks(
+            3, 2, searchRequest, accessControlResponse
+        );
+
+        assertEquals(2, response.getTotalRecords());
+        Assertions.assertThat(response.getHasMoreRecords()).isTrue();
+        Assertions.assertThat(response.getTasks()).hasSize(2);
     }
 
     @Test
