@@ -49,9 +49,13 @@ public class ExecuteTaskReconfigurationFailureServiceTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(objectMapper);
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(
+            taskResourceRepository, null, 10_000
+        );
         CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(
             taskResourceRepository,
-            cftTaskMapper
+            cftTaskMapper,
+            cftTaskSearchService
         );
         executeTaskReconfigurationFailureService = new ExecuteTaskReconfigurationFailureService(
             cftTaskDatabaseService);
