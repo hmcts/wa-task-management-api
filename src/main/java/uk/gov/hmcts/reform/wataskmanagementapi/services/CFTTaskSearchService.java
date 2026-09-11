@@ -59,9 +59,10 @@ public class CFTTaskSearchService {
         List<String> excludeCaseIds = buildExcludedCaseIds(roleAssignments);
 
         if (isSearchIndexSearchEnabled()) {
+            log.info("Search using legacy search_index");
             return searchUsingSearchIndex(firstResult, maxResults, searchRequest, roleAssignments, excludeCaseIds);
         }
-
+        log.info("Search using new index");
         return searchUsingRoleCriteria(firstResult, maxResults, searchRequest, roleAssignments, excludeCaseIds);
     }
 
