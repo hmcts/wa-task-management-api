@@ -49,3 +49,24 @@ CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS task_search_permissions_task_look
     (COALESCE(authorization_value, ''))
   )
   INCLUDE (authorization_value);
+
+CREATE INDEX CONCURRENTLY search_available_tasks_sort_idx
+  ON cft_task_db.tasks USING btree (
+                                    major_priority,
+                                    priority_date,
+                                    minor_priority,
+                                    task_id
+    )
+  INCLUDE (
+    jurisdiction,
+    work_type,
+    role_category,
+    location,
+    region,
+    case_id,
+    task_type,
+    security_classification
+    )
+  WHERE state IN ('ASSIGNED', 'UNASSIGNED')
+    AND indexed
+    AND assignee IS NULL;

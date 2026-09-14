@@ -31,9 +31,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCus
 class TaskResourceCustomRepositoryImplTest {
     private static final int COUNT_LIMIT = 123;
     private static final String ROLE_CRITERIA_CTE =
-        "WITH request_role_criteria("
-            + "jurisdiction, region, location, role_name, case_id, permission, classification, authorization_value"
-            + ") AS (VALUES ("
+        "WITH request_role_criteria AS MATERIALIZED ("
+            + "SELECT jurisdiction, region, location, role_name, case_id, permission, classification, "
+            + "array_agg(DISTINCT authorization_value) AS authorization_values "
+            + "FROM (VALUES ("
             + "CAST(:roleJurisdiction0 AS text), "
             + "CAST(NULL AS text), "
             + "CAST(NULL AS text), "
@@ -41,7 +42,10 @@ class TaskResourceCustomRepositoryImplTest {
             + "CAST(NULL AS text), "
             + "CAST(:rolePermission0 AS text), "
             + "CAST(:roleClassification0 AS text), "
-            + "CAST(NULL AS text))) ";
+            + "CAST(NULL AS text))) raw_request_role_criteria("
+            + "jurisdiction, region, location, role_name, case_id, permission, classification, authorization_value"
+            + ") "
+            + "GROUP BY jurisdiction, region, location, role_name, case_id, permission, classification) ";
     private static final String ROLE_PERMISSION_JOIN =
         "JOIN request_role_criteria role_criteria "
             + "ON role_criteria.role_name = tsp.role_name "
@@ -52,9 +56,7 @@ class TaskResourceCustomRepositoryImplTest {
             + "AND (role_criteria.location IS NULL OR role_criteria.location = t.location) "
             + "AND (role_criteria.case_id IS NULL OR role_criteria.case_id = t.case_id) "
             + "AND (role_criteria.case_id IS NOT NULL "
-            + "OR (role_criteria.authorization_value IS NULL AND tsp.authorization_value IS NULL) "
-            + "OR (role_criteria.authorization_value IS NOT NULL "
-            + "AND tsp.authorization_value = role_criteria.authorization_value)) "
+            + "OR array_position(role_criteria.authorization_values, tsp.authorization_value) IS NOT NULL) "
             + "AND ("
             + "(t.security_classification = 'PUBLIC' AND role_criteria.classification IN ('U', 'P', 'R')) "
             + "OR (t.security_classification = 'PRIVATE' AND role_criteria.classification IN ('P', 'R')) "

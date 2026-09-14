@@ -86,9 +86,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
 
     private static final String ROLE_PERMISSION_AUTHORIZATION_PREDICATE =
         "(role_criteria.case_id IS NOT NULL "
-            + "OR (role_criteria.authorization_value IS NULL AND tsp.authorization_value IS NULL) "
-            + "OR (role_criteria.authorization_value IS NOT NULL "
-            + "AND tsp.authorization_value = role_criteria.authorization_value)) ";
+            + "OR array_position(role_criteria.authorization_values, tsp.authorization_value) IS NOT NULL) ";
 
     private static final String ROLE_PERMISSION_AUTHORIZATION_CONSTRAINT =
         "AND " + ROLE_PERMISSION_AUTHORIZATION_PREDICATE;
@@ -265,9 +263,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
 
     private RoleSearchCriteria buildRoleSearchCriteria(Collection<TaskSearchRoleCriteria> roleCriteria) {
         List<RoleCriterion> criteria = new ArrayList<>();
-        for (TaskSearchRoleCriteria criterion : roleCriteria) {
-            criteria.add(RoleCriterion.from(criteria.size(), criterion));
-        }
+        roleCriteria.stream().distinct()
+            .forEach(criterion -> criteria.add(RoleCriterion.from(criteria.size(), criterion)));
 
         return new RoleSearchCriteria(buildRoleCriteriaCte(criteria), criteria);
     }
@@ -277,10 +274,13 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             .map(RoleCriterion::toSqlValues)
             .collect(Collectors.joining(", "));
 
-        return "WITH request_role_criteria("
+        return "WITH request_role_criteria AS MATERIALIZED ("
+               + "SELECT jurisdiction, region, location, role_name, case_id, permission, classification, "
+               + "array_agg(DISTINCT authorization_value) AS authorization_values "
+               + "FROM (VALUES " + values + ") raw_request_role_criteria("
                + "jurisdiction, region, location, role_name, case_id, permission, classification, authorization_value"
-               + ") AS (VALUES "
-               + values
+               + ") "
+               + "GROUP BY jurisdiction, region, location, role_name, case_id, permission, classification"
                + ") ";
     }
 
