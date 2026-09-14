@@ -40,6 +40,8 @@ java:
     MANDATORY_TASK_FIELD_CHECK_ENABLED: true
   postgresql:
     enabled: true
+    image:
+      tag: "14.14.0"
     auth:
       database: cft_task_db
     primary:
