@@ -41,7 +41,7 @@ java:
   postgresql:
     enabled: true
     image:
-      tag: "14.14.0"
+      tag: "16.0.0"
     auth:
       database: cft_task_db
     primary:
