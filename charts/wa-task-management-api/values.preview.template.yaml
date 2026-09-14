@@ -50,6 +50,11 @@ java:
       extraEnvVars:
         - name: POSTGRESQL_WAL_LEVEL
           value: "logical"
+        - name: POSTGRES_INITSCRIPTS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Release.Name }}-postgresql"
+              key: postgres-password
       resources:
         requests:
           cpu: 25m
