@@ -30,6 +30,7 @@ public class TaskReconfigurationTransactionHandler {
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
+    private final TaskCurrentStateReader taskCurrentStateReader;
 
     /**
      * Constructor for TaskReconfigurationTransactionHandler.
@@ -41,11 +42,13 @@ public class TaskReconfigurationTransactionHandler {
     public TaskReconfigurationTransactionHandler(CFTTaskDatabaseService cftTaskDatabaseService,
                                                  ConfigureTaskService configureTaskService,
                                                  TaskAutoAssignmentService taskAutoAssignmentService,
-                                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator) {
+                                                 TaskMandatoryFieldsValidator taskMandatoryFieldsValidator,
+                                                 TaskCurrentStateReader taskCurrentStateReader) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.taskMandatoryFieldsValidator = taskMandatoryFieldsValidator;
+        this.taskCurrentStateReader = taskCurrentStateReader;
     }
 
     /**
@@ -86,6 +89,14 @@ public class TaskReconfigurationTransactionHandler {
                 taskResource = configureTaskService.reconfigureCFTTask(taskResource);
                 taskMandatoryFieldsValidator.validate(taskResource);
                 taskResource = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
+                Optional<CFTTaskState> currentTaskState = taskCurrentStateReader.findCurrentState(taskId);
+                if (currentTaskState.isEmpty() || !isActiveForReconfiguration(currentTaskState.get())) {
+                    log.info("did not persist reconfigure for Task Resource: taskId: {}, caseId: {}, state: {}",
+                             taskResource.getTaskId(),
+                             taskResource.getCaseId(),
+                             currentTaskState.orElse(taskResource.getState()));
+                    return Optional.empty();
+                }
                 taskResource.setReconfigureRequestTime(null);
                 taskResource.setLastReconfigurationTime(OffsetDateTime.now());
                 resetIndexed(taskResource);
@@ -107,6 +118,11 @@ public class TaskReconfigurationTransactionHandler {
             }
             return Optional.empty();
         }
+    }
+
+    private boolean isActiveForReconfiguration(CFTTaskState taskState) {
+        return taskState == CFTTaskState.ASSIGNED
+            || taskState == CFTTaskState.UNASSIGNED;
     }
 
 }
