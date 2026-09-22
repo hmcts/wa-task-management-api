@@ -138,7 +138,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                                    Collection<TaskSearchRoleCriteria> roleCriteria,
                                                    List<String> excludeCaseIds,
                                                    SearchRequest searchRequest) {
-        TaskRoleSearchPredicate rolePredicate = TaskRoleSearchPredicate.from(roleCriteria);
+        TaskRoleSearchPredicate rolePredicate = TaskRoleSearchPredicate.forPage(roleCriteria);
         String queryString = taskRoleQuery(SELECT_CLAUSE, rolePredicate, excludeCaseIds, searchRequest)
             + TaskSearchSortProvider.getSortOrderQuery(searchRequest) + PAGINATION_CLAUSE;
 

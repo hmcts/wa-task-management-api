@@ -891,6 +891,109 @@ class TaskResourceRepositoryTest {
 
     }
 
+    @Test
+    void should_page_and_count_task_roles_once_with_duplicate_roles_and_overlapping_scopes() {
+        TaskResource second = createTask("second-task", "tribunal-caseofficer", "IA",
+            "startAppeal", "someAssignee", "second-case", CFTTaskState.ASSIGNED);
+        second.setMinorPriority(1);
+        TaskResource third = createTask("third-task", "tribunal-caseofficer", "IA",
+            "startAppeal", "someAssignee", "third-case", CFTTaskState.ASSIGNED);
+        third.setMinorPriority(2);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.saveAll(List.of(second, third)));
+        jdbcTemplate.update("""
+            INSERT INTO cft_task_db.task_roles (task_role_id, task_id, role_name, read)
+            VALUES (?, ?, 'tribunal-caseofficer', true)
+            """, UUID.randomUUID(), taskId);
+        reindexTasks(taskId, second.getTaskId(), third.getTaskId());
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer", null, "r", "U", null),
+            new TaskSearchRoleCriteria("IA", "1", "765324", "tribunal-caseofficer", null, "r", "U", null)
+        );
+        SearchRequest request = SearchRequest.builder().jurisdictions(List.of("IA")).build();
+
+        assertThat(taskResourceRepository.searchTasksCountUsingTaskRoles(criteria, List.of(), request)).isEqualTo(3L);
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(0, 2, criteria, List.of(), request))
+            .containsExactly(taskId, second.getTaskId());
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(2, 2, criteria, List.of(), request))
+            .containsExactly(third.getTaskId());
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(3, 2, criteria, List.of(), request)).isEmpty();
+        assertThat(taskResourceRepository.searchTasksCountUsingTaskRoles(criteria, List.of("second-case"), request))
+            .isEqualTo(2L);
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(
+            0, 2, criteria, List.of("second-case"), request)).containsExactly(taskId, third.getTaskId());
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "NULL, 1",
+        "{}, 1",
+        "{*}, 1",
+        "{skill-1}, 1",
+        "{skill-2}, 0",
+        "{NULL}, 0"
+    }, nullValues = "NULL")
+    void should_match_task_role_page_and_count_authorizations(String authorizations, long expectedCount) {
+        jdbcTemplate.update("UPDATE cft_task_db.tasks SET state = 'UNASSIGNED', assignee = NULL WHERE task_id = ?",
+            taskId);
+        jdbcTemplate.update("""
+            UPDATE cft_task_db.task_roles
+            SET own = true, claim = true, authorizations = CAST(? AS text[])
+            WHERE task_id = ?
+            """, authorizations, taskId);
+        reindexTasks(taskId);
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer", null, "a", "U", null),
+            new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer", null, "a", "U", "skill-1")
+        );
+        SearchRequest request = SearchRequest.builder().requestContext(RequestContext.AVAILABLE_TASKS).build();
+        List<String> expectedIds = expectedCount == 1 ? List.of(taskId) : List.of();
+
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(0, 25, criteria, List.of(), request))
+            .containsExactlyElementsOf(expectedIds);
+        assertThat(taskResourceRepository.searchTasksCountUsingTaskRoles(criteria, List.of(), request))
+            .isEqualTo(expectedCount);
+    }
+
+    @Test
+    void should_keep_task_role_names_correlated_with_case_scopes_without_request_filters() {
+        TaskResource matching = createTask("matching-scope-task", "case-manager", "IA",
+            "startAppeal", "someAssignee", task.getCaseId(), CFTTaskState.ASSIGNED);
+        TaskResource mismatched = createTask("mismatched-scope-task", "case-manager", "IA",
+            "startAppeal", "someAssignee", "other-case", CFTTaskState.ASSIGNED);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.saveAll(List.of(matching, mismatched)));
+        reindexTasks(taskId, matching.getTaskId(), mismatched.getTaskId());
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "case-manager", task.getCaseId(), "r", "U", null),
+            new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer", "other-case", "r", "U", null)
+        );
+        SearchRequest request = SearchRequest.builder().build();
+
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(0, 25, criteria, List.of(), request))
+            .containsExactly(matching.getTaskId());
+        assertThat(taskResourceRepository.searchTasksCountUsingTaskRoles(criteria, List.of(), request)).isEqualTo(1L);
+    }
+
+    @Test
+    void should_preserve_case_role_authorization_bypass_in_task_role_page_and_count() {
+        jdbcTemplate.update("UPDATE cft_task_db.tasks SET state = 'UNASSIGNED', assignee = NULL WHERE task_id = ?",
+            taskId);
+        jdbcTemplate.update("""
+            UPDATE cft_task_db.task_roles
+            SET own = true, claim = true, authorizations = ARRAY['skill-not-held']
+            WHERE task_id = ?
+            """, taskId);
+        reindexTasks(taskId);
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer",
+                task.getCaseId(), "a", "U", null)
+        );
+        SearchRequest request = SearchRequest.builder().requestContext(RequestContext.AVAILABLE_TASKS).build();
+
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(0, 25, criteria, List.of(), request))
+            .containsExactly(taskId);
+        assertThat(taskResourceRepository.searchTasksCountUsingTaskRoles(criteria, List.of(), request)).isEqualTo(1L);
+    }
+
     private void checkTaskWasSaved(String taskId) {
         assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
     }

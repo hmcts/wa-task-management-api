@@ -5,6 +5,7 @@ import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,6 +21,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
@@ -431,6 +433,40 @@ class TaskResourceCustomRepositoryImplTest {
         inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
         inOrder.verify(query).setParameter("excludedCaseId", List.of("caseId", "caseId2"));
         inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
+    }
+
+    @Test
+    void should_keep_task_role_page_correlated_and_bind_requested_pagination() {
+        taskResourceCustomRepository.searchTasksIdsUsingTaskRoles(
+            25, 10, roleCriteria, List.of("excluded-case"), SearchRequest.builder().build());
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(entityManager).createNativeQuery(sql.capture(), eq(RESULT_MAPPER));
+        assertThat(sql.getValue())
+            .contains("OFFSET 0", "t.case_id <> :excludedCaseId")
+            .endsWith("OFFSET :firstResult LIMIT :maxResults");
+        verify(query).setParameter("scope_r_0_jurisdiction", "IA");
+        verify(query).setParameter("scope_r_0_roleNames", List.of("tribunal-caseofficer"));
+        verify(query).setParameter("excludedCaseId", "excluded-case");
+        verify(query).setParameter("firstResult", 25);
+        verify(query).setParameter("maxResults", 10);
+    }
+
+    @Test
+    void should_keep_task_role_count_uncapped_and_eligible_for_semi_joins() {
+        Long count = taskResourceCustomRepository.searchTasksCountUsingTaskRoles(
+            roleCriteria, List.of("excluded-case"), SearchRequest.builder().build());
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(entityManager).createNativeQuery(sql.capture());
+        assertThat(sql.getValue())
+            .startsWith("SELECT count(*)")
+            .contains("EXISTS (", "t.case_id <> :excludedCaseId")
+            .doesNotContain("OFFSET", "LIMIT", "ORDER BY");
+        verify(query).setParameter("scope_r_0_jurisdiction", "IA");
+        verify(query).setParameter("scope_r_0_roleNames", List.of("tribunal-caseofficer"));
+        verify(query).setParameter("excludedCaseId", "excluded-case");
+        assertThat(count).isEqualTo(1L);
     }
 
     private void verifyNewCountParameters(InOrder inOrder) {

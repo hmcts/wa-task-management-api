@@ -36,6 +36,7 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
               AND %s
               AND tr.role_name IN (:%sroleNames)
               AND (%s)
+            %s
         )
         """;
     private static final String ROLE_SCOPE = """
@@ -64,6 +65,15 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
         """;
 
     static TaskRoleSearchPredicate from(Collection<TaskSearchRoleCriteria> criteria) {
+        return build(criteria, false);
+    }
+
+    static TaskRoleSearchPredicate forPage(Collection<TaskSearchRoleCriteria> criteria) {
+        return build(criteria, true);
+    }
+
+    private static TaskRoleSearchPredicate build(Collection<TaskSearchRoleCriteria> criteria,
+                                                  boolean preserveCorrelation) {
         Map<RoleGroup, Set<String>> groups = groupRoles(criteria);
         Map<String, Object> parameters = new LinkedHashMap<>();
         parameters.put("taskRoleClassifications", taskClassifications(groups.keySet().stream()
@@ -74,7 +84,8 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
             .computeIfAbsent(group.scope().permission(), key -> new LinkedHashMap<>()).put(group, names));
         List<String> alternatives = new ArrayList<>();
         permissions.forEach((permission, matches) ->
-                                alternatives.add(permissionExists(permission, matches, parameters)));
+                                alternatives.add(permissionExists(permission, matches, parameters,
+                                    preserveCorrelation)));
 
         return new TaskRoleSearchPredicate(alternatives.isEmpty() ? "FALSE" : String.join(" OR ", alternatives),
             parameters);
@@ -116,13 +127,46 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
 
     private static String permissionExists(String permission,
                                            Map<RoleGroup, Set<String>> groups,
-                                           Map<String, Object> parameters) {
+                                           Map<String, Object> parameters,
+                                           boolean preserveCorrelation) {
         String prefix = "permission_" + permission + "_";
         parameters.put(prefix + "roleNames", groups.values().stream().flatMap(Collection::stream).distinct().toList());
         List<String> scopes = new ArrayList<>();
-        groups.forEach((group, names) -> scopes.add(scopePredicate(
-            "scope_" + permission + "_" + scopes.size() + "_", group, names, parameters)));
-        return PERMISSION_EXISTS.formatted(PERMISSION_PREDICATES.get(permission), prefix, String.join(" OR ", scopes));
+        List<String> taskScopes = new ArrayList<>();
+        groups.forEach((group, names) -> {
+            String scopePrefix = "scope_" + permission + "_" + scopes.size() + "_";
+            scopes.add(scopePredicate(scopePrefix, group, names, parameters));
+            if (preserveCorrelation) {
+                taskScopes.add("(" + taskScopePredicate(scopePrefix, group.scope()) + ")");
+            }
+        });
+        // OFFSET 0 keeps page permission checks correlated, allowing an ordered task scan
+        // to stop at the page limit instead of hashing and sorting every accessible task.
+        // Counts must remain eligible for PostgreSQL's broad parallel semi-joins.
+        String permissionSql = PERMISSION_EXISTS.formatted(PERMISSION_PREDICATES.get(permission), prefix,
+            String.join(" OR ", scopes), preserveCorrelation ? "OFFSET 0" : "");
+        // Expose selective case/location/region scopes to the task scan even though the
+        // EXISTS cannot be pulled up. Keep full scope-to-role checks inside it as well.
+        return preserveCorrelation
+            ? "((" + String.join(" OR ", taskScopes) + ") AND " + permissionSql + ")" : permissionSql;
+    }
+
+    private static String taskScopePredicate(String prefix, Scope scope) {
+        List<String> constraints = new ArrayList<>();
+        addTaskScopeConstraint(constraints, "jurisdiction", prefix + "jurisdiction", scope.jurisdiction());
+        addTaskScopeConstraint(constraints, "region", prefix + "region", scope.region());
+        addTaskScopeConstraint(constraints, "location", prefix + "location", scope.location());
+        addTaskScopeConstraint(constraints, "case_id", prefix + "caseId", scope.caseId());
+        return constraints.isEmpty() ? "TRUE" : String.join(" AND ", constraints);
+    }
+
+    private static void addTaskScopeConstraint(List<String> constraints,
+                                               String column,
+                                               String parameter,
+                                               String value) {
+        if (value != null) {
+            constraints.add("t." + column + " = CAST(:" + parameter + " AS text)");
+        }
     }
 
     private static String scopePredicate(String prefix,
