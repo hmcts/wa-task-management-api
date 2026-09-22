@@ -10,6 +10,7 @@ import jakarta.persistence.SqlResultSetMapping;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCriteria;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskSearchSortProvider;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.ONE;
 
 @Slf4j
@@ -36,11 +39,11 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     private static final String COUNT_CLAUSE = "SELECT count(*) ";
     private static final String PAGINATION_CLAUSE = "OFFSET :firstResult LIMIT :maxResults";
     protected static final String RESULT_MAPPER = "TaskSearchResult";
+    private static final List<CFTTaskState> ACTIVE_TASK_STATES = List.of(ASSIGNED, UNASSIGNED);
     private static final String TASK_ROLE_QUERY = """
         %s
         FROM {h-schema}tasks t
         WHERE t.indexed
-          AND t.state IN ('ASSIGNED', 'UNASSIGNED')
           AND t.security_classification = ANY(
               CAST(:taskRoleClassifications AS {h-schema}security_classification_enum[])
           )
@@ -112,7 +115,23 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                  List<String> excludeCaseIds,
                                  SearchRequest searchRequest) {
         return TASK_ROLE_QUERY.formatted(
-            selectClause, extraConstraints(excludeCaseIds, searchRequest, "t."), rolePredicate.sql());
+            selectClause,
+            extraConstraints(excludeCaseIds, searchRequest, "t.", taskRoleStateConstraint(searchRequest)),
+            rolePredicate.sql());
+    }
+
+    private String taskRoleStateConstraint(SearchRequest searchRequest) {
+        List<CFTTaskState> requestedStates = searchRequest.getCftTaskStates();
+        List<CFTTaskState> activeStates = CollectionUtils.isEmpty(requestedStates) ? ACTIVE_TASK_STATES
+            : requestedStates.stream().filter(ACTIVE_TASK_STATES::contains).distinct().toList();
+        // Keep one state predicate: overlapping active/requested filters can distort PostgreSQL's estimates.
+        return activeStates.isEmpty() ? "AND FALSE " : stateConstraint(activeStates, "t.");
+    }
+
+    private String stateConstraint(List<CFTTaskState> requestedStates, String tableAlias) {
+        List<CFTTaskState> states = CollectionUtils.isEmpty(requestedStates) ? ACTIVE_TASK_STATES : requestedStates;
+        String values = states.stream().map(state -> "'" + state.getValue() + "'").collect(Collectors.joining(", "));
+        return "AND " + tableAlias + "state IN (" + values + ") ";
     }
 
     @Override
@@ -161,10 +180,14 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     private String extraConstraints(List<String> excludeCaseIds, SearchRequest searchRequest) {
-        return extraConstraints(excludeCaseIds, searchRequest, "");
+        return extraConstraints(excludeCaseIds, searchRequest, "",
+                                stateConstraint(searchRequest.getCftTaskStates(), ""));
     }
 
-    private String extraConstraints(List<String> excludeCaseIds, SearchRequest searchRequest, String tableAlias) {
+    private String extraConstraints(List<String> excludeCaseIds,
+                                    SearchRequest searchRequest,
+                                    String tableAlias,
+                                    String stateConstraint) {
         StringBuilder extraConstraints = new StringBuilder("");
         if (searchRequest.isAvailableTasksOnly()) {
             extraConstraints.append("AND ").append(tableAlias).append(DB_COL_ASSIGNEE).append(" IS NULL ");
@@ -172,15 +195,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             extraConstraints.append(buildListConstraint(searchRequest.getUsers(),
                                                         tableAlias + DB_COL_ASSIGNEE, DB_COL_ASSIGNEE, true));
         }
-        if (CollectionUtils.isEmpty(searchRequest.getCftTaskStates())) {
-            extraConstraints.append("AND ").append(tableAlias).append("state IN ('ASSIGNED', 'UNASSIGNED') ");
-        } else {
-            String states = searchRequest.getCftTaskStates()
-                .stream()
-                .map(s -> "'" + s.getValue() + "'")
-                .collect(Collectors.joining(", "));
-            extraConstraints.append("AND ").append(tableAlias).append("state IN (").append(states).append(") ");
-        }
+        extraConstraints.append(stateConstraint);
         extraConstraints.append(buildListConstraint(searchRequest.getCaseIds(), tableAlias + "case_id", "caseId", true))
             .append(buildListConstraint(excludeCaseIds, tableAlias + "case_id", "excludedCaseId", false))
             .append(buildListConstraint(searchRequest.getTaskTypes(), tableAlias + "task_type", "taskType", true))

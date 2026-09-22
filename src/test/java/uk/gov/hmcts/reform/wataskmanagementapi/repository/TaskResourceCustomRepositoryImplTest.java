@@ -5,9 +5,13 @@ import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
@@ -18,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCrite
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -105,6 +110,7 @@ class TaskResourceCustomRepositoryImplTest {
             .startsWith("SELECT t.task_id")
             .contains("FROM {h-schema}tasks t", "EXISTS (", "FROM {h-schema}task_roles tr")
             .contains("OFFSET 0", "t.case_id <> :excludedCaseId")
+            .containsOnlyOnce("t.state IN ('ASSIGNED', 'UNASSIGNED')")
             .endsWith("OFFSET :firstResult LIMIT :maxResults");
         verify(query).setParameter("scope_r_0_jurisdiction", "IA");
         verify(query).setParameter("scope_r_0_roleNames", List.of("tribunal-caseofficer"));
@@ -152,7 +158,7 @@ class TaskResourceCustomRepositoryImplTest {
     }
 
     @Test
-    void should_apply_available_task_constraint_to_task_role_page_query() {
+    void should_preserve_available_task_constraints_in_page_and_count_queries() {
         SearchRequest searchRequest = SearchRequest.builder()
             .requestContext(RequestContext.AVAILABLE_TASKS)
             .users(List.of("ignored-user"))
@@ -160,10 +166,17 @@ class TaskResourceCustomRepositoryImplTest {
 
         taskResourceCustomRepository.searchTasksIdsUsingTaskRoles(
             0, 25, roleCriteria, List.of(), searchRequest);
+        taskResourceCustomRepository.searchTasksCountUsingTaskRoles(roleCriteria, List.of(), searchRequest);
 
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-        verify(entityManager).createNativeQuery(sql.capture(), eq(RESULT_MAPPER));
-        assertThat(sql.getValue()).contains("t.assignee IS NULL").doesNotContain(":assignee");
+        ArgumentCaptor<String> pageSql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> countSql = ArgumentCaptor.forClass(String.class);
+        verify(entityManager).createNativeQuery(pageSql.capture(), eq(RESULT_MAPPER));
+        verify(entityManager).createNativeQuery(countSql.capture());
+        assertThat(List.of(pageSql.getValue(), countSql.getValue())).allSatisfy(sql ->
+            assertThat(sql)
+                .contains("t.assignee IS NULL")
+                .containsOnlyOnce("t.state IN ('ASSIGNED', 'UNASSIGNED')")
+                .doesNotContain(":assignee"));
     }
 
     @Test
@@ -176,10 +189,73 @@ class TaskResourceCustomRepositoryImplTest {
         assertThat(sql.getValue())
             .startsWith("SELECT count(*)")
             .contains("EXISTS (", "t.case_id <> :excludedCaseId")
+            .containsOnlyOnce("t.state IN ('ASSIGNED', 'UNASSIGNED')")
             .doesNotContain("OFFSET", "LIMIT", "ORDER BY", "task_search_permissions");
         verify(query).setParameter("scope_r_0_jurisdiction", "IA");
         verify(query).setParameter("scope_r_0_roleNames", List.of("tribunal-caseofficer"));
         verify(query).setParameter("excludedCaseId", "excluded-case");
         assertThat(count).isEqualTo(1L);
+    }
+
+    @ParameterizedTest(name = "requested states {0} produce {1}")
+    @MethodSource("taskRoleStates")
+    void should_normalize_active_states_once_for_task_role_page_and_count(List<CFTTaskState> states,
+                                                                          String expectedConstraint) {
+        SearchRequest searchRequest = SearchRequest.builder().cftTaskStates(states).build();
+
+        taskResourceCustomRepository.searchTasksIdsUsingTaskRoles(0, 25, roleCriteria, List.of(), searchRequest);
+        taskResourceCustomRepository.searchTasksCountUsingTaskRoles(roleCriteria, List.of(), searchRequest);
+
+        ArgumentCaptor<String> pageSql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> countSql = ArgumentCaptor.forClass(String.class);
+        verify(entityManager).createNativeQuery(pageSql.capture(), eq(RESULT_MAPPER));
+        verify(entityManager).createNativeQuery(countSql.capture());
+        assertThat(List.of(pageSql.getValue(), countSql.getValue())).allSatisfy(sql -> {
+            assertThat(sql).containsOnlyOnce(expectedConstraint).doesNotContain("COMPLETED", "CANCELLED");
+            if ("AND FALSE".equals(expectedConstraint)) {
+                assertThat(sql).doesNotContain("t.state");
+            } else {
+                assertThat(sql).containsOnlyOnce("t.state").doesNotContain("AND FALSE");
+            }
+        });
+    }
+
+    @Test
+    void should_preserve_requested_legacy_states_without_intersecting_active_states() {
+        SearchRequest searchRequest = SearchRequest.builder()
+            .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CANCELLED))
+            .build();
+
+        taskResourceCustomRepository.searchTasksIdsUsingSearchIndex(
+            0, 25, filterSignature, roleSignature, List.of(), searchRequest);
+        taskResourceCustomRepository.searchTasksCountUsingSearchIndex(
+            filterSignature, roleSignature, List.of(), searchRequest);
+
+        ArgumentCaptor<String> pageSql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> countSql = ArgumentCaptor.forClass(String.class);
+        verify(entityManager).createNativeQuery(pageSql.capture(), eq(RESULT_MAPPER));
+        verify(entityManager).createNativeQuery(countSql.capture());
+        assertThat(List.of(pageSql.getValue(), countSql.getValue())).allSatisfy(sql ->
+            assertThat(sql)
+                .containsOnlyOnce("AND state IN ('COMPLETED', 'CANCELLED')")
+                .doesNotContain("AND FALSE", "state IN ('ASSIGNED', 'UNASSIGNED')"));
+    }
+
+    private static Stream<Arguments> taskRoleStates() {
+        return Stream.of(
+            Arguments.of(null, "AND t.state IN ('ASSIGNED', 'UNASSIGNED')"),
+            Arguments.of(List.of(), "AND t.state IN ('ASSIGNED', 'UNASSIGNED')"),
+            Arguments.of(List.of(CFTTaskState.ASSIGNED), "AND t.state IN ('ASSIGNED')"),
+            Arguments.of(List.of(CFTTaskState.UNASSIGNED), "AND t.state IN ('UNASSIGNED')"),
+            Arguments.of(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED),
+                "AND t.state IN ('ASSIGNED', 'UNASSIGNED')"),
+            Arguments.of(List.of(CFTTaskState.UNASSIGNED, CFTTaskState.UNASSIGNED),
+                "AND t.state IN ('UNASSIGNED')"),
+            Arguments.of(List.of(CFTTaskState.COMPLETED, CFTTaskState.CANCELLED), "AND FALSE"),
+            Arguments.of(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED), "AND t.state IN ('ASSIGNED')"),
+            Arguments.of(List.of(CFTTaskState.COMPLETED, CFTTaskState.UNASSIGNED), "AND t.state IN ('UNASSIGNED')"),
+            Arguments.of(List.of(CFTTaskState.ASSIGNED, CFTTaskState.COMPLETED, CFTTaskState.UNASSIGNED,
+                CFTTaskState.ASSIGNED), "AND t.state IN ('ASSIGNED', 'UNASSIGNED')")
+        );
     }
 }

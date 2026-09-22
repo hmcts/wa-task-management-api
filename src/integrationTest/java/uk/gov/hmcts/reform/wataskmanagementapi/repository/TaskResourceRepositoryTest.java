@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
@@ -49,6 +51,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -861,6 +864,82 @@ class TaskResourceRepositoryTest {
         assertTrue(results.get(4).getLastUpdatedTimestamp()
             .isEqual(OffsetDateTime.parse("2021-05-09T20:15:46.345875+01:00")));
 
+    }
+
+    @ParameterizedTest(name = "requested states {0} return active states {1}")
+    @MethodSource("taskRoleSearchStates")
+    void should_intersect_requested_states_with_active_states_for_task_role_page_and_count(
+        List<CFTTaskState> requestedStates, List<CFTTaskState> expectedStates) {
+        TaskResource unassigned = createTask("unassigned-task", "tribunal-caseofficer", "IA",
+            "startAppeal", null, "1623278362430413", CFTTaskState.UNASSIGNED);
+        TaskResource completed = createTask("completed-task", "tribunal-caseofficer", "IA",
+            "startAppeal", null, "1623278362430411", CFTTaskState.COMPLETED);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.saveAll(List.of(unassigned, completed)));
+        reindexTasks(taskId, unassigned.getTaskId(), completed.getTaskId());
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer", null, "r", "U", null)
+        );
+        SearchRequest request = SearchRequest.builder()
+            .cftTaskStates(requestedStates)
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
+            .build();
+        Map<CFTTaskState, String> taskIdsByState = Map.of(
+            CFTTaskState.ASSIGNED, taskId, CFTTaskState.UNASSIGNED, unassigned.getTaskId());
+        List<String> expectedIds = expectedStates.stream().map(taskIdsByState::get).toList();
+
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(0, 25, criteria, List.of(), request))
+            .containsExactlyElementsOf(expectedIds);
+        assertThat(taskResourceRepository.searchTasksCountUsingTaskRoles(criteria, List.of(), request))
+            .isEqualTo(expectedIds.size());
+    }
+
+    private static Stream<Arguments> taskRoleSearchStates() {
+        List<CFTTaskState> activeStates = List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED);
+        return Stream.of(
+            Arguments.of(null, activeStates),
+            Arguments.of(List.of(), activeStates),
+            Arguments.of(List.of(CFTTaskState.ASSIGNED), List.of(CFTTaskState.ASSIGNED)),
+            Arguments.of(List.of(CFTTaskState.UNASSIGNED), List.of(CFTTaskState.UNASSIGNED)),
+            Arguments.of(activeStates, activeStates),
+            Arguments.of(List.of(CFTTaskState.UNASSIGNED, CFTTaskState.UNASSIGNED),
+                List.of(CFTTaskState.UNASSIGNED)),
+            Arguments.of(List.of(CFTTaskState.UNASSIGNED, CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED),
+                activeStates),
+            Arguments.of(List.of(CFTTaskState.COMPLETED, CFTTaskState.UNASSIGNED),
+                List.of(CFTTaskState.UNASSIGNED)),
+            Arguments.of(List.of(CFTTaskState.UNASSIGNED, CFTTaskState.COMPLETED, CFTTaskState.ASSIGNED),
+                activeStates),
+            Arguments.of(List.of(CFTTaskState.COMPLETED), List.of()),
+            Arguments.of(List.of(CFTTaskState.COMPLETED, CFTTaskState.CANCELLED), List.of())
+        );
+    }
+
+    @Test
+    void should_filter_available_task_role_page_and_count_by_assignee_without_forcing_unassigned_state() {
+        TaskResource assignedWithoutAssignee = createTask("assigned-without-assignee", "tribunal-caseofficer", "IA",
+            "startAppeal", null, "1623278362430413", CFTTaskState.ASSIGNED);
+        TaskResource unassignedWithoutAssignee = createTask("unassigned-without-assignee", "tribunal-caseofficer", "IA",
+            "startAppeal", null, "1623278362430414", CFTTaskState.UNASSIGNED);
+        TaskResource unassignedWithAssignee = createTask("unassigned-with-assignee", "tribunal-caseofficer", "IA",
+            "startAppeal", "someAssignee", "1623278362430415", CFTTaskState.UNASSIGNED);
+        TaskResource completedWithoutAssignee = createTask("completed-without-assignee", "tribunal-caseofficer", "IA",
+            "startAppeal", null, "1623278362430411", CFTTaskState.COMPLETED);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.saveAll(List.of(
+            assignedWithoutAssignee, unassignedWithoutAssignee, unassignedWithAssignee, completedWithoutAssignee)));
+        jdbcTemplate.update("UPDATE cft_task_db.task_roles SET own = true, claim = true");
+        reindexTasks(taskId, assignedWithoutAssignee.getTaskId(), unassignedWithoutAssignee.getTaskId(),
+            unassignedWithAssignee.getTaskId(), completedWithoutAssignee.getTaskId());
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer", null, "a", "U", "STANDARD")
+        );
+        SearchRequest request = SearchRequest.builder()
+            .requestContext(RequestContext.AVAILABLE_TASKS)
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT)))
+            .build();
+
+        assertThat(taskResourceRepository.searchTasksIdsUsingTaskRoles(0, 25, criteria, List.of(), request))
+            .containsExactly(assignedWithoutAssignee.getTaskId(), unassignedWithoutAssignee.getTaskId());
+        assertThat(taskResourceRepository.searchTasksCountUsingTaskRoles(criteria, List.of(), request)).isEqualTo(2L);
     }
 
     @Test

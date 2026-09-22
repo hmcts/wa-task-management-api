@@ -16,3 +16,9 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS search_active_tasks_count_idx
     ON cft_task_db.tasks (state, jurisdiction, work_type)
     INCLUDE (task_id, security_classification, region, location, case_id, task_type, role_category, assignee)
     WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
+
+
+CREATE INDEX CONCURRENTLY task_roles_search_manage_task_lookup_idx
+  ON cft_task_db.task_roles (task_id)
+  INCLUDE (role_name)
+  WHERE manage;
