@@ -54,10 +54,10 @@ class CFTTaskSearchServiceIntegrationTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Test
-    void should_apply_configured_count_limit_without_limiting_task_page() {
+    void should_return_full_task_page_and_count_using_task_roles() {
         indexMatchingTasks();
 
-        SearchResult result = cftTaskSearchService.searchUsingRoleCriteria(
+        SearchResult result = cftTaskSearchService.searchUsingTaskRoles(
             0,
             10,
             SearchRequest.builder().build(),
@@ -76,7 +76,7 @@ class CFTTaskSearchServiceIntegrationTest {
         );
 
         assertThat(result.taskIds()).hasSize(4);
-        assertThat(result.totalRecords()).isEqualTo(2);
+        assertThat(result.totalRecords()).isEqualTo(4);
     }
 
     private void indexMatchingTasks() {

@@ -38,6 +38,17 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     private static final String PAGINATION_CLAUSE = "OFFSET :firstResult LIMIT :maxResults";
     private static final String COUNT_LIMIT_PARAMETER = "countLimit";
     protected static final String RESULT_MAPPER = "TaskSearchResult";
+    private static final String TASK_ROLE_QUERY = """
+        %s
+        FROM {h-schema}tasks t
+        WHERE t.indexed
+          AND t.state IN ('ASSIGNED', 'UNASSIGNED')
+          AND t.security_classification = ANY(
+              CAST(:taskRoleClassifications AS {h-schema}security_classification_enum[])
+          )
+          %s
+          AND (%s)
+        """;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -119,6 +130,46 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             + "%s"
             + "LIMIT :" + COUNT_LIMIT_PARAMETER
             + ") matching_tasks";
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> searchTasksIdsUsingTaskRoles(int firstResult,
+                                                   int maxResults,
+                                                   Collection<TaskSearchRoleCriteria> roleCriteria,
+                                                   List<String> excludeCaseIds,
+                                                   SearchRequest searchRequest) {
+        TaskRoleSearchPredicate rolePredicate = TaskRoleSearchPredicate.from(roleCriteria);
+        String queryString = taskRoleQuery(SELECT_CLAUSE, rolePredicate, excludeCaseIds, searchRequest)
+            + TaskSearchSortProvider.getSortOrderQuery(searchRequest) + PAGINATION_CLAUSE;
+
+        Query query = entityManager.createNativeQuery(queryString, RESULT_MAPPER);
+        rolePredicate.setParameters(query);
+        addSearchRequestParameters(query, excludeCaseIds, searchRequest);
+        query.setParameter("firstResult", firstResult);
+        query.setParameter("maxResults", maxResults);
+        return query.getResultList();
+    }
+
+    @Override
+    public Long searchTasksCountUsingTaskRoles(Collection<TaskSearchRoleCriteria> roleCriteria,
+                                              List<String> excludeCaseIds,
+                                              SearchRequest searchRequest) {
+        TaskRoleSearchPredicate rolePredicate = TaskRoleSearchPredicate.from(roleCriteria);
+        String queryString = taskRoleQuery(COUNT_CLAUSE, rolePredicate, excludeCaseIds, searchRequest);
+
+        Query query = entityManager.createNativeQuery(queryString);
+        rolePredicate.setParameters(query);
+        addSearchRequestParameters(query, excludeCaseIds, searchRequest);
+        return ((Number) query.getSingleResult()).longValue();
+    }
+
+    private String taskRoleQuery(String selectClause,
+                                 TaskRoleSearchPredicate rolePredicate,
+                                 List<String> excludeCaseIds,
+                                 SearchRequest searchRequest) {
+        return TASK_ROLE_QUERY.formatted(
+            selectClause, extraConstraints(excludeCaseIds, searchRequest, "t."), rolePredicate.sql());
+    }
 
 
     @Override

@@ -63,7 +63,7 @@ public class CFTTaskSearchService {
             return searchUsingSearchIndex(firstResult, maxResults, searchRequest, roleAssignments, excludeCaseIds);
         }
         log.info("Search using new index");
-        return searchUsingRoleCriteria(firstResult, maxResults, searchRequest, roleAssignments, excludeCaseIds);
+        return searchUsingTaskRoles(firstResult, maxResults, searchRequest, roleAssignments, excludeCaseIds);
     }
 
     public SearchResult searchUsingSearchIndex(int firstResult,
@@ -113,6 +113,28 @@ public class CFTTaskSearchService {
         Long count = tasksRepository.searchTasksCountUsingRoleCriteria(
             roleCriteria, excludeCaseIds, searchRequest, countLimit
         );
+        return new SearchResult(taskIds, count);
+    }
+
+    public SearchResult searchUsingTaskRoles(int firstResult,
+                                             int maxResults,
+                                             SearchRequest searchRequest,
+                                             List<RoleAssignment> roleAssignments,
+                                             List<String> excludeCaseIds) {
+        List<TaskSearchRoleCriteria> roleCriteria = buildRoleCriteria(roleAssignments, searchRequest);
+
+        log.info("Task search using task roles for roleCriteria {} \nexcluded case ids {}",
+                 roleCriteria, excludeCaseIds);
+
+        List<String> taskIds = tasksRepository.searchTasksIdsUsingTaskRoles(
+            firstResult, maxResults, roleCriteria, excludeCaseIds, searchRequest
+        );
+
+        if (isEmpty(taskIds)) {
+            return new SearchResult(List.of(), 0);
+        }
+
+        Long count = tasksRepository.searchTasksCountUsingTaskRoles(roleCriteria, excludeCaseIds, searchRequest);
         return new SearchResult(taskIds, count);
     }
 

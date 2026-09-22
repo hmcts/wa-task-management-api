@@ -10,6 +10,18 @@ import java.util.Set;
 
 public interface TaskResourceCustomRepository {
 
+    @Transactional(readOnly = true)
+    List<String> searchTasksIdsUsingTaskRoles(int firstResult,
+                                            int maxResults,
+                                            Collection<TaskSearchRoleCriteria> roleCriteria,
+                                            List<String> excludeCaseIds,
+                                            SearchRequest searchRequest);
+
+    @Transactional(readOnly = true)
+    Long searchTasksCountUsingTaskRoles(Collection<TaskSearchRoleCriteria> roleCriteria,
+                                       List<String> excludeCaseIds,
+                                       SearchRequest searchRequest);
+
     @Transactional
     List<String> searchTasksIdsUsingRoleCriteria(int firstResult,
                                                  int maxResults,
