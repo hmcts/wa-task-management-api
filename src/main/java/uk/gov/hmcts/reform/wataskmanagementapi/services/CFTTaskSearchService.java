@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -36,15 +35,12 @@ public class CFTTaskSearchService {
 
     private final TaskResourceRepository tasksRepository;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    private final int countLimit;
 
     @Autowired
     public CFTTaskSearchService(TaskResourceRepository tasksRepository,
-                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                                @Value("${config.search.countLimit}") int countLimit) {
+                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         this.tasksRepository = tasksRepository;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
-        this.countLimit = countLimit;
     }
 
     public SearchResult searchForTaskIds(int firstResult,
@@ -88,31 +84,6 @@ public class CFTTaskSearchService {
 
         Long count = tasksRepository.searchTasksCountUsingSearchIndex(
             filterSignature, roleSignature, excludeCaseIds, searchRequest);
-        return new SearchResult(taskIds, count);
-    }
-
-
-    public SearchResult searchUsingRoleCriteria(int firstResult,
-                                                 int maxResults,
-                                                 SearchRequest searchRequest,
-                                                 List<RoleAssignment> roleAssignments,
-                                                 List<String> excludeCaseIds) {
-
-        List<TaskSearchRoleCriteria> roleCriteria = buildRoleCriteria(roleAssignments, searchRequest);
-
-        log.info("Task search for roleCriteria  {} \nexcluded case ids {}", roleCriteria, excludeCaseIds);
-
-        List<String> taskIds = tasksRepository.searchTasksIdsUsingRoleCriteria(
-            firstResult, maxResults, roleCriteria, excludeCaseIds, searchRequest
-        );
-
-        if (isEmpty(taskIds)) {
-            return new SearchResult(List.of(), 0);
-        }
-
-        Long count = tasksRepository.searchTasksCountUsingRoleCriteria(
-            roleCriteria, excludeCaseIds, searchRequest, countLimit
-        );
         return new SearchResult(taskIds, count);
     }
 

@@ -79,9 +79,7 @@ class CFTTaskDatabaseServiceTest {
 
     @BeforeEach
     void setUp() {
-        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(
-            taskResourceRepository, null, 10_000
-        );
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null);
         cftTaskDatabaseService = new CFTTaskDatabaseService(
             taskResourceRepository,
             cftTaskMapper,
@@ -404,11 +402,10 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
+        when(taskResourceRepository.searchTasksCountUsingTaskRoles(
             anyCollection(),
             eq(List.of()),
-            eq(searchRequest),
-            eq(10_000)
+            eq(searchRequest)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -451,11 +448,10 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
+        when(taskResourceRepository.searchTasksCountUsingTaskRoles(
             anyCollection(),
             eq(List.of()),
-            eq(searchRequest),
-            eq(10_000)
+            eq(searchRequest)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
@@ -498,11 +494,10 @@ class CFTTaskDatabaseServiceTest {
             .thenReturn(taskIds);
         when(taskResourceRepository.findAllByTaskIdIn(taskIds, Sort.by(orders)))
             .thenReturn(taskResources);
-        when(taskResourceRepository.searchTasksCountUsingRoleCriteria(
+        when(taskResourceRepository.searchTasksCountUsingTaskRoles(
             anyCollection(),
             eq(caseIds),
-            eq(searchRequest),
-            eq(10_000)
+            eq(searchRequest)
         ))
             .thenReturn(1L);
         when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(

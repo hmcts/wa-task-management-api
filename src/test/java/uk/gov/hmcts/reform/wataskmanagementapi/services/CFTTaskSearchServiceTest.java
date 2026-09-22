@@ -40,7 +40,6 @@ class CFTTaskSearchServiceTest {
     private static final String SERVICE_USER_ID = "wa-task-management-api";
     private static final String SERVICE_EMAIL = "wa-task-management-api@hmcts.net";
     private static final String EXCLUDED_CASE_ID = "case-excluded";
-    private static final int COUNT_LIMIT = 123;
 
     @Mock
     private TaskResourceRepository tasksRepository;
@@ -51,9 +50,7 @@ class CFTTaskSearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        cftTaskSearchService = new CFTTaskSearchService(
-            tasksRepository, launchDarklyFeatureFlagProvider, COUNT_LIMIT
-        );
+        cftTaskSearchService = new CFTTaskSearchService(tasksRepository, launchDarklyFeatureFlagProvider);
     }
 
     @Test
@@ -116,13 +113,13 @@ class CFTTaskSearchServiceTest {
         );
         assertThat(filterSignatureCaptor.getValue()).containsExactly("A:IA:*:*:1:765324");
         assertThat(roleSignatureCaptor.getValue()).containsExactly("IA:1:765324:hmcts-judiciary:*:r:U:*");
-        verify(tasksRepository, never()).searchTasksIdsUsingRoleCriteria(
+        verify(tasksRepository, never()).searchTasksIdsUsingTaskRoles(
             eq(1), eq(25), anyCollection(), anyList(), eq(searchRequest)
         );
     }
 
     @Test
-    void should_use_new_role_criteria_search_when_feature_flag_disabled() {
+    void should_use_task_roles_search_when_feature_flag_disabled() {
         SearchRequest searchRequest = SearchRequest.builder()
             .requestContext(RequestContext.ALL_WORK)
             .build();
@@ -148,11 +145,11 @@ class CFTTaskSearchServiceTest {
             SERVICE_USER_ID,
             SERVICE_EMAIL
         )).thenReturn(false);
-        when(tasksRepository.searchTasksIdsUsingRoleCriteria(
+        when(tasksRepository.searchTasksIdsUsingTaskRoles(
             eq(2), eq(50), anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(List.of("task-2", "task-3"));
-        when(tasksRepository.searchTasksCountUsingRoleCriteria(
-            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest), eq(COUNT_LIMIT)
+        when(tasksRepository.searchTasksCountUsingTaskRoles(
+            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         )).thenReturn(2L);
 
         SearchResult result = cftTaskSearchService.searchForTaskIds(
@@ -165,7 +162,7 @@ class CFTTaskSearchServiceTest {
         ArgumentCaptor<Collection<TaskSearchRoleCriteria>> roleCriteriaCaptor = ArgumentCaptor.forClass(
             Collection.class
         );
-        verify(tasksRepository).searchTasksIdsUsingRoleCriteria(
+        verify(tasksRepository).searchTasksIdsUsingTaskRoles(
             eq(2),
             eq(50),
             roleCriteriaCaptor.capture(),
@@ -183,8 +180,8 @@ class CFTTaskSearchServiceTest {
                 "R",
                 null
             ));
-        verify(tasksRepository).searchTasksCountUsingRoleCriteria(
-            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest), eq(COUNT_LIMIT)
+        verify(tasksRepository).searchTasksCountUsingTaskRoles(
+            anyCollection(), eq(List.of(EXCLUDED_CASE_ID)), eq(searchRequest)
         );
         verify(tasksRepository, never()).searchTasksIdsUsingSearchIndex(
             eq(2), eq(50), anySet(), anySet(), anyList(), eq(searchRequest)
@@ -209,7 +206,7 @@ class CFTTaskSearchServiceTest {
             SERVICE_USER_ID,
             SERVICE_EMAIL
         )).thenReturn(false);
-        when(tasksRepository.searchTasksIdsUsingRoleCriteria(
+        when(tasksRepository.searchTasksIdsUsingTaskRoles(
             eq(0), eq(25), anyCollection(), eq(List.of()), eq(searchRequest)))
             .thenReturn(List.of());
 
@@ -218,7 +215,7 @@ class CFTTaskSearchServiceTest {
         ArgumentCaptor<Collection<TaskSearchRoleCriteria>> roleCriteriaCaptor = ArgumentCaptor.forClass(
             Collection.class
         );
-        verify(tasksRepository).searchTasksIdsUsingRoleCriteria(
+        verify(tasksRepository).searchTasksIdsUsingTaskRoles(
             eq(0),
             eq(25),
             roleCriteriaCaptor.capture(),
@@ -231,8 +228,8 @@ class CFTTaskSearchServiceTest {
                 new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-1"),
                 new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseworker", null, "a", "P", "skill-2")
             );
-        verify(tasksRepository, never()).searchTasksCountUsingRoleCriteria(
-            anyCollection(), anyList(), eq(searchRequest), eq(COUNT_LIMIT));
+        verify(tasksRepository, never()).searchTasksCountUsingTaskRoles(
+            anyCollection(), anyList(), eq(searchRequest));
     }
 
     @Test

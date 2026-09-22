@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCriteria;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskSearchSortProvider;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +35,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     private static final String DB_COL_LOCATION = "location";
     private static final String COUNT_CLAUSE = "SELECT count(*) ";
     private static final String PAGINATION_CLAUSE = "OFFSET :firstResult LIMIT :maxResults";
-    private static final String COUNT_LIMIT_PARAMETER = "countLimit";
     protected static final String RESULT_MAPPER = "TaskSearchResult";
     private static final String TASK_ROLE_QUERY = """
         %s
@@ -77,67 +75,13 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         + "t.security_classification) && CAST(:roleSignature AS text[]) "
         + "%s%s%s";
 
-    private static final String ROLE_PERMISSION_JOIN =
-        "JOIN request_role_criteria role_criteria "
-            + "ON role_criteria.role_name = tsp.role_name "
-            + "AND role_criteria.permission = tsp.permission ";
-
-    private static final String ROLE_PERMISSION_TASK_ATTRIBUTE_CONSTRAINT =
-        "AND (role_criteria.jurisdiction IS NULL OR role_criteria.jurisdiction = t.jurisdiction) "
-            + "AND (role_criteria.region IS NULL OR role_criteria.region = t.region) "
-            + "AND (role_criteria.location IS NULL OR role_criteria.location = t.location) "
-            + "AND (role_criteria.case_id IS NULL OR role_criteria.case_id = t.case_id) ";
-
-    private static final String ROLE_PERMISSION_CLASSIFICATION_CONSTRAINT =
-        "AND ("
-            + "(t.security_classification = 'PUBLIC' AND role_criteria.classification IN ('U', 'P', 'R')) "
-            + "OR (t.security_classification = 'PRIVATE' AND role_criteria.classification IN ('P', 'R')) "
-            + "OR (t.security_classification = 'RESTRICTED' AND role_criteria.classification = 'R')"
-            + ") ";
-
-    private static final String ROLE_PERMISSION_AUTHORIZATION_PREDICATE =
-        "(role_criteria.case_id IS NOT NULL "
-            + "OR array_position(role_criteria.authorization_values, tsp.authorization_value) IS NOT NULL) ";
-
-    private static final String ROLE_PERMISSION_AUTHORIZATION_CONSTRAINT =
-        "AND " + ROLE_PERMISSION_AUTHORIZATION_PREDICATE;
-
-    private static final String ROLE_PERMISSION_CONSTRAINT =
-        ROLE_PERMISSION_TASK_ATTRIBUTE_CONSTRAINT
-            + ROLE_PERMISSION_AUTHORIZATION_CONSTRAINT
-            + ROLE_PERMISSION_CLASSIFICATION_CONSTRAINT;
-
-    private static final String LATERAL_ROLE_PERMISSION_JOIN =
-        "JOIN LATERAL ("
-            + "SELECT 1 FROM {h-schema}task_search_permissions tsp "
-            + ROLE_PERMISSION_JOIN
-            + "WHERE tsp.task_id = t.task_id "
-            + ROLE_PERMISSION_CONSTRAINT
-            + "LIMIT 1"
-            + ") role_permission ON true ";
-
-    private static final String BASE_QUERY_NEW =
-        "%s%sFROM {h-schema}tasks t "
-        + LATERAL_ROLE_PERMISSION_JOIN
-        + "WHERE indexed "
-        + "%s%s%s";
-
-    private static final String COUNT_QUERY_NEW =
-        "%sSELECT count(*) FROM ("
-            + "SELECT t.task_id FROM {h-schema}tasks t "
-            + LATERAL_ROLE_PERMISSION_JOIN
-            + "WHERE indexed "
-            + "%s"
-            + "LIMIT :" + COUNT_LIMIT_PARAMETER
-            + ") matching_tasks";
-
     @Override
     @SuppressWarnings("unchecked")
     public List<String> searchTasksIdsUsingTaskRoles(int firstResult,
-                                                   int maxResults,
-                                                   Collection<TaskSearchRoleCriteria> roleCriteria,
-                                                   List<String> excludeCaseIds,
-                                                   SearchRequest searchRequest) {
+                                                     int maxResults,
+                                                     Collection<TaskSearchRoleCriteria> roleCriteria,
+                                                     List<String> excludeCaseIds,
+                                                     SearchRequest searchRequest) {
         TaskRoleSearchPredicate rolePredicate = TaskRoleSearchPredicate.forPage(roleCriteria);
         String queryString = taskRoleQuery(SELECT_CLAUSE, rolePredicate, excludeCaseIds, searchRequest)
             + TaskSearchSortProvider.getSortOrderQuery(searchRequest) + PAGINATION_CLAUSE;
@@ -152,8 +96,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
 
     @Override
     public Long searchTasksCountUsingTaskRoles(Collection<TaskSearchRoleCriteria> roleCriteria,
-                                              List<String> excludeCaseIds,
-                                              SearchRequest searchRequest) {
+                                               List<String> excludeCaseIds,
+                                               SearchRequest searchRequest) {
         TaskRoleSearchPredicate rolePredicate = TaskRoleSearchPredicate.from(roleCriteria);
         String queryString = taskRoleQuery(COUNT_CLAUSE, rolePredicate, excludeCaseIds, searchRequest);
 
@@ -171,37 +115,8 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
             selectClause, extraConstraints(excludeCaseIds, searchRequest, "t."), rolePredicate.sql());
     }
 
-
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> searchTasksIdsUsingRoleCriteria(int firstResult,
-                                                        int maxResults,
-                                                        Collection<TaskSearchRoleCriteria> roleCriteria,
-                                                        List<String> excludeCaseIds,
-                                                        SearchRequest searchRequest) {
-
-        RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
-        String queryString = String.format(BASE_QUERY_NEW,
-            searchRoleCriteria.cte(),
-            SELECT_CLAUSE,
-            extraConstraints(excludeCaseIds, searchRequest),
-            TaskSearchSortProvider.getSortOrderQuery(searchRequest),
-            PAGINATION_CLAUSE
-        );
-
-        Query query = entityManager.createNativeQuery(queryString, RESULT_MAPPER);
-        addParameters(query, firstResult, maxResults, searchRoleCriteria, excludeCaseIds, searchRequest);
-
-        List<String> taskIds = query.getResultList();
-        log.info("Number of tasks returned {}", CollectionUtils.isEmpty(taskIds) ? 0 : taskIds.size());
-
-        return taskIds;
-    }
-
-    @SuppressWarnings("unchecked")
-
-
-    @Override
     public List<String> searchTasksIdsUsingSearchIndex(int firstResult,
                                                        int maxResults,
                                                        Set<String> filterSignature,
@@ -223,27 +138,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         log.info("Number of tasks returned {}", CollectionUtils.isEmpty(taskIds) ? 0 : taskIds.size());
 
         return taskIds;
-    }
-
-    @Override
-    public Long searchTasksCountUsingRoleCriteria(Collection<TaskSearchRoleCriteria> roleCriteria,
-                                                  List<String> excludeCaseIds,
-                                                  SearchRequest searchRequest,
-                                                  int countLimit) {
-
-        RoleSearchCriteria searchRoleCriteria = buildRoleSearchCriteria(roleCriteria);
-        String queryString = String.format(COUNT_QUERY_NEW,
-            searchRoleCriteria.cte(),
-            extraConstraints(excludeCaseIds, searchRequest, "t."));
-
-        Query query = entityManager.createNativeQuery(queryString);
-        addParameters(query, searchRoleCriteria, excludeCaseIds, searchRequest);
-        query.setParameter(COUNT_LIMIT_PARAMETER, countLimit);
-
-        Long taskCount = ((Number) query.getSingleResult()).longValue();
-        log.info("Total number of tasks {}", taskCount);
-
-        return taskCount;
     }
 
     @Override
@@ -312,29 +206,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         return "";
     }
 
-    private RoleSearchCriteria buildRoleSearchCriteria(Collection<TaskSearchRoleCriteria> roleCriteria) {
-        List<RoleCriterion> criteria = new ArrayList<>();
-        roleCriteria.stream().distinct()
-            .forEach(criterion -> criteria.add(RoleCriterion.from(criteria.size(), criterion)));
-
-        return new RoleSearchCriteria(buildRoleCriteriaCte(criteria), criteria);
-    }
-
-    private String buildRoleCriteriaCte(List<RoleCriterion> criteria) {
-        String values = criteria.stream()
-            .map(RoleCriterion::toSqlValues)
-            .collect(Collectors.joining(", "));
-
-        return "WITH request_role_criteria AS MATERIALIZED ("
-               + "SELECT jurisdiction, region, location, role_name, case_id, permission, classification, "
-               + "array_agg(DISTINCT authorization_value) AS authorization_values "
-               + "FROM (VALUES " + values + ") raw_request_role_criteria("
-               + "jurisdiction, region, location, role_name, case_id, permission, classification, authorization_value"
-               + ") "
-               + "GROUP BY jurisdiction, region, location, role_name, case_id, permission, classification"
-               + ") ";
-    }
-
     private void addParameters(Query query,
                                int firstResult,
                                int maxResults,
@@ -349,18 +220,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
     }
 
     private void addParameters(Query query,
-                               int firstResult,
-                               int maxResults,
-                               RoleSearchCriteria roleCriteria,
-                               List<String> excludeCaseIds,
-                               SearchRequest searchRequest) {
-
-        addParameters(query, roleCriteria, excludeCaseIds, searchRequest);
-        query.setParameter("firstResult", firstResult);
-        query.setParameter("maxResults", maxResults);
-    }
-
-    private void addParameters(Query query,
                                Set<String> filterSignature,
                                Set<String> roleSignature,
                                List<String> excludeCaseIds,
@@ -368,15 +227,6 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
 
         query.setParameter("filterSignature", filterSignature.toArray(new String[0]));
         query.setParameter("roleSignature", roleSignature.toArray(new String[0]));
-        addSearchRequestParameters(query, excludeCaseIds, searchRequest);
-    }
-
-    private void addParameters(Query query,
-                               RoleSearchCriteria roleCriteria,
-                               List<String> excludeCaseIds,
-                               SearchRequest searchRequest) {
-
-        roleCriteria.setParameters(query);
         addSearchRequestParameters(query, excludeCaseIds, searchRequest);
     }
 
@@ -425,69 +275,4 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         query.setParameter(name, values.size() == ONE ? values.get(0) : values);
     }
 
-    private record RoleSearchCriteria(String cte, List<RoleCriterion> criteria) {
-
-        private void setParameters(Query query) {
-            criteria.forEach(criterion -> criterion.setParameters(query));
-        }
-    }
-
-    private record RoleCriterion(int index,
-                                 String jurisdiction,
-                                 String region,
-                                 String location,
-                                 String roleName,
-                                 String caseId,
-                                 String permission,
-                                 String classification,
-                                 String authorizationValue) {
-
-        private static RoleCriterion from(int index, TaskSearchRoleCriteria roleCriteria) {
-            return new RoleCriterion(
-                index,
-                roleCriteria.jurisdiction(),
-                roleCriteria.region(),
-                roleCriteria.location(),
-                roleCriteria.roleName(),
-                roleCriteria.caseId(),
-                roleCriteria.permission(),
-                roleCriteria.classification(),
-                roleCriteria.authorizationValue()
-            );
-        }
-
-        private String toSqlValues() {
-            return "("
-                   + sqlValue("roleJurisdiction", jurisdiction) + ", "
-                   + sqlValue("roleRegion", region) + ", "
-                   + sqlValue("roleLocation", location) + ", "
-                   + sqlValue("roleName", roleName) + ", "
-                   + sqlValue("roleCaseId", caseId) + ", "
-                   + sqlValue("rolePermission", permission) + ", "
-                   + sqlValue("roleClassification", classification) + ", "
-                   + sqlValue("roleAuthorization", authorizationValue)
-                   + ")";
-        }
-
-        private void setParameters(Query query) {
-            setParameter(query, "roleJurisdiction", jurisdiction);
-            setParameter(query, "roleRegion", region);
-            setParameter(query, "roleLocation", location);
-            setParameter(query, "roleName", roleName);
-            setParameter(query, "roleCaseId", caseId);
-            setParameter(query, "rolePermission", permission);
-            setParameter(query, "roleClassification", classification);
-            setParameter(query, "roleAuthorization", authorizationValue);
-        }
-
-        private String sqlValue(String name, String value) {
-            return value == null ? "CAST(NULL AS text)" : "CAST(:" + name + index + " AS text)";
-        }
-
-        private void setParameter(Query query, String name, String value) {
-            if (value != null) {
-                query.setParameter(name + index, value);
-            }
-        }
-    }
 }

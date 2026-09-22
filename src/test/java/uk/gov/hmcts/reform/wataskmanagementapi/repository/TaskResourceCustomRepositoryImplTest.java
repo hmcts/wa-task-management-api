@@ -6,10 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.RequestContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SortField;
@@ -24,65 +22,13 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceCustomRepositoryImpl.RESULT_MAPPER;
 
 @ExtendWith(MockitoExtension.class)
 class TaskResourceCustomRepositoryImplTest {
-    private static final int COUNT_LIMIT = 123;
-    private static final String ROLE_CRITERIA_CTE =
-        "WITH request_role_criteria AS MATERIALIZED ("
-            + "SELECT jurisdiction, region, location, role_name, case_id, permission, classification, "
-            + "array_agg(DISTINCT authorization_value) AS authorization_values "
-            + "FROM (VALUES ("
-            + "CAST(:roleJurisdiction0 AS text), "
-            + "CAST(NULL AS text), "
-            + "CAST(NULL AS text), "
-            + "CAST(:roleName0 AS text), "
-            + "CAST(NULL AS text), "
-            + "CAST(:rolePermission0 AS text), "
-            + "CAST(:roleClassification0 AS text), "
-            + "CAST(NULL AS text))) raw_request_role_criteria("
-            + "jurisdiction, region, location, role_name, case_id, permission, classification, authorization_value"
-            + ") "
-            + "GROUP BY jurisdiction, region, location, role_name, case_id, permission, classification) ";
-    private static final String ROLE_PERMISSION_JOIN =
-        "JOIN request_role_criteria role_criteria "
-            + "ON role_criteria.role_name = tsp.role_name "
-            + "AND role_criteria.permission = tsp.permission ";
-    private static final String ROLE_PERMISSION_CONSTRAINTS =
-        "AND (role_criteria.jurisdiction IS NULL OR role_criteria.jurisdiction = t.jurisdiction) "
-            + "AND (role_criteria.region IS NULL OR role_criteria.region = t.region) "
-            + "AND (role_criteria.location IS NULL OR role_criteria.location = t.location) "
-            + "AND (role_criteria.case_id IS NULL OR role_criteria.case_id = t.case_id) "
-            + "AND (role_criteria.case_id IS NOT NULL "
-            + "OR array_position(role_criteria.authorization_values, tsp.authorization_value) IS NOT NULL) "
-            + "AND ("
-            + "(t.security_classification = 'PUBLIC' AND role_criteria.classification IN ('U', 'P', 'R')) "
-            + "OR (t.security_classification = 'PRIVATE' AND role_criteria.classification IN ('P', 'R')) "
-            + "OR (t.security_classification = 'RESTRICTED' AND role_criteria.classification = 'R')"
-            + ") ";
-    private static final String PAGE_QUERY_PREFIX =
-        ROLE_CRITERIA_CTE
-            + "SELECT t.task_id FROM {h-schema}tasks t "
-            + "JOIN LATERAL (SELECT 1 FROM {h-schema}task_search_permissions tsp "
-            + ROLE_PERMISSION_JOIN
-            + "WHERE tsp.task_id = t.task_id "
-            + ROLE_PERMISSION_CONSTRAINTS
-            + "LIMIT 1) role_permission ON true "
-            + "WHERE indexed ";
-    private static final String COUNT_QUERY_PREFIX =
-        ROLE_CRITERIA_CTE
-            + "SELECT count(*) FROM (SELECT t.task_id FROM {h-schema}tasks t "
-            + "JOIN LATERAL (SELECT 1 FROM {h-schema}task_search_permissions tsp "
-            + ROLE_PERMISSION_JOIN
-            + "WHERE tsp.task_id = t.task_id "
-            + ROLE_PERMISSION_CONSTRAINTS
-            + "LIMIT 1) role_permission ON true "
-            + "WHERE indexed ";
-    private static final String COUNT_QUERY_SUFFIX = "LIMIT :countLimit) matching_tasks";
+
     private static final String OLD_SIGNATURE_CONSTRAINTS =
         "AND {h-schema}filter_signatures(t.task_id, t.state, t.jurisdiction, t.role_category, t.work_type, "
         + "t.region, t.location) && CAST(:filterSignature AS text[]) "
@@ -90,20 +36,18 @@ class TaskResourceCustomRepositoryImplTest {
         + "t.security_classification) && CAST(:roleSignature AS text[]) ";
 
     @Mock
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
     @Mock
-    Query query;
+    private Query query;
 
-    Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
-    Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*");
-    List<TaskSearchRoleCriteria> roleCriteria = List.of(
+    private final Set<String> filterSignature = Set.of("*:IA:*:*:1:765324");
+    private final Set<String> roleSignature = Set.of("IA:*:*:tribunal-caseofficer:*:r:U:*");
+    private final List<TaskSearchRoleCriteria> roleCriteria = List.of(
         new TaskSearchRoleCriteria("IA", null, null, "tribunal-caseofficer", null, "r", "U", null)
     );
 
-
-    TaskResourceCustomRepositoryImpl taskResourceCustomRepository;
-
+    private TaskResourceCustomRepositoryImpl taskResourceCustomRepository;
 
     @BeforeEach
     void setUp() {
@@ -116,333 +60,50 @@ class TaskResourceCustomRepositoryImplTest {
     }
 
     @Test
-    void when_search_request_is_empty_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
-            null, SearchRequest.builder().build());
+    void should_build_legacy_search_index_page_query() {
+        SearchRequest searchRequest = SearchRequest.builder().build();
 
-        String queryStr = PAGE_QUERY_PREFIX
-                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
-                       + "OFFSET :firstResult LIMIT :maxResults";
-        verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("firstResult", 1);
-        inOrder.verify(query).setParameter("maxResults", 25);
+        taskResourceCustomRepository.searchTasksIdsUsingSearchIndex(
+            1, 25, filterSignature, roleSignature, List.of(), searchRequest);
+
+        String queryString = "SELECT t.task_id FROM {h-schema}tasks t WHERE indexed "
+                             + OLD_SIGNATURE_CONSTRAINTS
+                             + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
+                             + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
+                             + "OFFSET :firstResult LIMIT :maxResults";
+        verify(entityManager).createNativeQuery(queryString, RESULT_MAPPER);
+        verify(query).setParameter("filterSignature", filterSignature.toArray(new String[0]));
+        verify(query).setParameter("roleSignature", roleSignature.toArray(new String[0]));
+        verify(query).setParameter("firstResult", 1);
+        verify(query).setParameter("maxResults", 25);
     }
 
     @Test
-    void when_search_request_with_order_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
-            null, SearchRequest.builder()
-                    .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.ASCENDANT),
-                        new SortingParameter(SortField.CASE_NAME_CAMEL_CASE, SortOrder.ASCENDANT)))
-                .build());
+    void should_build_legacy_search_index_count_query() {
+        SearchRequest searchRequest = SearchRequest.builder().build();
 
-        String queryStr = PAGE_QUERY_PREFIX
-                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + "ORDER BY case_id ASC, case_name ASC, "
-                          + "major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
-                       + "OFFSET :firstResult LIMIT :maxResults";
-        verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("firstResult", 1);
-        inOrder.verify(query).setParameter("maxResults", 25);
+        Long count = taskResourceCustomRepository.searchTasksCountUsingSearchIndex(
+            filterSignature, roleSignature, List.of(), searchRequest);
+
+        String queryString = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
+                             + OLD_SIGNATURE_CONSTRAINTS
+                             + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
+        verify(entityManager).createNativeQuery(queryString);
+        verify(query).setParameter("filterSignature", filterSignature.toArray(new String[0]));
+        verify(query).setParameter("roleSignature", roleSignature.toArray(new String[0]));
+        assertThat(count).isEqualTo(1L);
     }
 
     @Test
-    void when_search_request_is_empty_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
-                                                                       SearchRequest.builder().build(), COUNT_LIMIT);
-
-        String queryStr = COUNT_QUERY_PREFIX
-                       + "AND t.state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + COUNT_QUERY_SUFFIX;
-        verify(entityManager).createNativeQuery(queryStr);
-        InOrder inOrder = inOrder(query);
-        verifyNewCountParameters(inOrder);
-    }
-
-    @Test
-    void when_search_request_is_empty_then_build_old_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountUsingSearchIndex(filterSignature, roleSignature, null,
-                                                                      SearchRequest.builder().build());
-
-        String queryStr = "SELECT count(*) FROM {h-schema}tasks t WHERE indexed "
-                       + OLD_SIGNATURE_CONSTRAINTS
-                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') ";
-        verify(entityManager).createNativeQuery(queryStr);
-        InOrder inOrder = inOrder(query);
-        inOrder.verify(query).setParameter("filterSignature", new String[]{"*:IA:*:*:1:765324"});
-        inOrder.verify(query).setParameter("roleSignature", new String[]{"IA:*:*:tribunal-caseofficer:*:r:U:*"});
-    }
-
-    @Test
-    void when_search_request_for_available_task_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
-            null, SearchRequest.builder()
-                .requestContext(RequestContext.AVAILABLE_TASKS)
-                .users(List.of("user"))
-                .build());
-
-        String queryStr = PAGE_QUERY_PREFIX
-                       + "AND assignee IS NULL "
-                       + "AND state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
-                       + "OFFSET :firstResult LIMIT :maxResults";
-        verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("firstResult", 1);
-        inOrder.verify(query).setParameter("maxResults", 25);
-    }
-
-    @Test
-    void when_search_request_for_available_task_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
-                                                                       SearchRequest.builder()
-            .requestContext(RequestContext.AVAILABLE_TASKS)
-            .users(List.of("user"))
-            .build(), COUNT_LIMIT);
-
-        String queryStr = COUNT_QUERY_PREFIX
-                       + "AND t.assignee IS NULL "
-                       + "AND t.state IN ('ASSIGNED', 'UNASSIGNED') "
-                       + COUNT_QUERY_SUFFIX;
-        verify(entityManager).createNativeQuery(queryStr);
-        InOrder inOrder = inOrder(query);
-        verifyNewCountParameters(inOrder);
-    }
-
-    @Test
-    void when_search_with_single_search_filter_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
-            null, SearchRequest.builder()
-                .users(List.of("user"))
-                    .cftTaskStates(List.of(CFTTaskState.COMPLETED))
-                    .caseIds(List.of("caseId"))
-                    .taskTypes(List.of("TaskType"))
-                .build());
-
-        String queryStr = PAGE_QUERY_PREFIX
-                       + "AND assignee = :assignee "
-                       + "AND state IN ('COMPLETED') "
-                       + "AND case_id = :caseId "
-                       + "AND task_type = :taskType "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
-                       + "OFFSET :firstResult LIMIT :maxResults";
-        verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", "user");
-        inOrder.verify(query).setParameter("caseId", "caseId");
-        inOrder.verify(query).setParameter("taskType", "TaskType");
-        inOrder.verify(query).setParameter("firstResult", 1);
-        inOrder.verify(query).setParameter("maxResults", 25);
-
-    }
-
-    @Test
-    void when_search_with_single_search_filter_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
-                                                                       SearchRequest.builder()
-            .users(List.of("user"))
-            .cftTaskStates(List.of(CFTTaskState.COMPLETED))
-            .caseIds(List.of("caseId"))
-            .taskTypes(List.of("TaskType"))
-            .build(), COUNT_LIMIT);
-
-        String queryStr = COUNT_QUERY_PREFIX
-                       + "AND t.assignee = :assignee "
-                       + "AND t.state IN ('COMPLETED') "
-                       + "AND t.case_id = :caseId "
-                       + "AND t.task_type = :taskType "
-                       + COUNT_QUERY_SUFFIX;
-        verify(entityManager).createNativeQuery(queryStr);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", "user");
-        inOrder.verify(query).setParameter("caseId", "caseId");
-        inOrder.verify(query).setParameter("taskType", "TaskType");
-        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
-    }
-
-    @Test
-    void when_search_with_multiple_search_filter_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
-            null, SearchRequest.builder()
-                .users(List.of("user", "user2"))
-                .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
-                .caseIds(List.of("caseId", "caseId2"))
-                .taskTypes(List.of("TaskType", "TaskType2"))
-                .build());
-
-        String queryStr = PAGE_QUERY_PREFIX
-                       + "AND assignee IN (:assignee) "
-                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND case_id IN (:caseId) "
-                       + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
-                       + "OFFSET :firstResult LIMIT :maxResults";
-        verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
-        inOrder.verify(query).setParameter("firstResult", 1);
-        inOrder.verify(query).setParameter("maxResults", 25);
-
-    }
-
-    @Test
-    void when_search_with_multiple_search_filter_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, null,
-                                                                       SearchRequest.builder()
-            .users(List.of("user", "user2"))
-            .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
-            .caseIds(List.of("caseId", "caseId2"))
-            .taskTypes(List.of("TaskType", "TaskType2"))
-            .build(), COUNT_LIMIT);
-
-        String queryStr = COUNT_QUERY_PREFIX
-                       + "AND t.assignee IN (:assignee) "
-                       + "AND t.state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND t.case_id IN (:caseId) "
-                       + "AND t.task_type IN (:taskType) "
-                       + COUNT_QUERY_SUFFIX;
-        verify(entityManager).createNativeQuery(queryStr);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
-        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
-    }
-
-    @Test
-    void when_search_with_multiple_search_filter_and_excluded_case_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
-            List.of("caseId"), SearchRequest.builder()
-                .users(List.of("user", "user2"))
-                .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
-                .caseIds(List.of("caseId", "caseId2"))
-                .taskTypes(List.of("TaskType", "TaskType2"))
-                .build());
-
-        String queryStr = PAGE_QUERY_PREFIX
-                       + "AND assignee IN (:assignee) "
-                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND case_id IN (:caseId) "
-                       + "AND case_id <> :excludedCaseId "
-                       + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
-                       + "OFFSET :firstResult LIMIT :maxResults";
-        verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
-        inOrder.verify(query).setParameter("excludedCaseId", "caseId");
-        inOrder.verify(query).setParameter("firstResult", 1);
-        inOrder.verify(query).setParameter("maxResults", 25);
-
-    }
-
-    @Test
-    void when_search_with_multiple_search_filter_and_excluded_case_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, List.of("caseId"),
-                                                                       SearchRequest.builder()
-            .users(List.of("user", "user2"))
-            .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
-            .caseIds(List.of("caseId", "caseId2"))
-            .taskTypes(List.of("TaskType", "TaskType2"))
-            .build(), COUNT_LIMIT);
-
-        String queryStr = COUNT_QUERY_PREFIX
-                       + "AND t.assignee IN (:assignee) "
-                       + "AND t.state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND t.case_id IN (:caseId) "
-                       + "AND t.case_id <> :excludedCaseId "
-                       + "AND t.task_type IN (:taskType) "
-                       + COUNT_QUERY_SUFFIX;
-        verify(entityManager).createNativeQuery(queryStr);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
-        inOrder.verify(query).setParameter("excludedCaseId", "caseId");
-        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
-    }
-
-    @Test
-    void when_search_with_multiple_search_filter_and_multiple_excluded_case_then_build_search_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksIdsUsingRoleCriteria(1, 25, roleCriteria,
-            List.of("caseId", "caseId2"), SearchRequest.builder()
-                .users(List.of("user", "user2"))
-                .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
-                .caseIds(List.of("caseId", "caseId2"))
-                .taskTypes(List.of("TaskType", "TaskType2"))
-                .build());
-
-        String queryStr = PAGE_QUERY_PREFIX
-                       + "AND assignee IN (:assignee) "
-                       + "AND state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND case_id IN (:caseId) "
-                       + "AND case_id NOT IN (:excludedCaseId) "
-                       + "AND task_type IN (:taskType) "
-                       + "ORDER BY major_priority ASC, priority_date ASC, minor_priority ASC, task_id ASC "
-                       + "OFFSET :firstResult LIMIT :maxResults";
-        verify(entityManager).createNativeQuery(queryStr, RESULT_MAPPER);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
-        inOrder.verify(query).setParameter("excludedCaseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("firstResult", 1);
-        inOrder.verify(query).setParameter("maxResults", 25);
-
-    }
-
-    @Test
-    void when_search_with_multiple_search_filter_and_multiple_excluded_case_then_build_count_query_with_signatures() {
-        taskResourceCustomRepository.searchTasksCountUsingRoleCriteria(roleCriteria, List.of("caseId", "caseId2"),
-                                                                       SearchRequest.builder()
-            .users(List.of("user", "user2"))
-            .cftTaskStates(List.of(CFTTaskState.COMPLETED, CFTTaskState.CONFIGURED))
-            .caseIds(List.of("caseId", "caseId2"))
-            .taskTypes(List.of("TaskType", "TaskType2"))
-            .build(), COUNT_LIMIT);
-
-        String queryStr = COUNT_QUERY_PREFIX
-                       + "AND t.assignee IN (:assignee) "
-                       + "AND t.state IN ('COMPLETED', 'CONFIGURED') "
-                       + "AND t.case_id IN (:caseId) "
-                       + "AND t.case_id NOT IN (:excludedCaseId) "
-                       + "AND t.task_type IN (:taskType) "
-                       + COUNT_QUERY_SUFFIX;
-        verify(entityManager).createNativeQuery(queryStr);
-        InOrder inOrder = inOrder(query);
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("assignee", List.of("user", "user2"));
-        inOrder.verify(query).setParameter("caseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("taskType", List.of("TaskType", "TaskType2"));
-        inOrder.verify(query).setParameter("excludedCaseId", List.of("caseId", "caseId2"));
-        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
-    }
-
-    @Test
-    void should_keep_task_role_page_correlated_and_bind_requested_pagination() {
+    void should_build_task_role_page_query_and_bind_pagination() {
         taskResourceCustomRepository.searchTasksIdsUsingTaskRoles(
             25, 10, roleCriteria, List.of("excluded-case"), SearchRequest.builder().build());
 
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
         verify(entityManager).createNativeQuery(sql.capture(), eq(RESULT_MAPPER));
         assertThat(sql.getValue())
+            .startsWith("SELECT t.task_id")
+            .contains("FROM {h-schema}tasks t", "EXISTS (", "FROM {h-schema}task_roles tr")
             .contains("OFFSET 0", "t.case_id <> :excludedCaseId")
             .endsWith("OFFSET :firstResult LIMIT :maxResults");
         verify(query).setParameter("scope_r_0_jurisdiction", "IA");
@@ -453,7 +114,60 @@ class TaskResourceCustomRepositoryImplTest {
     }
 
     @Test
-    void should_keep_task_role_count_uncapped_and_eligible_for_semi_joins() {
+    void should_apply_search_filters_and_sorting_to_task_role_page_query() {
+        SearchRequest searchRequest = SearchRequest.builder()
+            .users(List.of("user-1", "user-2"))
+            .caseIds(List.of("case-1", "case-2"))
+            .taskTypes(List.of("task-type"))
+            .jurisdictions(List.of("IA"))
+            .locations(List.of("765324"))
+            .regions(List.of("1"))
+            .workTypes(List.of("decision-making-work"))
+            .sortingParameters(List.of(new SortingParameter(SortField.CASE_ID, SortOrder.DESCENDANT)))
+            .build();
+
+        taskResourceCustomRepository.searchTasksIdsUsingTaskRoles(
+            0, 25, roleCriteria, List.of("excluded-1", "excluded-2"), searchRequest);
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(entityManager).createNativeQuery(sql.capture(), eq(RESULT_MAPPER));
+        assertThat(sql.getValue())
+            .contains("t.assignee IN (:assignee)")
+            .contains("t.case_id IN (:caseId)")
+            .contains("t.case_id NOT IN (:excludedCaseId)")
+            .contains("t.task_type = :taskType")
+            .contains("t.jurisdiction = :jurisdiction")
+            .contains("t.location = :location")
+            .contains("t.region = :region")
+            .contains("t.work_type = :workType")
+            .contains("ORDER BY case_id DESC");
+        verify(query).setParameter("assignee", List.of("user-1", "user-2"));
+        verify(query).setParameter("caseId", List.of("case-1", "case-2"));
+        verify(query).setParameter("excludedCaseId", List.of("excluded-1", "excluded-2"));
+        verify(query).setParameter("taskType", "task-type");
+        verify(query).setParameter("jurisdiction", "IA");
+        verify(query).setParameter("location", "765324");
+        verify(query).setParameter("region", "1");
+        verify(query).setParameter("workType", "decision-making-work");
+    }
+
+    @Test
+    void should_apply_available_task_constraint_to_task_role_page_query() {
+        SearchRequest searchRequest = SearchRequest.builder()
+            .requestContext(RequestContext.AVAILABLE_TASKS)
+            .users(List.of("ignored-user"))
+            .build();
+
+        taskResourceCustomRepository.searchTasksIdsUsingTaskRoles(
+            0, 25, roleCriteria, List.of(), searchRequest);
+
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        verify(entityManager).createNativeQuery(sql.capture(), eq(RESULT_MAPPER));
+        assertThat(sql.getValue()).contains("t.assignee IS NULL").doesNotContain(":assignee");
+    }
+
+    @Test
+    void should_build_uncapped_task_role_count_query() {
         Long count = taskResourceCustomRepository.searchTasksCountUsingTaskRoles(
             roleCriteria, List.of("excluded-case"), SearchRequest.builder().build());
 
@@ -462,22 +176,10 @@ class TaskResourceCustomRepositoryImplTest {
         assertThat(sql.getValue())
             .startsWith("SELECT count(*)")
             .contains("EXISTS (", "t.case_id <> :excludedCaseId")
-            .doesNotContain("OFFSET", "LIMIT", "ORDER BY");
+            .doesNotContain("OFFSET", "LIMIT", "ORDER BY", "task_search_permissions");
         verify(query).setParameter("scope_r_0_jurisdiction", "IA");
         verify(query).setParameter("scope_r_0_roleNames", List.of("tribunal-caseofficer"));
         verify(query).setParameter("excludedCaseId", "excluded-case");
         assertThat(count).isEqualTo(1L);
-    }
-
-    private void verifyNewCountParameters(InOrder inOrder) {
-        verifyNewSignatureParameters(inOrder);
-        inOrder.verify(query).setParameter("countLimit", COUNT_LIMIT);
-    }
-
-    private void verifyNewSignatureParameters(InOrder inOrder) {
-        inOrder.verify(query).setParameter("roleJurisdiction0", "IA");
-        inOrder.verify(query).setParameter("roleName0", "tribunal-caseofficer");
-        inOrder.verify(query).setParameter("rolePermission0", "r");
-        inOrder.verify(query).setParameter("roleClassification0", "U");
     }
 }

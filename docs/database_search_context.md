@@ -1,246 +1,117 @@
-# Database Search Context: Relational Permission Search
+# Database Search Context: Direct Task-Role Search
 
-This document describes the current indexed task-search implementation in the WA Task Management API.
+The WA Task Management API has two indexed task-search paths, selected by the
+`wa-search-index-search-enabled` LaunchDarkly flag.
 
-The active indexed-search path is selected by the `wa-search-index-search-enabled` LaunchDarkly flag. When enabled, searches use the legacy `search_index` GIN expression index. When disabled, searches use the PostgreSQL-specific, signature-compatible relational design that avoids new GIN indexes. The current LaunchDarkly boolean default is `true`, so the legacy path is used if LaunchDarkly cannot supply a value.
+- When enabled, search uses the legacy `search_index` GIN expression index.
+- When disabled, search applies task filters to `tasks` and checks permissions
+  directly against `task_roles` with B-tree indexes.
 
-The legacy `search_index` GIN expression index is intentionally retained during the transition so `TaskResourceSearchIndexComparisonTest` can compare the old and new search paths against the same dataset. A follow-up migration should drop it only after accuracy and production-scale timings are accepted.
+The legacy path remains available while result parity and production-scale
+performance of the direct task-role path are evaluated.
 
-## Current Shape
+## Direct Task-Role Query
 
-There are two indexed search paths in `TaskResourceCustomRepositoryImpl`, selected by `CFTTaskSearchService`:
+`CFTTaskSearchService.searchForTaskIds(...)` converts eligible role assignments
+to `TaskSearchRoleCriteria`. `TaskResourceCustomRepositoryImpl` then uses
+`TaskRoleSearchPredicate` to generate correlated `EXISTS` predicates over the
+original `task_roles` rows.
 
-* `searchTasksIdsOld(...)` and `searchTasksCountOld(...)` use the legacy `search_index` expression GIN path.
-* `searchTasksIds(...)` and `searchTasksCount(...)` use the no-GIN relational path.
+The page query:
 
-The no-GIN path has four parts:
+1. restricts `tasks` to indexed, active tasks;
+2. applies request filters such as jurisdiction, location, region, work type,
+   task type, assignee, case ID, role category, and excluded case IDs;
+3. restricts task security classifications to those visible to the requester's
+   roles;
+4. checks matching role name, permission, scope, and authorization on
+   `task_roles`;
+5. applies the requested sort and pagination.
 
-1. Java still builds request-side filter signatures and role signatures.
-2. Java converts filter-signature abbreviations into B-tree-friendly task predicates.
-3. SQL applies task filters directly against `tasks`.
-4. SQL parses role signatures and checks RBAC with `EXISTS` against `task_search_permissions`.
+The count query uses the same task and permission semantics without ordering,
+pagination, or a configured count cap.
 
-No materialised signature arrays are stored on `tasks`, and no replacement GIN or GiST index is created.
+## Permission Semantics
 
-## Search Tables
+The direct query maps each requested permission to the source columns on
+`task_roles`:
 
-### `tasks`
-
-The search query reads these task columns directly:
-
-| Column | Role |
+| Permission | Required task-role values |
 | --- | --- |
-| `task_id` | Returned identifier and permission-table join key |
-| `indexed` | Mandatory inclusion flag |
-| `state` | Filter-signature match, explicit state filter, active partial-index predicate |
-| `jurisdiction` | Filter and role assignment match |
-| `role_category` | Filter match |
-| `work_type` | Filter match |
-| `region` | Filter and role assignment match |
-| `location` | Filter and role assignment match |
-| `case_id` | Case filter, excluded-case filter, case-role match |
-| `task_type` | Task-type filter |
-| `assignee` | User filter and available-task exclusion |
-| `security_classification` | Classification visibility check |
-| `major_priority`, `priority_date`, `minor_priority` | Default task ordering |
+| Read (`r`) | `read = true` |
+| Manage (`m`) | `manage = true` |
+| Own and claim (`a`) | `own = true AND claim = true` |
 
-### `task_search_permissions`
+Role names are grouped only when their task scope and authorization requirements
+are identical. This preserves the correlation between a role name and its
+jurisdiction, region, location, case, classification, and authorization scope.
 
-`V1.0.43__create_task_search_permissions.sql` creates:
+Case-scoped roles do not require a task-role authorization match. Organisational
+roles used for available-task search accept a wildcard authorization, an empty or
+null task-role authorization array, or an overlap with an authorization held by
+the user.
 
-```sql
-CREATE TABLE cft_task_db.task_search_permissions
-(
-    task_id             TEXT NOT NULL,
-    role_name           TEXT NOT NULL,
-    permission          TEXT NOT NULL,
-    authorization_value TEXT NOT NULL,
-    PRIMARY KEY (task_id, role_name, permission, authorization_value),
-    FOREIGN KEY (task_id) REFERENCES cft_task_db.tasks (task_id) ON DELETE CASCADE,
-    CHECK (permission IN ('r', 'm', 'a'))
-);
-```
+Task visibility follows the classification hierarchy:
 
-This table is derived from the existing `task_permissions` view:
-
-* `r` means read permission.
-* `m` means manage permission for all-work searches.
-* `a` means own-and-claim permission for available-task searches.
-* `authorization_value` is `*` for read/manage and either `*` or a configured authorization for available tasks.
-
-The table stores only actual permission facts. It does not store wildcard-expanded task signatures.
-
-## Refresh Rules
-
-`refresh_task_search_permissions(task_id)` deletes and reinserts permission facts for one task.
-
-Refresh triggers call it when:
-
-* `tasks.indexed` changes, including clearing rows when a task is no longer indexed.
-* a relevant `task_roles` field changes: `task_id`, `role_name`, `read`, `manage`, `own`, `claim`, or `authorizations`.
-* a task is deleted, via `ON DELETE CASCADE`.
-
-The initial migration backfills rows for all tasks already marked `indexed = true`.
-
-## Query Semantics
-
-### Filter signatures
-
-The request filter signature format remains:
-
-```text
-state:jurisdiction:role_category:work_type:region:location
-```
-
-Java parses each value. `*` becomes "no constraint" for that dimension. State abbreviations are expanded before binding (`U -> UNASSIGNED`, `A -> ASSIGNED`), and role-category abbreviations are expanded before binding (`J`, `L`, `A`, `C`, `E`).
-
-A task matches when at least one parsed filter signature matches all constrained dimensions. For one fully-constrained signature this becomes ordinary equality predicates:
-
-```sql
-AND (
-    t.state = CAST(:filterState0 AS cft_task_db.task_state_enum)
-    AND t.jurisdiction = :filterJurisdiction0
-    AND t.role_category = :filterRoleCategory0
-    AND t.work_type = :filterWorkType0
-    AND t.region = :filterRegion0
-    AND t.location = :filterLocation0
-)
-```
-
-Multiple filter signatures are joined with `OR`. Wildcard dimensions are omitted from that signature's predicate.
-
-The repository also adds direct SQL predicates for fields present on `SearchRequest`, such as `case_id`, `task_type`, `assignee`, `jurisdiction`, `location`, `region`, and `work_type`.
-
-### Role signatures
-
-The request role signature format remains:
-
-```text
-jurisdiction:region:location:role_name:case_id:permission:classification:authorization
-```
-
-The authorization tail may itself contain colons, so SQL parses the first seven fields with `string_to_array(...)` and keeps the remaining tail with `regexp_replace(...)`.
-
-A task matches RBAC when at least one parsed role row matches a permission fact and the task attributes:
-
-```sql
-EXISTS (
-    SELECT 1
-    FROM task_search_permissions tsp
-    JOIN request_role_signatures rs
-      ON rs.role_name = tsp.role_name
-     AND rs.permission = tsp.permission
-    WHERE tsp.task_id = t.task_id
-      AND (rs.jurisdiction IS NULL OR rs.jurisdiction = t.jurisdiction)
-      AND (rs.region IS NULL OR rs.region = t.region)
-      AND (rs.location IS NULL OR rs.location = t.location)
-      AND (rs.case_id IS NULL OR rs.case_id = t.case_id)
-      AND (rs.case_id IS NOT NULL OR tsp.authorization_value = rs.authorization_value)
-      AND classification_matches_task(rs.classification, t.security_classification)
-)
-```
-
-The case-role rule is deliberate:
-
-* A request role signature with a case ID represents a case role and ignores task permission authorizations, matching the legacy case-role signature behavior.
-* A request role signature without a case ID represents an organisational role and must match `authorization_value`.
-
-Classification is equivalent to the legacy `classifications` view:
-
-| Task classification | Matching role classifications |
+| Role classification | Visible task classifications |
 | --- | --- |
-| `PUBLIC` | `U`, `P`, `R` |
-| `PRIVATE` | `P`, `R` |
-| `RESTRICTED` | `R` |
+| `U` | `PUBLIC` |
+| `P` | `PUBLIC`, `PRIVATE` |
+| `R` | `PUBLIC`, `PRIVATE`, `RESTRICTED` |
 
-The relational count query stops after `config.search.countLimit` matching tasks to bound query work. The setting
-defaults to `10000` and can be overridden with `TASK_SEARCH_COUNT_LIMIT`.
+## Search Indexes
 
-## Indexes
+`V1.0.45__replace_search_gin_indexes.sql` adds partial B-tree indexes for active
+indexed tasks. These support common page filters and ordering:
 
-`V1.0.43__create_task_search_permissions.sql` creates a B-tree lookup index:
+- `search_active_tasks_sort_idx`
+- `search_task_filters_idx`
+- `search_assignee_idx`
+- `search_task_type_idx`
+- `search_active_tasks_permission_lookup_idx`
+- `search_available_tasks_count_idx`
+- `search_available_tasks_sort_idx`
 
-```sql
-CREATE INDEX task_search_permissions_lookup_idx
-    ON cft_task_db.task_search_permissions (permission, role_name, task_id, authorization_value);
-```
+`V1.0.46__add_task_role_search_count_indexes.sql` adds indexes specifically for
+the direct task-role query:
 
-The table primary key also supports task-first permission checks:
+- `task_roles_search_manage_idx` for manage-permission checks;
+- `task_roles_search_available_idx` for own-and-claim checks, including
+  `authorizations` to reduce heap reads;
+- `search_active_tasks_count_idx` for uncapped active-task counts and their task
+  filters.
 
-```sql
-PRIMARY KEY (task_id, role_name, permission, authorization_value)
-```
+The legacy `search_index` GIN expression index is retained for the feature-flagged
+legacy path. No replacement GIN or GiST indexes and no materialised signature
+columns are added.
 
-`V1.0.44__replace_search_gin_indexes.sql` creates partial B-tree indexes on active indexed tasks:
+## Retired Permission Table
 
-```sql
-CREATE INDEX CONCURRENTLY search_active_tasks_sort_idx
-    ON cft_task_db.tasks (major_priority, priority_date, minor_priority, task_id)
-    WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
+The earlier relational implementation copied permissions into
+`task_search_permissions` and maintained the table with write-side triggers.
+The direct `task_roles` query made that derived table and its two indexes
+unnecessary.
 
-CREATE INDEX CONCURRENTLY search_filter_signature_idx
-    ON cft_task_db.tasks (
-        state,
-        jurisdiction,
-        role_category,
-        work_type,
-        region,
-        location,
-        major_priority,
-        priority_date,
-        minor_priority,
-        task_id
-    )
-    WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
+`V1.0.47__drop_task_search_permissions.sql` removes the refresh triggers and
+functions and drops the table. Dropping the table also removes:
 
-CREATE INDEX CONCURRENTLY search_assignee_idx
-    ON cft_task_db.tasks (assignee, major_priority, priority_date, minor_priority, task_id)
-    WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
+- `task_search_permissions_authorization_lookup_idx`
+- `task_search_permissions_task_lookup_idx`
 
-CREATE INDEX CONCURRENTLY search_case_id_idx
-    ON cft_task_db.tasks (case_id, major_priority, priority_date, minor_priority, task_id)
-    WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
-
-CREATE INDEX CONCURRENTLY search_task_type_idx
-    ON cft_task_db.tasks (task_type, major_priority, priority_date, minor_priority, task_id)
-    WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
-```
-
-These indexes are intentionally much simpler than the legacy `search_index` GIN index. They do not index exploded arrays, and they should not require GIN reindex maintenance.
-
-## Migration Notes
-
-### `V1.0.25__add_performance_indexing.sql`
-
-Introduced:
-
-* `tasks.indexed`
-* `task_permissions`
-* legacy signature functions
-* legacy `search_index` GIN
-
-### `V1.0.26__update_performance_index_function.sql`
-
-Updated the legacy signature functions and recreated `search_index`.
-
-### `V1.0.43__create_task_search_permissions.sql`
-
-Adds the no-GIN derived permission table, refresh functions, refresh triggers, and backfill.
-
-### `V1.0.44__replace_search_gin_indexes.sql`
-
-Adds B-tree indexes for the no-GIN query path. It deliberately keeps the legacy `search_index` for comparison.
-
-The fresh migration path does not add task-level materialised signature columns such as `filter_signatures`, `role_signatures`, `filter_signature_hashes`, or `role_signature_hashes`.
+The cleanup is a forward migration so databases that have already applied the
+earlier migrations keep valid Flyway checksums.
 
 ## Validation
 
-The important validation layers are:
+The main validation layers are:
 
-* `TaskResourceCustomRepositoryImplTest`: generated SQL, parameters, counts, pagination, and old/new query split.
-* `TaskResourceRepositoryTest`: table refresh behavior, role-change behavior, no-GIN schema checks, and functional search results.
-* `TaskResourceSearchIndexComparisonTest`: local production-like comparison of legacy `search_index` versus the no-GIN relational query for task IDs, counts, and timings.
-
-Production-scale validation still needs representative data volumes. The acceptance bar is exact result parity with `search_index`, materially smaller indexes, and p95/p99 latency that avoids the timeout pattern caused by GIN bloat.
-
-On the current local comparison dataset, the no-GIN path matched legacy task IDs and full-page counts across 500 scenarios. The new indexes were materially smaller than the legacy GIN index: `search_filter_signature_idx` was about 114 MB and the permission-table indexes were about 696-697 MB each, versus about 20 GB for `search_index`.
+- `TaskResourceCustomRepositoryImplTest` for generated SQL, bound parameters,
+  task filters, counts, sorting, and pagination;
+- `TaskRoleSearchPredicateTest` for permission grouping, scope correlation,
+  classifications, and authorization behavior;
+- `TaskResourceRepositoryTest` for Testcontainers-backed task-role page/count
+  behavior and the expected database schema;
+- `CFTTaskSearchServiceTest` for feature-flag routing and role-assignment
+  conversion;
+- `TaskResourceSearchIndexComparisonTest` for result parity between the legacy
+  GIN path and the direct task-role path.

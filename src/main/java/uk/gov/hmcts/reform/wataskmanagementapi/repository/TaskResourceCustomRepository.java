@@ -12,22 +12,15 @@ public interface TaskResourceCustomRepository {
 
     @Transactional(readOnly = true)
     List<String> searchTasksIdsUsingTaskRoles(int firstResult,
-                                            int maxResults,
-                                            Collection<TaskSearchRoleCriteria> roleCriteria,
-                                            List<String> excludeCaseIds,
-                                            SearchRequest searchRequest);
+                                              int maxResults,
+                                              Collection<TaskSearchRoleCriteria> roleCriteria,
+                                              List<String> excludeCaseIds,
+                                              SearchRequest searchRequest);
 
     @Transactional(readOnly = true)
     Long searchTasksCountUsingTaskRoles(Collection<TaskSearchRoleCriteria> roleCriteria,
-                                       List<String> excludeCaseIds,
-                                       SearchRequest searchRequest);
-
-    @Transactional
-    List<String> searchTasksIdsUsingRoleCriteria(int firstResult,
-                                                 int maxResults,
-                                                 Collection<TaskSearchRoleCriteria> roleCriteria,
-                                                 List<String> excludeCaseIds,
-                                                 SearchRequest searchRequest);
+                                        List<String> excludeCaseIds,
+                                        SearchRequest searchRequest);
 
     @Transactional
     List<String> searchTasksIdsUsingSearchIndex(int firstResult,
@@ -36,12 +29,6 @@ public interface TaskResourceCustomRepository {
                                                 Set<String> roleSignature,
                                                 List<String> excludeCaseIds,
                                                 SearchRequest searchRequest);
-
-    @Transactional
-    Long searchTasksCountUsingRoleCriteria(Collection<TaskSearchRoleCriteria> roleCriteria,
-                                           List<String> excludeCaseIds,
-                                           SearchRequest searchRequest,
-                                           int countLimit);
 
     @Transactional
     Long searchTasksCountUsingSearchIndex(Set<String> filterSignature,

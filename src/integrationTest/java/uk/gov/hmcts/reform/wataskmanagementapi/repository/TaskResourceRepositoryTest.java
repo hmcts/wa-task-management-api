@@ -323,60 +323,7 @@ class TaskResourceRepositoryTest {
     }
 
     @Test
-    void given_task_is_indexed_then_task_search_permissions_are_populated() {
-        reindexTasks(taskId);
-
-        Boolean searchPermissionsPopulated = jdbcTemplate.queryForObject(
-            """
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM cft_task_db.task_search_permissions
-                    WHERE task_id = ?
-                      AND role_name = 'tribunal-caseofficer'
-                      AND permission = 'r'
-                      AND authorization_value IS NULL
-                )
-                """,
-            Boolean.class,
-            taskId
-        );
-
-        assertThat(searchPermissionsPopulated).isTrue();
-    }
-
-    @Test
-    void given_indexed_task_when_relevant_task_role_changes_then_task_search_permissions_are_refreshed() {
-        reindexTasks(taskId);
-        TaskRoleResource taskRole = taskRoleResourceRepository.findByTaskId(taskId).get(0);
-
-        transactionHelper.doInNewTransaction(() -> {
-            taskRole.setRoleName("case-manager");
-            taskRoleResourceRepository.save(taskRole);
-        });
-
-        assertThat(searchTasksForRole("IA:*:*:tribunal-caseofficer:*:r:U:*")).isEmpty();
-        assertThat(searchTasksForRole("IA:*:*:case-manager:*:r:U:*")).containsExactly(taskId);
-    }
-
-    @Test
-    void given_exact_role_signature_does_not_match_then_task_is_not_returned() {
-        reindexTasks(taskId);
-
-        jdbcTemplate.update(
-            """
-                UPDATE cft_task_db.task_search_permissions
-                SET role_name = ?
-                WHERE task_id = ?
-                """,
-            "case-manager",
-            taskId
-        );
-
-        assertThat(searchTasksForRole("IA:*:*:tribunal-caseofficer:*:r:U:*")).isEmpty();
-    }
-
-    @Test
-    void given_search_schema_then_btree_permission_indexes_exist_alongside_legacy_gin_index() {
+    void given_search_schema_then_task_role_indexes_exist_alongside_legacy_gin_index() {
         reindexTasks(taskId);
 
         List<String> indexDefinitions = jdbcTemplate.queryForList(
@@ -385,14 +332,16 @@ class TaskResourceRepositoryTest {
                 FROM pg_indexes
                 WHERE schemaname = 'cft_task_db'
                   AND indexname IN (
-                      'task_search_permissions_authorization_lookup_idx',
-                      'task_search_permissions_task_lookup_idx',
                       'search_active_tasks_sort_idx',
                       'search_active_tasks_permission_lookup_idx',
+                      'search_active_tasks_count_idx',
                       'search_assignee_idx',
                       'search_available_tasks_count_idx',
+                      'search_available_tasks_sort_idx',
                       'search_task_filters_idx',
-                      'search_task_type_idx'
+                      'search_task_type_idx',
+                      'task_roles_search_manage_idx',
+                      'task_roles_search_available_idx'
                   )
                 ORDER BY indexname
                 """,
@@ -465,27 +414,50 @@ class TaskResourceRepositoryTest {
                 """,
             Integer.class
         );
+        Integer retiredPermissionTableCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema = 'cft_task_db'
+                  AND table_name = 'task_search_permissions'
+                """,
+            Integer.class
+        );
+        Integer retiredPermissionIndexCount = jdbcTemplate.queryForObject(
+            """
+                SELECT COUNT(*)
+                FROM pg_indexes
+                WHERE schemaname = 'cft_task_db'
+                  AND indexname IN (
+                      'task_search_permissions_authorization_lookup_idx',
+                      'task_search_permissions_task_lookup_idx'
+                  )
+                """,
+            Integer.class
+        );
 
         assertThat(indexDefinitions)
-            .hasSize(8)
+            .hasSize(10)
             .allSatisfy(index -> assertThat(index).contains("USING btree"));
         assertThat(indexDefinitions)
             .anySatisfy(index -> assertThat(index)
-                .contains("task_search_permissions_authorization_lookup_idx")
-                .contains("(permission, role_name, authorization_value, task_id)")
-                .contains("WHERE (authorization_value IS NOT NULL)"));
+                .contains("task_roles_search_available_idx")
+                .contains("(role_name, task_id)")
+                .contains("INCLUDE (authorizations)"));
         assertThat(legacyGinIndexCount).isOne();
         assertThat(replacementGinIndexCount).isZero();
         assertThat(materialisedSignatureColumnCount).isZero();
         assertThat(materialisedSignatureTriggerCount).isZero();
         assertThat(materialisedSignatureFunctionCount).isZero();
+        assertThat(retiredPermissionTableCount).isZero();
+        assertThat(retiredPermissionIndexCount).isZero();
     }
 
     @Test
     void given_multiple_tasks_created_when_search_request_received_then_task_ids_are_returned() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
 
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
 
@@ -511,7 +483,7 @@ class TaskResourceRepositoryTest {
     void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_case_id() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
 
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
 
@@ -535,7 +507,7 @@ class TaskResourceRepositoryTest {
     void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_task_type() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
 
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
 
@@ -559,7 +531,7 @@ class TaskResourceRepositoryTest {
     void given_tasks_created_when_search_request_received_then_task_ids_are_returned_and_filter_by_assignee() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
 
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
 
@@ -705,7 +677,7 @@ class TaskResourceRepositoryTest {
     void given_tasks_created_when_search_request_with_excluded_case_id_then_tasks_from_excluded_id_is_not_returned() {
         String taskId2 = UUID.randomUUID().toString();
         TaskResource createdTask = createTask(taskId2, "case-manager", "IA",
-            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.COMPLETED);
+            "reviewAppeal", "anotherAssignee", "1623278362430413", CFTTaskState.ASSIGNED);
 
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(createdTask));
 
@@ -1008,20 +980,11 @@ class TaskResourceRepositoryTest {
         });
     }
 
-    private List<String> searchTasksForRole(String roleSignature) {
-        return searchTasks(
-            Set.of("*:IA:*:*:1:765324"),
-            Set.of(roleSignature),
-            List.of(),
-            SearchRequest.builder().build()
-        );
-    }
-
     private List<String> searchTasks(Set<String> filterSignatures,
                                      Set<String> roleSignatures,
                                      List<String> excludeCaseIds,
                                      SearchRequest searchRequest) {
-        return taskResourceRepository.searchTasksIdsUsingRoleCriteria(
+        return taskResourceRepository.searchTasksIdsUsingTaskRoles(
             0,
             25,
             toRoleCriteria(roleSignatures),

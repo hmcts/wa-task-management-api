@@ -43,9 +43,7 @@ class CFTTaskDatabaseServiceTest {
 
     @BeforeAll
     void setUp() {
-        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(
-            taskResourceRepository, null, 10_000
-        );
+        CFTTaskSearchService cftTaskSearchService = new CFTTaskSearchService(taskResourceRepository, null);
         cftTaskDatabaseService = new CFTTaskDatabaseService(
             taskResourceRepository,
             cftTaskMapper,

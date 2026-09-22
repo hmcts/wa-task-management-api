@@ -27,7 +27,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("integration")
-@DataJpaTest(properties = "config.search.countLimit=2")
+@DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/wa/search_tasks_data.sql")
