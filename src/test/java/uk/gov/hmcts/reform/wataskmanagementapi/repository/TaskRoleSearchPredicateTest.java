@@ -68,6 +68,44 @@ class TaskRoleSearchPredicateTest {
     }
 
     @Test
+    void should_apply_common_classification_only_on_the_task_scan() {
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "manager", null, "m", "U", null),
+            new TaskSearchRoleCriteria("PUBLICLAW", null, null, "owner", null, "a", "U", null)
+        );
+
+        for (TaskRoleSearchPredicate predicate : List.of(TaskRoleSearchPredicate.from(criteria),
+                                                       TaskRoleSearchPredicate.forPage(criteria))) {
+            assertThat(predicate.taskClassificationSql()).isEqualTo("t.security_classification = 'PUBLIC'");
+            assertThat(predicate.sql()).doesNotContain("security_classification");
+            assertThat(predicate.parameters())
+                .doesNotContainKeys("taskRoleClassifications",
+                                    "scope_m_0_classifications",
+                                    "scope_a_0_classifications");
+        }
+    }
+
+    @Test
+    void should_keep_narrower_classification_checks_attached_to_their_roles() {
+        List<TaskSearchRoleCriteria> criteria = List.of(
+            new TaskSearchRoleCriteria("IA", null, null, "public-manager", null, "m", "U", null),
+            new TaskSearchRoleCriteria("IA", null, null, "private-manager", null, "m", "P", null),
+            new TaskSearchRoleCriteria("IA", null, null, "restricted-manager", null, "m", "R", null)
+        );
+
+        for (TaskRoleSearchPredicate predicate : List.of(TaskRoleSearchPredicate.from(criteria),
+                                                       TaskRoleSearchPredicate.forPage(criteria))) {
+            assertThat(predicate.taskClassificationSql())
+                .isEqualTo("t.security_classification IN ('PUBLIC', 'PRIVATE', 'RESTRICTED')");
+            assertThat(predicate.sql())
+                .contains("AND t.security_classification = 'PUBLIC'\n    AND tr.role_name IN (:scope_m_0_roleNames)",
+                    "AND t.security_classification IN ('PUBLIC', 'PRIVATE')\n"
+                        + "    AND tr.role_name IN (:scope_m_1_roleNames)")
+                .doesNotContain("'RESTRICTED'");
+        }
+    }
+
+    @Test
     void should_deny_pages_and_counts_when_no_roles_are_supplied() {
         TaskRoleSearchPredicate page = TaskRoleSearchPredicate.forPage(List.of());
         TaskRoleSearchPredicate count = TaskRoleSearchPredicate.from(List.of());

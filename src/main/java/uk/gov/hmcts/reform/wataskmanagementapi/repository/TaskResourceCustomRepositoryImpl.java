@@ -44,9 +44,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
         %s
         FROM {h-schema}tasks t
         WHERE t.indexed
-          AND t.security_classification = ANY(
-              CAST(:taskRoleClassifications AS {h-schema}security_classification_enum[])
-          )
+          AND %s
           %s
           AND (%s)
         """;
@@ -116,6 +114,7 @@ public class TaskResourceCustomRepositoryImpl implements TaskResourceCustomRepos
                                  SearchRequest searchRequest) {
         return TASK_ROLE_QUERY.formatted(
             selectClause,
+            rolePredicate.taskClassificationSql(),
             extraConstraints(excludeCaseIds, searchRequest, "t.", taskRoleStateConstraint(searchRequest)),
             rolePredicate.sql());
     }

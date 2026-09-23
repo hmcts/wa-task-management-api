@@ -19,7 +19,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.signature.RoleSig
  * Matches the original task-role rows without expanding permission or signature rows.
  * Role names are combined only when their task scope and authorizations are identical.
  */
-record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
+record TaskRoleSearchPredicate(String sql, String taskClassificationSql, Map<String, Object> parameters) {
 
     private static final String WILDCARD = "*";
     // Keep these as SQL predicates so permission-specific partial indexes remain eligible.
@@ -45,9 +45,7 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
             AND (CAST(:scope_region AS text) IS NULL OR t.region = CAST(:scope_region AS text))
             AND (CAST(:scope_location AS text) IS NULL OR t.location = CAST(:scope_location AS text))
             AND (CAST(:scope_caseId AS text) IS NULL OR t.case_id = CAST(:scope_caseId AS text))
-            AND t.security_classification = ANY(
-                CAST(:scope_classifications AS {h-schema}security_classification_enum[])
-            )
+            %s
             AND tr.role_name IN (:scope_roleNames)
             %s
         )
@@ -78,8 +76,8 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
                                                   boolean preserveCorrelation) {
         Map<RoleGroup, Set<String>> groups = groupRoles(criteria);
         Map<String, Object> parameters = new LinkedHashMap<>();
-        parameters.put("taskRoleClassifications", taskClassifications(groups.keySet().stream()
-            .map(group -> group.scope().classification()).toList()));
+        String taskClassificationSql = taskClassificationPredicate(groups.keySet().stream()
+            .map(group -> group.scope().classification()).toList());
 
         Map<String, Map<RoleGroup, Set<String>>> permissions = new LinkedHashMap<>();
         groups.forEach((group, names) -> permissions
@@ -88,11 +86,12 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
         permissions.forEach((permission, matches) -> {
             boolean correlatePermission = preserveCorrelation
                 || MANAGE_PERMISSION.equals(permission) || OWN_AND_CLAIM_PERMISSION.equals(permission);
-            alternatives.add(permissionExists(permission, matches, parameters, correlatePermission));
+            alternatives.add(permissionExists(permission, matches, taskClassificationSql, parameters,
+                correlatePermission));
         });
 
         return new TaskRoleSearchPredicate(alternatives.isEmpty() ? "FALSE" : String.join(" OR ", alternatives),
-            parameters);
+            taskClassificationSql, parameters);
     }
 
     void setParameters(Query query) {
@@ -131,6 +130,7 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
 
     private static String permissionExists(String permission,
                                            Map<RoleGroup, Set<String>> groups,
+                                           String taskClassificationSql,
                                            Map<String, Object> parameters,
                                            boolean preserveCorrelation) {
         String prefix = "permission_" + permission + "_";
@@ -139,7 +139,7 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
         List<String> taskScopes = new ArrayList<>();
         groups.forEach((group, names) -> {
             String scopePrefix = "scope_" + permission + "_" + scopes.size() + "_";
-            scopes.add(scopePredicate(scopePrefix, group, names, parameters));
+            scopes.add(scopePredicate(scopePrefix, group, names, taskClassificationSql, parameters));
             if (preserveCorrelation) {
                 taskScopes.add("(" + taskScopePredicate(scopePrefix, group.scope()) + ")");
             }
@@ -176,14 +176,18 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
     private static String scopePredicate(String prefix,
                                          RoleGroup group,
                                          Set<String> names,
+                                         String taskClassificationSql,
                                          Map<String, Object> parameters) {
         Scope scope = group.scope();
         parameters.put(prefix + "jurisdiction", scope.jurisdiction());
         parameters.put(prefix + "region", scope.region());
         parameters.put(prefix + "location", scope.location());
         parameters.put(prefix + "caseId", scope.caseId());
-        parameters.put(prefix + "classifications", taskClassifications(List.of(scope.classification())));
         parameters.put(prefix + "roleNames", List.copyOf(names));
+        String scopeClassificationSql = taskClassificationPredicate(List.of(scope.classification()));
+        // The task scan enforces the common ceiling; retain checks for roles with narrower access.
+        String classificationScope = scopeClassificationSql.equals(taskClassificationSql)
+            ? "" : "AND " + scopeClassificationSql;
         String authorizationScope = "";
         if (scope.requiresAuthorization()) {
             parameters.put(prefix + "acceptsWildcard", group.authorizations().contains(WILDCARD));
@@ -192,16 +196,17 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
             authorizationScope = AUTHORIZATION_SCOPE;
         }
         // Omit unused authorization columns so generic manage plans can use the covering index.
-        return ROLE_SCOPE.formatted(authorizationScope).replace(":scope_", ":" + prefix);
+        return ROLE_SCOPE.formatted(classificationScope, authorizationScope).replace(":scope_", ":" + prefix);
     }
 
-    private static String[] taskClassifications(Collection<String> classifications) {
+    private static String taskClassificationPredicate(Collection<String> classifications) {
+        // Fixed enum literals avoid repeated varchar[]-to-enum[] casts in prepared queries.
         if (classifications.contains("R")) {
-            return new String[]{"PUBLIC", "PRIVATE", "RESTRICTED"};
+            return "t.security_classification IN ('PUBLIC', 'PRIVATE', 'RESTRICTED')";
         } else if (classifications.contains("P")) {
-            return new String[]{"PUBLIC", "PRIVATE"};
+            return "t.security_classification IN ('PUBLIC', 'PRIVATE')";
         }
-        return new String[]{"PUBLIC"};
+        return "t.security_classification = 'PUBLIC'";
     }
 
     private record RoleMatch(Scope scope, String name) {
