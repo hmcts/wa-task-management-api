@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TaskRoleSearchPredicateTest {
 
     @Test
-    void should_preserve_each_permission_correlation_only_for_pages() {
+    void should_preserve_manage_and_available_permission_correlation_for_counts() {
         List<TaskSearchRoleCriteria> criteria = List.of(
             new TaskSearchRoleCriteria("IA", "1", "765324", "reader", null, "r", "U", null),
             new TaskSearchRoleCriteria("IA", null, null, "manager", null, "m", "R", null),
@@ -23,15 +23,18 @@ class TaskRoleSearchPredicateTest {
         TaskRoleSearchPredicate count = TaskRoleSearchPredicate.from(criteria);
 
         assertThat(page.sql().split("OFFSET 0\\s*\\)", -1)).hasSize(4);
-        assertThat(count.sql()).doesNotContain("OFFSET", "LIMIT");
+        assertThat(count.sql().split("OFFSET 0\\s*\\)", -1)).hasSize(3);
+        assertThat(count.sql()).startsWith("EXISTS (").doesNotContain("LIMIT");
         assertThat(page.parameters()).usingRecursiveComparison().isEqualTo(count.parameters());
         assertThat(page.parameters())
             .containsEntry("scope_r_0_region", "1")
             .containsEntry("scope_r_0_location", "765324")
-            .containsEntry("scope_a_0_requiresAuthorization", true)
             .containsEntry("scope_a_0_acceptsWildcard", true)
             .containsEntry("scope_a_1_caseId", "case-1")
-            .containsEntry("scope_a_1_requiresAuthorization", false);
+            .doesNotContainKeys("scope_m_0_authorizations", "scope_r_0_authorizations", "scope_a_1_authorizations");
+        assertThat(count.sql())
+            .contains(":scope_a_0_authorizations")
+            .doesNotContain(":scope_m_0_authorizations", ":scope_r_0_authorizations", ":scope_a_1_authorizations");
         assertThat((String[]) page.parameters().get("scope_a_0_authorizations")).containsExactly("skill-1");
     }
 

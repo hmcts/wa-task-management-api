@@ -49,18 +49,20 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
                 CAST(:scope_classifications AS {h-schema}security_classification_enum[])
             )
             AND tr.role_name IN (:scope_roleNames)
-            AND (
-                NOT :scope_requiresAuthorization
-                OR (
-                    :scope_acceptsWildcard
-                    AND (
-                        tr.authorizations IS NULL
-                        OR cardinality(tr.authorizations) = 0
-                        OR '*' = ANY(tr.authorizations)
-                    )
+            %s
+        )
+        """;
+    private static final String AUTHORIZATION_SCOPE = """
+        AND (
+            (
+                :scope_acceptsWildcard
+                AND (
+                    tr.authorizations IS NULL
+                    OR cardinality(tr.authorizations) = 0
+                    OR '*' = ANY(tr.authorizations)
                 )
-                OR tr.authorizations && CAST(:scope_authorizations AS text[])
             )
+            OR tr.authorizations && CAST(:scope_authorizations AS text[])
         )
         """;
 
@@ -83,9 +85,11 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
         groups.forEach((group, names) -> permissions
             .computeIfAbsent(group.scope().permission(), key -> new LinkedHashMap<>()).put(group, names));
         List<String> alternatives = new ArrayList<>();
-        permissions.forEach((permission, matches) ->
-                                alternatives.add(permissionExists(permission, matches, parameters,
-                                    preserveCorrelation)));
+        permissions.forEach((permission, matches) -> {
+            boolean correlatePermission = preserveCorrelation
+                || MANAGE_PERMISSION.equals(permission) || OWN_AND_CLAIM_PERMISSION.equals(permission);
+            alternatives.add(permissionExists(permission, matches, parameters, correlatePermission));
+        });
 
         return new TaskRoleSearchPredicate(alternatives.isEmpty() ? "FALSE" : String.join(" OR ", alternatives),
             parameters);
@@ -140,9 +144,9 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
                 taskScopes.add("(" + taskScopePredicate(scopePrefix, group.scope()) + ")");
             }
         });
-        // OFFSET 0 keeps page permission checks correlated, allowing an ordered task scan
-        // to stop at the page limit instead of hashing and sorting every accessible task.
-        // Counts must remain eligible for PostgreSQL's broad parallel semi-joins.
+        // OFFSET 0 keeps permission checks on the task-ID lookup indexes. Pages can stop
+        // at their limit; manage/available counts avoid hashing millions of historical roles.
+        // Read counts retain the unfenced plan because they have no covering lookup index.
         String permissionSql = PERMISSION_EXISTS.formatted(PERMISSION_PREDICATES.get(permission), prefix,
             String.join(" OR ", scopes), preserveCorrelation ? "OFFSET 0" : "");
         // Expose selective case/location/region scopes to the task scan even though the
@@ -180,11 +184,15 @@ record TaskRoleSearchPredicate(String sql, Map<String, Object> parameters) {
         parameters.put(prefix + "caseId", scope.caseId());
         parameters.put(prefix + "classifications", taskClassifications(List.of(scope.classification())));
         parameters.put(prefix + "roleNames", List.copyOf(names));
-        parameters.put(prefix + "requiresAuthorization", scope.requiresAuthorization());
-        parameters.put(prefix + "acceptsWildcard", group.authorizations().contains(WILDCARD));
-        parameters.put(prefix + "authorizations", group.authorizations().stream()
-            .filter(value -> !WILDCARD.equals(value)).sorted().toArray(String[]::new));
-        return ROLE_SCOPE.replace(":scope_", ":" + prefix);
+        String authorizationScope = "";
+        if (scope.requiresAuthorization()) {
+            parameters.put(prefix + "acceptsWildcard", group.authorizations().contains(WILDCARD));
+            parameters.put(prefix + "authorizations", group.authorizations().stream()
+                .filter(value -> !WILDCARD.equals(value)).sorted().toArray(String[]::new));
+            authorizationScope = AUTHORIZATION_SCOPE;
+        }
+        // Omit unused authorization columns so generic manage plans can use the covering index.
+        return ROLE_SCOPE.formatted(authorizationScope).replace(":scope_", ":" + prefix);
     }
 
     private static String[] taskClassifications(Collection<String> classifications) {

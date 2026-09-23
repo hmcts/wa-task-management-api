@@ -1,23 +1,19 @@
 # Database Search Context: Direct Task-Role Search
 
-The WA Task Management API has two indexed task-search paths, selected by the
-`wa-search-index-search-enabled` LaunchDarkly flag.
+The active indexed-search path is selected by the `wa-task-search-gin-index` LaunchDarkly flag. When enabled, searches use the legacy `search_index` GIN expression index. When disabled, searches use the PostgreSQL-specific, signature-compatible relational design that avoids new GIN indexes. The current LaunchDarkly boolean default is `true`, so the legacy path is used if LaunchDarkly cannot supply a value.
 
 - When enabled, search uses the legacy `search_index` GIN expression index.
 - When disabled, search applies task filters to `tasks` and checks permissions
   directly against `task_roles` with B-tree indexes.
 
-The legacy path remains available while result parity and production-scale
-performance of the direct task-role path are evaluated.
+## Current Shape
 
-## Direct Task-Role Query
+There are two indexed search paths in `TaskResourceCustomRepositoryImpl`, selected by `CFTTaskSearchService`:
 
-`CFTTaskSearchService.searchForTaskIds(...)` converts eligible role assignments
-to `TaskSearchRoleCriteria`. `TaskResourceCustomRepositoryImpl` then uses
-`TaskRoleSearchPredicate` to generate correlated `EXISTS` predicates over the
-original `task_roles` rows.
+* `searchTasksIdsUsingSearchIndex(...)` and `searchTasksCountUsingSearchIndex(...)` use the legacy `search_index` expression GIN path.
+* `searchTasksIdsUsingTaskRoles(...)` and `searchTasksCountUsingTaskRoles(...)` use the no-GIN relational path.
 
-The page query:
+The no-GIN path has five parts:
 
 1. restricts `tasks` to indexed, active tasks;
 2. applies request filters such as jurisdiction, location, region, work type,
@@ -30,6 +26,11 @@ The page query:
 
 The count query uses the same task and permission semantics without ordering,
 pagination, or a configured count cap.
+
+Page and count each emit one state predicate: requested states intersected with
+`ASSIGNED` and `UNASSIGNED`. Null/empty state requests use both active states;
+inactive-only requests return no matches. This avoids overlapping active/requested
+state predicates that produced a slow plan in the production clone.
 
 ## Permission Semantics
 
@@ -113,5 +114,6 @@ The main validation layers are:
   behavior and the expected database schema;
 - `CFTTaskSearchServiceTest` for feature-flag routing and role-assignment
   conversion;
-- `TaskResourceSearchIndexComparisonTest` for result parity between the legacy
-  GIN path and the direct task-role path.
+- `CFTTaskSearchServiceComparisonTest` for opt-in local/clone timing diagnostics.
+  Its legacy/parity assertions and the older repository comparison class are
+  currently commented out; a passing timing replay alone does not prove parity.
