@@ -336,15 +336,13 @@ class TaskResourceRepositoryTest {
                 WHERE schemaname = 'cft_task_db'
                   AND indexname IN (
                       'search_active_tasks_sort_idx',
-                      'search_active_tasks_permission_lookup_idx',
-                      'search_active_tasks_count_idx',
                       'search_assignee_idx',
                       'search_available_tasks_count_idx',
                       'search_available_tasks_sort_idx',
                       'search_task_filters_idx',
                       'search_task_type_idx',
-                      'task_roles_search_manage_idx',
-                      'task_roles_search_available_idx'
+                      'task_roles_search_manage_task_lookup_idx',
+                      'task_roles_search_available_task_lookup_idx'
                   )
                 ORDER BY indexname
                 """,
@@ -440,13 +438,13 @@ class TaskResourceRepositoryTest {
         );
 
         assertThat(indexDefinitions)
-            .hasSize(10)
+            .hasSize(8)
             .allSatisfy(index -> assertThat(index).contains("USING btree"));
         assertThat(indexDefinitions)
             .anySatisfy(index -> assertThat(index)
-                .contains("task_roles_search_available_idx")
-                .contains("(role_name, task_id)")
-                .contains("INCLUDE (authorizations)"));
+                .contains("task_roles_search_available_task_lookup_idx")
+                .contains("(task_id)")
+                .contains("INCLUDE (role_name, authorizations)"));
         assertThat(legacyGinIndexCount).isOne();
         assertThat(replacementGinIndexCount).isZero();
         assertThat(materialisedSignatureColumnCount).isZero();
