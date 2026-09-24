@@ -144,13 +144,10 @@ record TaskRoleSearchPredicate(String sql, String taskClassificationSql, Map<Str
                 taskScopes.add("(" + taskScopePredicate(scopePrefix, group.scope()) + ")");
             }
         });
-        // OFFSET 0 keeps permission checks on the task-ID lookup indexes. Pages can stop
-        // at their limit; manage/available counts avoid hashing millions of historical roles.
-        // Read counts retain the unfenced plan because they have no covering lookup index.
+
         String permissionSql = PERMISSION_EXISTS.formatted(PERMISSION_PREDICATES.get(permission), prefix,
             String.join(" OR ", scopes), preserveCorrelation ? "OFFSET 0" : "");
-        // Expose selective case/location/region scopes to the task scan even though the
-        // EXISTS cannot be pulled up. Keep full scope-to-role checks inside it as well.
+
         return preserveCorrelation
             ? "((" + String.join(" OR ", taskScopes) + ") AND " + permissionSql + ")" : permissionSql;
     }

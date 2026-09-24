@@ -62,3 +62,12 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS search_assignee_idx
 CREATE INDEX CONCURRENTLY IF NOT EXISTS search_task_type_idx
   ON cft_task_db.tasks USING btree (task_type, major_priority, priority_date, minor_priority, task_id)
   WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
+
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS search_active_tasks_count_idx
+  ON cft_task_db.tasks (state, jurisdiction, work_type)
+  INCLUDE (
+    task_id, security_classification, region, location,
+    case_id, task_type, role_category, assignee
+    )
+  WHERE state IN ('ASSIGNED', 'UNASSIGNED') AND indexed;
