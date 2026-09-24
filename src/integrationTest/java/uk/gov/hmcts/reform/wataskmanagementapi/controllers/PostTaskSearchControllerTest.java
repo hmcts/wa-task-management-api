@@ -391,6 +391,7 @@ class PostTaskSearchControllerTest {
         ).andExpectAll(
             status().isOk(),
             jsonPath("total_records").value(3),
+            jsonPath("has_more_records").value(false),
             jsonPath("$.tasks").isNotEmpty(),
             jsonPath("$.tasks.length()").value(2)
         );
