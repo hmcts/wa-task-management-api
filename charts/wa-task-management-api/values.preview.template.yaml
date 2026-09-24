@@ -40,6 +40,8 @@ java:
     MANDATORY_TASK_FIELD_CHECK_ENABLED: true
   postgresql:
     enabled: true
+    image:
+      tag: "16.0.0"
     auth:
       database: cft_task_db
     primary:
@@ -48,6 +50,11 @@ java:
       extraEnvVars:
         - name: POSTGRESQL_WAL_LEVEL
           value: "logical"
+        - name: POSTGRES_INITSCRIPTS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "{{ .Release.Name }}-postgresql"
+              key: postgres-password
       resources:
         requests:
           cpu: 25m

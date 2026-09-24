@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config.features;
 public enum FeatureFlag {
 
     WA_DELETE_TASK_BY_CASE_ID("wa-delete-task-by-case-id"),
+    WA_TASK_SEARCH_GIN_INDEX("wa-task-search-gin-index"),
 
 
     //The following keys are used for testing purposes only.
