@@ -73,12 +73,12 @@ public final class PactDslBuilderForCaseDetailsList {
             .stringType("currentCaseStateVisibleToLegalRepresentative", "appealStarted")
             .stringType("uploadAddendumEvidenceLegalRepActionAvailable", "No")
             .object("legalRepCompanyAddress", addr -> {
-                addr.stringType("AddressLine1", "");
-                addr.stringType("AddressLine2", "");
-                addr.stringType("AddressLine3", "");
-                addr.stringType("Country", "");
+                addr.nullValue("AddressLine1");
+                addr.nullValue("AddressLine2");
+                addr.nullValue("AddressLine3");
+                addr.nullValue("Country");
                 addr.stringType("PostCode", "");
-                addr.stringType("PostTown", "");
+                addr.nullValue("PostTown");
             })
             .minArrayLike("uploadTheNoticeOfDecisionDocs", 1, 1,
                 docsUploaded ->
