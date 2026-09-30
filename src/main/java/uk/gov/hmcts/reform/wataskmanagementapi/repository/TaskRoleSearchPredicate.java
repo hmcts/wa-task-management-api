@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.repository;
 
 import jakarta.persistence.Query;
+import org.hibernate.query.TypedParameterValue;
+import org.hibernate.type.StandardBasicTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.TaskSearchRoleCriteria;
 
 import java.util.ArrayList;
@@ -95,7 +97,8 @@ record TaskRoleSearchPredicate(String sql, String taskClassificationSql, Map<Str
     }
 
     void setParameters(Query query) {
-        parameters.forEach(query::setParameter);
+        parameters.forEach((name, value) -> query.setParameter(name,
+            value == null ? new TypedParameterValue<>(StandardBasicTypes.STRING, null) : value));
     }
 
     private static Map<RoleGroup, Set<String>> groupRoles(Collection<TaskSearchRoleCriteria> criteria) {
