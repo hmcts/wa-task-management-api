@@ -81,7 +81,7 @@ class RoleAssignmentFilterTest {
     void setUp() {
         lenient().when(root.join("taskRoleResources")).thenReturn(taskRoleResources);
         lenient().when(taskRoleResources.get("read")).thenReturn(pathObject);
-        lenient().when(builder.or(any())).thenReturn(inObject);
+        lenient().when(builder.or(any(Predicate.class))).thenReturn(inObject);
         lenient().when(builder.or()).thenReturn(inObject);
         lenient().when(builder.or(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any())).thenReturn(inObject);
@@ -297,7 +297,7 @@ class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(root, times(6)).get(anyString());
-        verify(builder, times(2)).or(any());
+        verify(builder, times(2)).or(any(Predicate.class));
         verify(builder, times(1)).or();
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
@@ -355,7 +355,7 @@ class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(1)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(1)).or(any());
+        verify(builder, times(1)).or(any(Predicate.class));
         verify(builder, times(2)).or();
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(3)).and(any(), any());
