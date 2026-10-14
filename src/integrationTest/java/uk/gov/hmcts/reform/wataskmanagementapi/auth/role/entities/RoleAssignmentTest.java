@@ -19,6 +19,8 @@ import java.io.IOException;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tools.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
 
 @ExtendWith(SpringExtension.class)
@@ -55,6 +57,42 @@ class RoleAssignmentTest {
             .readValue(jsonContent, RoleAssignment.class);
 
         RoleAssignment actual = getAssignmentForUnknownValues();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void should_round_trip_role_assignment_values_using_camel_case() throws IOException {
+        RoleAssignment expected = new RoleAssignment(
+            "00d1ebd4-06ef-4b53-9571-b138981dc8e0",
+            ActorIdType.IDAM,
+            "someActorId",
+            RoleType.CASE,
+            "tribunal-caseworker",
+            Classification.PUBLIC,
+            GrantType.STANDARD,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            null,
+            null,
+            null,
+            emptyMap(),
+            emptyList()
+        );
+        ObjectMapper camelCaseMapper = objectMapper.rebuild()
+            .propertyNamingStrategy(LOWER_CAMEL_CASE)
+            .build();
+
+        String json = camelCaseMapper.writeValueAsString(expected);
+
+        assertTrue(json.contains("\"actorIdType\":\"IDAM\""));
+        assertTrue(json.contains("\"roleType\":\"CASE\""));
+        assertTrue(json.contains("\"roleCategory\":\"LEGAL_OPERATIONS\""));
+        assertFalse(json.contains("actor_id_type"));
+        assertFalse(json.contains("role_type"));
+        assertFalse(json.contains("\"beginTime\""));
+
+        RoleAssignment actual = camelCaseMapper.readValue(json, RoleAssignment.class);
 
         assertEquals(expected, actual);
     }

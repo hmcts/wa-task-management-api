@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassifica
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.ServiceMandatoryFieldValidationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdDataService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService;
@@ -64,7 +65,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -121,7 +122,7 @@ class ExecuteReconfigurationTaskOperationControllerTest {
 
     @MockitoSpyBean
     TaskReconfigurationTransactionHandler taskReconfigurationTransactionHandler;
-    @MockitoSpyBean
+    @MockitoBean
     TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
 
     TaskTestUtils taskTestUtils;
@@ -184,7 +185,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         //mark to reconfigure
         mockMvc.perform(
@@ -243,7 +243,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId1-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -334,7 +333,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -433,7 +431,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId4-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED,caseIdToday, dueDateTime, ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(
             anyString(),
             anyString(),
@@ -535,7 +532,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -657,7 +653,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId2-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         final String taskId = taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime, ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -718,7 +713,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId3-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime, ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -784,7 +778,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, caseIdToday, dueDateTime,null);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -874,7 +867,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, caseIdToday, dueDateTime,null);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -966,7 +958,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, caseIdToday, dueDateTime,null);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1024,7 +1015,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.UNASSIGNED, caseIdToday, dueDateTime,null);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1085,7 +1075,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,OLD_ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1179,7 +1168,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         String dueDateTimeCheck = OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -1274,7 +1262,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "caseId" + OffsetDateTime.now();
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -1336,6 +1323,8 @@ class ExecuteReconfigurationTaskOperationControllerTest {
             assertNotNull(task.getReconfigureRequestTime());
             assertEquals(LocalDate.now(), task.getReconfigureRequestTime().toLocalDate());
         });
+        doThrow(new ServiceMandatoryFieldValidationException("validation failed"))
+            .when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -1366,7 +1355,6 @@ class ExecuteReconfigurationTaskOperationControllerTest {
         String caseIdToday = "calendarCaseId-" + OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         OffsetDateTime dueDateTime = OffsetDateTime.now();
         taskTestUtils.createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, caseIdToday, dueDateTime,ASSIGNEE_USER);
-        doNothing().when(taskMandatoryFieldsValidator).validate(any(TaskResource.class));
 
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
