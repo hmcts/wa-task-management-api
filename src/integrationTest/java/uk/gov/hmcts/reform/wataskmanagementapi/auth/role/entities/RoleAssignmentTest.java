@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -16,10 +16,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchReq
 
 import java.io.IOException;
 
-import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static tools.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {JacksonConfiguration.class, SearchRequestCustomDeserializer.class})
@@ -47,8 +47,9 @@ class RoleAssignmentTest {
                              + "\"authorisations\":[]"
                              + "}";
 
-        ObjectMapper camelCaseMapper = objectMapper.copy()
-            .setPropertyNamingStrategy(LOWER_CAMEL_CASE);
+        ObjectMapper camelCaseMapper = objectMapper.rebuild()
+            .propertyNamingStrategy(LOWER_CAMEL_CASE)
+            .build();
 
         final RoleAssignment expected = camelCaseMapper
             .readValue(jsonContent, RoleAssignment.class);

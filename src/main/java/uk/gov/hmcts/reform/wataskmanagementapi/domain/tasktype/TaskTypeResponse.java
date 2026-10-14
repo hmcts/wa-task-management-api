@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import static java.util.Objects.requireNonNull;
 
@@ -32,7 +32,7 @@ public class TaskTypeResponse {
                 .forType(new TypeReference<TaskType>() {
                 })
                 .readValue(taskType);
-        } catch (JsonProcessingException jsonProcessingException) {
+        } catch (JacksonException e) {
             log.error("Could not deserialize values");
         }
     }
@@ -42,7 +42,7 @@ public class TaskTypeResponse {
     }
 
     @JsonIgnore
-    public String getTaskTypeAsJson() throws JsonProcessingException {
+    public String getTaskTypeAsJson() throws JacksonException {
         return new ObjectMapper().writeValueAsString(taskType);
     }
 }
