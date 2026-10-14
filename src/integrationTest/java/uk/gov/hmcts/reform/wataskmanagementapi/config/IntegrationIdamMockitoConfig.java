@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import uk.gov.hmcts.reform.idam.client.IdamApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamServiceApi;
 
@@ -53,6 +54,12 @@ public class IntegrationIdamMockitoConfig {
     @Primary
     public IdamWebApi idamWebApi() {
         return Mockito.mock(IdamWebApi.class);
+    }
+
+    @Bean
+    @Primary
+    public IdamApi idamApi() {
+        return Mockito.mock(IdamApi.class);
     }
 
     @Bean

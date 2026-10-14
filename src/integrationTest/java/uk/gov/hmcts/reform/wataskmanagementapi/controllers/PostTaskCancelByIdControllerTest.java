@@ -6,9 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -94,8 +93,7 @@ class PostTaskCancelByIdControllerTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockitoBean
     private AccessControlService accessControlService;
-    @Mock
-    private UserInfo mockedUserInfo;
+    private UserInfo mockedUserInfo = org.mockito.Mockito.mock(UserInfo.class);
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired

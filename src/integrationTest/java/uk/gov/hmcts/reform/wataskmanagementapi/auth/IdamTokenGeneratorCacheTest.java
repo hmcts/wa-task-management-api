@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -32,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @IntegrationTest(properties = "IA_IDAM_REDIRECT_URI=http://localhost:3002/oauth2/callback")
+@Import(IdamTokenGeneratorCacheTest.OverrideBean.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class IdamTokenGeneratorCacheTest {
 
@@ -62,7 +65,8 @@ public class IdamTokenGeneratorCacheTest {
         static FakeTicker FAKE_TICKER = new FakeTicker();
 
         @Bean
-        public Ticker ticker() {
+        @Primary
+        public Ticker testTicker() {
             return FAKE_TICKER::read;
         }
     }

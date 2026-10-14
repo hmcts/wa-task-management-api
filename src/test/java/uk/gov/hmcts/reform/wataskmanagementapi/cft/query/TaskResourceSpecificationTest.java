@@ -93,7 +93,7 @@ class TaskResourceSpecificationTest {
         lenient().when(inObject.value(any())).thenReturn(values);
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any(Predicate.class))).thenReturn(inObject);
         lenient().when(criteriaBuilder.or()).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any(), any(), any())).thenReturn(inObject);

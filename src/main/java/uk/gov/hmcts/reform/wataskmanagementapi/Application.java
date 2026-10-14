@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.retry.annotation.EnableRetry;
 
@@ -22,7 +21,6 @@ import org.springframework.retry.annotation.EnableRetry;
         "uk.gov.hmcts.reform.ccd.client",
         "uk.gov.hmcts.reform.wataskmanagementapi.clients"
     })
-@EnableCaching
 @EnableRetry
 @SecuritySchemes({
     @SecurityScheme(type = SecuritySchemeType.APIKEY, name = "ServiceAuthorization",
