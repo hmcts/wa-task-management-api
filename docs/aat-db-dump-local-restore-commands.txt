@@ -1,0 +1,105 @@
+AAT DB dump and local Docker restore commands
+=============================================
+
+1. Get AAT DB details from Key Vault
+------------------------------------
+
+az login
+
+export KEYVAULT=wa-aat
+
+export PGHOST=$(az keyvault secret show --vault-name $KEYVAULT --name cft-task-POSTGRES-HOST-FLEXIBLE --query value -o tsv)
+export PGPORT=$(az keyvault secret show --vault-name $KEYVAULT --name cft-task-POSTGRES-PORT-FLEXIBLE --query value -o tsv)
+export PGDATABASE=$(az keyvault secret show --vault-name $KEYVAULT --name cft-task-POSTGRES-DATABASE-FLEXIBLE --query value -o tsv)
+export PGUSER=$(az keyvault secret show --vault-name $KEYVAULT --name cft-task-POSTGRES-USER-FLEXIBLE --query value -o tsv)
+export PGPASSWORD=$(az keyvault secret show --vault-name $KEYVAULT --name cft-task-POSTGRES-PASS-FLEXIBLE --query value -o tsv)
+
+# Check variables. Do not echo PGPASSWORD.
+echo "$PGHOST"
+echo "$PGPORT"
+echo "$PGDATABASE"
+echo "$PGUSER"
+
+
+2. Download AAT dump
+--------------------
+
+docker run --rm \
+  -e PGPASSWORD="$PGPASSWORD" \
+  -v "$HOME/Downloads:/backup" \
+  postgres:14 \
+  pg_dump "host=$PGHOST port=$PGPORT dbname=$PGDATABASE user=$PGUSER sslmode=require connect_timeout=20" \
+  --format=custom \
+  --blobs \
+  --no-owner \
+  --no-privileges \
+  --verbose \
+  --file=/backup/wa-aat-cft-task-db.dump
+
+
+3. Validate the dump file
+-------------------------
+
+docker run --rm \
+  -v "$HOME/Downloads:/backup" \
+  postgres:14 \
+  pg_restore -l /backup/wa-aat-cft-task-db.dump
+
+
+4. Start local Postgres
+-----------------------
+
+docker run --name wa-task-postgres \
+  -e POSTGRES_DB=cft_task_db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  -d postgres:14 \
+  -c wal_level=logical
+
+docker ps
+
+
+5. Restore dump locally
+-----------------------
+
+docker run --rm \
+  --network container:wa-task-postgres \
+  -e PGPASSWORD=postgres \
+  -v "$HOME/Downloads:/backup" \
+  postgres:14 \
+  pg_restore \
+  -h localhost \
+  -U postgres \
+  -d cft_task_db \
+  --clean \
+  --if-exists \
+  --no-owner \
+  --no-privileges \
+  --verbose \
+  /backup/wa-aat-cft-task-db.dump
+
+
+6. Verify row counts
+--------------------
+
+docker exec -it wa-task-postgres psql -U postgres -d cft_task_db -c \
+"select count(*) from cft_task_db.tasks;"
+
+docker exec -it wa-task-postgres psql -U postgres -d cft_task_db -c \
+"select count(*) from cft_task_db.task_roles;"
+
+
+7. Connect from DBeaver
+-----------------------
+
+Host: localhost
+Port: 5432
+Database: cft_task_db
+Username: postgres
+Password: postgres
+
+If port 5432 is busy, check the mapped port:
+
+docker port wa-task-postgres
+

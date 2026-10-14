@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.response;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +30,22 @@ class GetTasksResponseTest {
 
         assertThat(camundaTasksGetTaskResponse.getTasks()).hasSize(1);
         assertThat(camundaTasksGetTaskResponse.getTasks().get(0)).isEqualTo(camundaTask);
+        assertThat(camundaTasksGetTaskResponse.getHasMoreRecords()).isNull();
 
+    }
+
+    @Test
+    void should_serialize_optional_has_more_records_without_changing_the_legacy_response_shape()
+        throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String responseWithMetadata = objectMapper.writeValueAsString(
+            new GetTasksResponse<Task>(List.of(), 5000, true)
+        );
+        String legacyResponse = objectMapper.writeValueAsString(new GetTasksResponse<Task>(List.of(), 1));
+
+        assertThat(responseWithMetadata).contains("\"has_more_records\":true");
+        assertThat(legacyResponse).doesNotContain("has_more_records");
     }
 
     @Test
