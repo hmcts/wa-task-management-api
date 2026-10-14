@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -35,7 +34,7 @@ class SecurityConfigurationTest {
     @Test
     void jwtDecoderCreated() {
         JwtDecoder result = config.jwtDecoder(
-                resourceServerProperties(),
+                JWK_SET_URI,
                 idamSecurityProperties()
         );
 
@@ -80,12 +79,6 @@ class SecurityConfigurationTest {
                 .build();
 
         assertTrue(validator.validate(jwt).hasErrors());
-    }
-
-    private OAuth2ResourceServerProperties resourceServerProperties() {
-        OAuth2ResourceServerProperties resourceServerProperties = new OAuth2ResourceServerProperties();
-        resourceServerProperties.getJwt().setJwkSetUri(JWK_SET_URI);
-        return resourceServerProperties;
     }
 
     private IdamSecurityProperties idamSecurityProperties() {
