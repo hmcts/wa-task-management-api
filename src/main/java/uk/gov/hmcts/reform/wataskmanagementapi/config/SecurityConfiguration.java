@@ -3,14 +3,14 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -21,8 +21,9 @@ import org.springframework.security.oauth2.jwt.JwtClaimValidator;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Getter
 @ConfigurationProperties(prefix = "security")
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
 
     public static final String AUTHORIZATION = "Authorization";
@@ -56,18 +57,18 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .addFilterBefore(serviceAuthFiler, AbstractPreAuthenticatedProcessingFilter.class)
+            .addFilterBefore(serviceAuthFiler, BearerTokenAuthenticationFilter.class)
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .exceptionHandling(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
-            .formLogin(Customizer.withDefaults())
-            .logout(Customizer.withDefaults())
+            .formLogin(formLogin -> formLogin.disable())
+            .logout(logout -> logout.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/task-configuration/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/initiation").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/{\\\\d+}/notes").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/task/{\\\\d+}").permitAll()
+                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.POST, "/task/\\d+")).permitAll()
+                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.POST, "/task/\\d+/initiation")).permitAll()
+                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.POST, "/task/\\d+/notes")).permitAll()
+                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.DELETE, "/task/\\d+")).permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
@@ -86,11 +87,11 @@ public class SecurityConfiguration {
     @Bean
     @Primary
     JwtDecoder jwtDecoder(
-        OAuth2ResourceServerProperties resourceServerProperties,
+        @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri,
         IdamSecurityProperties idamSecurityProperties
     ) {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder
-            .withJwkSetUri(resourceServerProperties.getJwt().getJwkSetUri())
+            .withJwkSetUri(jwkSetUri)
             .build();
 
         jwtDecoder.setJwtValidator(jwtValidator(idamSecurityProperties.getAllowedIssuers()));

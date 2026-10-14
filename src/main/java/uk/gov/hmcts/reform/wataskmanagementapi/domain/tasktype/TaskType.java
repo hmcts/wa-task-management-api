@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +21,8 @@ public class TaskType {
     private final String taskTypeName;
 
     @JsonCreator
-    public TaskType(@JsonProperty("task_type_id") String taskTypeId,
-                    @JsonProperty("task_type_name") String taskTypeName) {
+    public TaskType(@JsonAlias({"task_type_id", "taskTypeId"}) String taskTypeId,
+                    @JsonAlias({"task_type_name", "taskTypeName"}) String taskTypeName) {
         this.taskTypeId = taskTypeId;
         this.taskTypeName = taskTypeName;
     }

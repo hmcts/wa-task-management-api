@@ -9,9 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -94,10 +93,9 @@ class PostTaskForSearchCompletionControllerTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-    @Mock
-    private UserInfo mockedUserInfo;
-    @Mock
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    private UserInfo mockedUserInfo = mock(UserInfo.class);
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration =
+        mock(AllowedJurisdictionConfiguration.class);
     @Autowired
     protected MockMvc mockMvc;
     @Autowired

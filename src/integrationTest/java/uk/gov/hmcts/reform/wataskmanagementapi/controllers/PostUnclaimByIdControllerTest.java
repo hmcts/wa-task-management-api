@@ -7,15 +7,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
@@ -39,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.enums.TaskAction;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TestResultMatchers;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -54,6 +53,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -97,8 +97,7 @@ class PostUnclaimByIdControllerTest {
     IntegrationTestUtils integrationTestUtils;
 
     private ServiceMocks mockServices;
-    @Mock
-    private UserInfo mockedUserInfo;
+    private UserInfo mockedUserInfo = mock(UserInfo.class);
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
 
@@ -359,7 +358,7 @@ class PostUnclaimByIdControllerTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-unclaim-error"),
@@ -418,7 +417,7 @@ class PostUnclaimByIdControllerTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-unclaim-error"),
@@ -691,4 +690,3 @@ class PostUnclaimByIdControllerTest {
     }
 
 }
-

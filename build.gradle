@@ -4,17 +4,18 @@ plugins {
   id 'checkstyle'
   id 'pmd'
   id 'jacoco'
+  id 'uk.gov.hmcts.java' version '0.12.70'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.4.4'
-  id 'org.owasp.dependencycheck' version '12.2.2'
-  id 'com.github.ben-manes.versions' version '0.48.0'
-  id 'org.sonarqube' version '5.1.0.4882'
+  id 'org.springframework.boot' version '4.1.1'
+  id 'org.owasp.dependencycheck' version '13.0.0'
+  id 'io.github.ben-manes.versions' version '0.64.0'
+  id 'org.sonarqube' version '7.5.0.8588'
   id 'info.solidsoft.pitest' version '1.19.0'
-  id 'io.freefair.lombok' version '8.10.2'
+  id 'io.freefair.lombok' version '9.7.0'
   // If Pact version is changed, make sure serenity report works.
-  id 'au.com.dius.pact' version '4.6.17'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.33'
-  id 'org.flywaydb.flyway' version '9.3.0'
+  id 'au.com.dius.pact' version '4.7.5'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
+  id 'org.flywaydb.flyway' version '13.8.0'
 }
 
 group = 'uk.gov.hmcts.reform'
@@ -238,43 +239,9 @@ dependencyCheck {
   }
 }
 
-configurations.all {
-  resolutionStrategy {
-    eachDependency { DependencyResolveDetails details ->
-      if (details.requested.group == 'org.hibernate.orm' && details.requested.name == 'hibernate-core') {
-        details.useVersion '6.6.1.Final'
-      }
-    }
-  }
-}
-
 dependencyManagement {
-
   dependencies {
     dependency group: 'commons-io', name: 'commons-io', version: '2.19.0'
-
-    dependencySet( group: 'org.springframework.security', version: '6.4.4'){
-      entry 'spring-security-core'
-      entry 'spring-security-acl'
-      entry 'spring-security-aspects'
-      entry 'spring-security-cas'
-      entry 'spring-security-config'
-      entry 'spring-security-crypto'
-      entry 'spring-security-data'
-      entry 'spring-security-ldap'
-      entry 'spring-security-messaging'
-      entry 'spring-security-oauth2-client'
-      entry 'spring-security-oauth2-core'
-      entry 'spring-security-oauth2-jose'
-      entry 'spring-security-oauth2-resource-server'
-      entry 'spring-security-openid'
-      entry 'spring-security-remoting'
-      entry 'spring-security-rsocket'
-      entry 'spring-security-saml2-service-provider'
-      entry 'spring-security-taglibs'
-      entry 'spring-security-test'
-      entry 'spring-security-web'
-    }
 
     dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
       entry 'selenium-java'
@@ -304,18 +271,18 @@ repositories {
 }
 
 def versions = [
-  junit         : '5.14.4',
-  junitPlatform : '1.14.4',
+  junit         : '6.1.3',
+  junitPlatform : '6.1.3',
   reformLogging : '8.0.0',
-  springDoc     : '2.2.0',
-  serenity      : '3.9.8',
+  springDoc     : '3.1.1',
+  serenity      : '5.3.11',
   pitest        : '1.25.7',
   sonarPitest   : '0.5',
-  pactVersion   : '4.6.17',
+  pactVersion   : '4.7.5',
   logbook       : '3.9.0',
-  tomcat        : '10.1.54',
+  tomcat        : '11.0.26',
   testcontainers: '1.21.4',
-  mapStruct     : '1.3.0.Final'
+  mapStruct     : '1.6.3'
 ]
 
 ext.libraries = [
@@ -332,48 +299,76 @@ ext.libraries = [
 ext['snakeyaml.version'] = '2.0'
 dependencyManagement {
   imports {
+    mavenBom "org.springframework.cloud:spring-cloud-dependencies:2025.1.3"
     mavenBom "org.testcontainers:testcontainers-bom:${versions.testcontainers}"
   }
 }
+
+// The additional test source sets use the same Boot 4 test starters and
+// support libraries as the standard test source set.
+configurations {
+  testUtilsImplementation.extendsFrom testImplementation
+  testUtilsRuntimeOnly.extendsFrom testRuntimeOnly
+  functionalTestImplementation.extendsFrom testImplementation
+  functionalTestRuntimeOnly.extendsFrom testRuntimeOnly
+  integrationTestImplementation.extendsFrom testImplementation
+  integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+  smokeTestImplementation.extendsFrom testImplementation
+  smokeTestRuntimeOnly.extendsFrom testRuntimeOnly
+  contractTestImplementation.extendsFrom testImplementation
+  contractTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
 dependencies {
-  implementation group: 'org.mapstruct', name: 'mapstruct-jdk8', version: versions.mapStruct
+  // Keep Lombok annotation processing active for custom test source sets and test fixtures.
+  compileOnly group: 'org.projectlombok', name: 'lombok'
+  annotationProcessor group: 'org.projectlombok', name: 'lombok'
+  testCompileOnly group: 'org.projectlombok', name: 'lombok'
+  testAnnotationProcessor group: 'org.projectlombok', name: 'lombok'
+
+  implementation group: 'org.mapstruct', name: 'mapstruct', version: versions.mapStruct
   implementation group: 'org.mapstruct', name: 'mapstruct-processor', version: versions.mapStruct
   annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: versions.mapStruct
 
-  testImplementation group: 'org.mapstruct', name: 'mapstruct-jdk8', version: versions.mapStruct
+  testImplementation group: 'org.mapstruct', name: 'mapstruct', version: versions.mapStruct
   testAnnotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: versions.mapStruct
 
 
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-webmvc'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aspectj'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-jackson'
+  // Temporary bridge for Zalando Logbook/Problem APIs that still expose Jackson 2 types.
+  // MVC, Feign and application DTOs remain owned by Jackson 3.
+  implementation group: 'org.springframework.boot', name: 'spring-boot-jackson2'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-flyway'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
 
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '3.4.4'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
 
 
-  implementation (group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: '2.7.18') {
+  implementation (group: 'org.springframework.boot', name: 'spring-boot-starter-security-oauth2-client') {
     exclude group: 'net.minidev', module: 'json-smart'
   }
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-context', version: '4.2.1'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security-oauth2-resource-server'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-context', version: '5.0.3'
 
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.2.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '5.0.3'
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: versions.springDoc
 
   implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.5'
 
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.5'
 
-  implementation('org.springframework.retry:spring-retry')
+  implementation group: 'org.springframework.retry', name: 'spring-retry', version: '2.0.13'
 
   implementation group: 'org.zalando', name: 'logbook-core', version: versions.logbook
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
   implementation group: 'org.zalando', name: 'logbook-httpclient5', version: versions.logbook
-  implementation group: 'org.zalando', name: 'problem-spring-web-starter', version: '0.29.1'
+  // Use the Problem web API without its Boot 3 auto-configuration. The starter
+  // registers a Spring Security 6-era post-processor and fails on Security 7.
+  implementation group: 'org.zalando', name: 'problem-spring-web', version: '0.29.1'
 
   implementation group: 'net.minidev', name: 'json-smart', version: '2.5.2'
 
@@ -384,8 +379,8 @@ dependencies {
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
 
-  implementation group: 'org.hibernate', name: 'hibernate-core', version: '6.6.53.Final'
-  implementation group: 'org.hibernate', name: 'hibernate-validator', version: '8.0.4.Final'
+  implementation group: 'org.hibernate.orm', name: 'hibernate-core'
+  implementation group: 'org.hibernate.validator', name: 'hibernate-validator'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.26.0'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.26.0'
@@ -394,18 +389,21 @@ dependencies {
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
 
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.4'
-  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.1.1'
+  // 6.1.0 is Java 25-only; 6.0.1 remains compatible with this service's Java 21 toolchain.
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '6.0.1'
+  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '6.1.0'
+  implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '4.0.0'
 
   implementation group: 'com.auth0', name: 'java-jwt', version: '4.5.2'
 
-  implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.21.2'
-
-  implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: '13.8.0'
+  runtimeOnly group: 'org.flywaydb', name: 'flyway-database-postgresql', version: '13.8.0'
 
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.11'
 
-  implementation group: 'io.hypersistence', name: 'hypersistence-utils-hibernate-63', version: '3.8.3'
+  // Boot 4.1.1 manages Hibernate ORM 7.4.x; Hypersistence's 7.3 module supports
+  // Hibernate 7.3 and 7.4, whereas the 7.0 module is binary-incompatible.
+  implementation group: 'io.hypersistence', name: 'hypersistence-utils-hibernate-73', version: '3.15.3'
 
   implementation group: 'org.awaitility', name: 'awaitility', version: '4.2.2'
 
@@ -428,12 +426,15 @@ dependencies {
   testImplementation group: 'org.junit.platform', name: 'junit-platform-commons', version: versions.junitPlatform
   testImplementation group: 'org.junit.platform', name: 'junit-platform-engine', version: versions.junitPlatform
   testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: versions.junitPlatform
-  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test-classic', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-webmvc-test'
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa-test'
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-security-test'
 
-  testImplementation(group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '3.0.1') {
+  testImplementation(group: 'org.wiremock', name: 'wiremock', version: '3.13.1') {
     exclude group: 'org.eclipse.jetty', module: 'jetty-server'
     exclude group: 'org.eclipse.jetty', module: 'jetty-http'
     exclude group: 'org.eclipse.jetty', module: 'jetty-util'
@@ -471,8 +472,8 @@ dependencies {
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit', version: versions.pactVersion
 
   contractTestImplementation group: 'au.com.dius.pact.provider', name: 'junit5', version: versions.pactVersion
-  contractTestImplementation group: 'au.com.dius.pact.provider', name: 'spring', version: versions.pactVersion
-  contractTestImplementation group: 'au.com.dius.pact.provider', name: 'junit5spring', version: versions.pactVersion
+  contractTestImplementation group: 'au.com.dius.pact.provider', name: 'spring7', version: versions.pactVersion
+  contractTestImplementation group: 'org.zalando', name: 'jackson-datatype-problem', version: '0.27.1'
 
   contractTestRuntimeOnly(group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: versions.junit)
   contractTestImplementation(group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit)
@@ -501,6 +502,13 @@ task runAndPublishConsumerPactTests(type: Test) {
 }
 
 runAndPublishConsumerPactTests.finalizedBy pactPublish
+
+// Pact provider tests intentionally retain a temporary Jackson 2 bridge.
+// Boot 4 marks these bridge APIs for removal; keep that warning scoped to
+// this test source set while retaining -Werror for all other warnings.
+tasks.named('compileContractTestJava', JavaCompile) {
+  options.compilerArgs += '-Xlint:-removal'
+}
 
 pact {
   broker {
