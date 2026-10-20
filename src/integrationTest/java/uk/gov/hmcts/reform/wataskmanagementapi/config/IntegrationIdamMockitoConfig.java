@@ -27,6 +27,7 @@ public class IntegrationIdamMockitoConfig {
         "uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi";
     private static final String IDAM_SERVICE_API_BEAN =
         "uk.gov.hmcts.reform.wataskmanagementapi.services.IdamServiceApi";
+    private static final String IDAM_API_BEAN = "uk.gov.hmcts.reform.idam.client.IdamApi";
 
     @Bean
     static BeanDefinitionRegistryPostProcessor idamFeignOverridePostProcessor() {
@@ -38,6 +39,9 @@ public class IntegrationIdamMockitoConfig {
                 }
                 if (registry.containsBeanDefinition(IDAM_SERVICE_API_BEAN)) {
                     registry.getBeanDefinition(IDAM_SERVICE_API_BEAN).setPrimary(false);
+                }
+                if (registry.containsBeanDefinition(IDAM_API_BEAN)) {
+                    registry.getBeanDefinition(IDAM_API_BEAN).setPrimary(false);
                 }
             }
 
