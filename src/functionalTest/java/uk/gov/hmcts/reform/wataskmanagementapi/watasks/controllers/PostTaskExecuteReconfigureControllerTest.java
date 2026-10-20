@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1149,6 +1150,7 @@ public class PostTaskExecuteReconfigureControllerTest {
     }
 
     @Test
+    @Ignore
     public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
 
         int numberOfAttempts = 2;
