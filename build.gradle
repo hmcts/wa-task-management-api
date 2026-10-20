@@ -348,7 +348,7 @@ dependencies {
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: versions.springDoc
 
-  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.5'
+  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.6.5'
 
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.5'
 
@@ -364,7 +364,7 @@ dependencies {
   implementation group: 'net.minidev', name: 'json-smart', version: '2.5.2'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.14.0'
-  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.18.0'
   implementation group: 'commons-fileupload', name: 'commons-fileupload', version: '1.6.0'
   implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.11.0'
 
@@ -373,8 +373,8 @@ dependencies {
   implementation group: 'org.hibernate.orm', name: 'hibernate-core'
   implementation group: 'org.hibernate.validator', name: 'hibernate-validator'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.26.0'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.26.0'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.26.1'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.26.1'
   implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.18'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
@@ -390,7 +390,7 @@ dependencies {
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '13.8.0'
   runtimeOnly group: 'org.flywaydb', name: 'flyway-database-postgresql', version: '13.8.0'
 
-  implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.11'
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.7.14'
 
   // Boot 4.1.1 manages Hibernate ORM 7.4.x; Hypersistence's 7.3 module supports
   // Hibernate 7.3 and 7.4, whereas the 7.0 module is binary-incompatible.
