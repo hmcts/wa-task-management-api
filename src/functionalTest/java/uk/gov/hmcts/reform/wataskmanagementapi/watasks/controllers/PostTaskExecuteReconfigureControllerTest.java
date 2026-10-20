@@ -1149,8 +1149,9 @@ public class PostTaskExecuteReconfigureControllerTest {
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Temporarily ignored. This test and the other affected tests will be fixed once the immediate task "
+        + "initiation feature is enabled in production")
     @Test
-    @Ignore
     public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
 
         int numberOfAttempts = 2;
