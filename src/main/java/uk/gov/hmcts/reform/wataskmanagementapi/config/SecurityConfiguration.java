@@ -23,7 +23,6 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.util.ArrayList;
@@ -65,10 +64,10 @@ public class SecurityConfiguration {
             .logout(logout -> logout.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/task-configuration/**").permitAll()
-                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.POST, "/task/\\d+")).permitAll()
-                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.POST, "/task/\\d+/initiation")).permitAll()
-                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.POST, "/task/\\d+/notes")).permitAll()
-                .requestMatchers(RegexRequestMatcher.regexMatcher(HttpMethod.DELETE, "/task/\\d+")).permitAll()
+                .requestMatchers(HttpMethod.POST, "/task/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/task/*/initiation").permitAll()
+                .requestMatchers(HttpMethod.POST, "/task/*/notes").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/task/*").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
