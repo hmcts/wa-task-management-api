@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.reform.idam.client.IdamApi;
 
 import java.util.Map;
 
@@ -17,6 +19,9 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(locations = {"classpath:application.properties"})
 public abstract class SpringBootContractBaseTest {
+
+    @MockitoBean
+    protected IdamApi idamApi;
 
     public static final String PACT_TEST_EMAIL_VALUE = "ia-caseofficer@fake.hmcts.net";
     public static final String PACT_TEST_PASSWORD_VALUE = "London01";
