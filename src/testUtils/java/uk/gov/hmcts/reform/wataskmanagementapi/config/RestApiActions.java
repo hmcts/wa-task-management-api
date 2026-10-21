@@ -7,9 +7,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
-import io.restassured.filter.log.ErrorLoggingFilter;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -72,8 +69,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path, resourceId)
-                .prettyPeek();
+                .get(path, resourceId);
         } else {
             log.info("Calling GET {}", path);
             return given()
@@ -81,8 +77,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path)
-                .prettyPeek();
+                .get(path);
         }
     }
 
@@ -140,6 +135,7 @@ public class RestApiActions {
     }
 
     protected RequestSpecification given() {
+        // Do not enable REST Assured request/response logging: request headers contain bearer tokens.
         return RestAssured.given()
             .spec(specification)
             .config(RestAssured.config()
@@ -153,8 +149,7 @@ public class RestApiActions {
                     })
                 )
             )
-            .relaxedHTTPSValidation()
-            .filters(new RequestLoggingFilter(), new ResponseLoggingFilter(), new ErrorLoggingFilter());
+            .relaxedHTTPSValidation();
     }
 
     private Response postWithBody(String path,

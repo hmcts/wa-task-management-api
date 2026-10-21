@@ -5,6 +5,7 @@ import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.JDBCConnectionException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -66,6 +67,9 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
     "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects",
     "PMD.TooManyMethods", "PMD.CognitiveComplexity"})
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice implements ValidationAdviceTrait {
+
+    @Value("${task-diagnostics.expose-headers:false}")
+    private boolean exposeTaskDiagnosticHeaders;
 
     @ExceptionHandler({
         FeignException.class,
@@ -220,9 +224,22 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         AbstractThrowableProblem ex
     ) {
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(ex.getStatus().getStatusCode())
-            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(new CustomProblem(ex.getType(), ex.getStatus().getStatusCode(), ex.getTitle(), ex.getMessage()));
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(ex.getStatus().getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE);
+
+        if (exposeTaskDiagnosticHeaders && ex instanceof GenericServerErrorException genericServerError
+            && genericServerError.getDiagnosticId() != null) {
+            response.header("X-WA-Diagnostic-Id", genericServerError.getDiagnosticId())
+                .header("X-WA-Diagnostic-Type", genericServerError.getDiagnosticType())
+                .header("X-WA-Diagnostic-Location", genericServerError.getDiagnosticLocation());
+        }
+
+        return response.body((Problem) new CustomProblem(
+            ex.getType(),
+            ex.getStatus().getStatusCode(),
+            ex.getTitle(),
+            ex.getMessage()
+        ));
     }
 
     /**
