@@ -17,6 +17,7 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
@@ -53,6 +54,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.zalando.problem.Status.FORBIDDEN;
@@ -333,6 +335,56 @@ class ApplicationProblemControllerAdviceTest {
             response.getBody().getDetail()
         );
         assertEquals(400, customProblem.getStatusCode());
+    }
+
+    @Test
+    void should_return_diagnostic_headers_for_generic_server_error_when_enabled() {
+        ReflectionTestUtils.setField(applicationProblemControllerAdvice, "exposeTaskDiagnosticHeaders", true);
+        IllegalStateException cause = new IllegalStateException("underlying failure");
+        cause.setStackTrace(new StackTraceElement[] {
+            new StackTraceElement(
+                "uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService",
+                "evaluate",
+                "DmnEvaluationService.java",
+                124
+            )
+        });
+        GenericServerErrorException exception = new GenericServerErrorException(
+            ErrorMessages.INITIATE_TASK_PROCESS_ERROR,
+            cause
+        );
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleApplicationProblemExceptions(exception);
+
+        assertEquals(exception.getDiagnosticId(), response.getHeaders().getFirst("X-WA-Diagnostic-Id"));
+        assertEquals(exception.getDiagnosticType(), response.getHeaders().getFirst("X-WA-Diagnostic-Type"));
+        assertEquals(exception.getDiagnosticLocation(), response.getHeaders().getFirst("X-WA-Diagnostic-Location"));
+    }
+
+    @Test
+    void should_not_return_diagnostic_headers_when_exception_has_no_diagnostic_id() {
+        ReflectionTestUtils.setField(applicationProblemControllerAdvice, "exposeTaskDiagnosticHeaders", true);
+        GenericServerErrorException exception = new GenericServerErrorException(
+            ErrorMessages.INITIATE_TASK_PROCESS_ERROR
+        );
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleApplicationProblemExceptions(exception);
+
+        assertNull(response.getHeaders().getFirst("X-WA-Diagnostic-Id"));
+    }
+
+    @Test
+    void should_return_generic_message_for_mismatched_input_without_path() {
+        HttpMessageNotReadableException exception = mock(HttpMessageNotReadableException.class);
+        MismatchedInputException cause = mock(MismatchedInputException.class);
+        when(cause.getPath()).thenReturn(List.of());
+        when(exception.getCause()).thenReturn(cause);
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice.handleMessageNotReadable(exception);
+
+        assertEquals("Invalid request message", response.getBody().getDetail());
     }
 
     @ParameterizedTest

@@ -58,6 +58,13 @@ class SearchRequestCustomDeserializerTest {
     }
 
     @Test
+    void should_use_explicit_handled_type_when_provided() {
+        SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer(SearchParameterList.class);
+
+        Assertions.assertEquals(SearchParameterList.class, deserializer.handledType());
+    }
+
+    @Test
     void should_deserialize_in_operator() throws IOException {
         when(operatorNode.asText()).thenReturn("IN");
         when(searchNode.get("operator")).thenReturn(operatorNode);
