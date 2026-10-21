@@ -62,7 +62,9 @@ module "wa_task_management_api_database_flexible" {
   email_address_key_vault_id = data.azurerm_key_vault.wa_key_vault.id
   pgsql_databases = [
     {
-      name : var.postgresql_database_name
+      name                      : var.postgresql_database_name
+      schemas_for_reader_access : [var.postgresql_database_name]
+      schemas_for_writer_access : [var.postgresql_database_name]
     }
   ]
   pgsql_server_configuration = [
@@ -93,6 +95,9 @@ module "wa_task_management_api_database_flexible" {
 
   auto_grow_enabled = true
 
+  # Grant the production JIT writer Entra group access to the TM API schema.
+  enable_write_group_access = true
+
 }
 
 //New Azure Flexible database replica
@@ -115,7 +120,8 @@ module "wa_task_management_api_database_flexible_replica" {
   email_address_key_vault_id = data.azurerm_key_vault.wa_key_vault.id
   pgsql_databases = [
     {
-      name : var.postgresql_database_name
+      name                      : var.postgresql_database_name
+      schemas_for_reader_access : [var.postgresql_database_name]
     }
   ]
 
