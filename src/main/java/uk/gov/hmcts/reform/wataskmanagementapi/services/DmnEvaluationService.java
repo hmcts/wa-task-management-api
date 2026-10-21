@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.DecisionTable.WA_TASK_PERMISSIONS;
@@ -32,9 +33,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.utils.DmnConfigFi
 @SuppressWarnings("PMD.UseObjectForClearerAPI")
 public class DmnEvaluationService {
 
+    private static final Pattern BEARER_TOKEN_PATTERN = Pattern.compile("(?i)(Bearer\\s+)[^\\s\\\"',}]+");
+    private static final int MAX_CAMUNDA_ERROR_RESPONSE_LENGTH = 4_000;
+
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final CamundaObjectMapper camundaObjectMapper;
+
+    @Value("${task-diagnostics.log-camunda-error-response:false}")
+    private boolean logCamundaErrorResponse;
 
     @Value("${config.fieldsToExcludeFromTrim}")
     private List<String> fieldsToExcludeFromTrim;
@@ -119,12 +126,35 @@ public class DmnEvaluationService {
                 }
             }).toList();
         } catch (FeignException e) {
-            log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
+            if (logCamundaErrorResponse) {
+                log.error(
+                    "Configuration DMN failed (decisionTableKey={}, jurisdiction={}, status={}, response={})",
+                    decisionTableKey,
+                    jurisdiction,
+                    e.status(),
+                    sanitizeCamundaErrorResponse(e.contentUTF8())
+                );
+            } else {
+                log.error(
+                    "Configuration DMN failed (decisionTableKey={}, jurisdiction={}, status={})",
+                    decisionTableKey,
+                    jurisdiction,
+                    e.status()
+                );
+            }
             throw new IllegalStateException(
                 String.format("Could not evaluate from decision table %s", decisionTableKey),
                 e
             );
         }
+    }
+
+    private static String sanitizeCamundaErrorResponse(String response) {
+        String sanitized = BEARER_TOKEN_PATTERN.matcher(response).replaceAll("$1[REDACTED]");
+        if (sanitized.length() > MAX_CAMUNDA_ERROR_RESPONSE_LENGTH) {
+            return sanitized.substring(0, MAX_CAMUNDA_ERROR_RESPONSE_LENGTH) + " [truncated]";
+        }
+        return sanitized;
     }
 
     private List<PermissionsDmnEvaluationResponse> performEvaluatePermissionsDmnAction(

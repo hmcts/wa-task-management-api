@@ -1,2 +1,3 @@
 task-diagnostics:
   expose-headers: true
+  log-camunda-error-response: true
