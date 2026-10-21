@@ -1,0 +1,2 @@
+task-diagnostics:
+  expose-headers: true
