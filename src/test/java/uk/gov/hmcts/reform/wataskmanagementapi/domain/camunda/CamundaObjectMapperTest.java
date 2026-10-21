@@ -111,6 +111,16 @@ class CamundaObjectMapperTest {
     }
 
     @Test
+    void should_return_empty_when_typed_variable_value_is_null() {
+        CamundaVariable variable = new CamundaVariable(null, "Object");
+
+        Optional<Map<String, String>> output = camundaObjectMapper.read(variable, new TypeReference<>() {
+        });
+
+        Assertions.assertThat(output).isEmpty();
+    }
+
+    @Test
     void should_throw_IllegalArgumentException_when_invalid_object_is_passed() {
         assertThrowsExactly(IllegalArgumentException.class, () ->
             camundaObjectMapper.asCamundaJsonString(new Object()));
