@@ -16,9 +16,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEval
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnResponse;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -42,6 +44,9 @@ public class DmnEvaluationService {
 
     @Value("${task-diagnostics.log-camunda-error-response:false}")
     private boolean logCamundaErrorResponse;
+
+    @Value("${task-diagnostics.log-dmn-variable-shape:false}")
+    private boolean logDmnVariableShape;
 
     @Value("${config.fieldsToExcludeFromTrim}")
     private List<String> fieldsToExcludeFromTrim;
@@ -126,6 +131,16 @@ public class DmnEvaluationService {
                 }
             }).toList();
         } catch (FeignException e) {
+            if (logDmnVariableShape) {
+                log.error(
+                    "Configuration DMN variable shape (decisionTableKey={}, jurisdiction={}, "
+                        + "caseData={}, taskAttributes={})",
+                    decisionTableKey,
+                    jurisdiction,
+                    describeJsonShape(caseData),
+                    describeJsonShape(taskAttributes)
+                );
+            }
             if (logCamundaErrorResponse) {
                 log.error(
                     "Configuration DMN failed (decisionTableKey={}, jurisdiction={}, status={}, response={})",
@@ -147,6 +162,24 @@ public class DmnEvaluationService {
                 e
             );
         }
+    }
+
+    private String describeJsonShape(String json) {
+        if (json == null) {
+            return "missing";
+        }
+
+        Object parsed = camundaObjectMapper.readValue(json, Object.class);
+        if (parsed == null) {
+            return "null-or-invalid-json";
+        }
+        if (parsed instanceof Map<?, ?> object) {
+            return "object(keys=" + object.keySet() + ")";
+        }
+        if (parsed instanceof Collection<?> collection) {
+            return "array(size=" + collection.size() + ")";
+        }
+        return parsed.getClass().getSimpleName();
     }
 
     private static String sanitizeCamundaErrorResponse(String response) {
