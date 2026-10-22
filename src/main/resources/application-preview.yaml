@@ -1,3 +1,4 @@
 task-diagnostics:
   expose-headers: true
   log-camunda-error-response: true
+  log-dmn-variable-shape: true
