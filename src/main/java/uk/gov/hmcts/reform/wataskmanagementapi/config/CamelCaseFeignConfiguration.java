@@ -12,6 +12,7 @@ import org.springframework.cloud.openfeign.support.SpringEncoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
@@ -43,8 +44,17 @@ public class CamelCaseFeignConfiguration {
                 APPLICATION_JSON,
                 new MediaType("application", "*+json"),
                 TEXT_PLAIN));
-            // The DMN API expects lower camel case; keep this converter ahead of the generic Jackson converter.
-            converters.add(0, jacksonConverter);
+            // Keep raw String request bodies (for example role assignment JSON) ahead of Jackson,
+            // while using this mapper before the generic Jackson converter for object bodies.
+            int insertionIndex = 0;
+            while (insertionIndex < converters.size()
+                && !(converters.get(insertionIndex) instanceof StringHttpMessageConverter)) {
+                insertionIndex++;
+            }
+            if (insertionIndex < converters.size()) {
+                insertionIndex++;
+            }
+            converters.add(insertionIndex, jacksonConverter);
         };
     }
 
