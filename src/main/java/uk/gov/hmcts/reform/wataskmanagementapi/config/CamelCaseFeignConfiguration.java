@@ -40,9 +40,9 @@ public class CamelCaseFeignConfiguration {
             JacksonJsonHttpMessageConverter jacksonConverter =
                 new JacksonJsonHttpMessageConverter(camelCasedObjectMapper());
             jacksonConverter.setSupportedMediaTypes(Arrays.asList(
-                MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8"),
                 APPLICATION_JSON,
                 new MediaType("application", "*+json"),
+                MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8"),
                 TEXT_PLAIN));
             // Keep raw String request bodies (for example role assignment JSON) ahead of Jackson,
             // while using this mapper before the generic Jackson converter for object bodies.
