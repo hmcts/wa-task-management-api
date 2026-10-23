@@ -43,7 +43,8 @@ public class CamelCaseFeignConfiguration {
                 APPLICATION_JSON,
                 new MediaType("application", "*+json"),
                 TEXT_PLAIN));
-            converters.add(jacksonConverter);
+            // The DMN API expects lower camel case; keep this converter ahead of the generic Jackson converter.
+            converters.add(0, jacksonConverter);
         };
     }
 
