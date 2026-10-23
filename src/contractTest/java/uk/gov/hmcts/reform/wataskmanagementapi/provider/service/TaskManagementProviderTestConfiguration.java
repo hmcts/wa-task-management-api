@@ -9,7 +9,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import org.springframework.boot.jackson.JsonComponentModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -127,11 +126,10 @@ public class TaskManagementProviderTestConfiguration {
     @Bean
     @Primary
     public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
-        SearchRequestCustomDeserializer searchRequestCustomDeserializer = new SearchRequestCustomDeserializer();
         // Set default date to RFC3339 standards
         SimpleDateFormat df = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH);
-        SimpleModule module = new JsonComponentModule();
-        module.addDeserializer(SearchParameter.class, searchRequestCustomDeserializer);
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(SearchParameter.class, new SearchParameterJackson2Deserializer());
 
         return new Jackson2ObjectMapperBuilder()
             .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
@@ -161,5 +159,37 @@ public class TaskManagementProviderTestConfiguration {
     public ObjectMapper objectMapper() {
         Jackson2ObjectMapperBuilder builder = jackson2ObjectMapperBuilder();
         return builder.createXmlMapper(false).build();
+    }
+
+    /** Temporary Jackson 2 bridge for Pact provider tests; production uses Jackson 3. */
+    private static final class SearchParameterJackson2Deserializer
+        extends com.fasterxml.jackson.databind.JsonDeserializer<SearchParameter<?>> {
+
+        @Override
+        public SearchParameter<?> deserialize(
+            com.fasterxml.jackson.core.JsonParser parser,
+            com.fasterxml.jackson.databind.DeserializationContext context
+        ) throws java.io.IOException {
+            com.fasterxml.jackson.databind.JsonNode node = parser.getCodec().readTree(parser);
+            com.fasterxml.jackson.databind.JsonNode operator = node.get("operator");
+            if (operator == null) {
+                throw new IllegalArgumentException(
+                    "Each search_parameter element must have 'key', 'values' and 'operator' fields present "
+                        + "and populated."
+                );
+            }
+            if ("BOOLEAN".equals(operator.asText())) {
+                return parser.getCodec().treeToValue(node,
+                    uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterBoolean.class);
+            }
+            if ("IN".equals(operator.asText())) {
+                return parser.getCodec().treeToValue(node,
+                    uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterList.class);
+            }
+            throw new IllegalArgumentException(
+                "Each search_parameter element must have 'key', 'values' and 'operator' fields present "
+                    + "and populated."
+            );
+        }
     }
 }

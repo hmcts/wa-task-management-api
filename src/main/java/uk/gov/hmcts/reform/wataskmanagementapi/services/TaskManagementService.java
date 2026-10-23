@@ -913,8 +913,12 @@ public class TaskManagementService {
             log.error("Error when initiating task(id={})", taskId, e);
             throw e;
         } catch (Exception e) {
-            log.error("Error when initiating task(id={})", taskId, e);
-            throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
+            GenericServerErrorException exception = new GenericServerErrorException(
+                ErrorMessages.INITIATE_TASK_PROCESS_ERROR,
+                e
+            );
+            log.error("Error when initiating task(id={}, diagnosticId={})", taskId, exception.getDiagnosticId(), e);
+            throw exception;
         }
     }
 

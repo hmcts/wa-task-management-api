@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
@@ -20,12 +17,16 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.violations.Violation;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.exc.MismatchedInputException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
@@ -53,6 +54,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.zalando.problem.Status.FORBIDDEN;
@@ -255,7 +257,7 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_handle_http_message_not_readable_exception_json_parse() {
         HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
-        JsonParseException cause = mock(JsonParseException.class);
+        StreamReadException cause = mock(StreamReadException.class);
         when(cause.getOriginalMessage()).thenReturn("someMessage");
         when(httpMessageNotReadableException.getCause()).thenReturn(cause);
 
@@ -281,9 +283,9 @@ class ApplicationProblemControllerAdviceTest {
     void should_handle_http_message_not_readable_exception_mismatch_input() {
         HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
         MismatchedInputException cause = mock(MismatchedInputException.class);
-        List<JsonMappingException.Reference> paths = List.of(
-            new JsonMappingException.Reference("someObject", "somefield"),
-            new JsonMappingException.Reference("someObject", "someNestedFieldName")
+        List<JacksonException.Reference> paths = List.of(
+            new JacksonException.Reference("someObject", "somefield"),
+            new JacksonException.Reference("someObject", "someNestedFieldName")
         );
         when(cause.getPath()).thenReturn(paths);
         when(httpMessageNotReadableException.getCause()).thenReturn(cause);
@@ -307,11 +309,11 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_handle_http_message_not_readable_exception_json_mapping() {
         HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
-        JsonMappingException cause = mock(JsonMappingException.class);
+        JacksonException cause = mock(JacksonException.class);
         when(cause.getOriginalMessage()).thenReturn("someMessage");
-        List<JsonMappingException.Reference> paths = List.of(
-            new JsonMappingException.Reference("someObject", "somefield"),
-            new JsonMappingException.Reference("someObject", "someNestedFieldName")
+        List<JacksonException.Reference> paths = List.of(
+            new JacksonException.Reference("someObject", "somefield"),
+            new JacksonException.Reference("someObject", "someNestedFieldName")
         );
         when(cause.getPath()).thenReturn(paths);
         when(httpMessageNotReadableException.getCause()).thenReturn(cause);
@@ -333,6 +335,56 @@ class ApplicationProblemControllerAdviceTest {
             response.getBody().getDetail()
         );
         assertEquals(400, customProblem.getStatusCode());
+    }
+
+    @Test
+    void should_return_diagnostic_headers_for_generic_server_error_when_enabled() {
+        ReflectionTestUtils.setField(applicationProblemControllerAdvice, "exposeTaskDiagnosticHeaders", true);
+        IllegalStateException cause = new IllegalStateException("underlying failure");
+        cause.setStackTrace(new StackTraceElement[] {
+            new StackTraceElement(
+                "uk.gov.hmcts.reform.wataskmanagementapi.services.DmnEvaluationService",
+                "evaluate",
+                "DmnEvaluationService.java",
+                124
+            )
+        });
+        GenericServerErrorException exception = new GenericServerErrorException(
+            ErrorMessages.INITIATE_TASK_PROCESS_ERROR,
+            cause
+        );
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleApplicationProblemExceptions(exception);
+
+        assertEquals(exception.getDiagnosticId(), response.getHeaders().getFirst("X-WA-Diagnostic-Id"));
+        assertEquals(exception.getDiagnosticType(), response.getHeaders().getFirst("X-WA-Diagnostic-Type"));
+        assertEquals(exception.getDiagnosticLocation(), response.getHeaders().getFirst("X-WA-Diagnostic-Location"));
+    }
+
+    @Test
+    void should_not_return_diagnostic_headers_when_exception_has_no_diagnostic_id() {
+        ReflectionTestUtils.setField(applicationProblemControllerAdvice, "exposeTaskDiagnosticHeaders", true);
+        GenericServerErrorException exception = new GenericServerErrorException(
+            ErrorMessages.INITIATE_TASK_PROCESS_ERROR
+        );
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleApplicationProblemExceptions(exception);
+
+        assertNull(response.getHeaders().getFirst("X-WA-Diagnostic-Id"));
+    }
+
+    @Test
+    void should_return_generic_message_for_mismatched_input_without_path() {
+        HttpMessageNotReadableException exception = mock(HttpMessageNotReadableException.class);
+        MismatchedInputException cause = mock(MismatchedInputException.class);
+        when(cause.getPath()).thenReturn(List.of());
+        when(exception.getCause()).thenReturn(cause);
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice.handleMessageNotReadable(exception);
+
+        assertEquals("Invalid request message", response.getBody().getDetail());
     }
 
     @ParameterizedTest

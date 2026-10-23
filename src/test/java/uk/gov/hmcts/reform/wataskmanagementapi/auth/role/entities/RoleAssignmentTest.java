@@ -9,6 +9,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -65,5 +67,33 @@ class RoleAssignmentTest {
         Assertions.assertEquals(emptyMap(), roleAssignment.getAttributes());
         Assertions.assertEquals(emptyList(), roleAssignment.getAuthorisations());
 
+    }
+
+    @Test
+    void should_return_attribute_value_when_present() {
+        RoleAssignment roleAssignment = new RoleAssignment(
+            ActorIdType.IDAM,
+            "actor-id",
+            RoleType.ORGANISATION,
+            "role-name",
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            Map.of("caseId", "case-123")
+        );
+
+        Assertions.assertEquals(
+            Optional.of("case-123"),
+            roleAssignment.getAttributeValue(RoleAttributeDefinition.CASE_ID)
+        );
+        Assertions.assertEquals(Optional.empty(), roleAssignment.getAttributeValue(null));
+    }
+
+    @Test
+    void should_return_empty_attribute_value_when_attributes_are_null_or_key_is_absent() {
+        RoleAssignment roleAssignment = new RoleAssignment();
+
+        Assertions.assertEquals(Optional.empty(), roleAssignment.getAttributeValue(RoleAttributeDefinition.CASE_ID));
     }
 }

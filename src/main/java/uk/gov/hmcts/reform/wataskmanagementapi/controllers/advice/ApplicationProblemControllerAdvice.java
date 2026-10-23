@@ -1,13 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.launchdarkly.shaded.com.google.common.base.CaseFormat;
 import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.JDBCConnectionException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -22,6 +20,9 @@ import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.spring.web.advice.validation.ValidationAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import org.zalando.problem.violations.Violation;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.exc.MismatchedInputException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
@@ -66,6 +67,9 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
     "PMD.UseStringBufferForStringAppends", "PMD.LawOfDemeter", "PMD.CouplingBetweenObjects",
     "PMD.TooManyMethods", "PMD.CognitiveComplexity"})
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice implements ValidationAdviceTrait {
+
+    @Value("${task-diagnostics.expose-headers:false}")
+    private boolean exposeTaskDiagnosticHeaders;
 
     @ExceptionHandler({
         FeignException.class,
@@ -220,9 +224,22 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         AbstractThrowableProblem ex
     ) {
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(ex.getStatus().getStatusCode())
-            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(new CustomProblem(ex.getType(), ex.getStatus().getStatusCode(), ex.getTitle(), ex.getMessage()));
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(ex.getStatus().getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE);
+
+        if (exposeTaskDiagnosticHeaders && ex instanceof GenericServerErrorException genericServerError
+            && genericServerError.getDiagnosticId() != null) {
+            response.header("X-WA-Diagnostic-Id", genericServerError.getDiagnosticId())
+                .header("X-WA-Diagnostic-Type", genericServerError.getDiagnosticType())
+                .header("X-WA-Diagnostic-Location", genericServerError.getDiagnosticLocation());
+        }
+
+        return response.body((Problem) new CustomProblem(
+            ex.getType(),
+            ex.getStatus().getStatusCode(),
+            ex.getTitle(),
+            ex.getMessage()
+        ));
     }
 
     /**
@@ -232,18 +249,18 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
     private String extractErrors(HttpMessageNotReadableException exception) {
         Throwable cause = exception.getCause();
 
-        if (cause instanceof JsonParseException jpe) {
+        if (cause instanceof StreamReadException jpe) {
             return handleJsonParseException(jpe);
         } else if (cause instanceof MismatchedInputException mie) {
             return handleMismatchedInputException(mie);
-        } else if (cause instanceof JsonMappingException jme) {
+        } else if (cause instanceof JacksonException jme) {
             return handleJsonMappingException(jme);
         } else {
             return "Invalid request message";
         }
     }
 
-    private String handleJsonParseException(JsonParseException jpe) {
+    private String handleJsonParseException(StreamReadException jpe) {
         return jpe.getOriginalMessage();
     }
 
@@ -255,15 +272,15 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         return "Invalid request message";
     }
 
-    private String handleJsonMappingException(JsonMappingException jme) {
+    private String handleJsonMappingException(JacksonException jme) {
         String fieldName = extractFieldName(jme.getPath());
         String originalMessage = jme.getOriginalMessage();
         return "Invalid request field: " + fieldName + ": " + originalMessage;
     }
 
-    private String extractFieldName(List<JsonMappingException.Reference> path) {
+    private String extractFieldName(List<JacksonException.Reference> path) {
         return path.stream()
-            .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
+            .map(ref -> ref.getPropertyName() == null ? "[0]" : ref.getPropertyName())
             .collect(Collectors.joining("."));
     }
 

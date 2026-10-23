@@ -219,8 +219,6 @@ public class TaskFunctionalTestsInitiationUtils {
     }
 
     private void assertResponse(Response response, String taskId, Headers headers) {
-        response.prettyPrint();
-
         int statusCode = response.getStatusCode();
         switch (statusCode) {
             case 503:
@@ -251,8 +249,19 @@ public class TaskFunctionalTestsInitiationUtils {
                 log.info("task Initiation got successfully with status, {}", statusCode);
                 break;
             default:
-                log.info("task Initiation failed with status, {}", statusCode);
+                log.error("Task initiation failed with status {}", statusCode);
+                logInitiationDiagnostics(response);
                 throw new RuntimeException("Invalid status received for task initiation " + statusCode);
+        }
+    }
+
+    private void logInitiationDiagnostics(Response response) {
+        String diagnosticId = response.getHeader("X-WA-Diagnostic-Id");
+        if (diagnosticId != null) {
+            log.error("Task initiation diagnostic: id={}, type={}, location={}",
+                diagnosticId,
+                response.getHeader("X-WA-Diagnostic-Type"),
+                response.getHeader("X-WA-Diagnostic-Location"));
         }
     }
 }

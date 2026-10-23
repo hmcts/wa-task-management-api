@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
 
 import java.util.Map;
 import java.util.Optional;
@@ -108,6 +108,16 @@ class CamundaObjectMapperTest {
             .get()
             .isEqualTo(EXPECTED_ADDITIONAL_PROPERTIES);
 
+    }
+
+    @Test
+    void should_return_empty_when_typed_variable_value_is_null() {
+        CamundaVariable variable = new CamundaVariable(null, "Object");
+
+        Optional<Map<String, String>> output = camundaObjectMapper.read(variable, new TypeReference<>() {
+        });
+
+        Assertions.assertThat(output).isEmpty();
     }
 
     @Test

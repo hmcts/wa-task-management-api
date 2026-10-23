@@ -49,6 +49,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -284,6 +285,28 @@ class CompleteTaskTest extends CamundaHelpers {
         verify(taskResource, times(1)).getState();
         verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         verify(camundaService, times(0)).completeTask(taskId, false);
+    }
+
+    @Test
+    void completeTask_should_handle_task_with_null_state() {
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
+        when(cftQueryService.getTask(any(), anyList(), any(PermissionRequirements.class)))
+            .thenReturn(Optional.of(taskResource));
+        when(cftTaskDatabaseService.findCaseId(taskId)).thenReturn(Optional.of("CASEID"));
+        when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
+        when(taskResource.getState()).thenReturn(null);
+        doReturn(false).when(taskResource).isActive(null);
+
+        taskManagementService.completeTask(taskId, accessControlResponse, null);
+
+        verify(camundaService).completeTask(taskId, false);
+        verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
     }
 
     @Test

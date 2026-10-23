@@ -7,18 +7,19 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
-import io.restassured.filter.log.ErrorLoggingFilter;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.filter.FilterContext;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import io.restassured.specification.FilterableRequestSpecification;
+import io.restassured.specification.FilterableResponseSpecification;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 import static java.util.Collections.emptyMap;
 import static org.awaitility.Awaitility.await;
@@ -26,6 +27,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 public class RestApiActions {
+
+    private static final int MAX_LOGGED_ERROR_RESPONSE_LENGTH = 4_000;
+    private static final Pattern BEARER_TOKEN_PATTERN = Pattern.compile("(?i)\\bBearer\\s+[^\\s\\\"']+");
 
     private final String baseUri;
     private final PropertyNamingStrategy propertyNamingStrategy;
@@ -72,8 +76,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path, resourceId)
-                .prettyPeek();
+                .get(path, resourceId);
         } else {
             log.info("Calling GET {}", path);
             return given()
@@ -81,8 +84,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path)
-                .prettyPeek();
+                .get(path);
         }
     }
 
@@ -140,8 +142,10 @@ public class RestApiActions {
     }
 
     protected RequestSpecification given() {
+        // Log only error response details. Never log request headers or request bodies because they may contain tokens.
         return RestAssured.given()
             .spec(specification)
+            .filter(this::logErrorResponse)
             .config(RestAssured.config()
                 .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
                     (type, s) -> {
@@ -153,8 +157,34 @@ public class RestApiActions {
                     })
                 )
             )
-            .relaxedHTTPSValidation()
-            .filters(new RequestLoggingFilter(), new ResponseLoggingFilter(), new ErrorLoggingFilter());
+            .relaxedHTTPSValidation();
+    }
+
+    private Response logErrorResponse(FilterableRequestSpecification request,
+                                      FilterableResponseSpecification responseSpecification,
+                                      FilterContext context) {
+        Response response = context.next(request, responseSpecification);
+        if (response.statusCode() >= 400) {
+            String endpoint = request.getURI();
+            int queryIndex = endpoint.indexOf('?');
+            if (queryIndex >= 0) {
+                endpoint = endpoint.substring(0, queryIndex);
+            }
+
+            String responseBody = BEARER_TOKEN_PATTERN.matcher(response.asString())
+                .replaceAll("Bearer [REDACTED]")
+                .replaceAll("[\\r\\n]+", " ");
+            if (responseBody.length() > MAX_LOGGED_ERROR_RESPONSE_LENGTH) {
+                responseBody = responseBody.substring(0, MAX_LOGGED_ERROR_RESPONSE_LENGTH) + "... [truncated]";
+            }
+            if (responseBody.isBlank()) {
+                responseBody = "<empty>";
+            }
+
+            log.warn("Functional test HTTP response: {} {} returned status {}. Response body: {}",
+                request.getMethod(), endpoint, response.statusCode(), responseBody);
+        }
+        return response;
     }
 
     private Response postWithBody(String path,

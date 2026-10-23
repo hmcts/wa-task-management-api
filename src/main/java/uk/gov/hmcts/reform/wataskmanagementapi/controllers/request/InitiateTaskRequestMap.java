@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Value;
@@ -19,7 +20,7 @@ public class InitiateTaskRequestMap implements InitiateTask<Map<String, Object>>
 
     @JsonCreator
     public InitiateTaskRequestMap(InitiateTaskOperation operation,
-                                  Map<String, Object> taskAttributes) {
+                                  @JsonAlias("taskAttributes") Map<String, Object> taskAttributes) {
         this.operation = operation;
         this.taskAttributes = taskAttributes;
     }
