@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -31,6 +32,7 @@ public class SearchTaskRequest {
     @Schema(name = "sorting_parameters")
     private List<SortingParameter> sortingParameters;
     @Schema(name = "request_context", allowableValues = "ALL_WORK, AVAILABLE_TASKS", example = "ALL_WORK")
+    @JsonAlias("requestContext")
     private RequestContext requestContext;
 
     private SearchTaskRequest() {
