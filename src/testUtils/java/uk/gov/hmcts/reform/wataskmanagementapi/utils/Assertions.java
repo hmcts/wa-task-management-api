@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import java.util.List;
 import java.util.Map;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
@@ -55,50 +56,59 @@ public class Assertions {
 
     public void taskStateWasUpdatedInDatabase(String taskId, String value, Headers authenticationHeaders) {
 
-        Response result = restApiActions.get(
-            TASK_ENDPOINT_BEING_TESTED,
-            taskId,
-            authenticationHeaders
-        );
+        await()
+            .untilAsserted(() -> {
+                Response result = restApiActions.get(
+                    TASK_ENDPOINT_BEING_TESTED,
+                    taskId,
+                    authenticationHeaders
+                );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", equalTo(value))
-            .log();
+                result.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", equalTo(value))
+                    .log();
+            });
     }
 
     public void taskStateWasUpdatedInDatabase(String taskId, List<String> states, Headers authenticationHeaders) {
 
-        Response result = restApiActions.get(
-            TASK_ENDPOINT_BEING_TESTED,
-            taskId,
-            authenticationHeaders
-        );
+        await()
+            .untilAsserted(() -> {
+                Response result = restApiActions.get(
+                    TASK_ENDPOINT_BEING_TESTED,
+                    taskId,
+                    authenticationHeaders
+                );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task.task_state", in(states))
-            .log();
+                result.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task.task_state", in(states))
+                    .log();
+            });
     }
 
     public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName, String value,
                                               Headers authenticationHeaders) {
 
-        Response result = restApiActions.get(
-            TASK_ENDPOINT_BEING_TESTED,
-            taskId,
-            authenticationHeaders
-        );
+        await()
+            .untilAsserted(() -> {
+                Response result = restApiActions.get(
+                    TASK_ENDPOINT_BEING_TESTED,
+                    taskId,
+                    authenticationHeaders
+                );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId))
-            .body("task." + fieldName, equalTo(value))
-            .log();
+                result.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .and().body("task.id", equalTo(taskId))
+                    .body("task." + fieldName, equalTo(value))
+                    .log();
+            });
     }
 }

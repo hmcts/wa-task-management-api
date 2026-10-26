@@ -75,32 +75,30 @@ public class PostTaskInitiateByIdControllerTest {
 
     TestAuthenticationCredentials multiAssigneeCaseWorker2;
 
+    String assigneeCaseWorkerEmailPrefix = "taskassignee.test";
+    String assigneeCaseWorkerWithIncorrectRolesEmailPrefix = "incorrectroletaskassignee.test";
+    String multiAssigneeCaseWorker1EmailPrefix = "multipletaskassignee.test1";
+    String multiAssigneeCaseWorker2EmailPrefix = "multipletaskassignee.test2";
+    String emailSuffix = "@fake.hmcts.net";
+
     @Before
     public void setUp() {
         caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES2);
         caseWorkerWithJudgeRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_JUDGE_ROLE);
         userWithCFTCtscRole = taskFunctionalTestsUserUtils.getTestUser(CASE_WORKER_WITH_CFTC_ROLE);
 
-        if (assigneeCaseWorker != null && assigneeCaseWorker.getAccount() != null) {
-            taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assigneeCaseWorker.getHeaders());
-            authorizationProvider.deleteAccount(assigneeCaseWorker.getAccount().getUsername());
-        }
-
-        if (assigneeCaseWorkerWithIncorrectRoles != null && assigneeCaseWorkerWithIncorrectRoles.getAccount() != null) {
-            taskFunctionalTestsApiUtils.getCommon()
-                .clearAllRoleAssignments(assigneeCaseWorkerWithIncorrectRoles.getHeaders());
-            authorizationProvider.deleteAccount(assigneeCaseWorkerWithIncorrectRoles.getAccount().getUsername());
-        }
-
-        if (multiAssigneeCaseWorker1 != null && multiAssigneeCaseWorker1.getAccount() != null) {
-            taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(multiAssigneeCaseWorker1.getHeaders());
-            authorizationProvider.deleteAccount(multiAssigneeCaseWorker1.getAccount().getUsername());
-        }
-
-        if (multiAssigneeCaseWorker2 != null && multiAssigneeCaseWorker2.getAccount() != null) {
-            taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(multiAssigneeCaseWorker2.getHeaders());
-            authorizationProvider.deleteAccount(multiAssigneeCaseWorker2.getAccount().getUsername());
-        }
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerEmailPrefix + emailSuffix,
+                                                  assigneeCaseWorker);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignmentsAndDeleteUser(assigneeCaseWorkerWithIncorrectRolesEmailPrefix + emailSuffix,
+                                                  assigneeCaseWorkerWithIncorrectRoles);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker1EmailPrefix + emailSuffix,
+                                                  multiAssigneeCaseWorker1);
+        taskFunctionalTestsApiUtils.getCommon()
+            .clearAllRoleAssignmentsAndDeleteUser(multiAssigneeCaseWorker2EmailPrefix + emailSuffix,
+                                                  multiAssigneeCaseWorker2);
     }
 
     @Test
@@ -223,7 +221,7 @@ public class PostTaskInitiateByIdControllerTest {
         String taskId = taskVariables.getTaskId();
 
         assigneeCaseWorker =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("taskassignee.test");
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(assigneeCaseWorkerEmailPrefix);
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
             assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
@@ -267,7 +265,7 @@ public class PostTaskInitiateByIdControllerTest {
 
         assigneeCaseWorkerWithIncorrectRoles =
             authorizationProvider
-                .getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("incorrectroletaskassignee.test");
+                .getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(assigneeCaseWorkerWithIncorrectRolesEmailPrefix);
 
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();
@@ -304,9 +302,11 @@ public class PostTaskInitiateByIdControllerTest {
             );
         String taskId = taskVariables.getTaskId();
         multiAssigneeCaseWorker1 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test1");
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(
+                multiAssigneeCaseWorker1EmailPrefix);
         multiAssigneeCaseWorker2 =
-            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID("multipletaskassignee.test2");
+            authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(
+                multiAssigneeCaseWorker2EmailPrefix);
 
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();

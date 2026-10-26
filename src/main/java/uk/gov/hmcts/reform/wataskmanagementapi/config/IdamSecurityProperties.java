@@ -15,5 +15,4 @@ import java.util.List;
 public class IdamSecurityProperties {
 
     private List<String> allowedIssuers = new ArrayList<>();
-    private boolean allowedIssuersValidatorEnabled = true;
 }
