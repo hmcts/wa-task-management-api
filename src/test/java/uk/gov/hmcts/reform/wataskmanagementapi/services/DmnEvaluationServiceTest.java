@@ -27,9 +27,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEval
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskTypesDmnResponse;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -38,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -215,6 +218,65 @@ class DmnEvaluationServiceTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Could not evaluate from decision table wa-task-configuration-ia-asylum")
             .hasCauseInstanceOf(FeignException.class);
+    }
+
+    @Test
+    void should_log_configuration_dmn_input_shapes_and_sanitized_error_response(CapturedOutput output) {
+        ReflectionTestUtils.setField(dmnEvaluationService, "logDmnVariableShape", true);
+        ReflectionTestUtils.setField(dmnEvaluationService, "logCamundaErrorResponse", true);
+
+        String bearerToken = "diagnostic-secret-token";
+        String responseBody = "Camunda failed: Bearer " + bearerToken + " " + "x".repeat(4_200);
+        FeignException exception = new FeignException.BadRequest(
+            "Downstream error",
+            request,
+            responseBody.getBytes(StandardCharsets.UTF_8),
+            Map.of()
+        );
+        doThrow(exception).when(camundaServiceApi).evaluateConfigurationDmnTable(
+            anyString(), anyString(), anyString(), any()
+        );
+
+        when(camundaObjectMapper.readValue("{}", Object.class)).thenReturn(Map.of("field", "value"));
+        when(camundaObjectMapper.readValue("[]", Object.class)).thenReturn(List.of("value"));
+        when(camundaObjectMapper.readValue("\"text\"", Object.class)).thenReturn("text");
+        when(camundaObjectMapper.readValue("null", Object.class)).thenReturn(null);
+
+        List<String> jsonValues = List.of("{}", "[]", "\"text\"", "null");
+        jsonValues.forEach(json -> assertThatThrownBy(() -> dmnEvaluationService
+            .evaluateTaskConfigurationDmn("wa", "wacasetype", json, "[]"))
+            .isInstanceOf(IllegalStateException.class));
+
+        assertThatThrownBy(() -> dmnEvaluationService
+            .evaluateTaskConfigurationDmn("wa", "wacasetype", null, "[]"))
+            .isInstanceOf(IllegalStateException.class);
+
+        Assertions.assertThat(output.getOut())
+            .contains("caseData=object(keys=[field])")
+            .contains("caseData=array(size=1)")
+            .contains("caseData=String")
+            .contains("caseData=null-or-invalid-json")
+            .contains("caseData=missing")
+            .contains("response=Camunda failed: Bearer [REDACTED]")
+            .contains("[truncated]")
+            .doesNotContain(bearerToken);
+    }
+
+    @Test
+    void should_log_camunda_exception_details_when_task_types_evaluation_fails(CapturedOutput output) {
+        FeignException exception = createFeignExceptionFor502();
+        String jurisdiction = "ia-evaluation-error";
+        doThrow(exception).when(camundaServiceApi).evaluateTaskTypesDmnTable(
+            BEARER_SERVICE_TOKEN, DMN_KEY_PREFIX, jurisdiction, dmnRequest
+        );
+        when(camundaObjectMapper.readValue(exception.contentUTF8(), CamundaExceptionMessage.class))
+            .thenReturn(new CamundaExceptionMessage("decision-error", "missing input"));
+
+        assertThatThrownBy(() -> dmnEvaluationService.evaluateTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX))
+            .isInstanceOf(FeignException.BadRequest.class);
+
+        Assertions.assertThat(output.getOut())
+            .contains("CamundaException type:decision-error message:missing input");
     }
 
     @Test
