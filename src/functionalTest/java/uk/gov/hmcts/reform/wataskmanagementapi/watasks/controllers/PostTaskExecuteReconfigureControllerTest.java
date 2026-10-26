@@ -605,7 +605,6 @@ public class PostTaskExecuteReconfigureControllerTest {
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId
         );
-
         TestVariables taskVariables =
             taskFunctionalTestsApiUtils.getCommon().setupWATaskWithAdditionalPropertiesAndRetrieveIds(
             additionalProperties,
@@ -639,7 +638,6 @@ public class PostTaskExecuteReconfigureControllerTest {
                     "key5", "value5",
                     "key6", "value6",
                     "roleAssignmentId", roleAssignmentId
-
                 ))
         );
 
@@ -685,7 +683,6 @@ public class PostTaskExecuteReconfigureControllerTest {
                     "key5", "value5",
                     "key6", "value6",
                     "roleAssignmentId", roleAssignmentId
-
                 ))
         );
 
@@ -1090,13 +1087,6 @@ public class PostTaskExecuteReconfigureControllerTest {
                                         taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         String taskId = taskVariables.getTaskId();
-        log.info(
-            "Starting should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_"
-                + "for_reconfigure: "
-                + "taskId={}, caseId={}",
-            taskId,
-            taskVariables.getCaseId()
-        );
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
             result.prettyPrint();
@@ -1147,14 +1137,6 @@ public class PostTaskExecuteReconfigureControllerTest {
                 OffsetDateTime.now().minus(Duration.ofDays(1))
             ),
             caseWorkerWithTribRole.getHeaders()
-        );
-
-        log.info(
-            "Submitted execute-reconfigure for "
-                + "should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure: "
-                + "taskId={}, caseId={}",
-            taskId,
-            taskVariables.getCaseId()
         );
 
         result.then().assertThat()
@@ -1366,6 +1348,12 @@ public class PostTaskExecuteReconfigureControllerTest {
                                         taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         String taskId = taskVariables.getTaskId();
+        log.info(
+            "Starting should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_"
+                + "for_reconfigure: taskId={}, caseId={}",
+            taskId,
+            taskVariables.getCaseId()
+        );
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
             result.prettyPrint();
@@ -1417,6 +1405,14 @@ public class PostTaskExecuteReconfigureControllerTest {
                 OffsetDateTime.now().minus(Duration.ofDays(1))
             ),
             caseWorkerWithTribRole.getHeaders()
+        );
+
+        log.info(
+            "Submitted execute-reconfigure for "
+                + "should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure: "
+                + "taskId={}, caseId={}",
+            taskId,
+            taskVariables.getCaseId()
         );
 
         result.then().assertThat()
