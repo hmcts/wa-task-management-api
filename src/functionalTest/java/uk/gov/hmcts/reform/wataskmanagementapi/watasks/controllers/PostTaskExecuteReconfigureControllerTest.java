@@ -54,6 +54,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.CASE_WORKER_WITH_CASE_MANAGER_ROLE;
@@ -972,6 +973,12 @@ public class PostTaskExecuteReconfigureControllerTest {
                                         taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         String taskId = taskVariables.getTaskId();
+        log.info(
+            "Starting should_set_next_hearing_date_to_empty_if_dmn_evaluates_to_empty_when_executed_for_reconfigure: "
+                + "taskId={}, caseId={}",
+            taskId,
+            taskVariables.getCaseId()
+        );
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
             result.prettyPrint();
@@ -1025,6 +1032,14 @@ public class PostTaskExecuteReconfigureControllerTest {
             caseWorkerWithTribRole.getHeaders()
         );
 
+        log.info(
+            "Submitted execute-reconfigure for "
+                + "should_set_next_hearing_date_to_empty_if_dmn_evaluates_to_empty_when_executed_for_reconfigure: "
+                + "taskId={}, caseId={}",
+            taskId,
+            taskVariables.getCaseId()
+        );
+
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value());
 
@@ -1045,8 +1060,14 @@ public class PostTaskExecuteReconfigureControllerTest {
                 .and().body("task.id", equalTo(taskId))
                 .body("task.task_state", is("assigned"))
                 .body("task.reconfigure_request_time", nullValue())
-                .body("task.last_reconfiguration_time", notNullValue())
-                .body("task.next_hearing_date", nullValue());
+                .body("task.last_reconfiguration_time", notNullValue());
+
+            assertNull(
+                "Expected next_hearing_date to be null for test "
+                    + "should_set_next_hearing_date_to_empty_if_dmn_evaluates_to_empty_when_executed_for_reconfigure, "
+                    + "taskId=" + taskId + ", caseId=" + taskVariables.getCaseId(),
+                taskResult.path("task.next_hearing_date")
+            );
         });
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
         taskFunctionalTestsApiUtils.getCommon().clearAllRoleAssignments(assignerCredentials.getHeaders());
@@ -1069,6 +1090,12 @@ public class PostTaskExecuteReconfigureControllerTest {
                                         taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
         );
         String taskId = taskVariables.getTaskId();
+        log.info(
+            "Starting should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure: "
+                + "taskId={}, caseId={}",
+            taskId,
+            taskVariables.getCaseId()
+        );
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
             result.prettyPrint();
@@ -1119,6 +1146,14 @@ public class PostTaskExecuteReconfigureControllerTest {
                 OffsetDateTime.now().minus(Duration.ofDays(1))
             ),
             caseWorkerWithTribRole.getHeaders()
+        );
+
+        log.info(
+            "Submitted execute-reconfigure for "
+                + "should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure: "
+                + "taskId={}, caseId={}",
+            taskId,
+            taskVariables.getCaseId()
         );
 
         result.then().assertThat()
@@ -1404,8 +1439,14 @@ public class PostTaskExecuteReconfigureControllerTest {
                 .body("task.task_state", is("assigned"))
                 .body("task.reconfigure_request_time", nullValue())
                 .body("task.last_reconfiguration_time", notNullValue())
-                .body("task.additional_properties", nullValue())
-                .body("task.next_hearing_date", nullValue());
+                .body("task.additional_properties", nullValue());
+
+            assertNull(
+                "Expected next_hearing_date to be null for test "
+                    + "should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure, "
+                    + "taskId=" + taskId + ", caseId=" + taskVariables.getCaseId(),
+                taskResult.path("task.next_hearing_date")
+            );
         });
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
