@@ -294,7 +294,8 @@ class DmnEvaluationServiceTest {
     }
 
     @Test
-    void should_log_camunda_exception_details_when_task_types_evaluation_fails(CapturedOutput output) {
+    void should_log_camunda_exception_details_when_task_types_evaluation_fails() {
+        captureDmnEvaluationServiceLogs();
         FeignException exception = createFeignExceptionFor502();
         String jurisdiction = "ia-evaluation-error";
         doThrow(exception).when(camundaServiceApi).evaluateTaskTypesDmnTable(
@@ -306,7 +307,7 @@ class DmnEvaluationServiceTest {
         assertThatThrownBy(() -> dmnEvaluationService.evaluateTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX))
             .isInstanceOf(FeignException.BadRequest.class);
 
-        Assertions.assertThat(output.getAll())
+        Assertions.assertThat(capturedLogMessages())
             .contains("CamundaException type:decision-error message:missing input");
     }
 
