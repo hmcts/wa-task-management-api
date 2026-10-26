@@ -1091,7 +1091,8 @@ public class PostTaskExecuteReconfigureControllerTest {
         );
         String taskId = taskVariables.getTaskId();
         log.info(
-            "Starting should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure: "
+            "Starting should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_"
+                + "for_reconfigure: "
                 + "taskId={}, caseId={}",
             taskId,
             taskVariables.getCaseId()
@@ -1443,7 +1444,8 @@ public class PostTaskExecuteReconfigureControllerTest {
 
             assertNull(
                 "Expected next_hearing_date to be null for test "
-                    + "should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_for_reconfigure, "
+                    + "should_set_additional_properties_to_null_if_dmn_evaluates_to_empty_when_executed_"
+                    + "for_reconfigure, "
                     + "taskId=" + taskId + ", caseId=" + taskVariables.getCaseId(),
                 taskResult.path("task.next_hearing_date")
             );
