@@ -85,6 +85,7 @@ public class ConfigureTaskService {
             .getCaseRelatedConfiguration(taskResource.getCaseId(), taskAttributes, true);
 
         if (logReconfigurationDmnDetails) {
+            logReconfigurationDmnOutputNames(taskResource.getTaskId(), configurationVariables);
             logNextHearingDateDmnResult(taskResource.getTaskId(), configurationVariables);
             logReconfigurationFieldDmnResult(
                 taskResource.getTaskId(), "title", taskResource.getTitle(), configurationVariables);
@@ -165,6 +166,23 @@ public class ConfigureTaskService {
             return executionTypeResource.getExecutionCode();
         }
         return "present; value redacted (" + field + ")";
+    }
+
+    private static void logReconfigurationDmnOutputNames(
+        String taskId,
+        TaskConfigurationResults configurationVariables
+    ) {
+        List<ConfigurationDmnEvaluationResponse> responses = configurationVariables.getConfigurationDmnResponse();
+        if (responses == null) {
+            log.info("Reconfiguration DMN output names: taskId={}, response=null", taskId);
+            return;
+        }
+
+        List<String> names = responses.stream()
+            .map(response -> response.getName() == null || response.getName().getValue() == null
+                ? "<missing>" : response.getName().getValue())
+            .toList();
+        log.info("Reconfiguration DMN output names: taskId={}, names={}", taskId, names);
     }
 
     private static void logNextHearingDateDmnResult(String taskId,
