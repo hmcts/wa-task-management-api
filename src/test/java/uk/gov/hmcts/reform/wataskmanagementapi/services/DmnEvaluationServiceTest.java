@@ -275,7 +275,7 @@ class DmnEvaluationServiceTest {
         assertThatThrownBy(() -> dmnEvaluationService.evaluateTaskTypesDmn(jurisdiction, DMN_KEY_PREFIX))
             .isInstanceOf(FeignException.BadRequest.class);
 
-        Assertions.assertThat(output.getOut())
+        Assertions.assertThat(output.getAll())
             .contains("CamundaException type:decision-error message:missing input");
     }
 

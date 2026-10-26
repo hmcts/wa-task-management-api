@@ -207,7 +207,7 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.reconfigureCFTTask(taskResource);
 
-        assertThat(output.getOut())
+        assertThat(output.getAll())
             .contains("Reconfiguration DMN input: taskId=task-123, decisionTableKey=unavailable")
             .contains("next_hearing_date=2022-12-07T14:00Z")
             .contains("workTypeResource=hearing_work")
@@ -238,7 +238,7 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.reconfigureCFTTask(taskResource);
 
-        assertThat(output.getOut())
+        assertThat(output.getAll())
             .contains("decisionTableKey=wa-task-configuration-wa-wacasetype")
             .contains("Reconfiguration DMN nextHearingDate result: taskId=task-789, row=absent");
     }
@@ -266,7 +266,7 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.reconfigureCFTTask(taskResource);
 
-        assertThat(output.getOut())
+        assertThat(output.getAll())
             .contains("Reconfiguration DMN nextHearingDate result: taskId=task-321, value=null, canReconfigure=null")
             .contains("Reconfiguration DMN nextHearingDate result: taskId=task-321, "
                 + "value=2022-12-07T14:00:00Z, canReconfigure=true");
