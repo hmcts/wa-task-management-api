@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
@@ -37,7 +39,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.TaskState.CONFIGURED;
 
-@ExtendWith(OutputCaptureExtension.class)
 class ConfigureTaskServiceTest {
 
     private static final TaskToConfigure TASK_TO_CONFIGURE
@@ -53,6 +54,8 @@ class ConfigureTaskServiceTest {
     private TaskConfigurator taskVariableExtractor;
     private CFTTaskMapper cftTaskMapper;
     private CaseConfigurationProviderService caseConfigurationProviderService;
+    private Logger capturedLogger;
+    private ListAppender<ILoggingEvent> capturedLogs;
 
     @BeforeEach
     void setup() {
@@ -65,6 +68,28 @@ class ConfigureTaskServiceTest {
             cftTaskMapper
         );
 
+    }
+
+    @AfterEach
+    void detachCapturedLogs() {
+        if (capturedLogger != null && capturedLogs != null) {
+            capturedLogger.detachAppender(capturedLogs);
+            capturedLogs.stop();
+        }
+    }
+
+    private ListAppender<ILoggingEvent> captureConfigureTaskLogs() {
+        capturedLogger = (Logger) LoggerFactory.getLogger(ConfigureTaskService.class);
+        capturedLogs = new ListAppender<>();
+        capturedLogs.start();
+        capturedLogger.addAppender(capturedLogs);
+        return capturedLogs;
+    }
+
+    private String capturedLogMessages() {
+        return String.join("\n", capturedLogs.list.stream()
+            .map(ILoggingEvent::getFormattedMessage)
+            .toList());
     }
 
     @Test
@@ -173,7 +198,8 @@ class ConfigureTaskServiceTest {
     }
 
     @Test
-    void should_log_safe_reconfiguration_inputs_and_missing_dmn_response(CapturedOutput output) {
+    void should_log_safe_reconfiguration_inputs_and_missing_dmn_response() {
+        captureConfigureTaskLogs();
         ReflectionTestUtils.setField(configureTaskService, "logReconfigurationDmnDetails", true);
 
         TaskResource taskResource = mock(TaskResource.class);
@@ -207,7 +233,7 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.reconfigureCFTTask(taskResource);
 
-        assertThat(output.getAll())
+        assertThat(capturedLogMessages())
             .contains("Reconfiguration DMN input: taskId=task-123, decisionTableKey=unavailable")
             .contains("next_hearing_date=2022-12-07T14:00Z")
             .contains("workTypeResource=hearing_work")
@@ -221,7 +247,8 @@ class ConfigureTaskServiceTest {
     }
 
     @Test
-    void should_log_absent_hearing_date_row_and_decision_key(CapturedOutput output) {
+    void should_log_absent_hearing_date_row_and_decision_key() {
+        captureConfigureTaskLogs();
         ReflectionTestUtils.setField(configureTaskService, "logReconfigurationDmnDetails", true);
 
         TaskResource taskResource = mock(TaskResource.class);
@@ -238,13 +265,14 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.reconfigureCFTTask(taskResource);
 
-        assertThat(output.getAll())
+        assertThat(capturedLogMessages())
             .contains("decisionTableKey=wa-task-configuration-wa-wacasetype")
             .contains("Reconfiguration DMN nextHearingDate result: taskId=task-789, row=absent");
     }
 
     @Test
-    void should_log_hearing_date_dmn_values_and_reconfigure_flags(CapturedOutput output) {
+    void should_log_hearing_date_dmn_values_and_reconfigure_flags() {
+        captureConfigureTaskLogs();
         ReflectionTestUtils.setField(configureTaskService, "logReconfigurationDmnDetails", true);
 
         TaskResource taskResource = mock(TaskResource.class);
@@ -266,7 +294,7 @@ class ConfigureTaskServiceTest {
 
         configureTaskService.reconfigureCFTTask(taskResource);
 
-        assertThat(output.getAll())
+        assertThat(capturedLogMessages())
             .contains("Reconfiguration DMN nextHearingDate result: taskId=task-321, value=null, canReconfigure=null")
             .contains("Reconfiguration DMN nextHearingDate result: taskId=task-321, "
                 + "value=2022-12-07T14:00:00Z, canReconfigure=true");

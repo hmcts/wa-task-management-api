@@ -1,10 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -71,6 +76,9 @@ class DmnEvaluationServiceTest {
     @Mock
     private CamundaObjectMapper camundaObjectMapper;
 
+    private Logger capturedLogger;
+    private ListAppender<ILoggingEvent> capturedLogs;
+
     DmnRequest<DecisionTableRequest> dmnRequest = new DmnRequest<>();
     DmnEvaluationService dmnEvaluationService;
     Request request = Request.create(Request.HttpMethod.GET, "url",
@@ -90,6 +98,28 @@ class DmnEvaluationServiceTest {
                                      "fieldsToExcludeFromTrim", List.of("description", "title"));
         ReflectionTestUtils.setField(dmnEvaluationService,
                                      "dmnConfigFieldsWithInternalDefaults", List.of("title"));
+    }
+
+    @AfterEach
+    void detachCapturedLogs() {
+        if (capturedLogger != null && capturedLogs != null) {
+            capturedLogger.detachAppender(capturedLogs);
+            capturedLogs.stop();
+        }
+    }
+
+    private ListAppender<ILoggingEvent> captureDmnEvaluationServiceLogs() {
+        capturedLogger = (Logger) LoggerFactory.getLogger(DmnEvaluationService.class);
+        capturedLogs = new ListAppender<>();
+        capturedLogs.start();
+        capturedLogger.addAppender(capturedLogs);
+        return capturedLogs;
+    }
+
+    private String capturedLogMessages() {
+        return String.join("\n", capturedLogs.list.stream()
+            .map(ILoggingEvent::getFormattedMessage)
+            .toList());
     }
 
     @Test
@@ -221,7 +251,8 @@ class DmnEvaluationServiceTest {
     }
 
     @Test
-    void should_log_configuration_dmn_input_shapes_and_sanitized_error_response(CapturedOutput output) {
+    void should_log_configuration_dmn_input_shapes_and_sanitized_error_response() {
+        captureDmnEvaluationServiceLogs();
         ReflectionTestUtils.setField(dmnEvaluationService, "logDmnVariableShape", true);
         ReflectionTestUtils.setField(dmnEvaluationService, "logCamundaErrorResponse", true);
 
@@ -251,7 +282,7 @@ class DmnEvaluationServiceTest {
             .evaluateTaskConfigurationDmn("wa", "wacasetype", null, "[]"))
             .isInstanceOf(IllegalStateException.class);
 
-        Assertions.assertThat(output.getOut())
+        Assertions.assertThat(capturedLogMessages())
             .contains("caseData=object(keys=[field])")
             .contains("caseData=array(size=1)")
             .contains("caseData=String")
