@@ -86,6 +86,10 @@ public class ConfigureTaskService {
 
         if (logReconfigurationDmnDetails) {
             logNextHearingDateDmnResult(taskResource.getTaskId(), configurationVariables);
+            logReconfigurationFieldDmnResult(
+                taskResource.getTaskId(), "title", taskResource.getTitle(), configurationVariables);
+            logReconfigurationFieldDmnResult(
+                taskResource.getTaskId(), "roleCategory", taskResource.getRoleCategory(), configurationVariables);
         }
 
         TaskResource reconfiguredTask =
@@ -93,8 +97,12 @@ public class ConfigureTaskService {
 
         if (logReconfigurationDmnDetails) {
             log.info(
-                "Reconfiguration DMN applied: taskId={}, storedNextHearingDateAfter={}",
+                "Reconfiguration DMN applied: taskId={}, titleChanged={}, roleCategoryBefore={}, "
+                    + "roleCategoryAfter={}, storedNextHearingDateAfter={}",
                 taskResource.getTaskId(),
+                !java.util.Objects.equals(taskResource.getTitle(), reconfiguredTask.getTitle()),
+                taskResource.getRoleCategory(),
+                reconfiguredTask.getRoleCategory(),
                 reconfiguredTask.getNextHearingDate()
             );
         }
@@ -183,6 +191,54 @@ public class ConfigureTaskService {
             response.getValue() == null ? null : response.getValue().getValue(),
             response.getCanReconfigure() == null ? null : response.getCanReconfigure().getValue()
         ));
+    }
+
+    private static void logReconfigurationFieldDmnResult(
+        String taskId,
+        String fieldName,
+        String storedValue,
+        TaskConfigurationResults configurationVariables
+    ) {
+        List<ConfigurationDmnEvaluationResponse> responses = configurationVariables.getConfigurationDmnResponse();
+        if (responses == null) {
+            log.info("Reconfiguration DMN field result: taskId={}, field={}, response=null", taskId, fieldName);
+            return;
+        }
+
+        List<ConfigurationDmnEvaluationResponse> fieldResponses = responses.stream()
+            .filter(response -> response.getName() != null
+                && fieldName.equals(response.getName().getValue()))
+            .toList();
+
+        if (fieldResponses.isEmpty()) {
+            log.info("Reconfiguration DMN field result: taskId={}, field={}, row=absent", taskId, fieldName);
+            return;
+        }
+
+        fieldResponses.forEach(response -> {
+            Object value = response.getValue() == null ? null : response.getValue().getValue();
+            Boolean canReconfigure = response.getCanReconfigure() == null
+                ? null : response.getCanReconfigure().getValue();
+            if ("title".equals(fieldName)) {
+                log.info(
+                    "Reconfiguration DMN field result: taskId={}, field={}, valuePresent={}, "
+                        + "valueMatchesStored={}, canReconfigure={}",
+                    taskId,
+                    fieldName,
+                    value != null,
+                    java.util.Objects.equals(value, storedValue),
+                    canReconfigure
+                );
+            } else {
+                log.info(
+                    "Reconfiguration DMN field result: taskId={}, field={}, value={}, canReconfigure={}",
+                    taskId,
+                    fieldName,
+                    value,
+                    canReconfigure
+                );
+            }
+        });
     }
 
     private TaskConfigurationResults getConfigurationResults(TaskToConfigure task) {
