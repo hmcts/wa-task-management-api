@@ -10,7 +10,9 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
@@ -1409,6 +1411,27 @@ class CFTTaskMapperTest {
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
         assertThat(taskAttributes).size().isEqualTo(28);
+    }
+
+    @Test
+    void should_use_camel_case_for_reconfiguration_attributes_with_snake_case_object_mapper() {
+        ObjectMapper snakeCaseObjectMapper = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build();
+        CFTTaskMapper mapper = new CFTTaskMapper(snakeCaseObjectMapper);
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate.plusDays(1));
+        TaskResource taskResource = mapper.mapToTaskResource(
+            taskId,
+            getDefaultAttributesWithWorkType(formattedCreatedDate, formattedDueDate)
+        );
+
+        Map<String, Object> taskAttributes = mapper.getTaskAttributes(taskResource);
+
+        assertThat(taskAttributes)
+            .containsKeys("taskId", "taskType", "taskState", "caseManagementCategory", "workType")
+            .doesNotContainKeys("task_id", "task_type", "task_state", "case_management_category", "work_type");
     }
 
     @Test
