@@ -29,7 +29,9 @@ public class JacksonConfiguration {
 
         return JsonMapper.builder()
             .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-            .changeDefaultPropertyInclusion(value -> value.withValueInclusion(JsonInclude.Include.NON_ABSENT))
+            .changeDefaultPropertyInclusion(value -> value
+                .withValueInclusion(JsonInclude.Include.NON_ABSENT)
+                .withContentInclusion(JsonInclude.Include.NON_ABSENT))
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
             .enable(EnumFeature.READ_ENUMS_USING_TO_STRING)
