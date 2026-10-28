@@ -48,7 +48,7 @@ module "wa_task_management_api_database_flexible" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=DTSPO-30107-additional-postgres-admins"
+  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   product                    = var.product
   component                  = var.component
   name                       = "${var.postgres_db_component_name}-postgres-db-flexible"
@@ -60,9 +60,12 @@ module "wa_task_management_api_database_flexible" {
   action_group_name          = join("-", [local.db_name, var.action_group_name])
   email_address_key          = var.email_address_key
   email_address_key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  enable_write_group_access  = true
   pgsql_databases = [
     {
       name : var.postgresql_database_name
+      schemas_for_reader_access : ["cft_task_db"]
+      schemas_for_writer_access : ["cft_task_db"]
     }
   ]
   pgsql_server_configuration = [
@@ -101,7 +104,7 @@ module "wa_task_management_api_database_flexible_replica" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=DTSPO-30107-additional-postgres-admins"
+  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   product                    = var.product
   component                  = var.component
   name                       = "${var.postgres_db_component_name}-postgres-db-flexible-replica"
@@ -113,9 +116,13 @@ module "wa_task_management_api_database_flexible_replica" {
   action_group_name          = join("-", [local.db_name, var.action_group_name])
   email_address_key          = var.email_address_key
   email_address_key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  enable_write_group_access  = true
+
   pgsql_databases = [
     {
       name : var.postgresql_database_name
+      schemas_for_reader_access : ["cft_task_db"]
+      schemas_for_writer_access : ["cft_task_db"]
     }
   ]
 
