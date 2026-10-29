@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -101,16 +101,14 @@ class GetTaskByIdControllerTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
-    private UserInfo mockedUserInfo;
+    private UserInfo mockedUserInfo = Mockito.mock(UserInfo.class);
     @MockitoBean
     private IdamService idamService;
     @MockitoBean
     CcdDataServiceApi ccdDataServiceApi;
     @MockitoBean
     private ClientAccessControlService clientAccessControlService;
-    @Mock
-    private CaseDetails caseDetails;
+    private CaseDetails caseDetails = Mockito.mock(CaseDetails.class);
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
@@ -757,4 +755,3 @@ class GetTaskByIdControllerTest {
     }
 
 }
-

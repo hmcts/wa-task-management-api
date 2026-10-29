@@ -1,9 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,6 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 
@@ -38,9 +37,6 @@ class SearchRequestCustomDeserializerTest {
     private JsonParser jsonParser;
 
     @Mock
-    private ObjectMapper objectMapper;
-
-    @Mock
     private JsonNode searchNode;
     @Mock
     private JsonNode operatorNode;
@@ -52,35 +48,32 @@ class SearchRequestCustomDeserializerTest {
     void should_deserialize_boolean_operator() throws IOException {
         when(operatorNode.asText()).thenReturn("BOOLEAN");
         when(searchNode.get("operator")).thenReturn(operatorNode);
-        when(jsonParser.getCodec()).thenReturn(objectMapper);
-        when(objectMapper.readTree(jsonParser)).thenReturn(searchNode);
+        when(deserializationContext.readTree(jsonParser)).thenReturn(searchNode);
         SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer();
 
         deserializer.deserialize(jsonParser, deserializationContext);
 
-        verify(objectMapper, times(1)).treeToValue(searchNode, SearchParameterBoolean.class);
-        verify(objectMapper, never()).treeToValue(searchNode, SearchParameterList.class);
+        verify(deserializationContext, times(1)).readTreeAsValue(searchNode, SearchParameterBoolean.class);
+        verify(deserializationContext, never()).readTreeAsValue(searchNode, SearchParameterList.class);
     }
 
     @Test
     void should_deserialize_in_operator() throws IOException {
         when(operatorNode.asText()).thenReturn("IN");
         when(searchNode.get("operator")).thenReturn(operatorNode);
-        when(jsonParser.getCodec()).thenReturn(objectMapper);
-        when(objectMapper.readTree(jsonParser)).thenReturn(searchNode);
+        when(deserializationContext.readTree(jsonParser)).thenReturn(searchNode);
         SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer();
 
         deserializer.deserialize(jsonParser, deserializationContext);
 
-        verify(objectMapper, times(1)).treeToValue(searchNode, SearchParameterList.class);
-        verify(objectMapper, never()).treeToValue(searchNode, SearchParameterBoolean.class);
+        verify(deserializationContext, times(1)).readTreeAsValue(searchNode, SearchParameterList.class);
+        verify(deserializationContext, never()).readTreeAsValue(searchNode, SearchParameterBoolean.class);
     }
 
     @Test
     void should_throw_exception_when_operator_is_null() throws IOException {
         when(searchNode.get("operator")).thenReturn(null);
-        when(jsonParser.getCodec()).thenReturn(objectMapper);
-        when(objectMapper.readTree(jsonParser)).thenReturn(searchNode);
+        when(deserializationContext.readTree(jsonParser)).thenReturn(searchNode);
 
         SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer();
         assertThrows(BadRequestException.class, () -> deserializer.deserialize(jsonParser, deserializationContext));
@@ -90,8 +83,7 @@ class SearchRequestCustomDeserializerTest {
     void should_throw_exception_when_operator_is_invalid() throws IOException {
         lenient().when(operatorNode.asText()).thenReturn("NotValid");
         when(searchNode.get("operator")).thenReturn(operatorNode);
-        when(jsonParser.getCodec()).thenReturn(objectMapper);
-        when(objectMapper.readTree(jsonParser)).thenReturn(searchNode);
+        when(deserializationContext.readTree(jsonParser)).thenReturn(searchNode);
 
         SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer();
         assertThrows(BadRequestException.class, () -> deserializer.deserialize(jsonParser, deserializationContext));

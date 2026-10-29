@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -27,10 +29,16 @@ public class SearchTaskRequest {
         name = "search_parameters",
         description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one search_parameter element is required.")
+    @JsonProperty("search_parameters")
+    @JsonAlias("searchParameters")
     private List<@Valid SearchParameter<?>> searchParameters;
     @Schema(name = "sorting_parameters")
+    @JsonProperty("sorting_parameters")
+    @JsonAlias("sortingParameters")
     private List<SortingParameter> sortingParameters;
     @Schema(name = "request_context", allowableValues = "ALL_WORK, AVAILABLE_TASKS", example = "ALL_WORK")
+    @JsonProperty("request_context")
+    @JsonAlias("requestContext")
     private RequestContext requestContext;
 
     private SearchTaskRequest() {
