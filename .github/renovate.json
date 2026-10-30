@@ -1,4 +1,8 @@
 {
+  "timezone": "Europe/London",
+  "platformAutomerge": false,
+  "automergeSchedule": ["* 9-15 * * 1-5"],
+  "minimumReleaseAge": "30 days",
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "schedule": "after 7am and before 11am every weekday",
   "extends": [
@@ -20,10 +24,8 @@
       ]
     }
   ],
-  "automergeSchedule": "after 8:30am and before 10:30am Monday to Thursday",
   "prCreation": "not-pending",
   "automergeType": "pr",
-  "minimumReleaseAge": "30 days",
   "packageRules": [
     {
       "matchUpdateTypes": [
@@ -39,8 +41,7 @@
       ],
       "prPriority": 10,
       "automerge": false,
-      "groupName": "Terraform Upgrades",
-      "automergeSchedule": "after 8am and before 11am every fifth of Month"
+      "groupName": "Terraform Upgrades"
     },
     {
       "matchPackagePrefixes": [
@@ -53,8 +54,7 @@
       ],
       "prPriority": 80,
       "automerge": true,
-      "groupName": "Spring Upgrade - Non Major",
-      "automergeSchedule": "after 8am and before 11am every Tuesday"
+      "groupName": "Spring Upgrade - Non Major"
     },
     {
       "matchPackagePatterns": [
@@ -68,8 +68,7 @@
       ],
       "prPriority": 20,
       "automerge": true,
-      "groupName": "QA & Nightly Checks - Non Major",
-      "automergeSchedule": "after 8am and before 11am every first day of month"
+      "groupName": "QA & Nightly Checks - Non Major"
     },
     {
       "matchPackagePatterns": [
@@ -92,8 +91,7 @@
         "patch"
       ],
       "prPriority": 20,
-      "groupName": "Automated Checks - Non Major",
-      "automergeSchedule": "after 8am and before 11am every first day of month"
+      "groupName": "Automated Checks - Non Major"
     },
     {
       "matchPackagePrefixes": [
@@ -108,8 +106,7 @@
         "patch"
       ],
       "prPriority": 20,
-      "groupName": "Testing Dependencies - Non Major",
-      "automergeSchedule": "after 8am and before 11am every Monday"
+      "groupName": "Testing Dependencies - Non Major"
     }
   ]
 }
