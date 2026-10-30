@@ -25,7 +25,7 @@ import java.util.Map;
 @Slf4j
 @ContextConfiguration(classes = {CoreCaseDataConsumerApplication.class})
 @PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
-@PactFolder("pacts")
+@PactFolder("build/pacts")
 @SuppressWarnings("unchecked")
 public abstract class CcdConsumerTestBase extends SpringBootContractBaseTest {
 
