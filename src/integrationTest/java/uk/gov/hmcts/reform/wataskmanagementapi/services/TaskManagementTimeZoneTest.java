@@ -44,7 +44,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.ReplicaIntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequestMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue;
@@ -104,12 +103,17 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValu
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ASSIGNMENT_EXPIRY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -146,9 +150,6 @@ class TaskManagementTimeZoneTest {
     private IdamWebApi idamWebApi;
     @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-
-    @MockitoBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
@@ -473,8 +474,6 @@ class TaskManagementTimeZoneTest {
 
         String taskId = UUID.randomUUID().toString();
 
-        String initiationEndPoint = String.format("/task/%s/initiation", taskId);
-
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
@@ -501,6 +500,7 @@ class TaskManagementTimeZoneTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -526,9 +526,6 @@ class TaskManagementTimeZoneTest {
                 )
             ));
 
-        when(launchDarklyFeatureFlagProvider.getJsonValue(any(), any())).thenReturn(null);
-
-
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any(), any(), any()))
             .thenReturn(ResponseEntity.ok()
                 .header(TOTAL_RECORDS, "1")
@@ -552,19 +549,25 @@ class TaskManagementTimeZoneTest {
         String formattedAssignmentExpiry = CAMUNDA_DATA_TIME_FORMATTER.format(assignmentExpery);
         String formattedNextHearingDate = CAMUNDA_DATA_TIME_FORMATTER.format(nextHearingDate);
 
-
-        Map<String, Object> taskAttributes = Map.of(
-            TASK_TYPE.value(), "followUpOverdueReasonsForAppeal",
-            TASK_NAME.value(), "aTaskName",
-            TITLE.value(), "A test task",
-            CASE_ID.value(), "someCaseId",
-            DUE_DATE.value(), formattedDueDate,
-            CREATED.value(), formattedCreatedDate,
-            NEXT_HEARING_DATE.value(),formattedNextHearingDate,
-            ASSIGNMENT_EXPIRY.value(), formattedAssignmentExpiry
+        Map<String, Object> taskAttributes = Map.ofEntries(
+            Map.entry(TASK_TYPE.value(), "followUpOverdueReasonsForAppeal"),
+            Map.entry(TASK_NAME.value(), "aTaskName"),
+            Map.entry(TITLE.value(), "A test task"),
+            Map.entry(CASE_ID.value(), "someCaseId"),
+            Map.entry(DUE_DATE.value(), formattedDueDate),
+            Map.entry(CREATED.value(), formattedCreatedDate),
+            Map.entry(NEXT_HEARING_DATE.value(), formattedNextHearingDate),
+            Map.entry(ASSIGNMENT_EXPIRY.value(), formattedAssignmentExpiry),
+            Map.entry(REGION.value(), "1"),
+            Map.entry(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS"),
+            Map.entry(WORK_TYPE.value(), "decision_making_work"),
+            Map.entry("caseCategory", "Protection"),
+            Map.entry(CASE_NAME.value(), "someName"),
+            Map.entry(LOCATION.value(), "765324")
         );
 
         InitiateTaskRequestMap req = new InitiateTaskRequestMap(INITIATION, taskAttributes);
+        String initiationEndPoint = String.format("/task/%s/initiation", taskId);
 
         mockMvc
             .perform(post(initiationEndPoint)

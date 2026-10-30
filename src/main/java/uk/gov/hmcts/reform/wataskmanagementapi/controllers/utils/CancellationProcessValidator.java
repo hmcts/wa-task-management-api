@@ -3,9 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.utils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,8 +13,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class CancellationProcessValidator {
 
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     private static final List<String> VALID_CANCELLATION_PROCESS = Arrays.asList(
         "EXUI_USER_CANCELLATION",
         "CASE_EVENT_CANCELLATION"
@@ -25,24 +20,24 @@ public class CancellationProcessValidator {
 
     /**
      * Validates the cancellation process value.
-     * Validation logic:
-     *      * If the updateCancellationProcessFlagEnabled flag is disabled, the method logs an info message
-     *      * and returns an empty {@link Optional}.
-     *      * If the cancellation process is null, blank, or not in the list of valid completion processes,
-     *      * the method logs a warning and returns an empty {@link Optional}.
-     *      * If the cancellation process is valid, the method logs an info message and returns the cancellation process
-     *      * wrapped in an {@link Optional}.
-     *
+     * This method checks whether the provided `cancellationProcess` value is valid based on predefined criteria.
+     * The validation process includes:
+     * - Checking if the `cancellationProcess` is null, blank, or not part of the valid cancellation processes.
+     * - Logging appropriate messages based on the validation outcome.
+     * - Returning an `Optional` containing the valid `cancellationProcess` value, or an empty `Optional` if invalid.
+     * Validation steps:
+     * 1. If `cancellationProcess` is null, blank, or not in the list of valid cancellation processes:
+     *    - Logs a warning message indicating the invalid value and task ID.
+     *    - Returns an empty `Optional`.
+     * 2. If `cancellationProcess` is valid:
+     *    - Logs an info message indicating the valid value and task ID.
+     *    - Returns the `cancellationProcess` wrapped in an `Optional`.
      * @param cancellationProcess the cancellation process value to validate
      * @param taskId the task ID for logging purposes
-     * @return an Optional containing the valid completion process value, or empty if invalid.
+     * @return an `Optional` containing the valid cancellation process value, or empty if invalid
      */
-    public Optional<String> validate(String cancellationProcess, String taskId,
-                                     AccessControlResponse accessControlResponse) {
-        if (!isCancellationProcessFeatureEnabled(accessControlResponse)) {
-            log.info("Update cancellation process flag is disabled. No action taken for task with id {}", taskId);
-            return Optional.empty();
-        } else if (cancellationProcess == null || cancellationProcess.isBlank()
+    public Optional<String> validate(String cancellationProcess, String taskId) {
+        if (cancellationProcess == null || cancellationProcess.isBlank()
             || !VALID_CANCELLATION_PROCESS.contains(cancellationProcess)) {
             log.warn("Invalid CancellationProcess value: {} was received and no action was taken for task with id {}",
                      cancellationProcess, taskId);
@@ -52,19 +47,5 @@ public class CancellationProcessValidator {
                      cancellationProcess, taskId);
             return Optional.of(cancellationProcess);
         }
-    }
-
-    /**
-     * Checks if the cancellation process feature is enabled for the user.
-     *
-     * @param accessControlResponse the access control response containing user details
-     * @return true if the feature is enabled, false otherwise
-     */
-    public boolean isCancellationProcessFeatureEnabled(AccessControlResponse accessControlResponse) {
-        return launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.WA_CANCELLATION_PROCESS_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
     }
 }

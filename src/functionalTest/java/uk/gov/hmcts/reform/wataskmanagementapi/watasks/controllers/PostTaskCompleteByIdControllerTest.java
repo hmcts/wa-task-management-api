@@ -45,8 +45,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestCo
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.ROLE_ASSIGNMENT_VERIFICATION_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_CFT_ORG_ROLES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_DISABLED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_COMPLETION_ENABLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES2;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskFunctionalTestConstants.USER_WITH_WA_ORG_ROLES3;
@@ -84,8 +82,6 @@ public class PostTaskCompleteByIdControllerTest {
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles;
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles2;
     TestAuthenticationCredentials caseWorkerWithWAOrgRoles3;
-    TestAuthenticationCredentials caseWorkerWithCompletionEnabled;
-    TestAuthenticationCredentials caseWorkerWithCompletionDisabled;
     TestAuthenticationCredentials caseWorkerWithCftOrgRoles;
     TestAuthenticationCredentials userWithCaseManagerRole;
     TestAuthenticationCredentials userWithCaseManagerRole2;
@@ -95,10 +91,6 @@ public class PostTaskCompleteByIdControllerTest {
         caseWorkerWithWAOrgRoles = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES);
         caseWorkerWithWAOrgRoles2 = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES2);
         caseWorkerWithWAOrgRoles3 = taskFunctionalTestsUserUtils.getTestUser(USER_WITH_WA_ORG_ROLES3);
-        caseWorkerWithCompletionEnabled = taskFunctionalTestsUserUtils.getTestUser(
-            USER_WITH_COMPLETION_ENABLED);
-        caseWorkerWithCompletionDisabled = taskFunctionalTestsUserUtils.getTestUser(
-            USER_WITH_COMPLETION_DISABLED);
         caseWorkerWithCftOrgRoles = taskFunctionalTestsUserUtils.getTestUser(
             USER_WITH_CFT_ORG_ROLES);
         userWithCaseManagerRole = taskFunctionalTestsUserUtils.getTestUser(
@@ -159,15 +151,15 @@ public class PostTaskCompleteByIdControllerTest {
             taskId = taskVariables.getTaskId();
             taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
             taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", null, caseWorkerWithCompletionEnabled.getHeaders()
+                taskId, "termination_process", null, caseWorkerWithCftOrgRoles.getHeaders()
             );
             Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 CLAIM_ENDPOINT,
                 taskId,
-                caseWorkerWithCompletionEnabled.getHeaders()
+                caseWorkerWithCftOrgRoles.getHeaders()
             );
             taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", null, caseWorkerWithCompletionEnabled.getHeaders()
+                taskId, "termination_process", null, caseWorkerWithCftOrgRoles.getHeaders()
             );
             result.then().assertThat()
                 .statusCode(HttpStatus.NO_CONTENT.value());
@@ -175,7 +167,7 @@ public class PostTaskCompleteByIdControllerTest {
             result = taskFunctionalTestsApiUtils.getRestApiActions().post(
                 ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
                 taskId,
-                caseWorkerWithCompletionEnabled.getHeaders()
+                caseWorkerWithCftOrgRoles.getHeaders()
             );
 
             result.then().assertThat()
@@ -188,7 +180,7 @@ public class PostTaskCompleteByIdControllerTest {
                 "/task/{task-id}",
                 taskId,
                 terminateTaskRequest,
-                caseWorkerWithCompletionEnabled.getHeaders()
+                caseWorkerWithCftOrgRoles.getHeaders()
             );
 
             result.then().assertThat()
@@ -196,63 +188,10 @@ public class PostTaskCompleteByIdControllerTest {
             String terminationProcess = data[1];
 
             taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", terminationProcess, caseWorkerWithCompletionEnabled.getHeaders()
+                taskId, "termination_process", terminationProcess, caseWorkerWithCftOrgRoles.getHeaders()
             );
             taskFunctionalTestsApiUtils.getAssertions().taskStateWasUpdatedInDatabase(
-                taskId, "terminated", caseWorkerWithCompletionEnabled.getHeaders());
-
-            taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
-        }
-    }
-
-    @Test
-    public void should_return_a_204_when_completing_a_task_by_id_and_null_termination_process_when_flag_disabled() {
-        String[][] testData = {
-            {"EXUI_USER_COMPLETION", "EXUI_USER_COMPLETION"},
-            {"EXUI_CASE-EVENT_COMPLETION", "EXUI_CASE-EVENT_COMPLETION"},
-            {"INVALID_VALUE", null},
-            {null, null},
-            {"", null}
-        };
-
-        for (String[] data : testData) {
-
-            TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "Process Application");
-            taskId = taskVariables.getTaskId();
-
-            taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
-            taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", null, caseWorkerWithCompletionDisabled.getHeaders()
-            );
-            Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
-                CLAIM_ENDPOINT,
-                taskId,
-                caseWorkerWithCompletionDisabled.getHeaders()
-            );
-            taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", null, caseWorkerWithCompletionDisabled.getHeaders()
-            );
-            result.then().assertThat()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-            String completionProcess = data[0];
-            String terminationProcess = data[1];
-            log.info("caseWorkerWithCompletionDisabled headers: {}", caseWorkerWithCompletionDisabled.getHeaders());
-            result = taskFunctionalTestsApiUtils.getRestApiActions().post(
-                ENDPOINT_BEING_TESTED + "?completion_process=" + completionProcess,
-                taskId,
-                caseWorkerWithCompletionDisabled.getHeaders()
-            );
-
-            result.then().assertThat()
-                .statusCode(HttpStatus.NO_CONTENT.value());
-
-            taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
-                taskId, "termination_process", null, caseWorkerWithCompletionDisabled.getHeaders()
-            );
-            taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
-                taskVariables.getProcessInstanceId(), "taskState", "completed");
-            taskFunctionalTestsApiUtils.getAssertions().taskStateWasUpdatedInDatabase(
-                taskId, "completed", caseWorkerWithCompletionDisabled.getHeaders());
+                taskId, "terminated", caseWorkerWithCftOrgRoles.getHeaders());
 
             taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
         }

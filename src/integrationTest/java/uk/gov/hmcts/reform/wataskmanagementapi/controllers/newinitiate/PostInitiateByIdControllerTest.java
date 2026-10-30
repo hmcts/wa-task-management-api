@@ -216,6 +216,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -424,6 +425,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -611,6 +613,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -734,7 +737,8 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"),
                                                        stringValue("Protection")),
-                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("incorrectAssignee"))
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("incorrectAssignee")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS"))
             ));
 
         when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
@@ -855,6 +859,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -976,6 +981,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -1089,6 +1095,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -1176,6 +1183,7 @@ class PostInitiateByIdControllerTest {
                 jsonPath("$.region").value("1"),
                 jsonPath("$.location").value("765324"),
                 jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.role_category").value("LEGAL_OPERATIONS"),
                 jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
                 jsonPath("$.execution_type_code.execution_name")
                     .value("Case Management Task"),
@@ -1206,6 +1214,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -1339,6 +1348,7 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
                 new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -1605,7 +1615,8 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"),
                                                        stringValue("Protection")),
                 new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_1")),
-                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_2"))
+                new ConfigurationDmnEvaluationResponse(stringValue("assignee"), stringValue("assignee_2")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS"))
             ));
 
         when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
@@ -1765,7 +1776,12 @@ class PostInitiateByIdControllerTest {
                                                        stringValue(" description1, description 2 ")),
                 new ConfigurationDmnEvaluationResponse(stringValue("title"), stringValue("title1, title2")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"),
-                                                       stringValue("location 1, location 2"))
+                                                       stringValue("location 1, location 2")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
         when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
@@ -1905,7 +1921,7 @@ class PostInitiateByIdControllerTest {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
-        when(caseDetails.getCaseType()).thenReturn("");
+        when(caseDetails.getCaseType()).thenReturn("caseType");
         when(caseDetails.getJurisdiction()).thenReturn("IA");
         when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
 
@@ -1917,7 +1933,15 @@ class PostInitiateByIdControllerTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName1, someName2")),
                 new ConfigurationDmnEvaluationResponse(stringValue("title"),
                                                        dmnEvaluatedTitleValue == null ? null
-                                                           : stringValue(dmnEvaluatedTitleValue))
+                                                           : stringValue(dmnEvaluatedTitleValue)),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+
             )));
 
         when(camundaServiceApi.evaluatePermissionsDmnTable(any(), any(), any(), any()))
@@ -1985,6 +2009,7 @@ class PostInitiateByIdControllerTest {
             new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
             new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
             new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+            new ConfigurationDmnEvaluationResponse(stringValue("roleCategory"), stringValue("LEGAL_OPERATIONS")),
             new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
         ));
 

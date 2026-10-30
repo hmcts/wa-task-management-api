@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.operation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.TaskOperationResponse;
@@ -39,7 +40,8 @@ public class UpdateSearchIndexService implements TaskOperationPerformService {
             taskToReIndexed.forEach(t -> {
                 log.info("Update search index for task-id {}", t.getTaskId());
                 Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
-                    .findByIdAndWaitAndObtainPessimisticWriteLock(t.getTaskId());
+                    .findByIdAndStateInObtainPessimisticWriteLock(
+                        t.getTaskId(), List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
                 if (optionalTaskResource.isPresent()) {
                     TaskResource taskResource = optionalTaskResource.get();
