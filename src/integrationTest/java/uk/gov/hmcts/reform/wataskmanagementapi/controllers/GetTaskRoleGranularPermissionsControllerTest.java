@@ -4,9 +4,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -78,9 +78,7 @@ class GetTaskRoleGranularPermissionsControllerTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
-    private UserInfo mockedUserInfo;
-    @Mock
+    private UserInfo mockedUserInfo = Mockito.mock(UserInfo.class);
     private ServiceMocks mockServices;
     @Autowired
     protected MockMvc mockMvc;

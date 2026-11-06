@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import uk.gov.hmcts.reform.idam.client.IdamApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamServiceApi;
 
@@ -26,6 +27,7 @@ public class IntegrationIdamMockitoConfig {
         "uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi";
     private static final String IDAM_SERVICE_API_BEAN =
         "uk.gov.hmcts.reform.wataskmanagementapi.services.IdamServiceApi";
+    private static final String IDAM_API_BEAN = "uk.gov.hmcts.reform.idam.client.IdamApi";
 
     @Bean
     static BeanDefinitionRegistryPostProcessor idamFeignOverridePostProcessor() {
@@ -37,6 +39,9 @@ public class IntegrationIdamMockitoConfig {
                 }
                 if (registry.containsBeanDefinition(IDAM_SERVICE_API_BEAN)) {
                     registry.getBeanDefinition(IDAM_SERVICE_API_BEAN).setPrimary(false);
+                }
+                if (registry.containsBeanDefinition(IDAM_API_BEAN)) {
+                    registry.getBeanDefinition(IDAM_API_BEAN).setPrimary(false);
                 }
             }
 
@@ -53,6 +58,12 @@ public class IntegrationIdamMockitoConfig {
     @Primary
     public IdamWebApi idamWebApi() {
         return Mockito.mock(IdamWebApi.class);
+    }
+
+    @Bean
+    @Primary
+    public IdamApi idamApi() {
+        return Mockito.mock(IdamApi.class);
     }
 
     @Bean

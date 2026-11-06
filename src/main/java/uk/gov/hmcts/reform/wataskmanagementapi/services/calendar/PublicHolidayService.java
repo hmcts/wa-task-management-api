@@ -1,28 +1,27 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 
 import feign.Feign;
-import feign.codec.Decoder;
-import feign.codec.Encoder;
+import feign.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.BankHolidaysApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.SnakeCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
 
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-@Import(SnakeCaseFeignConfiguration.class)
 public class PublicHolidayService {
 
-    private final Decoder feignDecoder;
-    private final Encoder feignEncoder;
+    private final JsonMapper objectMapper;
 
-    public PublicHolidayService(Decoder feignDecoder, Encoder feignEncoder) {
-        this.feignDecoder = feignDecoder;
-        this.feignEncoder = feignEncoder;
+    public PublicHolidayService(JsonMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     @Cacheable(value = "calendar_cache", key = "#uri", sync = true, cacheManager = "calendarCacheManager")
@@ -33,8 +32,17 @@ public class PublicHolidayService {
 
     private BankHolidaysApi bankHolidaysApi(String uri) {
         return Feign.builder()
-            .decoder(feignDecoder)
-            .encoder(feignEncoder)
+            .decoder(this::decodeResponse)
             .target(BankHolidaysApi.class, uri);
+    }
+
+    private Object decodeResponse(Response response, Type type) throws IOException {
+        if (response.body() == null) {
+            return null;
+        }
+
+        try (InputStream body = response.body().asInputStream()) {
+            return objectMapper.readValue(body, objectMapper.constructType(type));
+        }
     }
 }

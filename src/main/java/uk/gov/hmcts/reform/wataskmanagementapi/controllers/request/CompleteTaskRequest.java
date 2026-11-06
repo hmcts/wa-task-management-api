@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -15,10 +17,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 public class CompleteTaskRequest {
 
     @Schema(name = "completion_options")
+    @JsonProperty("completion_options")
+    @JsonAlias("completionOptions")
     private final CompletionOptions completionOptions;
 
     @JsonCreator
-    public CompleteTaskRequest(CompletionOptions completionOptions) {
+    public CompleteTaskRequest(
+        @JsonProperty("completion_options") @JsonAlias("completionOptions") CompletionOptions completionOptions
+    ) {
         this.completionOptions = completionOptions;
     }
 

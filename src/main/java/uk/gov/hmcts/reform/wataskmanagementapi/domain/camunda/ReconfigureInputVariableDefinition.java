@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TerminationProcess;
 
@@ -17,6 +19,7 @@ import java.util.Map;
 @ToString
 @Getter
 @JsonIgnoreProperties
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy.class)
 @SuppressWarnings({"PMD.TooManyFields"})
 public class ReconfigureInputVariableDefinition {
     private String taskId;

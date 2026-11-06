@@ -1,16 +1,18 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
@@ -763,11 +765,10 @@ class CFTTaskMapperTest {
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(InvalidFormatException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
-                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
-            .hasCauseInstanceOf(InvalidFormatException.class);
+                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]");
 
     }
 
@@ -785,13 +786,12 @@ class CFTTaskMapperTest {
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(InvalidFormatException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
                 + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.SecurityClassification` "
                 + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                + "[PUBLIC, RESTRICTED, PRIVATE]")
-            .hasCauseInstanceOf(InvalidFormatException.class);
+                + "[PUBLIC, RESTRICTED, PRIVATE]");
 
     }
 
@@ -812,7 +812,7 @@ class CFTTaskMapperTest {
             .mapConfigurationAttributes(skeletonTask, new TaskConfigurationResults(mappedValues)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Additional Properties mapping issue.")
-            .hasCauseInstanceOf(JsonParseException.class);
+            .hasCauseInstanceOf(StreamReadException.class);
     }
 
     @Test
@@ -1411,6 +1411,27 @@ class CFTTaskMapperTest {
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
         assertThat(taskAttributes).size().isEqualTo(28);
+    }
+
+    @Test
+    void should_use_camel_case_for_reconfiguration_attributes_with_snake_case_object_mapper() {
+        ObjectMapper snakeCaseObjectMapper = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build();
+        CFTTaskMapper mapper = new CFTTaskMapper(snakeCaseObjectMapper);
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate.plusDays(1));
+        TaskResource taskResource = mapper.mapToTaskResource(
+            taskId,
+            getDefaultAttributesWithWorkType(formattedCreatedDate, formattedDueDate)
+        );
+
+        Map<String, Object> taskAttributes = mapper.getTaskAttributes(taskResource);
+
+        assertThat(taskAttributes)
+            .containsKeys("taskId", "taskType", "taskState", "caseManagementCategory", "workType")
+            .doesNotContainKeys("task_id", "task_type", "task_state", "case_management_category", "work_type");
     }
 
     @Test
@@ -2898,7 +2919,7 @@ class CFTTaskMapperTest {
     private String writeValueAsString(Map<String, String> data) {
         try {
             return objectMapper.writeValueAsString(data);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(e);
         }
     }

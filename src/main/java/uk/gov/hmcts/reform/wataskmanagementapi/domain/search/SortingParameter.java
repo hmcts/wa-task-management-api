@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.search;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -20,12 +22,16 @@ public class SortingParameter {
                           + "case_category, caseId, case_id, caseName, case_name, nextHearingDate, next_hearing_date",
         description = "Support snake_case and camelCase values",
         example = "due_date")
+    @JsonProperty("sort_by")
+    @JsonAlias("sortBy")
     private final SortField sortBy;
     @Schema(
         requiredMode = REQUIRED,
         name = "sort_order",
         allowableValues = "asc, desc",
         example = "asc")
+    @JsonProperty("sort_order")
+    @JsonAlias("sortOrder")
     private final SortOrder sortOrder;
 
     public SortingParameter(SortField sortBy, SortOrder sortOrder) {

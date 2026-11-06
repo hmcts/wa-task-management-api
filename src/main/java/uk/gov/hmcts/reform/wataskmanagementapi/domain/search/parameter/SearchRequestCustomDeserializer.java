@@ -1,18 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter;
 
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import org.springframework.boot.jackson.JsonComponent;
+import org.springframework.boot.jackson.JacksonComponent;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 
-import java.io.IOException;
-
-@JsonComponent
+@JacksonComponent
 @SuppressWarnings({"PMD.LawOfDemeter"})
 public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParameter<?>> {
 
@@ -26,14 +23,16 @@ public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParam
     }
 
     public SearchRequestCustomDeserializer(final Class<?> cls) {
-        super(cls);
+        // Jackson 2 tolerated a null handled type; Jackson 3 rejects it.
+        // Keep the no-argument Spring/Jackson component constructor valid while
+        // still retaining the explicit constructor for callers that provide a type.
+        super(cls == null ? SearchParameter.class : cls);
     }
 
     @Override
-    public SearchParameter<?> deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException {
+    public SearchParameter<?> deserialize(JsonParser jsonParser, DeserializationContext ctxt) {
 
-        final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-        final JsonNode searchNode = mapper.readTree(jsonParser);
+        final JsonNode searchNode = ctxt.readTree(jsonParser);
 
         final JsonNode operatorNode = searchNode.get("operator");
 
@@ -42,9 +41,9 @@ public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParam
         }
 
         if (SearchOperator.BOOLEAN.getValue().equals(operatorNode.asText())) {
-            return mapper.treeToValue(searchNode, SearchParameterBoolean.class);
+            return ctxt.readTreeAsValue(searchNode, SearchParameterBoolean.class);
         } else if (SearchOperator.IN.getValue().equals(operatorNode.asText())) {
-            return mapper.treeToValue(searchNode, SearchParameterList.class);
+            return ctxt.readTreeAsValue(searchNode, SearchParameterList.class);
         } else {
             throw new BadRequestException(ERROR_MESSAGE);
         }

@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -246,22 +247,28 @@ class CFTTaskDatabaseServiceTest {
     @Test
     void should_return_task_resource_by_specification() {
         TaskResource taskResource = spy(TaskResource.class);
-        Mockito.when(taskResourceRepository.findOne(any())).thenReturn(Optional.of(taskResource));
+        Specification<TaskResource> specification = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        Mockito.when(taskResourceRepository.findOne(any(Specification.class))).thenReturn(Optional.of(taskResource));
 
-        final Optional<TaskResource> taskBySpecification = cftTaskDatabaseService.findTaskBySpecification(any());
+        final Optional<TaskResource> taskBySpecification = cftTaskDatabaseService.findTaskBySpecification(
+            specification
+        );
 
         assertNotNull(taskBySpecification);
-        verify(taskResourceRepository, times(1)).findOne(any());
+        verify(taskResourceRepository, times(1)).findOne(any(Specification.class));
     }
 
     @Test
     void should_return_empty_task_resource_by_specification() {
-        Mockito.when(taskResourceRepository.findOne(any())).thenReturn(Optional.empty());
+        Specification<TaskResource> specification = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        Mockito.when(taskResourceRepository.findOne(any(Specification.class))).thenReturn(Optional.empty());
 
-        final Optional<TaskResource> taskBySpecification = cftTaskDatabaseService.findTaskBySpecification(any());
+        final Optional<TaskResource> taskBySpecification = cftTaskDatabaseService.findTaskBySpecification(
+            specification
+        );
 
         assertTrue(taskBySpecification.isEmpty());
-        verify(taskResourceRepository, times(1)).findOne(any());
+        verify(taskResourceRepository, times(1)).findOne(any(Specification.class));
     }
 
     @Test

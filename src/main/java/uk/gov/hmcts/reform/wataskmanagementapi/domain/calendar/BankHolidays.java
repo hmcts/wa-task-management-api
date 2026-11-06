@@ -27,7 +27,16 @@ public class BankHolidays {
         @JsonProperty("date")
         String date;
         @JsonProperty("working_day")
-        boolean workingDay;
+        Boolean workingDay;
+
+        /**
+         * The public holiday feed can contain a null working_day value.
+         * Jackson 2 treated that as false when binding to a primitive; keep
+         * that behaviour explicit under Jackson 3.
+         */
+        public boolean isWorkingDay() {
+            return Boolean.TRUE.equals(workingDay);
+        }
 
         @Override
         public boolean equals(Object object) {
