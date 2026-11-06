@@ -89,11 +89,11 @@ class SecurityConfigurationMatcherTest {
     }
 
     @RestController
-    static class TaskInitiationController {
+    public static class TaskInitiationController {
 
         @PostMapping("/task/{taskId}/initiation")
         @ResponseStatus(HttpStatus.NO_CONTENT)
-        void initiate(@PathVariable("taskId") String taskId) {
+        public void initiate(@PathVariable("taskId") String taskId) {
             // An empty handler lets the test distinguish a permitted request from an unauthorized one.
         }
     }
