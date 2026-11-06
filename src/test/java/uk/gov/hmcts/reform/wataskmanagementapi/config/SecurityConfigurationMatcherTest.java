@@ -64,6 +64,11 @@ class SecurityConfigurationMatcherTest {
         SystemDateProvider systemDateProvider() {
             return mock(SystemDateProvider.class);
         }
+
+        @Bean
+        LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider() {
+            return mock(LaunchDarklyFeatureFlagProvider.class);
+        }
     }
 
     @RestController
