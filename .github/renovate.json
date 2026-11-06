@@ -1,7 +1,6 @@
 {
   "timezone": "Europe/London",
   "platformAutomerge": false,
-  "automergeSchedule": ["* 9-15 * * 1-5"],
   "minimumReleaseAge": "30 days",
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "schedule": "after 7am and before 11am every weekday",
