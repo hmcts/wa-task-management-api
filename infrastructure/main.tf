@@ -84,6 +84,17 @@ module "wa_task_management_api_database_flexible" {
     {
       name  = "work_mem"
       value = "8192"
+    },
+    // Copies the logical replication slot (main_slot_v1) to the HA standby so a failover does not drop it.
+    // This value replaces the server's list, so the Azure defaults (pg_cron, pg_stat_statements) are restated.
+    {
+      name  = "shared_preload_libraries"
+      value = "pg_cron,pg_stat_statements,pg_failover_slots"
+    },
+    // Required by pg_failover_slots.
+    {
+      name  = "hot_standby_feedback"
+      value = "on"
     }
   ]
 
@@ -134,6 +145,12 @@ module "wa_task_management_api_database_flexible_replica" {
     {
       name  = "backslash_quote"
       value = "on"
+    },
+    // The default of 8 ran out ("out of background worker slots"). The pool is shared by the
+    // logical replication apply worker, parallel query workers and pg_cron.
+    {
+      name  = "max_worker_processes"
+      value = "16"
     }
   ]
 
