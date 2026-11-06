@@ -64,10 +64,9 @@ public class SecurityConfiguration {
             .logout(logout -> logout.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/task-configuration/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/*").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/*/initiation").permitAll()
-                .requestMatchers(HttpMethod.POST, "/task/*/notes").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/task/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/task/{taskId}/initiation").permitAll()
+                .requestMatchers(HttpMethod.POST, "/task/{taskId}/notes").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/task/{taskId}").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
