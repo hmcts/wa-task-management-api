@@ -10,12 +10,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
@@ -27,7 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = SecurityConfigurationMatcherTest.TaskInitiationController.class, properties = {
+@WebMvcTest(controllers = SecurityConfigurationTaskInitiationTestController.class, properties = {
     "spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost/jwks"
 })
 @Import({SecurityConfiguration.class, IdamSecurityProperties.class, SecurityConfigurationMatcherTest.TestConfig.class})
@@ -85,16 +80,6 @@ class SecurityConfigurationMatcherTest {
         @Bean
         LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider() {
             return mock(LaunchDarklyFeatureFlagProvider.class);
-        }
-    }
-
-    @RestController
-    public static class TaskInitiationController {
-
-        @PostMapping("/task/{taskId}/initiation")
-        @ResponseStatus(HttpStatus.NO_CONTENT)
-        public void initiate(@PathVariable("taskId") String taskId) {
-            // An empty handler lets the test distinguish a permitted request from an unauthorized one.
         }
     }
 }
