@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+
+import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -61,7 +64,7 @@ class SecurityConfigurationMatcherTest {
     static class TestConfig {
 
         @Bean
-        ServiceAuthFilter serviceAuthFilter() {
+        ServiceAuthFilter serviceAuthFilter() throws IOException, ServletException {
             ServiceAuthFilter serviceAuthFilter = mock(ServiceAuthFilter.class);
             doAnswer(invocation -> {
                 ServletRequest request = invocation.getArgument(0);
