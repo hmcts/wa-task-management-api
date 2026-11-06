@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -15,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -57,7 +62,16 @@ class SecurityConfigurationMatcherTest {
 
         @Bean
         ServiceAuthFilter serviceAuthFilter() {
-            return mock(ServiceAuthFilter.class);
+            ServiceAuthFilter serviceAuthFilter = mock(ServiceAuthFilter.class);
+            doAnswer(invocation -> {
+                ServletRequest request = invocation.getArgument(0);
+                ServletResponse response = invocation.getArgument(1);
+                FilterChain filterChain = invocation.getArgument(2);
+                filterChain.doFilter(request, response);
+                return null;
+            }).when(serviceAuthFilter).doFilter(
+                any(ServletRequest.class), any(ServletResponse.class), any(FilterChain.class));
+            return serviceAuthFilter;
         }
 
         @Bean
