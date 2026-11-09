@@ -84,17 +84,6 @@ module "wa_task_management_api_database_flexible" {
     {
       name  = "work_mem"
       value = "8192"
-    },
-    // Add failover slots as suggested by Microsoft
-    // This value replaces the server's list, so the Azure defaults (pg_cron, pg_stat_statements) are restated.
-    {
-      name  = "shared_preload_libraries"
-      value = "pg_cron,pg_stat_statements,pg_failover_slots"
-    },
-    // Required by pg_failover_slots.
-    {
-      name  = "hot_standby_feedback"
-      value = "on"
     }
   ]
 
@@ -145,11 +134,6 @@ module "wa_task_management_api_database_flexible_replica" {
     {
       name  = "backslash_quote"
       value = "on"
-    },
-    // Update max worker processes numbers to enable faster replication
-    {
-      name  = "max_worker_processes"
-      value = "16"
     }
   ]
 
