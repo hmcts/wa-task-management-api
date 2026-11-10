@@ -95,6 +95,11 @@ module "wa_task_management_api_database_flexible" {
     {
       name  = "hot_standby_feedback"
       value = "on"
+    },
+    // Update max worker processes numbers to enable faster replication
+    {
+      name  = "max_worker_processes"
+      value = "16"
     }
   ]
 
