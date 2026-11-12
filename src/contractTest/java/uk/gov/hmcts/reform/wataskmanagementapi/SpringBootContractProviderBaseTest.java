@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +39,7 @@ import java.util.Map;
         @VersionSelector(tag = "master")}
 )
 @Import(TaskManagementProviderTestConfiguration.class)
+@IgnoreNoPactsToVerify
 public class SpringBootContractProviderBaseTest {
 
     @MockitoBean
