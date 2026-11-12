@@ -547,7 +547,7 @@ task contract(type: Test) {
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
   jvmArgs = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
-  // All 24 Pact-producing classes are under a consumer package, including task configuration.
+  // All Pact-producing classes are under a consumer package, including task configuration.
   include '**/consumer/**'
   systemProperty 'pact.rootDir', file('build/pacts').absolutePath
   outputs.dir layout.buildDirectory.dir('pacts')
