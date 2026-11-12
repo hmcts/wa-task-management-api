@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,9 @@ import java.util.Optional;
 @Builder
 @EqualsAndHashCode
 @ToString
-public class RoleAssignment {
+public class RoleAssignment implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String id;
     private ActorIdType actorIdType;
@@ -147,6 +151,68 @@ public class RoleAssignment {
 
     public List<String> getAuthorisations() {
         return authorisations;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @JsonProperty("actorIdType")
+    public void setActorIdType(ActorIdType actorIdType) {
+        this.actorIdType = actorIdType;
+    }
+
+    @JsonProperty("actorId")
+    public void setActorId(String actorId) {
+        this.actorId = actorId;
+    }
+
+    @JsonProperty("roleType")
+    public void setRoleType(RoleType roleType) {
+        this.roleType = roleType;
+    }
+
+    @JsonProperty("roleName")
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public void setClassification(Classification classification) {
+        this.classification = classification;
+    }
+
+    @JsonProperty("grantType")
+    public void setGrantType(GrantType grantType) {
+        this.grantType = grantType;
+    }
+
+    @JsonProperty("roleCategory")
+    public void setRoleCategory(RoleCategory roleCategory) {
+        this.roleCategory = roleCategory;
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
+    public void setBeginTime(OffsetDateTime beginTime) {
+        this.beginTime = beginTime;
+    }
+
+    public void setEndTime(OffsetDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
+
+    public void setAuthorisations(List<String> authorisations) {
+        this.authorisations = authorisations;
     }
 
 }

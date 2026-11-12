@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.launchdarkly.shaded.com.google.common.base.CaseFormat;
 import feign.FeignException;
 import jakarta.validation.ConstraintViolationException;
@@ -22,6 +19,9 @@ import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.spring.web.advice.validation.ValidationAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import org.zalando.problem.violations.Violation;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.exc.MismatchedInputException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
@@ -232,18 +232,18 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
     private String extractErrors(HttpMessageNotReadableException exception) {
         Throwable cause = exception.getCause();
 
-        if (cause instanceof JsonParseException jpe) {
+        if (cause instanceof StreamReadException jpe) {
             return handleJsonParseException(jpe);
         } else if (cause instanceof MismatchedInputException mie) {
             return handleMismatchedInputException(mie);
-        } else if (cause instanceof JsonMappingException jme) {
+        } else if (cause instanceof JacksonException jme) {
             return handleJsonMappingException(jme);
         } else {
             return "Invalid request message";
         }
     }
 
-    private String handleJsonParseException(JsonParseException jpe) {
+    private String handleJsonParseException(StreamReadException jpe) {
         return jpe.getOriginalMessage();
     }
 
@@ -255,15 +255,15 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         return "Invalid request message";
     }
 
-    private String handleJsonMappingException(JsonMappingException jme) {
+    private String handleJsonMappingException(JacksonException jme) {
         String fieldName = extractFieldName(jme.getPath());
         String originalMessage = jme.getOriginalMessage();
         return "Invalid request field: " + fieldName + ": " + originalMessage;
     }
 
-    private String extractFieldName(List<JsonMappingException.Reference> path) {
+    private String extractFieldName(List<JacksonException.Reference> path) {
         return path.stream()
-            .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
+            .map(ref -> ref.getPropertyName() == null ? "[0]" : ref.getPropertyName())
             .collect(Collectors.joining("."));
     }
 

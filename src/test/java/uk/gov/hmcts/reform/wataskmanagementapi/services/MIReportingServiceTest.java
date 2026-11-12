@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -563,7 +564,8 @@ class MIReportingServiceTest {
         when(taskResourceRepository.showWalLevel()).thenReturn("logical");
         when(taskResourceRepository.countReplicationSlots()).thenReturn(1);
         when(taskResourceRepository.countPublications()).thenReturn(0);
-        when(taskResourceRepository.createPublication()).thenThrow(new RuntimeException("Publication creation failed"));
+        doThrow(new RuntimeException("Publication creation failed"))
+            .when(taskResourceRepository).createPublication();
 
         TaskHistoryResourceRepository taskHistoryResourceRepository = mock(TaskHistoryResourceRepository.class);
         miReportingService = new MIReportingService(taskHistoryResourceRepository, taskResourceRepository,

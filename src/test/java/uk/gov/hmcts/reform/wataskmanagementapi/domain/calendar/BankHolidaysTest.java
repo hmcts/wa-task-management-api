@@ -1,9 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar;
 
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -20,7 +21,10 @@ class BankHolidaysTest {
     @Test
     void should_create_full_object_and_check_dates() throws IOException {
         ObjectMapper om = new ObjectMapper();
-        BankHolidays bankHolidays = om.readValue(new URL(DEFAULT_NON_WORKING_CALENDAR), BankHolidays.class);
+        BankHolidays bankHolidays;
+        try (InputStream inputStream = new URL(DEFAULT_NON_WORKING_CALENDAR).openStream()) {
+            bankHolidays = om.readValue(inputStream, BankHolidays.class);
+        }
         assertEquals("england-and-wales", bankHolidays.getDivision());
         assertTrue(bankHolidays.getEvents().size() > 0);
         assertNotEquals(0, bankHolidays.getEvents().get(0).hashCode());

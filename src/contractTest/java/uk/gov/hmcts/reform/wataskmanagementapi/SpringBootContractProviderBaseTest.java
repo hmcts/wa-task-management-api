@@ -6,7 +6,6 @@ import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -45,40 +44,40 @@ public class SpringBootContractProviderBaseTest {
     @MockitoBean
     EntityManagerFactory entityManagerFactory;
 
-    @Mock
+    @MockitoBean
     protected AccessControlService accessControlService;
 
-    @Mock
+    @MockitoBean
     protected ClientAccessControlService clientAccessControlService;
 
-    @Mock
+    @MockitoBean
     protected TaskManagementService taskManagementService;
 
-    @Mock
+    @MockitoBean
     protected CompletionProcessValidator completionProcessValidator;
 
-    @Mock
+    @MockitoBean
     protected CancellationProcessValidator cancellationProcessValidator;
 
-    @Mock
+    @MockitoBean
     protected TaskOperationService taskOperationService;
 
-    @Mock
+    @MockitoBean
     protected TaskDeletionService taskDeletionService;
 
-    @Mock
+    @MockitoBean
     protected CftQueryService cftQueryService;
 
-    @Mock
+    @MockitoBean
     protected LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @Mock
+    @MockitoBean
     protected WorkTypesService workTypesService;
 
-    @Mock
+    @MockitoBean
     protected TaskTypesService taskTypesService;
 
-    @Mock
+    @MockitoBean
     protected CFTTaskDatabaseService cftTaskDatabaseService;
 
     @Autowired

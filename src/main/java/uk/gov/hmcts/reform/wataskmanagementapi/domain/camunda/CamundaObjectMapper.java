@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Optional;
 
@@ -16,8 +18,12 @@ public class CamundaObjectMapper {
 
     public CamundaObjectMapper() {
         //Hide constructor
-        this.defaultMapper = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        this.camundaMapper = new ObjectMapper();
+        this.defaultMapper = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build();
+        this.camundaMapper = JsonMapper.builder()
+            .enable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .build();
     }
 
     public <T> Optional<T> read(CamundaVariable variable, Class<T> type) {
@@ -39,7 +45,7 @@ public class CamundaObjectMapper {
     public <T> T readValue(String value, Class<T> type) {
         try {
             return camundaMapper.readValue(value, type);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return null;
         }
     }
@@ -66,9 +72,8 @@ public class CamundaObjectMapper {
     private String jsonString(Object obj, ObjectMapper mapper) {
         try {
             return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(e);
         }
     }
 }
-

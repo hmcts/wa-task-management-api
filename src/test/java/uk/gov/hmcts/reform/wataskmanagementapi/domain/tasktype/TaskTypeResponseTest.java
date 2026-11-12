@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.tasktype;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
+import tools.jackson.core.JacksonException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,7 +22,7 @@ class TaskTypeResponseTest {
     }
 
     @Test
-    void deserializeTest() throws JsonProcessingException {
+    void deserializeTest() throws JacksonException {
 
         String taskType = "{\"taskTypeId\":\"taskTypeId1\",\"taskTypeName\":\"taskTypeName1\"}";
         TaskTypeResponse taskTypeResponse = new TaskTypeResponse(taskType);

@@ -2,14 +2,14 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.task;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +43,7 @@ public class WarningValues {
                 .forType(new TypeReference<List<Warning>>() {
                 })
                 .readValue(values);
-        } catch (JsonProcessingException jsonProcessingException) {
+        } catch (JacksonException e) {
             log.error("Could not deserialize values");
         }
     }
@@ -53,7 +53,7 @@ public class WarningValues {
     }
 
     @JsonIgnore
-    public String getValuesAsJson() throws JsonProcessingException {
+    public String getValuesAsJson() throws JacksonException {
         return new ObjectMapper().writeValueAsString(values);
     }
 }

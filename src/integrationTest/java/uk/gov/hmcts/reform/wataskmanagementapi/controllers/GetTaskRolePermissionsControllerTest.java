@@ -7,12 +7,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -33,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ControllerTestStubs;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TestResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -134,7 +134,7 @@ class GetTaskRolePermissionsControllerTest {
             )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isOk(),
                     content().contentType(APPLICATION_JSON_VALUE),
                     jsonPath("$.roles").isEmpty()
@@ -161,7 +161,7 @@ class GetTaskRolePermissionsControllerTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
@@ -209,7 +209,7 @@ class GetTaskRolePermissionsControllerTest {
             )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isForbidden(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type").value(

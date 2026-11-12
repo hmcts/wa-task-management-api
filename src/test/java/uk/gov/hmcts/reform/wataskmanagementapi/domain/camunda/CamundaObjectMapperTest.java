@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
 
 import java.util.Map;
 import java.util.Optional;
