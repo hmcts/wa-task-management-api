@@ -99,6 +99,39 @@ class TaskResourceRepositoryTest {
     }
 
     @Test
+    void should_find_tasks_only_for_the_requested_case_and_jurisdiction() {
+        String caseId = "1793986596864362";
+        TaskResource probateTask = createTask(UUID.randomUUID().toString(), "case-manager", "PROBATE",
+            "ResolveStoppedCase", "system-user", caseId, CFTTaskState.ASSIGNED);
+        TaskResource otherJurisdictionTask = createTask(UUID.randomUUID().toString(), "case-manager", "IA",
+            "reviewAppeal", "system-user", caseId, CFTTaskState.ASSIGNED);
+        TaskResource otherCaseTask = createTask(UUID.randomUUID().toString(), "case-manager", "probate",
+            "ResolveStoppedCase", "system-user", "1793986596864363", CFTTaskState.ASSIGNED);
+        transactionHelper.doInNewTransaction(() ->
+            taskResourceRepository.saveAll(List.of(probateTask, otherJurisdictionTask, otherCaseTask)));
+
+        List<TaskResource> matchingTasks = taskResourceRepository.findByCaseIdAndJurisdictionIgnoreCase(
+            caseId, "probate");
+
+        assertThat(matchingTasks)
+            .extracting(TaskResource::getTaskId)
+            .containsExactly(probateTask.getTaskId());
+    }
+
+    @Test
+    void should_return_no_tasks_when_case_has_no_tasks_in_the_requested_jurisdiction() {
+        List<TaskResource> probateTasks = taskResourceRepository.findByCaseIdAndJurisdictionIgnoreCase(
+            "1623278362430412", "probate");
+
+        assertThat(probateTasks).isEmpty();
+
+        List<TaskResource> iaTasks = taskResourceRepository.findByCaseIdAndJurisdictionIgnoreCase(
+            "1793986596864362", "IA");
+
+        assertThat(iaTasks).isEmpty();
+    }
+
+    @Test
     @Timeout(value = 15, unit = SECONDS)
     @Execution(ExecutionMode.CONCURRENT)
     void should_insert_and_lock_when_concurrent_calls_for_different_task_id_then_succeed()

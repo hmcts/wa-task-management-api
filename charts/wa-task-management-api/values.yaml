@@ -16,6 +16,8 @@ java:
           alias: app-insights-connection-string
         - name: wa-system-username
           alias: WA_SYSTEM_USERNAME
+        - name: probate-search-username
+          alias: PROBATE_SEARCH_USERNAME
         - name: wa-system-password
           alias: WA_SYSTEM_PASSWORD
         - name: wa-idam-client-secret
