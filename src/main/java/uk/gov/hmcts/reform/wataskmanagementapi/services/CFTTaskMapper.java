@@ -235,7 +235,8 @@ public class CFTTaskMapper {
             extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
                 roleAssignments,
-                taskResource.getCaseId()
+                taskResource.getCaseId(),
+                taskResource.getJurisdiction()
             );
 
         return mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
@@ -287,27 +288,28 @@ public class CFTTaskMapper {
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments) {
-        Optional caseId = taskRoleResources.stream()
-            .filter(t -> t.getTaskResource() != null
-                && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
+        Optional<TaskResource> taskResource = taskRoleResources.stream()
+            .map(TaskRoleResource::getTaskResource)
+            .filter(Objects::nonNull)
+            .filter(task -> task.getCaseId() != null)
             .findFirst();
-        if (caseId.isPresent()) {
+        if (taskResource.isPresent()) {
             return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
-                                                    (String) caseId.get());
+                                                    taskResource.get().getCaseId(),
+                                                    taskResource.get().getJurisdiction());
         } else {
-            return new TreeSet<PermissionTypes>();
+            return new TreeSet<>();
         }
     }
 
     private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
-                                                                 String caseId) {
+                                                                 String caseId,
+                                                                 String jurisdiction) {
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
         if (caseId != null) {
             List<String> userRoleNames = roleAssignments.stream()
-                .filter(ra -> !ra.getRoleType().equals(RoleType.CASE) || ra.getAttributes() != null
-                    && ra.getAttributes().get("caseId") != null
-                    && ra.getAttributes().get("caseId").equals(caseId))
+                .filter(roleAssignment -> matchesTask(roleAssignment, caseId, jurisdiction))
                 .map(RoleAssignment::getRoleName)
                 .toList();
 
@@ -324,6 +326,20 @@ public class CFTTaskMapper {
         }
 
         return permissionsFound;
+    }
+
+    private boolean matchesTask(RoleAssignment roleAssignment, String caseId, String jurisdiction) {
+        if (RoleType.CASE.equals(roleAssignment.getRoleType())) {
+            return roleAssignment.getAttributes() != null
+                   && roleAssignment.getAttributes().containsKey("caseId")
+                   && caseId.equals(roleAssignment.getAttributes().get("caseId"));
+        }
+        if (RoleType.ORGANISATION.equals(roleAssignment.getRoleType())) {
+            return roleAssignment.getAttributes() == null
+                   || !roleAssignment.getAttributes().containsKey("jurisdiction")
+                   || Objects.equals(jurisdiction, roleAssignment.getAttributes().get("jurisdiction"));
+        }
+        return true;
     }
 
     public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
@@ -767,4 +783,3 @@ public class CFTTaskMapper {
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
 }
-

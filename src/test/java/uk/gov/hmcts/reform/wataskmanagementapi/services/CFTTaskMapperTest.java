@@ -13,6 +13,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -1510,6 +1512,7 @@ class CFTTaskMapperTest {
         );
         TaskResource taskResource = mock(TaskResource.class);
         when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        when(taskResource.getJurisdiction()).thenReturn("IA");
         taskRoleResource.setTaskResource(taskResource);
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
@@ -2067,6 +2070,74 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_not_extract_permissions_for_organisation_role_from_different_jurisdiction() {
+        TaskResource taskResource = createTaskResource();
+        taskResource.setJurisdiction("PUBLICLAW");
+
+        TaskRoleResource hearingViewerTaskRole = createHearingViewerTaskRole(taskResource);
+        RoleAssignment civilHearingViewer = createHearingViewerOrganisationRole(Map.of(
+            "jurisdiction", "CIVIL"
+        ));
+
+        Set<PermissionTypes> permissionsUnion = cftTaskMapper.extractUnionOfPermissionsForUser(
+            Set.of(hearingViewerTaskRole),
+            List.of(civilHearingViewer)
+        );
+
+        assertThat(permissionsUnion).isEmpty();
+    }
+
+    @Test
+    void should_extract_permissions_for_organisation_role_from_same_jurisdiction() {
+        TaskResource taskResource = createTaskResource();
+        taskResource.setJurisdiction("CIVIL");
+        TaskRoleResource hearingViewerTaskRole = createHearingViewerTaskRole(taskResource);
+        RoleAssignment civilHearingViewer = createHearingViewerOrganisationRole(Map.of(
+            "jurisdiction", "CIVIL"
+        ));
+
+        Set<PermissionTypes> permissionsUnion = cftTaskMapper.extractUnionOfPermissionsForUser(
+            Set.of(hearingViewerTaskRole),
+            List.of(civilHearingViewer)
+        );
+
+        assertThat(permissionsUnion).containsExactlyInAnyOrder(PermissionTypes.READ, PermissionTypes.OWN);
+    }
+
+    @Test
+    void should_extract_permissions_for_organisation_role_without_jurisdiction() {
+        TaskResource taskResource = createTaskResource();
+        taskResource.setJurisdiction("PUBLICLAW");
+        TaskRoleResource hearingViewerTaskRole = createHearingViewerTaskRole(taskResource);
+        RoleAssignment hearingViewerWithoutJurisdiction = createHearingViewerOrganisationRole(Map.of());
+
+        Set<PermissionTypes> permissionsUnion = cftTaskMapper.extractUnionOfPermissionsForUser(
+            Set.of(hearingViewerTaskRole),
+            List.of(hearingViewerWithoutJurisdiction)
+        );
+
+        assertThat(permissionsUnion).containsExactlyInAnyOrder(PermissionTypes.READ, PermissionTypes.OWN);
+    }
+
+    @Test
+    void should_not_extract_permissions_for_case_role_without_case_id() {
+        TaskResource taskResource = createTaskResource();
+        TaskRoleResource hearingViewerTaskRole = createHearingViewerTaskRole(taskResource);
+        RoleAssignment hearingViewerWithoutCaseId = RoleAssignment.builder()
+            .roleType(RoleType.CASE)
+            .roleName("hearing-viewer")
+            .attributes(Map.of("jurisdiction", taskResource.getJurisdiction()))
+            .build();
+
+        Set<PermissionTypes> permissionsUnion = cftTaskMapper.extractUnionOfPermissionsForUser(
+            Set.of(hearingViewerTaskRole),
+            List.of(hearingViewerWithoutCaseId)
+        );
+
+        assertThat(permissionsUnion).isEmpty();
+    }
+
+    @Test
     void should_map_task_role_permissions() {
         TaskRoleResource roleResource = new TaskRoleResource(
             "tribunal-caseworker",
@@ -2501,6 +2572,36 @@ class CFTTaskMapperTest {
         List<ConfigurationDmnEvaluationResponse> additionalPropertyDMNResponse = new ArrayList<>();
         cftTaskMapper.reconfigureAdditionalTaskAttribute(taskResource, additionalPropertyDMNResponse);
         assertNull(taskResource.getAdditionalProperties());
+    }
+
+    private TaskRoleResource createHearingViewerTaskRole(TaskResource taskResource) {
+        TaskRoleResource hearingViewerTaskRole = new TaskRoleResource(
+            "hearing-viewer",
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            new String[]{},
+            null,
+            false
+        );
+        hearingViewerTaskRole.setTaskResource(taskResource);
+        return hearingViewerTaskRole;
+    }
+
+    private RoleAssignment createHearingViewerOrganisationRole(Map<String, String> attributes) {
+        return RoleAssignment.builder()
+            .roleType(RoleType.ORGANISATION)
+            .roleName("hearing-viewer")
+            .actorId("someAssignee")
+            .roleCategory(RoleCategory.JUDICIAL)
+            .readOnly(false)
+            .beginTime(OffsetDateTime.parse("2024-11-18T00:00:00Z"))
+            .created(OffsetDateTime.parse("2025-11-25T04:08:10.532Z"))
+            .attributes(attributes)
+            .build();
     }
 
     private TaskResource createTaskResource() {
