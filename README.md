@@ -34,7 +34,7 @@ If the required permissions are not present then the request will not be fulfill
 
 ## System-user task search
 
-`GET /task/search?case_id={caseId}` returns `{"tasks": [...]}` for the case and
+`GET /task/searchByCaseId?case_id={caseId}` returns `{"tasks": [...]}` for the case and
 jurisdiction mapped to the authenticated system user. Both `Authorization` (IDAM)
 and `ServiceAuthorization` (S2S) headers are required. This endpoint uses the
 configured system-user mapping rather than ExUI role assignments. It returns all
@@ -46,9 +46,10 @@ WA Key Vault. Provision that secret before deploying the Helm change. An empty
 configuration grants no search access. Usernames are matched exactly against the
 IDAM user-info `sub` field (mapped to `UserInfo.email`).
 
-The endpoint checks IDAM user info on each request. IDAM authentication failures
-or unavailable user details return 401 with `IDAM user not available`; a valid
-user with no configured jurisdiction receives 403 with
+The controller checks IDAM user info on each request using the uncached
+`IdamService.getUserInfoForAuthorization` method. Standard IDAM 4xx responses,
+except 429 (rate limiting), or unavailable user details return 401 with
+`IDAM user not available`. A valid user with no configured jurisdiction receives 403 with
 `User does not belong to any jurisdiction`. IDAM dependency failures retain the
 existing downstream error handling. JWT and S2S validation remain unchanged.
 

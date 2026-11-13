@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -17,11 +18,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 
 import java.util.Map;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -39,7 +43,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class SystemTaskSearchControllerTest {
 
-    private static final String ENDPOINT_PATH = "/task/search";
+    private static final String ENDPOINT_PATH = "/task/searchByCaseId";
     private static final String TOKEN = "Bearer system-search-token";
     private static final String CASE_ID = "1793986596864362";
 
@@ -57,30 +61,34 @@ class SystemTaskSearchControllerTest {
 
     @Test
     void should_return_200_with_tasks_for_the_case_and_users_jurisdiction() throws Exception {
-        mockMvc.perform(get(ENDPOINT_PATH).param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN))
-            .andExpect(status().isOk())
+        ResultActions response = mockMvc.perform(get(ENDPOINT_PATH)
+            .param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN));
+
+        response.andExpect(status().isOk())
             .andExpect(header().string("Cache-Control", "no-store"))
             .andExpect(jsonPath("$.tasks[*].id", containsInAnyOrder(
                 "70000000-0000-0000-0000-000000000001", "70000000-0000-0000-0000-000000000002")))
             .andExpect(jsonPath("$.tasks[*].case_id", everyItem(is(CASE_ID))))
             .andExpect(jsonPath("$.tasks[*].jurisdiction", everyItem(is("PROBATE"))))
-            .andExpect(jsonPath("$.tasks[*].task_state", containsInAnyOrder("unassigned", "cancelled")));
+            .andExpect(jsonPath("$.tasks[?(@.id == '70000000-0000-0000-0000-000000000001')].type",
+                contains("ResolveStoppedCase")))
+            .andExpect(jsonPath("$.tasks[?(@.id == '70000000-0000-0000-0000-000000000001')].task_state",
+                contains("unassigned")))
+            .andExpect(jsonPath("$.tasks[?(@.id == '70000000-0000-0000-0000-000000000002')].type",
+                contains("ExamineDigitalCaseProbate")))
+            .andExpect(jsonPath("$.tasks[?(@.id == '70000000-0000-0000-0000-000000000002')].task_state",
+                contains("cancelled")))
+            .andExpect(jsonPath("$.tasks[0].permissions.values").isEmpty())
+            .andExpect(jsonPath("$.tasks[1].permissions.values").isEmpty());
     }
 
     @Test
     void should_return_200_with_empty_tasks_when_case_has_no_tasks() throws Exception {
-        mockMvc.perform(get(ENDPOINT_PATH).param("case_id", "1793986596864399").header(AUTHORIZATION, TOKEN))
-            .andExpect(status().isOk())
+        ResultActions response = mockMvc.perform(get(ENDPOINT_PATH)
+            .param("case_id", "1793986596864399").header(AUTHORIZATION, TOKEN));
+
+        response.andExpect(status().isOk())
             .andExpect(jsonPath("$.tasks").isEmpty());
-    }
-
-    @Test
-    void should_return_401_when_idam_rejects_user() throws Exception {
-        when(idamWebApi.userInfo(TOKEN)).thenThrow(idamFailure(401));
-
-        mockMvc.perform(get(ENDPOINT_PATH).param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN))
-            .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.message").value("IDAM user not available"));
     }
 
     @Test
@@ -88,8 +96,10 @@ class SystemTaskSearchControllerTest {
         when(idamWebApi.userInfo(TOKEN)).thenReturn(UserInfo.builder()
             .uid("normal-user").email("normal-user@example.test").build());
 
-        mockMvc.perform(get(ENDPOINT_PATH).param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN))
-            .andExpect(status().isForbidden())
+        ResultActions response = mockMvc.perform(get(ENDPOINT_PATH)
+            .param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN));
+
+        response.andExpect(status().isForbidden())
             .andExpect(jsonPath("$.detail").value(containsString("User does not belong to any jurisdiction")));
     }
 
@@ -97,19 +107,45 @@ class SystemTaskSearchControllerTest {
     void should_return_503_when_idam_is_unavailable() throws Exception {
         when(idamWebApi.userInfo(TOKEN)).thenThrow(idamFailure(503));
 
-        mockMvc.perform(get(ENDPOINT_PATH).param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN))
-            .andExpect(status().isServiceUnavailable());
+        ResultActions response = mockMvc.perform(get(ENDPOINT_PATH)
+            .param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN));
+
+        response.andExpect(status().isServiceUnavailable());
     }
 
     @Test
     void should_return_400_when_case_id_is_missing() throws Exception {
-        mockMvc.perform(get(ENDPOINT_PATH).header(AUTHORIZATION, TOKEN)).andExpect(status().isBadRequest());
+        ResultActions response = mockMvc.perform(get(ENDPOINT_PATH).header(AUTHORIZATION, TOKEN));
+
+        response.andExpect(status().isBadRequest());
     }
 
     @Test
     void should_return_400_when_case_id_is_blank() throws Exception {
-        mockMvc.perform(get(ENDPOINT_PATH).param("case_id", " ").header(AUTHORIZATION, TOKEN))
-            .andExpect(status().isBadRequest());
+        ResultActions response = mockMvc.perform(get(ENDPOINT_PATH)
+            .param("case_id", " ")
+            .header(AUTHORIZATION, TOKEN));
+
+        response.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void should_return_401_when_idam_rejects_a_subsequent_request() throws Exception {
+        UserInfo userInfo = UserInfo.builder()
+            .uid("probate-system-user").email("probate-search@example.test").build();
+        when(idamWebApi.userInfo(TOKEN)).thenReturn(userInfo).thenThrow(idamFailure(401));
+
+        ResultActions initialResponse = mockMvc.perform(get(ENDPOINT_PATH)
+            .param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN));
+
+        initialResponse.andExpect(status().isOk());
+
+        ResultActions subsequentResponse = mockMvc.perform(get(ENDPOINT_PATH)
+            .param("case_id", CASE_ID).header(AUTHORIZATION, TOKEN));
+
+        subsequentResponse.andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("IDAM user not available"));
+        verify(idamWebApi, times(2)).userInfo(TOKEN);
     }
 
     private static FeignException idamFailure(int status) {
