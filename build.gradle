@@ -543,6 +543,8 @@ tasks.named('pactPublish') { publishTask ->
 task contract(type: Test) {
   description = "Runs the consumer Pact tests"
   group = 'Verification'
+  reports.html.outputLocation = layout.buildDirectory.dir('reports/tests/runAndPublishConsumerPactTests')
+  reports.junitXml.outputLocation = layout.buildDirectory.dir('test-results/runAndPublishConsumerPactTests')
   useJUnitPlatform()
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
