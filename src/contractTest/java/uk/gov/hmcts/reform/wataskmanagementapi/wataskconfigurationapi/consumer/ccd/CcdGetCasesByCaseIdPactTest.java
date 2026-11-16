@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
@@ -34,6 +35,11 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
 
     private static final String TEST_CASE_ID = "1607103938250138";
     private static final String CCD_CASE_URL = "/cases/" + TEST_CASE_ID;
+    private static final String CCD_CASE_MEDIA_TYPE =
+        "application/vnd.uk.gov.hmcts.ccd-data-store-api.case.v2+json";
+    private static final String CCD_CASE_MEDIA_TYPE_REGEX =
+        "^application/vnd\\.uk\\.gov\\.hmcts\\.ccd-data-store-api\\.case\\.v2\\+json"
+            + "(; ?charset=UTF-8)?$";
 
     @Autowired
     CcdDataServiceApi ccdDataServiceApi;
@@ -53,19 +59,20 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         ccdDataService = new CcdDataService(ccdDataServiceApi, authTokenGenerator, systemTokenGenerator);
     }
 
-    @Pact(provider = "ccd_data_store_get_case_by_id", consumer = "wa_task_management_api")
+    @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "wa_task_management_api")
     public RequestResponsePact executeCcdGetCasesByCaseId(PactDslWithProvider builder) {
 
-        Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
+        Map<String, String> requestHeaders = Map.of("experimental", "true");
 
         return builder
             .given("a case exists")
             .uponReceiving("Provider receives a GET /cases/{caseId} request from a WA API")
             .path(CCD_CASE_URL)
             .method(HttpMethod.GET.toString())
+            .headers(requestHeaders)
             .willRespondWith()
             .status(HttpStatus.OK.value())
-            .headers(responseHeaders)
+            .matchHeader("Content-Type", CCD_CASE_MEDIA_TYPE_REGEX, CCD_CASE_MEDIA_TYPE)
             .body(createCasesResponse())
             .toPact();
     }
@@ -79,14 +86,19 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         assertThat(caseDetails.getSecurityClassification(), is("PRIVATE"));
         assertThat(caseDetails.getJurisdiction(), is("IA"));
         assertThat(caseDetails.getCaseType(), is("Asylum"));
+        assertNotNull(caseDetails.getData());
     }
 
     private PactDslJsonBody createCasesResponse() {
-        return new PactDslJsonBody()
+        PactDslJsonBody body = new PactDslJsonBody()
             .stringType("id", "1593694526480034")
             .stringValue("jurisdiction", "IA")
             .stringValue("case_type", "Asylum")
             .stringValue("security_classification", "PRIVATE");
+
+        body.object("data")
+            .closeObject();
+        return body;
     }
 
     private CaseDetails read(String caseData) {

@@ -21,9 +21,9 @@ public final class PactDslBuilderForCaseDetailsList {
                 .object("case_details", cd -> {
                     cd.numberType("id", 2000);
                     cd.stringMatcher("jurisdiction", ALPHABETIC_REGEX, "IA");
-                    cd.stringMatcher("case_type", ALPHABETIC_REGEX, "Asylum");
+                    cd.stringMatcher("case_type_id", ALPHABETIC_REGEX, "Asylum");
                     cd.stringValue("state", "appealStarted");
-                    cd.stringValue("securityClassification", "PUBLIC");
+                    cd.stringValue("security_classification", "PUBLIC");
                     cd.object("case_data", PactDslBuilderForCaseDetailsList::getCaseDataPactDsl);
                 })).build();
     }
@@ -49,8 +49,8 @@ public final class PactDslBuilderForCaseDetailsList {
                 .stringType("jurisdiction", "IA")
                 .stringValue("case_type_id", "Asylum")
                 .stringValue("state", "appealStarted")
-                .stringValue("securityClassification", "PUBLIC")
-                .stringValue("callbackResponseStatus", "CALLBACK_COMPLETED")
+                .stringValue("security_classification", "PUBLIC")
+                .stringValue("callback_response_status", "CALLBACK_COMPLETED")
                 .object("case_data", PactDslBuilderForCaseDetailsList::getCaseDataPactDsl)).build();
     }
 
@@ -73,12 +73,12 @@ public final class PactDslBuilderForCaseDetailsList {
             .stringType("currentCaseStateVisibleToLegalRepresentative", "appealStarted")
             .stringType("uploadAddendumEvidenceLegalRepActionAvailable", "No")
             .object("legalRepCompanyAddress", addr -> {
-                addr.stringType("AddressLine1", "");
-                addr.stringType("AddressLine2", "");
-                addr.stringType("AddressLine3", "");
-                addr.stringType("Country", "");
+                addr.nullValue("AddressLine1");
+                addr.nullValue("AddressLine2");
+                addr.nullValue("AddressLine3");
+                addr.nullValue("Country");
                 addr.stringType("PostCode", "");
-                addr.stringType("PostTown", "");
+                addr.nullValue("PostTown");
             })
             .minArrayLike("uploadTheNoticeOfDecisionDocs", 1, 1,
                 docsUploaded ->

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1148,6 +1149,8 @@ public class PostTaskExecuteReconfigureControllerTest {
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Temporarily ignored. This test and the other affected tests will be fixed once the immediate task "
+        + "initiation feature is enabled in production")
     @Test
     public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
 
