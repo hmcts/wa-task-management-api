@@ -511,6 +511,7 @@ pact {
     version = project.pacticipantVersion
     consumerVersion = project.pacticipantVersion
     consumerBranch = project.pacticipantBranch
+    tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     consumerBuildUrl = System.getenv('BUILD_URL')
   }
 }
