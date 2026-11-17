@@ -41,10 +41,16 @@ configured system-user mapping rather than ExUI role assignments. It returns all
 matching task states, with an empty list when none match.
 
 Configure the mapping under `search.jurisdictionUsers`. Probate uses
-`PROBATE_SEARCH_USERNAME`, supplied by the `probate-search-username` secret in the
-WA Key Vault. Provision that secret before deploying the Helm change. An empty
-configuration grants no search access. Usernames are matched exactly against the
+`PROBATE_SEARCH_EMAIL`, supplied by the `probate-search-email` secret in the
+WA Key Vault. The secret must contain the dedicated Probate system user's email
+address. It is mapped in the base, preview and AAT Helm values. Provision that
+secret before deploying the Helm change. An empty configuration grants no search
+access. Email addresses are matched exactly against the
 IDAM user-info `sub` field (mapped to `UserInfo.email`).
+
+Probate calls this endpoint using its `probate_backend` S2S identity. This service
+is included in the application's default S2S allowlist. Environments that override
+`WA_S2S_AUTHORIZED_SERVICES` must also include `probate_backend` in their list.
 
 The controller checks IDAM user info on each request using the uncached
 `IdamService.getUserInfoForAuthorization` method. Standard IDAM 4xx responses,
