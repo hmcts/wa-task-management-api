@@ -59,6 +59,22 @@ except 429 (rate limiting), or unavailable user details return 401 with
 `User does not belong to any jurisdiction`. IDAM dependency failures retain the
 existing downstream error handling. JWT and S2S validation remain unchanged.
 
+The happy-path functional test creates `wa-task-search-functional@fake.hmcts.net`
+using the existing IDAM helper and verifies that the API returns its WA task for
+the requested case. It cleans up the task and leaves user cleanup to IDAM.
+
+Preview and AAT map the `wa-search-email` secret in `wa-aat` to `WA_SEARCH_EMAIL`.
+Create the secret with the test email before deployment. This test secret is not
+referenced in the base Helm values or production; the WA mapping defaults to empty.
+
+For local runs, export `WA_SEARCH_EMAIL=wa-task-search-functional@fake.hmcts.net`
+before starting the API. Run the test with the usual functional-test credentials
+and `TEST_URL` pointing to that API:
+
+```shell
+./gradlew functional --tests '*GetSystemTaskSearchControllerTest'
+```
+
 ## Building and deploying the application
 
 ### Building the application
