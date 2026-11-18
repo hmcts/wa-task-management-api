@@ -1516,12 +1516,12 @@ class CFTTaskMapperTest {
             true
         );
         TaskResource taskResource = mock(TaskResource.class);
-        when(taskResource.getCaseId()).thenReturn("acaseid");
-        when(taskResource.getJurisdiction()).thenReturn("IA");
-        when(taskResource.getCaseTypeId()).thenReturn("Asylum");
         taskRoleResource.setTaskResource(taskResource);
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
+        when(taskResource.getCaseId()).thenReturn("acaseid");
+        when(taskResource.getJurisdiction()).thenReturn("IA");
+        when(taskResource.getCaseTypeId()).thenReturn("Asylum");
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
