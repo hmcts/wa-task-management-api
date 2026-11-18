@@ -9,10 +9,14 @@ import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
@@ -46,6 +50,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -1511,8 +1516,9 @@ class CFTTaskMapperTest {
             true
         );
         TaskResource taskResource = mock(TaskResource.class);
-        when(taskResource.getCaseId()).thenReturn("CASE_ID");
+        when(taskResource.getCaseId()).thenReturn("acaseid");
         when(taskResource.getJurisdiction()).thenReturn("IA");
+        when(taskResource.getCaseTypeId()).thenReturn("Asylum");
         taskRoleResource.setTaskResource(taskResource);
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
@@ -2069,51 +2075,49 @@ class CFTTaskMapperTest {
         assertTrue(permissionsUnion.contains(PermissionTypes.REFER));
     }
 
-    @Test
-    void should_not_extract_permissions_for_organisation_role_from_different_jurisdiction() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("differentOrganisationRoleAttributes")
+    void should_not_extract_permissions_for_organisation_role_with_different_task_attributes(
+        String scenario,
+        Map<String, String> attributes) {
         TaskResource taskResource = createTaskResource();
-        taskResource.setJurisdiction("PUBLICLAW");
-
         TaskRoleResource hearingViewerTaskRole = createHearingViewerTaskRole(taskResource);
-        RoleAssignment civilHearingViewer = createHearingViewerOrganisationRole(Map.of(
-            "jurisdiction", "CIVIL"
-        ));
+        RoleAssignment hearingViewer = createHearingViewerOrganisationRole(attributes);
 
         Set<PermissionTypes> permissionsUnion = cftTaskMapper.extractUnionOfPermissionsForUser(
             Set.of(hearingViewerTaskRole),
-            List.of(civilHearingViewer)
+            List.of(hearingViewer)
         );
 
         assertThat(permissionsUnion).isEmpty();
     }
 
-    @Test
-    void should_extract_permissions_for_organisation_role_from_same_jurisdiction() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("matchingOrganisationRoleAttributes")
+    void should_extract_permissions_for_organisation_role_with_matching_task_attributes(
+        String scenario,
+        Map<String, String> attributes) {
         TaskResource taskResource = createTaskResource();
-        taskResource.setJurisdiction("CIVIL");
         TaskRoleResource hearingViewerTaskRole = createHearingViewerTaskRole(taskResource);
-        RoleAssignment civilHearingViewer = createHearingViewerOrganisationRole(Map.of(
-            "jurisdiction", "CIVIL"
-        ));
+        RoleAssignment hearingViewer = createHearingViewerOrganisationRole(attributes);
 
         Set<PermissionTypes> permissionsUnion = cftTaskMapper.extractUnionOfPermissionsForUser(
             Set.of(hearingViewerTaskRole),
-            List.of(civilHearingViewer)
+            List.of(hearingViewer)
         );
 
         assertThat(permissionsUnion).containsExactlyInAnyOrder(PermissionTypes.READ, PermissionTypes.OWN);
     }
 
     @Test
-    void should_extract_permissions_for_organisation_role_without_jurisdiction() {
+    void should_extract_permissions_for_organisation_role_with_empty_attributes() {
         TaskResource taskResource = createTaskResource();
-        taskResource.setJurisdiction("PUBLICLAW");
         TaskRoleResource hearingViewerTaskRole = createHearingViewerTaskRole(taskResource);
-        RoleAssignment hearingViewerWithoutJurisdiction = createHearingViewerOrganisationRole(Map.of());
+        RoleAssignment hearingViewer = createHearingViewerOrganisationRole(Map.of());
 
         Set<PermissionTypes> permissionsUnion = cftTaskMapper.extractUnionOfPermissionsForUser(
             Set.of(hearingViewerTaskRole),
-            List.of(hearingViewerWithoutJurisdiction)
+            List.of(hearingViewer)
         );
 
         assertThat(permissionsUnion).containsExactlyInAnyOrder(PermissionTypes.READ, PermissionTypes.OWN);
@@ -2589,6 +2593,62 @@ class CFTTaskMapperTest {
         );
         hearingViewerTaskRole.setTaskResource(taskResource);
         return hearingViewerTaskRole;
+    }
+
+    private static Stream<Arguments> matchingOrganisationRoleAttributes() {
+        return Stream.of(
+            Arguments.of(
+                "jurisdiction",
+                Map.of(RoleAttributeDefinition.JURISDICTION.value(), "IA")
+            ),
+            Arguments.of(
+                "case type",
+                Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum")
+            ),
+            Arguments.of(
+                "region",
+                Map.of(RoleAttributeDefinition.REGION.value(), "1")
+            ),
+            Arguments.of(
+                "base location",
+                Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "765324")
+            ),
+            Arguments.of(
+                "jurisdiction and case type",
+                Map.of(
+                    RoleAttributeDefinition.JURISDICTION.value(), "IA",
+                    RoleAttributeDefinition.CASE_TYPE.value(), "Asylum"
+                )
+            )
+        );
+    }
+
+    private static Stream<Arguments> differentOrganisationRoleAttributes() {
+        return Stream.of(
+            Arguments.of(
+                "jurisdiction",
+                Map.of(RoleAttributeDefinition.JURISDICTION.value(), "PUBLICLAW")
+            ),
+            Arguments.of(
+                "case type",
+                Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "PublicLaw")
+            ),
+            Arguments.of(
+                "region",
+                Map.of(RoleAttributeDefinition.REGION.value(), "2")
+            ),
+            Arguments.of(
+                "base location",
+                Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "different-location")
+            ),
+            Arguments.of(
+                "jurisdiction and case type",
+                Map.of(
+                    RoleAttributeDefinition.JURISDICTION.value(), "PUBLICLAW",
+                    RoleAttributeDefinition.CASE_TYPE.value(), "Asylum"
+                )
+            )
+        );
     }
 
     private RoleAssignment createHearingViewerOrganisationRole(Map<String, String> attributes) {
