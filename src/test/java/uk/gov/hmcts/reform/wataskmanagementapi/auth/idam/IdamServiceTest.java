@@ -148,8 +148,8 @@ class IdamServiceTest {
     }
 
     @Test
-    void should_throw_401_unauthorized_when_idam_returns_403() {
-        FeignException idamException = createIdamException(403);
+    void should_reject_idam_client_error_for_authorization() {
+        FeignException idamException = createIdamException(400);
         when(idamWebApi.userInfo(TOKEN)).thenThrow(idamException);
 
         UnAuthorizedException actualException = assertThrows(
@@ -161,17 +161,26 @@ class IdamServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-1, 429})
-    void should_propagate_idam_dependency_failure_for_authorization(int status) {
+    @ValueSource(ints = {-1, 429, 403})
+    void should_handle_idam_errors_for_authorization(int status) {
         FeignException idamException = createIdamException(status);
         when(idamWebApi.userInfo(TOKEN)).thenThrow(idamException);
 
-        FeignException actualException = assertThrows(
-            FeignException.class,
-            () -> idamService.getUserInfoForAuthorization(TOKEN)
-        );
+        if (status == 403) {
+            UnAuthorizedException actualException = assertThrows(
+                UnAuthorizedException.class,
+                () -> idamService.getUserInfoForAuthorization(TOKEN)
+            );
 
-        assertThat(actualException).isSameAs(idamException);
+            assertThat(actualException).hasMessage("IDAM user not available");
+        } else {
+            FeignException actualException = assertThrows(
+                FeignException.class,
+                () -> idamService.getUserInfoForAuthorization(TOKEN)
+            );
+
+            assertThat(actualException).isSameAs(idamException);
+        }
     }
 
     private static FeignException createIdamException(int status) {
