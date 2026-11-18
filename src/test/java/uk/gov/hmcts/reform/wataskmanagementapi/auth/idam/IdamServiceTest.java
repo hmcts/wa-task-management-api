@@ -121,7 +121,7 @@ class IdamServiceTest {
 
     @ParameterizedTest
     @MethodSource("unavailableUsers")
-    void should_reject_unavailable_idam_user_for_authorization(UserInfo userInfo) {
+    void should_throw_401_unauthorized_when_idam_user_details_are_unavailable(UserInfo userInfo) {
         when(idamWebApi.userInfo(TOKEN)).thenReturn(userInfo);
 
         UnAuthorizedException actualException = assertThrows(
@@ -148,8 +148,8 @@ class IdamServiceTest {
     }
 
     @Test
-    void should_reject_idam_client_error_for_authorization() {
-        FeignException idamException = createIdamException(400);
+    void should_throw_401_unauthorized_when_idam_returns_403() {
+        FeignException idamException = createIdamException(403);
         when(idamWebApi.userInfo(TOKEN)).thenThrow(idamException);
 
         UnAuthorizedException actualException = assertThrows(
