@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariable;
@@ -41,7 +41,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVariableDefinition.WORK_TYPE;
-
 
 @Service
 @SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports"})

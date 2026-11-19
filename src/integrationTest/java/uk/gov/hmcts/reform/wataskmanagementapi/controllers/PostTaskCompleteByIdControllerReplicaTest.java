@@ -6,10 +6,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -141,8 +140,7 @@ public class PostTaskCompleteByIdControllerReplicaTest {
     @Value("${spring.datasource-replica.jdbcUrl}")
     private String replicaJdbcUrl;
 
-    @Mock
-    private UserInfo mockedUserInfo;
+    private UserInfo mockedUserInfo = org.mockito.Mockito.mock(UserInfo.class);
 
     TaskTestUtils taskTestUtils;
 

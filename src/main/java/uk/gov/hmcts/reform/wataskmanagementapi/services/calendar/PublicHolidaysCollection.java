@@ -3,9 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services.calendar;
 import feign.FeignException;
 import feign.codec.DecodeException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.SnakeCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.CalendarResourceNotFoundException;
@@ -23,7 +21,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-@Import(SnakeCaseFeignConfiguration.class)
 public class PublicHolidaysCollection {
 
     private final PublicHolidayService publicHolidayService;

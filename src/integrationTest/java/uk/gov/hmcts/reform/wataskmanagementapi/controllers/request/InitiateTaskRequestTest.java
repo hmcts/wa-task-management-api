@@ -1,12 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.JacksonConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.search.parameter.SearchRequestCustomDeserializer;
 
@@ -28,7 +28,7 @@ class InitiateTaskRequestTest {
 
     @Test
     void given_snake_case_initiate_body_request_when_deserializes_it_keeps_attribute_list_and_operation_fields()
-        throws JsonProcessingException {
+        throws JacksonException {
         Map<String, Object> taskAttributes = Map.of(
             TASK_TYPE.value(), "aTaskType",
             TASK_NAME.value(), "aTaskName",

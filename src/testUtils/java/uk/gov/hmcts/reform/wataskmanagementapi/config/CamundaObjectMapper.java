@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class CamundaObjectMapper {
 
@@ -28,9 +28,8 @@ public class CamundaObjectMapper {
     private String jsonString(Object obj, ObjectMapper mapper) {
         try {
             return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(e);
         }
     }
 }
-

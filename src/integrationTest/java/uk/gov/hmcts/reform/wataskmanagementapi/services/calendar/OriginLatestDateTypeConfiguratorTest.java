@@ -1510,4 +1510,3 @@ public class OriginLatestDateTypeConfiguratorTest {
             .hasMessage(AMBIGUOUS_ORIGIN_DATES_PROVIDED);
     }
 }
-

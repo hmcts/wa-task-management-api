@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
 

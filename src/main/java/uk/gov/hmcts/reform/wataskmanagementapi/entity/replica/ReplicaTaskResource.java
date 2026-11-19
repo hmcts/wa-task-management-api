@@ -22,7 +22,7 @@ import lombok.ToString;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 import org.springframework.context.annotation.Profile;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;

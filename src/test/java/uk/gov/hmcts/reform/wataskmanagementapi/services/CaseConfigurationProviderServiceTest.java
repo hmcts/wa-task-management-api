@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.collect.ImmutableMap;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +11,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.ccd.CaseDetails;
@@ -44,7 +44,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaValue.booleanValue;
@@ -74,7 +76,9 @@ class CaseConfigurationProviderServiceTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        objectMapper = spy(objectMapper.rebuild()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build());
         caseConfigurationProviderService = new CaseConfigurationProviderService(
             ccdDataService,
             dmnEvaluationService,
@@ -761,7 +765,8 @@ class CaseConfigurationProviderServiceTest {
     void should_evaluate_task_configuration_dmn_when_json_mapping_exception_return_empty_results() throws Exception {
         String someCaseId = "someCaseId";
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
-        when(objectMapper.writeValueAsString(anyMap())).thenThrow(JsonProcessingException.class);
+        doThrow(new JacksonException("forced mapping failure") { })
+            .when(objectMapper).writeValueAsString(anyMap());
         lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
             .thenReturn(List.of());
 
@@ -1203,7 +1208,7 @@ class CaseConfigurationProviderServiceTest {
     private String writeValueAsString(Map<String, String> data) {
         try {
             return objectMapper.writeValueAsString(data);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             //do nothing
         }
         return null;

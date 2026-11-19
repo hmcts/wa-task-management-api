@@ -9,9 +9,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -29,7 +28,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.operation.TaskOperationPerformService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.utils.TaskMandatoryFieldsValidator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.AwaitilityIntegrationTestConfig;
 
@@ -53,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
@@ -97,8 +96,8 @@ public class InitiateTaskDbLockAndTransactionTest {
     private CamundaService camundaService;
     @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
-    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService;
+    private CFTSensitiveTaskEventLogsDatabaseService cftSensitiveTaskEventLogsDatabaseService =
+        mock(CFTSensitiveTaskEventLogsDatabaseService.class);
     @MockitoSpyBean
     private CftQueryService cftQueryService;
     @MockitoSpyBean
@@ -127,17 +126,12 @@ public class InitiateTaskDbLockAndTransactionTest {
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
     private RoleAssignmentVerificationService roleAssignmentVerification;
-    @Mock
-    private EntityManager entityManager;
-    @Mock
-    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator;
-    @Mock
-    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+    private EntityManager entityManager = mock(EntityManager.class);
+    TaskMandatoryFieldsValidator taskMandatoryFieldsValidator = mock(TaskMandatoryFieldsValidator.class);
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration =
+        mock(AllowedJurisdictionConfiguration.class);
 
-    @Mock
-    private List<TaskOperationPerformService> taskOperationPerformServices;
-    @Mock
-    private IdamTokenGenerator idamTokenGenerator;
+    private IdamTokenGenerator idamTokenGenerator = mock(IdamTokenGenerator.class);
 
     @BeforeEach
     void setUp() {

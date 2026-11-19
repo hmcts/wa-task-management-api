@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
@@ -26,6 +23,9 @@ import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 import org.zalando.problem.violations.Violation;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.exc.MismatchedInputException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.AssigneeConfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
@@ -255,7 +255,7 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_handle_http_message_not_readable_exception_json_parse() {
         HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
-        JsonParseException cause = mock(JsonParseException.class);
+        StreamReadException cause = mock(StreamReadException.class);
         when(cause.getOriginalMessage()).thenReturn("someMessage");
         when(httpMessageNotReadableException.getCause()).thenReturn(cause);
 
@@ -281,9 +281,9 @@ class ApplicationProblemControllerAdviceTest {
     void should_handle_http_message_not_readable_exception_mismatch_input() {
         HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
         MismatchedInputException cause = mock(MismatchedInputException.class);
-        List<JsonMappingException.Reference> paths = List.of(
-            new JsonMappingException.Reference("someObject", "somefield"),
-            new JsonMappingException.Reference("someObject", "someNestedFieldName")
+        List<JacksonException.Reference> paths = List.of(
+            new JacksonException.Reference("someObject", "somefield"),
+            new JacksonException.Reference("someObject", "someNestedFieldName")
         );
         when(cause.getPath()).thenReturn(paths);
         when(httpMessageNotReadableException.getCause()).thenReturn(cause);
@@ -307,11 +307,11 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_handle_http_message_not_readable_exception_json_mapping() {
         HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
-        JsonMappingException cause = mock(JsonMappingException.class);
+        JacksonException cause = mock(JacksonException.class);
         when(cause.getOriginalMessage()).thenReturn("someMessage");
-        List<JsonMappingException.Reference> paths = List.of(
-            new JsonMappingException.Reference("someObject", "somefield"),
-            new JsonMappingException.Reference("someObject", "someNestedFieldName")
+        List<JacksonException.Reference> paths = List.of(
+            new JacksonException.Reference("someObject", "somefield"),
+            new JacksonException.Reference("someObject", "someNestedFieldName")
         );
         when(cause.getPath()).thenReturn(paths);
         when(httpMessageNotReadableException.getCause()).thenReturn(cause);
