@@ -2,6 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +30,21 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @RestController
 @Validated
 @RequiredArgsConstructor
-public class SystemTaskSearchController {
+public class SystemTaskSearchController extends BaseController {
 
     private final IdamService idamService;
     private final SystemTaskSearchService systemTaskSearchService;
 
     @Operation(description = "Search tasks by case ID within the configured system user's jurisdiction.",
         security = {@SecurityRequirement(name = SERVICE_AUTHORIZATION), @SecurityRequirement(name = AUTHORIZATION)})
+    @ApiResponse(responseCode = "200", description = OK, content = {
+        @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = SearchTasksResponse.class))})
+    @ApiResponse(responseCode = "400", description = BAD_REQUEST)
+    @ApiResponse(responseCode = "401", description = UNAUTHORIZED)
+    @ApiResponse(responseCode = "403", description = FORBIDDEN)
+    @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
+    @ApiResponse(responseCode = "502", description = BAD_GATEWAY)
+    @ApiResponse(responseCode = "503", description = "Service Unavailable")
     @GetMapping(path = "/task/searchByCaseId", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<SearchTasksResponse> searchByCaseId(
         @Parameter(hidden = true) @RequestHeader(AUTHORIZATION) String authToken,
