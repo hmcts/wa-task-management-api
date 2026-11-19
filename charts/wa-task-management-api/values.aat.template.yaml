@@ -13,6 +13,10 @@ java:
           alias: app-insights-connection-string
         - name: wa-system-username
           alias: WA_SYSTEM_USERNAME
+        - name: wa-search-email
+          alias: WA_SEARCH_EMAIL
+        - name: probate-search-email
+          alias: PROBATE_SEARCH_EMAIL
         - name: wa-system-password
           alias: WA_SYSTEM_PASSWORD
         - name: wa-idam-client-secret
