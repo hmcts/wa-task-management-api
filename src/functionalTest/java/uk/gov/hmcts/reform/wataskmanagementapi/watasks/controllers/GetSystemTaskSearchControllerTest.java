@@ -56,7 +56,11 @@ public class GetSystemTaskSearchControllerTest {
                 .body("tasks.jurisdiction", contains(WA_JURISDICTION))
                 .body("tasks[0].permissions.values", empty());
         } finally {
-            taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskVariables.getTaskId());
+            try {
+                taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskVariables.getTaskId());
+            } finally {
+                authorizationProvider.deleteAccount(TEST_USER_EMAIL_PREFIX + "@fake.hmcts.net");
+            }
         }
     }
 }

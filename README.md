@@ -61,7 +61,7 @@ existing downstream error handling. JWT and S2S validation remain unchanged.
 
 The happy-path functional test creates `wa-task-search-functional@fake.hmcts.net`
 using the existing IDAM helper and verifies that the API returns its WA task for
-the requested case. It cleans up the task and leaves user cleanup to IDAM.
+the requested case. It cleans up both the task and test user afterward.
 
 Preview and AAT map the `wa-search-email` secret in `wa-aat` to `WA_SEARCH_EMAIL`.
 Create the secret with the test email before deployment. This test secret is not
