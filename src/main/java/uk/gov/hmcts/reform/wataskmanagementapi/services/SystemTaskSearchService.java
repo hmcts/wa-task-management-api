@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.TaskSearchConfiguration;
@@ -17,6 +19,7 @@ import static java.util.Collections.emptySet;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.USER_HAS_NO_JURISDICTION;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SystemTaskSearchService {
 
@@ -37,11 +40,27 @@ public class SystemTaskSearchService {
     }
 
     private String getJurisdictionForUser(String username) {
-        for (Map.Entry<String, String> jurisdictionUser : taskSearchConfiguration.getJurisdictionUsers().entrySet()) {
-            if (username.equals(jurisdictionUser.getValue())) {
+        Map<String, String> jurisdictionUsers = taskSearchConfiguration.getJurisdictionUsers();
+        log.info("Resolving task search jurisdiction: username={}, usernameLength={}, configuredJurisdictions={}",
+                 StringUtils.overlay(username, "***", 1, StringUtils.length(username)),
+                 StringUtils.length(username), jurisdictionUsers.keySet());
+
+        for (Map.Entry<String, String> jurisdictionUser : jurisdictionUsers.entrySet()) {
+            String configuredUsername = jurisdictionUser.getValue();
+            boolean matches = username.equals(configuredUsername);
+            log.debug("Task search mapping: jurisdiction={}, configuredUsername={}, configuredUsernamePresent={}, "
+                          + "configuredUsernameLength={}, matches={}",
+                      jurisdictionUser.getKey(),
+                      StringUtils.overlay(configuredUsername, "***", 1, StringUtils.length(configuredUsername)),
+                      StringUtils.isNotBlank(configuredUsername), StringUtils.length(configuredUsername), matches);
+
+            if (matches) {
+                log.info("Task search user matched jurisdiction={}", jurisdictionUser.getKey());
                 return jurisdictionUser.getKey();
             }
         }
+        log.warn("Task search user has no matching jurisdiction; configuredJurisdictions={}",
+                 jurisdictionUsers.keySet());
         throw new GenericForbiddenException(USER_HAS_NO_JURISDICTION);
     }
 }
