@@ -19,7 +19,7 @@ ccd_gateway:
 search:
   jurisdictionUsers:
     probate: ${PROBATE_SEARCH_EMAIL:}
-    wa: "wa-task-search-functional@fake.hmcts.net"
+    wa: ${WA_SEARCH_EMAIL:}
 
 idam:
   test:
