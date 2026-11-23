@@ -80,6 +80,8 @@ withPipeline(type, product, component) {
     }
 
     before('functionalTest:preview') {
+        echo "WA_SEARCH_EMAIL present: ${env.WA_SEARCH_EMAIL?.trim() ? 'yes' : 'no'}"
+        echo "WA_SEARCH_EMAIL matches expected: ${env.WA_SEARCH_EMAIL == 'wa-task-search-functional@fake.hmcts.net'}"
         env.MAX_FT_TESTS_PARALLEL_FORKS = 5
     }
 
@@ -89,6 +91,8 @@ withPipeline(type, product, component) {
     }
 
     before('functionalTest:aat') {
+        echo "WA_SEARCH_EMAIL present: ${env.WA_SEARCH_EMAIL?.trim() ? 'yes' : 'no'}"
+        echo "WA_SEARCH_EMAIL matches expected: ${env.WA_SEARCH_EMAIL == 'wa-task-search-functional@fake.hmcts.net'}"
         env.INITIATION_JOB_RUNNING = false
         env.MAX_FT_TESTS_PARALLEL_FORKS = 5
     }

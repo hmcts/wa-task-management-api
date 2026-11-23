@@ -87,6 +87,11 @@ withNightlyPipeline(type, product, component) {
   enableFullFunctionalTest(60)
   enableSlackNotifications('#wa-build')
 
+  before('fullFunctionalTest') {
+    echo "WA_SEARCH_EMAIL nightly present: ${env.WA_SEARCH_EMAIL?.trim() ? 'yes' : 'no'}"
+    echo "WA_SEARCH_EMAIL nightly matches expected: ${env.WA_SEARCH_EMAIL == 'wa-task-search-functional@fake.hmcts.net'}"
+  }
+
   afterSuccess('fortify-scan') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
   }
