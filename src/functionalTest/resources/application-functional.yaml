@@ -16,6 +16,11 @@ document_management:
 ccd_gateway:
   url: ${CCD_GW_URL:http://ccd-api-gateway}
 
+search:
+  jurisdictionUsers:
+    probate: ${PROBATE_SEARCH_EMAIL:}
+    wa: "wa-task-search-functional@fake.hmcts.net"
+
 idam:
   test:
     username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
