@@ -21,6 +21,7 @@ def secrets = [
                 secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
                 secret('wa-system-username', 'WA_SYSTEM_USERNAME'),
                 secret('wa-system-password', 'WA_SYSTEM_PASSWORD'),
+                secret('wa-search-email', 'WA_SEARCH_EMAIL'),
 
                 secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
 
