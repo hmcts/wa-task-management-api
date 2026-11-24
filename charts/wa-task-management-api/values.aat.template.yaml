@@ -13,8 +13,6 @@ java:
           alias: app-insights-connection-string
         - name: wa-system-username
           alias: WA_SYSTEM_USERNAME
-        - name: wa-search-email
-          alias: WA_SEARCH_EMAIL
         - name: probate-search-email
           alias: PROBATE_SEARCH_EMAIL
         - name: wa-system-password
@@ -66,3 +64,5 @@ java:
     CALENDAR_CACHE_TIMEOUT_TIMEUNIT: HOURS
     SPRING_PROFILES_ACTIVE: "replica"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: true
+    WA_SEARCH_EMAIL: "wa-task-search-functional@fake.hmcts.net"
+
