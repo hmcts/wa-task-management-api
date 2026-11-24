@@ -18,3 +18,10 @@ ALTER TABLE cft_task_db.task_assignments SET (
     autovacuum_vacuum_threshold = 5000,
     autovacuum_analyze_threshold = 5000
 );
+
+ALTER TABLE cft_task_db.task_history SET (
+    autovacuum_vacuum_scale_factor = 0.02,
+    autovacuum_analyze_scale_factor = 0.01,
+    autovacuum_vacuum_threshold = 5000,
+    autovacuum_analyze_threshold = 5000
+);
