@@ -510,7 +510,6 @@ pact {
     pactDirectory = 'build/pacts'
     version = project.pacticipantVersion
     consumerVersion = project.pacticipantVersion
-    consumerBranch = project.pacticipantBranch
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     consumerBuildUrl = System.getenv('BUILD_URL')
   }
@@ -528,7 +527,7 @@ tasks.named('pactPublish') { publishTask ->
         'Use a local Broker on localhost port 9292 for local publication.')
     }
     validatePactPublicationMetadata(configuration.consumerVersion.toString(),
-      configuration.consumerBranch, pactInput('pact.consumer.version'))
+      configuration.tags.join(','), pactInput('pact.consumer.version'))
     def consumerTests = tasks.named('contract', Test).get()
     if (!consumerTests.state.executed || consumerTests.state.skipped ||
         !consumerTests.filter.commandLineIncludePatterns.empty) {
@@ -626,7 +625,7 @@ String pactInput(String name, String fallback = '') {
 
 void validatePactPublicationMetadata(String version, String branch, String requestedVersion) {
   if (!(version ==~ /[0-9a-f]{40}/) || !branch?.trim()) {
-    throw new GradleException('Pact publication requires the full checked-out Git SHA and explicit branch metadata.')
+    throw new GradleException('Pact publication requires the full checked-out Git SHA and branch or tag metadata.')
   }
   // Accept the existing library's short SHA only when it identifies this same commit.
   if (requestedVersion && (!(requestedVersion ==~ /[0-9a-f]{7,40}/) || !version.startsWith(requestedVersion))) {
