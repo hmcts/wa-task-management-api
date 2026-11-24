@@ -8,8 +8,6 @@ java:
           alias: azure.application-insights.instrumentation-key
         - name: wa-system-username
           alias: WA_SYSTEM_USERNAME
-        - name: wa-search-email
-          alias: WA_SEARCH_EMAIL
         - name: probate-search-email
           alias: PROBATE_SEARCH_EMAIL
         - name: wa-system-password
@@ -42,6 +40,7 @@ java:
     SPRING_PROFILES_ACTIVE: "preview,replica"
     DB_READER_USERNAME: "{{ .Values.postgresql.auth.username}}"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: true
+    WA_SEARCH_EMAIL: "wa-task-search-functional@fake.hmcts.net"
   postgresql:
     enabled: true
     auth:
