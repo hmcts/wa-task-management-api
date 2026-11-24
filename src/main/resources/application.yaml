@@ -57,7 +57,7 @@ auth:
 search:
   jurisdictionUsers:
     probate: ${PROBATE_SEARCH_EMAIL:}
-    wa: ${WA_SEARCH_EMAIL:}
+    wa: ${WA_SEARCH_EMAIL:wa-task-search-functional@fake.hmcts.net}
 
 idam:
   baseUrl: ${OPEN_ID_IDAM_URL:http://sidam-api}
