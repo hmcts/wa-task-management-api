@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums;
 
 public enum ErrorMessages {
 
+    USER_HAS_NO_JURISDICTION("User does not belong to any jurisdiction"),
+
     TASK_UNCLAIM_UNABLE_TO_UPDATE_STATE(
         "Task unclaim failed. "
         + "Unable to update task state to unassigned."),
