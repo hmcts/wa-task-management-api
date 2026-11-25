@@ -57,6 +57,7 @@ public class GetSystemTaskSearchControllerTest {
                 .body("tasks[0].permissions.values", empty());
         } finally {
             taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskVariables.getTaskId());
+            authorizationProvider.deleteAccount(TEST_USER_EMAIL_PREFIX + "@fake.hmcts.net");
         }
     }
 }

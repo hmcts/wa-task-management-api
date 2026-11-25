@@ -63,13 +63,21 @@ The happy-path functional test creates `wa-task-search-functional@fake.hmcts.net
 using the existing IDAM helper and verifies that the API returns its WA task for
 the requested case. It cleans up the task and leaves user cleanup to IDAM.
 
-Preview and AAT map the `wa-search-email` secret in `wa-aat` to `WA_SEARCH_EMAIL`.
-Create the secret with the test email before deployment. This test secret is not
-referenced in the base Helm values or production; the WA mapping defaults to empty.
+The WA mapping uses
+`${WA_SEARCH_EMAIL:wa-task-search-functional@fake.hmcts.net}` in `application.yaml`.
+When `WA_SEARCH_EMAIL` is absent, the functional-test email is authorized for
+jurisdiction `wa`. An explicitly supplied value overrides this default; an empty
+value disables the WA mapping. The default applies in every environment,
+including production, unless overridden. The preview and AAT Helm templates set
+the same email directly and do not reference the `wa-search-email` secret.
 
-For local runs, export `WA_SEARCH_EMAIL=wa-task-search-functional@fake.hmcts.net`
-before starting the API. Run the test with the usual functional-test credentials
-and `TEST_URL` pointing to that API:
+The API deployment must use an image containing this configuration. Running the
+nightly functional test does not update the shared AAT API deployment, and a
+variable supplied to the Jenkins test runner does not configure that API.
+
+For local runs, the API uses the default email unless `WA_SEARCH_EMAIL` is set.
+Run the test with the usual functional-test credentials and `TEST_URL` pointing
+to that API:
 
 ```shell
 ./gradlew functional --tests '*GetSystemTaskSearchControllerTest'

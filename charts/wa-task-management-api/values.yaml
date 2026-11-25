@@ -68,5 +68,6 @@ java:
     ENVIRONMENT: "{{ .Values.global.environment }}"
     DB_READER_USERNAME: "DTS CFT DB Access Reader"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: false
+    WA_SEARCH_EMAIL: "wa-task-search-functional@fake.hmcts.net"
   spotInstances:
     enabled: false
