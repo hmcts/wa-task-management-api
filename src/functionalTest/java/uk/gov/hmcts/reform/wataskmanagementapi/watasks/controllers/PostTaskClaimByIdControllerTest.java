@@ -61,13 +61,15 @@ public class PostTaskClaimByIdControllerTest {
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("processApplication", "Process Application");
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION);
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "processApplication", "Process Application");
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
@@ -95,7 +97,7 @@ public class PostTaskClaimByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("processApplication", "Process Application");
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
@@ -118,13 +120,15 @@ public class PostTaskClaimByIdControllerTest {
         TestAuthenticationCredentials caseMngrWithSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication", "Process Application");
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
-            caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseMngrWithSpAccess.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE);
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "processApplication", "Process Application");
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(

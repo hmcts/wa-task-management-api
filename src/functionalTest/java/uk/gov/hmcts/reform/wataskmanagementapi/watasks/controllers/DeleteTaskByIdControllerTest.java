@@ -58,7 +58,7 @@ public class DeleteTaskByIdControllerTest {
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -84,7 +84,7 @@ public class DeleteTaskByIdControllerTest {
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
@@ -116,7 +116,7 @@ public class DeleteTaskByIdControllerTest {
             "requests/ccd/wa_case_data_fixed_hearing_date.json",
             "processApplication"
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo("cancelled")
@@ -157,7 +157,7 @@ public class DeleteTaskByIdControllerTest {
                 "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "processApplication"
             );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED + "/cancel?cancellation_process=" + "EXUI_USER_CANCELLATION",

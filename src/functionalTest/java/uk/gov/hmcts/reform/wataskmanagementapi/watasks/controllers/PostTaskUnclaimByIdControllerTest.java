@@ -85,7 +85,7 @@ public class PostTaskUnclaimByIdControllerTest {
             "process application");
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             CLAIM_ENDPOINT,
@@ -123,7 +123,7 @@ public class PostTaskUnclaimByIdControllerTest {
         TestVariables taskVariables = setupScenario("processApplication",
             "process application");
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().updateTaskWithCustomVariablesOverride(
             taskVariables, Map.of(REGION, "1"));
@@ -160,7 +160,7 @@ public class PostTaskUnclaimByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         String taskId = taskVariables.getTaskId();
 
@@ -189,13 +189,13 @@ public class PostTaskUnclaimByIdControllerTest {
         TestAuthenticationCredentials caseWorkerForClaim =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("processApplication", "Process Application");
-
         taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
             caseWorkerForClaim.getHeaders(), "WA", "WaCaseType");
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskAndRetrieveIds("processApplication", "Process Application");
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         String taskId = taskVariables.getTaskId();
 
@@ -226,13 +226,13 @@ public class PostTaskUnclaimByIdControllerTest {
         TestAuthenticationCredentials caseWorkerForClaim =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication", "Process Application");
-
         taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(
             caseWorkerForClaim.getHeaders(), "WA", "WaCaseType");
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+            "processApplication", "Process Application");
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         String taskId = taskVariables.getTaskId();
 

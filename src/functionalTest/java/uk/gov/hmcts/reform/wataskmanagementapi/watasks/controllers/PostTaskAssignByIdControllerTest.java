@@ -50,19 +50,22 @@ public class PostTaskAssignByIdControllerTest {
     public void assigner_should_not_assign_a_task_to_assignee_when_role_assignment_verification_failed() {
         //assigner role : manage
         //assignee role : read
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("processApplication", "Process Application");
-        taskId = taskVariables.getTaskId();
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
 
-        TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
+        final TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         TestAuthenticationCredentials caseWorkerWithPanelJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            caseWorkerWithPanelJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+            caseWorkerWithPanelJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "processApplication", "Process Application");
+        taskId = taskVariables.getTaskId();
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
             caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
@@ -95,19 +98,22 @@ public class PostTaskAssignByIdControllerTest {
     public void assigner_should_assign_a_task_to_assignee_when_role_assignment_verification_pass() {
         //assigner role : manage
         //assignee role : own
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication", "Process Application");
-        taskId = taskVariables.getTaskId();
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
 
-        TestAuthenticationCredentials caseMngrWithSpAccess =
+        final TestAuthenticationCredentials caseMngrWithSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "processApplication", "Process Application");
+        taskId = taskVariables.getTaskId();
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
             caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -125,19 +131,22 @@ public class PostTaskAssignByIdControllerTest {
     public void assigner_has_grant_type_specific_and_permission_manage_can_assign_other_already_assigned_task() {
         //assigner role : manage
         //assignee role : execute
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication", "Process Application");
-        taskId = taskVariables.getTaskId();
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
 
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestAuthenticationCredentials caseWorkerWithFtpaJudge =
+        final TestAuthenticationCredentials caseWorkerWithFtpaJudge =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "processApplication", "Process Application");
+        taskId = taskVariables.getTaskId();
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         //first assign
         taskFunctionalTestsApiUtils.getCommon().setupFtpaJudgeForSpecificAccess(
@@ -168,18 +177,21 @@ public class PostTaskAssignByIdControllerTest {
         //assigner role : Read,Own,Manage,Unassign,Assign,Complete
         //assignee role : Manage,Execute,Unassign,Assign,Complete
         //second assignee role : Manage,Execute,Unassign,Assign,Complete
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "reviewSpecificAccessRequestJudiciary",
-            "Review Specific Access Request Judiciary");
-        taskId = taskVariables.getTaskId();
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
 
         TestAuthenticationCredentials caseMngrWithSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccess(
-            caseMngrWithSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseMngrWithSpAccess.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE);
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseMngrWithSpAccess.getHeaders());
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "reviewSpecificAccessRequestJudiciary",
+                                                 "Review Specific Access Request Judiciary");
+        taskId = taskVariables.getTaskId();
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, caseMngrWithSpAccess.getHeaders());
 
         TestAuthenticationCredentials caseWorkerWithFtpaJudge =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);

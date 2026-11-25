@@ -39,19 +39,21 @@ public class Assertions {
             "processInstanceId", processInstanceId
         );
 
-        Response result = camundaApiActions.post(
-            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
-            request,
-            authorizationProvider.getServiceAuthorizationHeader()
-        );
+        await().untilAsserted(() -> {
+            Response result = camundaApiActions.post(
+                CAMUNDA_SEARCH_HISTORY_ENDPOINT,
+                request,
+                authorizationProvider.getServiceAuthorizationHeader()
+            );
 
-        result.prettyPrint();
+            result.prettyPrint();
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and()
-            .body("name", everyItem(is(variable)))
-            .body("value", hasItem(value));
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("name", everyItem(is(variable)))
+                .body("value", hasItem(value));
+        });
     }
 
     public void taskStateWasUpdatedInDatabase(String taskId, String value, Headers authenticationHeaders) {

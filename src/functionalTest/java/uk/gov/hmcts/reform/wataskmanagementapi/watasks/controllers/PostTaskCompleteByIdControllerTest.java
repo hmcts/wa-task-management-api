@@ -106,7 +106,7 @@ public class PostTaskCompleteByIdControllerTest {
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             CLAIM_ENDPOINT,
@@ -149,7 +149,7 @@ public class PostTaskCompleteByIdControllerTest {
 
             TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "Process Application");
             taskId = taskVariables.getTaskId();
-            taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+            taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
             taskFunctionalTestsApiUtils.getAssertions().taskFieldWasUpdatedInDatabase(
                 taskId, "termination_process", null, caseWorkerWithCftOrgRoles.getHeaders()
             );
@@ -203,7 +203,7 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
@@ -232,7 +232,7 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -275,7 +275,7 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -318,7 +318,7 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
             caseWorkerWithWAOrgRoles2.getHeaders(),
@@ -349,7 +349,7 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables =  taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
             caseWorkerWithWAOrgRoles2.getHeaders(),
@@ -411,7 +411,7 @@ public class PostTaskCompleteByIdControllerTest {
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         assignTask(taskVariables);
 
@@ -442,7 +442,7 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
             "processApplication", "Process Application");
         taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupSpecificTribunalCaseWorker(
             taskVariables.getCaseId(), userWithSpecificTribunalCaseWorker.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
@@ -477,7 +477,7 @@ public class PostTaskCompleteByIdControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskWithWithCustomVariableAndRetrieveIds(REGION, "1", "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseWorkerWithCftOrgRoles.getHeaders());
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, caseWorkerWithCftOrgRoles.getHeaders());
         //Create temporary role-assignment to assign task
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
@@ -518,7 +518,7 @@ public class PostTaskCompleteByIdControllerTest {
     public void should_return_a_403_when_user_does_not_have_permission() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "Process Application");
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
@@ -584,9 +584,9 @@ public class PostTaskCompleteByIdControllerTest {
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         TestVariables taskVariables1 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "Process Application");
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables1);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables1);
         TestVariables taskVariables2 = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds("processApplication", "Process Application");
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables2);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables2);
 
         taskFunctionalTestsApiUtils.getCommon().setupCFTOrganisationalRoleAssignment(waCaseWorker.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
 

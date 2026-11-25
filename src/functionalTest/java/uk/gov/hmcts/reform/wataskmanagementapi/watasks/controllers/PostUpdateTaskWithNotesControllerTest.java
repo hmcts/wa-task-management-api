@@ -54,7 +54,7 @@ public class PostUpdateTaskWithNotesControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskWithWarningsAndRetrieveIds("processApplication", "process application");
         String taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         String notesRequest = addNotes();
 
@@ -109,7 +109,7 @@ public class PostUpdateTaskWithNotesControllerTest {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
             .setupWATaskAndRetrieveIds("processApplication", "Process Application");
         String taskId = taskVariables.getTaskId();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         String notesRequest = addNotes();
 

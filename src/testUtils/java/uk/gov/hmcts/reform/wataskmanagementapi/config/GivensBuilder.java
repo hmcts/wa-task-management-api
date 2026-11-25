@@ -333,6 +333,7 @@ public class GivensBuilder {
             .withProcessVariable("delayUntil", delayUntil)
             .withProcessVariable("workingDaysAllowed", workingDaysAllowed)
             .withProcessVariableBoolean("hasWarnings", hasWarnings)
+            .withProcessVariableBoolean("__processCategory__Protection", true)
             .withProcessVariable("warningList", warningList)
             .withProcessVariable("caseManagementCategory", caseManagementCategory)
             .withProcessVariable("description", description);

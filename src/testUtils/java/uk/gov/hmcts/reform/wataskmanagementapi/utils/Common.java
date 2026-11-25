@@ -208,7 +208,11 @@ public class Common {
 
     public TestVariables setupWATaskWithAdditionalPropertiesAndRetrieveIds(Map<String, String> additionalProperties, String resourceFileName, String taskType) {
         String caseId = given.iCreateWACcdCase(resourceFileName);
+        return setupWATaskWithAdditionalPropertiesForGivenCaseAndRetrieveIds(additionalProperties, caseId, taskType);
+    }
 
+    public TestVariables setupWATaskWithAdditionalPropertiesForGivenCaseAndRetrieveIds(
+        Map<String, String> additionalProperties, String caseId, String taskType) {
         Map<String, CamundaValue<?>> processVariables =
             given.createDefaultTaskVariables(caseId, WA_JURISDICTION,
                                              WA_CASE_TYPE, taskType, DEFAULT_TASK_NAME, additionalProperties);

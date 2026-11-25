@@ -66,14 +66,16 @@ public class PostTaskCancelByIdControllerTest {
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication", "Process Application");
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
+        taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "processApplication", "Process Application");
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
-
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
             ENDPOINT_BEING_TESTED,
@@ -100,14 +102,16 @@ public class PostTaskCancelByIdControllerTest {
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskAndRetrieveIds("reviewSpecificAccessRequestJudiciary",
-                                      "Review Specific Access Request Judiciary");
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
-            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION);
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseWorkerWithJudgeRole.getHeaders());
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "reviewSpecificAccessRequestJudiciary",
+                                                 "Review Specific Access Request Judiciary");
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, caseWorkerWithJudgeRole.getHeaders());
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
@@ -150,7 +154,7 @@ public class PostTaskCancelByIdControllerTest {
             TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
                 "reviewSpecificAccessRequestJudiciary", "Review Specific Access Request Judiciary");
 
-            taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+            taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, caseworkerForReadCredentials.getHeaders());
 
             String taskId = taskVariables.getTaskId();
 
@@ -186,14 +190,16 @@ public class PostTaskCancelByIdControllerTest {
         TestAuthenticationCredentials caseWorkerWithLeadJudgeSpAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "reviewSpecificAccessRequestJudiciary",
-            "Review Specific Access Request Judiciary");
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupChallengedAccessLegalOps(
-            caseWorkerWithLeadJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+            caseWorkerWithLeadJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE);
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, hearingPanelJudgeForStandardAccess.getHeaders());
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "reviewSpecificAccessRequestJudiciary",
+                                                 "Review Specific Access Request Judiciary");
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, hearingPanelJudgeForStandardAccess.getHeaders());
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(

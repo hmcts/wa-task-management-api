@@ -4,7 +4,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +36,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.MANDATORY_FIELD_MISSING_ERROR;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_CASE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.WA_JURISDICTION;
@@ -159,7 +159,7 @@ public class PostTaskInitiateByIdControllerTest {
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -212,24 +212,22 @@ public class PostTaskInitiateByIdControllerTest {
     }
 
 
-    @Ignore("Temporarily ignored. This test and the other affected tests will be fixed once the immediate task "
-        + "initiation feature is enabled in production")
     @Test
     public void should_assign_task_when_assignee_has_right_roles() {
 
-        TestVariables taskVariables =
-            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-                "requests/ccd/wa_case_data_fixed_hearing_date.json",
-                "assigneeTestTask", "Assignee Test Task"
-            );
-        String taskId = taskVariables.getTaskId();
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
 
         assigneeCaseWorker =
             authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(assigneeCaseWorkerEmailPrefix);
 
         taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
-            assigneeCaseWorker.getHeaders(), taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
+            assigneeCaseWorker.getHeaders(), caseId, TaskFunctionalTestConstants.WA_JURISDICTION,
             TaskFunctionalTestConstants.WA_CASE_TYPE);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "assigneeTestTask", "Assignee Test Task");
+        String taskId = taskVariables.getTaskId();
 
         //Note: this is the TaskResource.class
         Consumer<Response> assertConsumer = (result) -> {
@@ -245,7 +243,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.assignee", equalTo("dd8b6c25-6079-36f2-ba0c-afd189308b68"));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
             taskVariables, assigneeCaseWorker.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
@@ -260,16 +258,18 @@ public class PostTaskInitiateByIdControllerTest {
     @Test
     public void should_not_assign_task_when_assignee_have_incorrect_roles() {
 
-        TestVariables taskVariables =
-            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-                "requests/ccd/wa_case_data_fixed_hearing_date.json",
-                "incorrectRoleAssigneeTestTask", "Incorrect RoleAssignment Task Test"
-            );
-        String taskId = taskVariables.getTaskId();
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         assigneeCaseWorkerWithIncorrectRoles =
             authorizationProvider
                 .getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(assigneeCaseWorkerWithIncorrectRolesEmailPrefix);
+
+        TestVariables taskVariables =
+            taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+                caseId,
+                "incorrectRoleAssigneeTestTask", "Incorrect RoleAssignment Task Test"
+            );
+        String taskId = taskVariables.getTaskId();
 
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();
@@ -284,7 +284,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.assignee", equalTo(null));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
@@ -296,23 +296,31 @@ public class PostTaskInitiateByIdControllerTest {
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
-    @Ignore("Temporarily ignored. This test and the other affected tests will be fixed once the immediate task "
-        + "initiation feature is enabled in production")
     @Test
     public void should_assign_task_to_last_assignee_when_multiple_assignees_with_correct_roles() {
 
-        TestVariables taskVariables =
-            taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-                "requests/ccd/wa_case_data_fixed_hearing_date.json",
-                "multipleAssigneeTestTask", "Multiple Assignee Test Task"
-            );
-        String taskId = taskVariables.getTaskId();
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         multiAssigneeCaseWorker1 =
             authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(
                 multiAssigneeCaseWorker1EmailPrefix);
         multiAssigneeCaseWorker2 =
             authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(
                 multiAssigneeCaseWorker2EmailPrefix);
+
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
+            multiAssigneeCaseWorker1.getHeaders(),
+            caseId, TaskFunctionalTestConstants.WA_JURISDICTION,
+            TaskFunctionalTestConstants.WA_CASE_TYPE);
+
+        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
+            multiAssigneeCaseWorker2.getHeaders(),
+            caseId, TaskFunctionalTestConstants.WA_JURISDICTION,
+            TaskFunctionalTestConstants.WA_CASE_TYPE);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "multipleAssigneeTestTask", "Multiple Assignee Test Task");
+        String taskId = taskVariables.getTaskId();
 
         Consumer<Response> assertConsumer = (result) -> {
             result.prettyPrint();
@@ -327,17 +335,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.assignee", equalTo("8b48c4bd-6281-32f8-a880-a3be29d3b952"));
         };
 
-        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
-            multiAssigneeCaseWorker1.getHeaders(),
-            taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
-            TaskFunctionalTestConstants.WA_CASE_TYPE);
-
-        taskFunctionalTestsApiUtils.getCommon().setupCaseManagerForSpecificAccessWithAuthorizations(
-            multiAssigneeCaseWorker2.getHeaders(),
-            taskVariables.getCaseId(), TaskFunctionalTestConstants.WA_JURISDICTION,
-            TaskFunctionalTestConstants.WA_CASE_TYPE);
-
-        taskFunctionalTestsInitiationUtils.initiateTask(
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
             taskVariables, multiAssigneeCaseWorker1.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
@@ -413,7 +411,7 @@ public class PostTaskInitiateByIdControllerTest {
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -476,7 +474,7 @@ public class PostTaskInitiateByIdControllerTest {
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -540,7 +538,7 @@ public class PostTaskInitiateByIdControllerTest {
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -601,7 +599,7 @@ public class PostTaskInitiateByIdControllerTest {
                                   .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
             taskVariables, caseWorkerWithJudgeRole.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
@@ -723,7 +721,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.major_priority", equalTo(5000));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
@@ -788,7 +786,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.priority_date", notNullValue());
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -841,7 +839,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.due_date", equalTo("2026-01-02T18:00:00+0000"));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -901,7 +899,7 @@ public class PostTaskInitiateByIdControllerTest {
                 .body("task.major_priority", equalTo(5000));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
             taskVariables, userWithCFTCtscRole.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
@@ -990,7 +988,7 @@ public class PostTaskInitiateByIdControllerTest {
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
             taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
@@ -1070,10 +1068,25 @@ public class PostTaskInitiateByIdControllerTest {
             ))).body("task.minor_priority", equalTo(500))
             .body("task.major_priority", equalTo(1000));
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
             taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
-        //Expect to get 503 for database conflict
-        taskFunctionalTestsInitiationUtils.initiateTask(
+        InitiateTaskRequestMap initiateTaskRequest = taskFunctionalTestsInitiationUtils.initiateTaskRequestMap(
+            taskVariables, null);
+        Response response = taskFunctionalTestsApiUtils.getRestApiActions().post(
+            TASK_INITIATION_ENDPOINT,
+            taskId,
+            initiateTaskRequest,
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
+        response.then().assertThat()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
+            .body("title", equalTo("Database Conflict Error"))
+            .body("status", equalTo(503))
+            .body("detail", equalTo("Database Conflict Error: The action could not be completed because "
+                                       + "there was a conflict in the database."));
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
             taskVariables, caseWorkerWithWAOrgRoles.getHeaders(), assertConsumer);
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
@@ -1164,7 +1177,7 @@ public class PostTaskInitiateByIdControllerTest {
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -1224,7 +1237,7 @@ public class PostTaskInitiateByIdControllerTest {
                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         taskFunctionalTestsApiUtils.getAssertions().taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),

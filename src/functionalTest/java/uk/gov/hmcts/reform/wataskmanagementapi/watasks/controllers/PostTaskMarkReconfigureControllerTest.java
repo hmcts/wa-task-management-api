@@ -71,18 +71,19 @@ public class PostTaskMarkReconfigureControllerTest {
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned_for_WA() {
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication",
-            "Process Application"
-        );
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
 
         TestAuthenticationCredentials assignerCredentials =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            assignerCredentials.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "processApplication", "Process Application");
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -127,7 +128,7 @@ public class PostTaskMarkReconfigureControllerTest {
             "Process Application"
         );
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskId = taskVariables.getTaskId();
 
