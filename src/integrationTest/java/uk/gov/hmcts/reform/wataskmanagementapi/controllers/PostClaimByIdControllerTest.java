@@ -7,9 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -109,10 +108,8 @@ class PostClaimByIdControllerTest {
     IntegrationTestUtils integrationTestUtils;
 
     private ServiceMocks mockServices;
-    @Mock
-    private UserInfo mockedUserInfo;
-    @Mock
-    private UserInfo mockedUser2Info;
+    private UserInfo mockedUserInfo = mock(UserInfo.class);
+    private UserInfo mockedUser2Info = mock(UserInfo.class);
     RoleAssignmentHelper roleAssignmentHelper = new RoleAssignmentHelper();
     private String taskId;
 
@@ -1741,4 +1738,3 @@ class PostClaimByIdControllerTest {
     }
 
 }
-

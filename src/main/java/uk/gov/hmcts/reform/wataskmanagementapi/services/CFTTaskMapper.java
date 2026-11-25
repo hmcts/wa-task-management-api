@@ -1,13 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
@@ -61,7 +60,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.camunda.CamundaVari
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CaseConfigurationProviderService.ADDITIONAL_PROPERTIES_PREFIX;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.DueDateCalculator.DATE_TIME_FORMATTER;
 
-
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
@@ -76,7 +74,6 @@ public class CFTTaskMapper {
 
     public CFTTaskMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
     public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
@@ -698,7 +695,7 @@ public class CFTTaskMapper {
             try {
                 return objectMapper.readValue((String) value, new TypeReference<>() {
                 });
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new IllegalArgumentException("Additional Properties mapping issue.", e);
             }
         }
@@ -767,4 +764,3 @@ public class CFTTaskMapper {
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
 }
-

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.Application;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.IntegrationTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.calendar.BankHolidays;
@@ -26,6 +27,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.Calendar
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.calendar.CalendarTestSupport.notFoundUri;
 
 @IntegrationTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class PublicHolidaysCollectionTest {
 
     @Autowired

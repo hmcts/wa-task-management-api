@@ -7,15 +7,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
@@ -40,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.entity.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TestResultMatchers;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -102,10 +101,8 @@ class PostTaskAssignByIdControllerTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @Mock
-    private UserInfo mockedUserInfo;
-    @Mock
-    private UserInfo mockedSecondaryUserInfo;
+    private UserInfo mockedUserInfo = org.mockito.Mockito.mock(UserInfo.class);
+    private UserInfo mockedSecondaryUserInfo = org.mockito.Mockito.mock(UserInfo.class);
     @MockitoBean
     private IdamService idamService;
     @Autowired
@@ -240,7 +237,7 @@ class PostTaskAssignByIdControllerTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(new AssignTaskRequest(SECONDARY_IDAM_USER_ID)))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-error"),

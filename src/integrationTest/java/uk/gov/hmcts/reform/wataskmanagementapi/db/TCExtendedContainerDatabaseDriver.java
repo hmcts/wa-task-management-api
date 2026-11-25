@@ -23,11 +23,10 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import javax.script.ScriptException;
 
@@ -43,11 +42,11 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
 
     private Driver delegate;
 
-    private static final Map<String, Set<Connection>> containerConnections = new HashMap<>();
+    private static final Map<String, Set<Connection>> containerConnections = new ConcurrentHashMap<>();
 
-    private static final Map<String, JdbcDatabaseContainer> jdbcUrlContainerCache = new HashMap<>();
+    private static final Map<String, JdbcDatabaseContainer> jdbcUrlContainerCache = new ConcurrentHashMap<>();
     private static final Network network = Network.newNetwork();
-    private static final Set<String> initializedContainers = new HashSet<>();
+    private static final Set<String> initializedContainers = ConcurrentHashMap.newKeySet();
 
     private static final String FILE_PATH_PREFIX = "file:";
 
@@ -78,6 +77,7 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
         }
 
         ConnectionUrl connectionUrl = ConnectionUrl.newInstance(url);
+        String cacheKey = connectionUrl.getUrl();
 
         synchronized (jdbcUrlContainerCache) {
             String queryString = connectionUrl.getQueryString().orElse("");
@@ -85,7 +85,7 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
               If we already have a running container for this exact connection string, we want to connect
               to that rather than create a new container
              */
-            JdbcDatabaseContainer container = jdbcUrlContainerCache.get(connectionUrl.getUrl());
+            JdbcDatabaseContainer container = jdbcUrlContainerCache.get(cacheKey);
             if (container == null) {
                 LOGGER.debug("Container not found in cache, creating new instance");
 
@@ -111,7 +111,7 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
                   Cache the container before starting to prevent race conditions when a connection
                   pool is started up
                  */
-                jdbcUrlContainerCache.put(url, container);
+                jdbcUrlContainerCache.put(cacheKey, container);
 
                 /*
                   Pass possible container-specific parameters
@@ -153,7 +153,7 @@ public class TCExtendedContainerDatabaseDriver implements Driver {
 
         Set<Connection> connections = containerConnections.computeIfAbsent(
             container.getContainerId(),
-            k -> new HashSet<>()
+            k -> ConcurrentHashMap.newKeySet()
         );
 
         connections.add(connection);

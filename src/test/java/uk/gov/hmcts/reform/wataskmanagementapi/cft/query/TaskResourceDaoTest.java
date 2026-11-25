@@ -139,7 +139,7 @@ class TaskResourceDaoTest {
         lenient().when(builder.in(any())).thenReturn(inObject);
         lenient().when(inObject.value(any())).thenReturn(values);
         lenient().when(builder.or(any(), any())).thenReturn(inObject);
-        lenient().when(builder.or(any())).thenReturn(inObject);
+        lenient().when(builder.or(any(Predicate.class))).thenReturn(inObject);
         lenient().when(builder.and(any(), any())).thenReturn(inObject);
         lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
         lenient().when(builder.conjunction()).thenReturn(predicate);

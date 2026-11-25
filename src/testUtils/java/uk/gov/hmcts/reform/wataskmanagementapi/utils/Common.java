@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -259,7 +259,7 @@ public class Common {
         String warningString = "WarningValues(values=[])";
         try {
             warningString = warnings.getValuesAsJson();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             fail("Fail to create warning list: " + caseId);
         }
 
@@ -1039,7 +1039,7 @@ public class Common {
 
         try {
             json = objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 
@@ -1051,7 +1051,7 @@ public class Common {
 
         try {
             json = objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 

@@ -8,17 +8,15 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -54,6 +52,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestIndexUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TestResultMatchers;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -109,8 +108,7 @@ class PostTaskSearchControllerTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockitoSpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
-    private UserInfo mockedUserInfo;
+    private UserInfo mockedUserInfo = org.mockito.Mockito.mock(UserInfo.class);
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
@@ -199,7 +197,7 @@ class PostTaskSearchControllerTest {
                 .content(integrationTestUtils.asJsonString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 status().isOk(),
                 jsonPath("total_records").value(0),
                 jsonPath("$.tasks").isEmpty()
@@ -491,7 +489,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isOk(),
                     jsonPath("total_records").value(0),
                     jsonPath("$.tasks").isEmpty()
@@ -530,7 +528,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -572,9 +570,8 @@ class PostTaskSearchControllerTest {
                 jsonPath("$.title").value("Bad Request"),
                 jsonPath("$.status").value(400),
                 jsonPath("$.detail")
-                    .value("Unexpected end-of-input: expected close marker for Object "
-                           + "(start marker at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` "
-                               + "disabled); line: 1, column: 1])")
+                    .value(org.hamcrest.Matchers.startsWith(
+                        "Unexpected end-of-input: expected close marker for Object"))
             );
     }
 
@@ -588,7 +585,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -596,8 +593,8 @@ class PostTaskSearchControllerTest {
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail")
-                        .value("Unexpected character ('t' (code 116)): was expecting "
-                               + "double-quote to start field name")
+                        .value(org.hamcrest.Matchers.startsWith(
+                            "Unexpected character ('t' (code 116)): was expecting double-quote to start"))
                 ));
     }
 
@@ -624,7 +621,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -659,7 +656,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -694,7 +691,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -718,7 +715,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -756,7 +753,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -793,7 +790,7 @@ class PostTaskSearchControllerTest {
             )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -830,7 +827,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -868,7 +865,7 @@ class PostTaskSearchControllerTest {
             )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -907,7 +904,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -947,7 +944,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -984,7 +981,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -1021,7 +1018,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -1060,7 +1057,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -1117,7 +1114,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isOk()));
     }
 
@@ -1162,7 +1159,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isOk()));
     }
 
@@ -1271,7 +1268,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -1308,7 +1305,7 @@ class PostTaskSearchControllerTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(
-                ResultMatcher.matchAll(
+                TestResultMatchers.matchAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -1668,7 +1665,7 @@ class PostTaskSearchControllerTest {
                 .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 status().isBadRequest(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
@@ -1719,7 +1716,7 @@ class PostTaskSearchControllerTest {
                 .content(content)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 status().isBadRequest(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")

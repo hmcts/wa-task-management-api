@@ -6,12 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -28,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.IntegrationTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TestResultMatchers;
 
 import java.util.List;
 import java.util.Optional;
@@ -122,7 +122,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(addNotes()))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"),
@@ -146,7 +146,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(addNotes()))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
@@ -172,7 +172,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
@@ -205,7 +205,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(notesRequest))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
@@ -242,7 +242,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(notesRequest))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
@@ -271,7 +271,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(notesRequest))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
@@ -307,7 +307,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(notesRequest))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
@@ -346,7 +346,7 @@ class PostUpdateTaskWithNotesControllerFailureTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(integrationTestUtils.asJsonString(notesRequest))
         ).andExpect(
-            ResultMatcher.matchAll(
+            TestResultMatchers.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
@@ -366,4 +366,3 @@ class PostUpdateTaskWithNotesControllerFailureTest {
         );
     }
 }
-

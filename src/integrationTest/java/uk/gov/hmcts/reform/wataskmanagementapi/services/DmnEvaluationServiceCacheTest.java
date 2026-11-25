@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @IntegrationTest
+@Import(DmnEvaluationServiceCacheTest.OverrideBean.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DmnEvaluationServiceCacheTest {
 
@@ -51,7 +54,8 @@ public class DmnEvaluationServiceCacheTest {
         static FakeTicker FAKE_TICKER = new FakeTicker();
 
         @Bean
-        public Ticker ticker() {
+        @Primary
+        public Ticker testTicker() {
             return FAKE_TICKER::read;
         }
     }

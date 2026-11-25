@@ -14,8 +14,8 @@ import jakarta.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -31,11 +31,8 @@ public class TaskRoleResource implements Serializable {
     private static final long serialVersionUID = -4769530559311463016L;
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-        name = "UUID",
-        strategy = "org.hibernate.id.UUIDGenerator"
-    )
+    @GeneratedValue
+    @UuidGenerator
     @Column(insertable = false, updatable = false, nullable = false)
     @Schema(name = "task_role_id")
     private UUID taskRoleId;
