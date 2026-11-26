@@ -10,4 +10,12 @@ dependencies:
   - name: java
     version: 6.1.1
     repository: 'oci://hmctsprod.azurecr.io/helm'
+  - name: camunda-bpm
+    version: 0.0.52
+    repository: 'oci://hmctsprod.azurecr.io/helm'
+    condition: camunda-bpm.enabled
+  - name: wa-workflow-api
+    version: 0.1.6
+    repository: 'oci://hmctsprod.azurecr.io/helm'
+    condition: wa-workflow-api.enabled
 

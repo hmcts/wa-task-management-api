@@ -7,7 +7,8 @@ import uk.gov.hmcts.contino.AppPipelineDsl
 def type = "java"
 def product = "wa"
 def component = "task-management-api"
-
+def dmnBranch = "master"
+def bpmnBranch = "master"
 
 def secrets = [
         'wa-${env}' : [
@@ -29,10 +30,13 @@ def secrets = [
 
                 secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
                 secret('generic-docker-pact-broker-password', 'GENERIC_DOCKER_PACT_BROKER_YAML_PASS'),
+                secret('generic-hmcts-password', 'GENERIC_HMCTS_YAML_PASS'),
 
         ],
         's2s-${env}': [
                 secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
+                secret('microservicekey-camunda-bpm', 'S2S_SECRET_CAMUNDA_BPM'),
+                secret('microservicekey-wa-workflow-api', 'S2S_SECRET_WORKFLOW_API'),
         ]
 ]
 
@@ -107,6 +111,14 @@ withPipeline(type, product, component) {
 
     onPR() {
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
+        env.CAMUNDA_URL = "https://camunda-wa-task-management-api-pr-${CHANGE_ID}.preview.platform.hmcts.net/engine-rest"
+        env.WA_WORKFLOW_API_URL = "https://workflow-wa-task-management-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
+    }
+
+    afterSuccess('akschartsinstall') {
+        onPR {
+            sh "bash ./bin/deploy-preview-camunda-definitions.sh ${dmnBranch} ${bpmnBranch}"
+        }
     }
 
     // Sync environment specific branches with master branch

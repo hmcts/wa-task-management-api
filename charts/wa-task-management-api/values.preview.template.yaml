@@ -1,6 +1,7 @@
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  releaseNameOverride: "{{ .Release.Name }}-java"
   keyVaults:
     wa:
       secrets:
@@ -19,7 +20,7 @@ java:
         - name: ld-secret
           alias: LAUNCH_DARKLY_SDK_KEY
   environment:
-    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
+    CAMUNDA_URL: "http://{{ .Release.Name }}-camunda/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
@@ -44,9 +45,14 @@ java:
     enabled: true
     auth:
       database: cft_task_db
+      username: javapostgres
+      password: ${GENERIC_HMCTS_YAML_PASS}
+      postgresPassword: ${GENERIC_HMCTS_YAML_PASS}
     primary:
       persistence:
         enabled: false
+      podAnnotations:
+        wa-preview-database-layout: "tm-camunda-workflow-v1"
       extraEnvVars:
         - name: POSTGRESQL_WAL_LEVEL
           value: "logical"
@@ -59,3 +65,50 @@ java:
           init.sql: |
             ALTER ROLE javapostgres WITH SUPERUSER;
             CREATE DATABASE "cft_task_db_replica" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE "camunda" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE "wa_workflow_api" WITH OWNER = javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+
+camunda-bpm:
+  enabled: true
+  java:
+    releaseNameOverride: "{{ .Release.Name }}-camunda"
+    ingressHost: "camunda-{{ .Release.Name }}.preview.platform.hmcts.net"
+    disableKeyVaults: true
+    environment:
+      CAMUNDA_DB_HOST: "{{ .Release.Name }}-postgresql"
+      CAMUNDA_DB_NAME: camunda
+      CAMUNDA_DB_USER_NAME: javapostgres
+      CAMUNDA_DB_PASSWORD: ${GENERIC_HMCTS_YAML_PASS}
+      CAMUNDA_DB_CONN_OPTIONS: ""
+      CAMUNDA_BPM_DATABASE_SCHEMAUPDATE: true
+      CAMUNDA_API_AUTH_ENABLED: true
+      TASK_MANAGEMENT_API_URL: "http://{{ .Release.Name }}-java"
+      WA_INITIATE_TASKS_ON_CREATE_ENABLED: true
+      S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+      S2S_SECRET_CAMUNDA_BPM: ${S2S_SECRET_CAMUNDA_BPM}
+
+wa-workflow-api:
+  enabled: true
+  wa:
+    enabled: false
+  camunda-bpm:
+    enabled: false
+  java:
+    releaseNameOverride: "{{ .Release.Name }}-workflow"
+    ingressHost: "workflow-{{ .Release.Name }}.preview.platform.hmcts.net"
+    disableKeyVaults: true
+    autoscaling:
+      enabled: false
+    environment:
+      CAMUNDA_URL: "http://{{ .Release.Name }}-camunda/engine-rest"
+      WA_TASK_MANAGEMENT_API_URL: "http://{{ .Release.Name }}-java"
+      S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+      S2S_SECRET_WORKFLOW_API: ${S2S_SECRET_WORKFLOW_API}
+      POSTGRES_HOST: "{{ .Release.Name }}-postgresql"
+      POSTGRES_NAME: wa_workflow_api
+      POSTGRES_USERNAME: javapostgres
+      POSTGRES_PASSWORD: ${GENERIC_HMCTS_YAML_PASS}
+      POSTGRES_CONNECTION_OPTIONS: ""
+      DB_READER_USERNAME: javapostgres
+      LAUNCH_DARKLY_SDK_KEY: ${LAUNCH_DARKLY_SDK_KEY}
+      ENVIRONMENT: preview

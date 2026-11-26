@@ -71,3 +71,9 @@ java:
     WA_SEARCH_EMAIL: "wa-task-search-functional@fake.hmcts.net"
   spotInstances:
     enabled: false
+
+camunda-bpm:
+  enabled: false
+
+wa-workflow-api:
+  enabled: false
