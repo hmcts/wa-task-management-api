@@ -50,7 +50,7 @@ public class DeleteTasksByCaseIdControllerTest {
     @Test
     public void should_return_201_when_task_deleted() {
         final TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         final DeleteTasksRequest deleteTasksRequest = new DeleteTasksRequest(new DeleteCaseTasksAction(
                 taskVariables.getCaseId()));

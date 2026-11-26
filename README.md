@@ -194,6 +194,49 @@ To perform appropriate checks with the build:
   ./gradlew tests
   ```
 
+### Preview functional-test environment
+
+Each PR deploys its own Camunda and Workflow API alongside Task Management. The
+functional tests, preview TM application and preview Workflow API all use that
+Camunda instance. Camunda sends immediate task-initiation requests to the preview
+TM service, so initiation and subsequent task reads use the same TM database.
+Shared AAT Camunda would initiate tasks into AAT's TM database instead, causing
+preview task reads to return 404.
+
+The preview uses the existing ephemeral PostgreSQL instance with separate
+`cft_task_db`, `cft_task_db_replica`, `camunda` and `wa_workflow_api` databases.
+The database-layout pod annotation recreates existing ephemeral PostgreSQL pods
+when this layout is introduced, so the new initialization scripts take effect.
+Camunda and Workflow chart dependencies are disabled in the base values and
+enabled only in `values.preview.template.yaml`. AAT and nightly test targets
+retain their existing configuration.
+
+`Jenkinsfile_CNP` sets the preview test targets to:
+
+- Camunda: `https://camunda-wa-task-management-api-pr-<PR>.preview.platform.hmcts.net/engine-rest`
+- Workflow: `https://workflow-wa-task-management-api-pr-<PR>.preview.platform.hmcts.net`
+
+After chart installation, Jenkins runs
+`bash bin/deploy-preview-camunda-definitions.sh` before functional tests. This
+script downloads BPMN definitions from `wa-standalone-task-bpmn` and DMN
+definitions from `wa-task-configuration-template`, using the `master` branches
+configured at the top of the Jenkinsfile. DMNs use tenant `wa`, and BPMNs are
+deployed without a tenant, following the Workflow API deployment convention.
+The script requires Bash, Git, curl and Python 3. It authenticates through S2S,
+waits for Camunda readiness, fails on unsuccessful uploads and removes its
+temporary files. Camunda API authentication remains enabled.
+
+Jenkins needs the `generic-hmcts-password` secret from the WA vault and
+`microservicekey-camunda-bpm` and `microservicekey-wa-workflow-api` from the S2S
+vault, in addition to the existing TM secrets. Preview Camunda uses the published
+Camunda image from its chart; that image must include immediate initiation.
+
+If preview tasks are missing, check that the definition-deployment hook passed
+and that the test runner, TM and Workflow all use preview Camunda. Then inspect
+Camunda's initiation logs and its `TASK_MANAGEMENT_API_URL`, which must name the
+preview TM service. All functional tests remain enabled; preview does not use
+manual initiation as a fallback.
+
 ### Running contract or pact tests:
 
 You can run contract or pact tests as follows:

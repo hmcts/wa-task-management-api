@@ -38,7 +38,7 @@ public class GetSystemTaskSearchControllerTest {
     public void should_return_200_with_tasks_for_the_case_and_system_users_jurisdiction() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
         try {
-            taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+            taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
             TestAuthenticationCredentials searchUser =
                 authorizationProvider.getNewWaTribunalCaseworkerWithStaticEmailAndStaticID(TEST_USER_EMAIL_PREFIX);
 

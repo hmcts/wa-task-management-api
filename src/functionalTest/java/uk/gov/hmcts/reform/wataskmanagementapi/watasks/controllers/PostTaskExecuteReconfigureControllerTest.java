@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,15 +104,14 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication",
-            "Process Application"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            assignerCredentials.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "processApplication", "Process Application");
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -217,15 +215,16 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "validateMandatoryTaskAttributesDuringReconfiguration",
-            "validateMandatoryTaskAttributesDuringReconfiguration"
-        );
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            assignerCredentials.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "validateMandatoryTaskAttributesDuringReconfiguration",
+            "validateMandatoryTaskAttributesDuringReconfiguration");
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -295,15 +294,14 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "processApplication",
-            "Process Application"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            assignerCredentials.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "processApplication", "Process Application");
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         assignTaskAndValidate(taskVariables,
                               taskFunctionalTestsUserUtils
@@ -397,16 +395,14 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "calculateDueDate",
-            "Calculate Due Date"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupStandardCaseManager(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "calculateDueDate", "Calculate Due Date");
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -485,15 +481,13 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "functionalTestTask1",
-            "functional Test Task 1"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupStandardCaseManager(assignerCredentials.getHeaders(),
-            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "functionalTestTask1", "functional Test Task 1");
         String taskId = taskVariables.getTaskId();
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
@@ -510,7 +504,7 @@ public class PostTaskExecuteReconfigureControllerTest {
                 .body("task.due_date", equalTo(formatDate(2026, 1, 15, 18)));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
         log.info("after initiation assert");
 
         //update next hearing date
@@ -613,8 +607,8 @@ public class PostTaskExecuteReconfigureControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
-            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
+            taskVariables, userWithCaseManagerRole.getHeaders());
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             "/task/{task-id}",
@@ -762,8 +756,8 @@ public class PostTaskExecuteReconfigureControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
-            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
+            taskVariables, userWithCaseManagerRole.getHeaders());
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
                 "/task/{task-id}",
@@ -867,8 +861,8 @@ public class PostTaskExecuteReconfigureControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(
-            taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
+            taskVariables, userWithCaseManagerRole.getHeaders());
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
                 "/task/{task-id}",
@@ -962,15 +956,13 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "endToEndTask",
-            "end To End Task"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupStandardCaseManager(assignerCredentials.getHeaders(),
-                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "endToEndTask", "end To End Task");
         String taskId = taskVariables.getTaskId();
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
@@ -985,7 +977,7 @@ public class PostTaskExecuteReconfigureControllerTest {
                 .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -1059,15 +1051,13 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "taskAttributesWithDefaultValue",
-            "Task Attributes With Default Value"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupStandardCaseManager(assignerCredentials.getHeaders(),
-                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "taskAttributesWithDefaultValue", "Task Attributes With Default Value");
         String taskId = taskVariables.getTaskId();
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
@@ -1081,7 +1071,7 @@ public class PostTaskExecuteReconfigureControllerTest {
                 .body("task.type", equalTo("taskAttributesWithDefaultValue"));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -1149,18 +1139,14 @@ public class PostTaskExecuteReconfigureControllerTest {
         authorizationProvider.deleteAccount(assignerCredentials.getAccount().getUsername());
     }
 
-    @Ignore("Temporarily ignored. This test and the other affected tests will be fixed once the immediate task "
-        + "initiation feature is enabled in production")
     @Test
     public void should_reconfigure_camunda_task_attributes_after_validation_reconfigure_flag() {
 
-        int numberOfAttempts = 2;
         String roleAssignmentId = UUID.randomUUID().toString();
         Map<String, String> additionalProperties = Map.of(
             "roleAssignmentId", roleAssignmentId
         );
-        TestVariables taskVariables = initiateTaskUntilProcessCategoryProtectionIsTrue(additionalProperties,
-                                                                                       numberOfAttempts);
+        TestVariables taskVariables = createTaskAndAwaitProcessCategoryProtection(additionalProperties);
         String taskId = taskVariables.getTaskId();
 
         await().untilAsserted(() -> {
@@ -1266,52 +1252,22 @@ public class PostTaskExecuteReconfigureControllerTest {
         taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskId);
     }
 
-    private TestVariables initiateTaskUntilProcessCategoryProtectionIsTrue(Map<String, String> additionalProperties,
-                                                                           int numberOfAttempts) {
-        for (int attempt = 1; attempt <= numberOfAttempts; attempt++) {
-            TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
-                .setupWATaskWithAdditionalPropertiesAndRetrieveIds(
-                    additionalProperties,
-                    "requests/ccd/wa_case_data_fixed_hearing_date.json",
-                    "reconfigTaskAttributesTask"
-                );
-
-            taskFunctionalTestsInitiationUtils.initiateTask(
-                taskVariables, userWithCaseManagerRole.getHeaders(), additionalProperties);
-
-            Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
-                "/task/{task-id}",
-                taskVariables.getTaskId(),
-                userWithCaseManagerRole.getHeaders()
+    private TestVariables createTaskAndAwaitProcessCategoryProtection(Map<String, String> additionalProperties) {
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskWithAdditionalPropertiesAndRetrieveIds(
+                additionalProperties,
+                "requests/ccd/wa_case_data_fixed_hearing_date.json",
+                "reconfigTaskAttributesTask"
             );
 
-            result.then().assertThat()
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
+            taskVariables, userWithCaseManagerRole.getHeaders(), result -> result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
                 .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-                .and().body("task.id", equalTo(taskVariables.getTaskId()));
-
-            Map<String, String> taskAdditionalProperties = result.then().extract().path("task.additional_properties");
-            String processCategoryProtection = taskAdditionalProperties == null
-                ? null
-                : taskAdditionalProperties.get("processCategoryProtection");
-
-            if ("true".equals(processCategoryProtection)) {
-                return taskVariables;
-            }
-
-            log.info(
-                "Retrying setup for task {} because additional_properties.{} was '{}'",
-                taskVariables.getTaskId(),
-                "processCategoryProtection",
-                processCategoryProtection
-            );
-            taskFunctionalTestsApiUtils.getCommon().cleanUpTask(taskVariables.getTaskId());
-        }
-
-        throw new AssertionError(
-            "Unable to initiate task with additional_properties. processCategoryProtection = true after "
-                + numberOfAttempts + " attempts"
+                .and().body("task.id", equalTo(taskVariables.getTaskId()))
+                .body("task.additional_properties.processCategoryProtection", equalTo("true"))
         );
+        return taskVariables;
     }
 
     @Test
@@ -1320,15 +1276,13 @@ public class PostTaskExecuteReconfigureControllerTest {
         TestAuthenticationCredentials assignerCredentials = authorizationProvider
             .getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "endToEndTask",
-            "end To End Task"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven().iCreateWACcdCase(
+            "requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupStandardCaseManager(assignerCredentials.getHeaders(),
-                                        taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
+            caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskForGivenCaseAndRetrieveIds(
+            caseId, "endToEndTask", "end To End Task");
         String taskId = taskVariables.getTaskId();
         Consumer<Response> assertConsumer = (result) -> {
             //Note: this is the TaskResource.class
@@ -1343,7 +1297,7 @@ public class PostTaskExecuteReconfigureControllerTest {
                 .body("task.next_hearing_date", equalTo(formatDate(2022, 12, 7, 14)));
         };
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, assertConsumer);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, assertConsumer);
 
         assignTaskAndValidate(taskVariables, taskFunctionalTestsUserUtils.getAssigneeId(
             caseWorkerWithTribRole.getHeaders()),assignerCredentials);
@@ -1464,7 +1418,7 @@ public class PostTaskExecuteReconfigureControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, userWithCaseManagerRole.getHeaders());
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, userWithCaseManagerRole.getHeaders());
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             "/task/{task-id}",

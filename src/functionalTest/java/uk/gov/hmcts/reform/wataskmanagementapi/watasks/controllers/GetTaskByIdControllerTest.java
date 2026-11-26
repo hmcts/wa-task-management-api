@@ -75,7 +75,7 @@ public class GetTaskByIdControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED,
@@ -141,7 +141,7 @@ public class GetTaskByIdControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED,
@@ -239,19 +239,19 @@ public class GetTaskByIdControllerTest {
             "key8", "value8"
         );
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
-            .setupWATaskWithAdditionalPropertiesAndRetrieveIds(additionalProperties,
-            "requests/ccd/wa_case_data_fixed_hearing_date.json",
-            "reviewSpecificAccessRequestJudiciary"
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
+        taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
+            caseWorkerWithPanelJudgeSpAccess.getHeaders(), caseId, WA_JURISDICTION, WA_CASE_TYPE
         );
+
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskWithAdditionalPropertiesForGivenCaseAndRetrieveIds(
+                additionalProperties, caseId, "reviewSpecificAccessRequestJudiciary");
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsApiUtils.getCommon().setupHearingPanelJudgeForSpecificAccess(
-            caseWorkerWithPanelJudgeSpAccess.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE
-        );
-
-        taskFunctionalTestsInitiationUtils.initiateTask(
-            taskVariables, caseWorkerWithPanelJudgeSpAccess.getHeaders(), additionalProperties);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(
+            taskVariables, caseWorkerWithPanelJudgeSpAccess.getHeaders());
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED,
@@ -283,7 +283,7 @@ public class GetTaskByIdControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED,
@@ -344,7 +344,7 @@ public class GetTaskByIdControllerTest {
             .setupWATaskWithWarningsAndRetrieveIds("processApplication", "process application");
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignmentWithCustomAttributes(
             caseWorkerWithWAOrgCustomAttributes.getHeaders(),
@@ -398,8 +398,8 @@ public class GetTaskByIdControllerTest {
             "process application"
         );
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables1);
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables2);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables1);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables2);
 
         String taskId1 = taskVariables1.getTaskId();
         String taskId2 = taskVariables2.getTaskId();

@@ -128,7 +128,7 @@ public class PostTaskReplicationMIControllerTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
 
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().get(
             ENDPOINT_BEING_TESTED_TASK,
@@ -214,7 +214,7 @@ public class PostTaskReplicationMIControllerTest {
             "processApplication",
             "Process Application"
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
 
         AtomicReference<JsonPath> configureJsonPathEvaluator = new AtomicReference<>();
@@ -346,7 +346,7 @@ public class PostTaskReplicationMIControllerTest {
             "processApplication",
             "Process Application"
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
         Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
@@ -665,7 +665,7 @@ public class PostTaskReplicationMIControllerTest {
     @Test
     public void user_should_claim_and_delete_task_action_recorded_in_replicate_db() {
         TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds();
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
 
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
@@ -871,7 +871,7 @@ public class PostTaskReplicationMIControllerTest {
             "processApplication",
             "Process Application"
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
         Awaitility.await()
             .untilAsserted(() -> assertNotNull(taskId));
@@ -1108,7 +1108,7 @@ public class PostTaskReplicationMIControllerTest {
             "processApplication",
             "Process Application"
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -1339,7 +1339,7 @@ public class PostTaskReplicationMIControllerTest {
                 "requests/ccd/wa_case_data_fixed_hearing_date.json",
                 "processApplication"
             );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
@@ -1395,7 +1395,7 @@ public class PostTaskReplicationMIControllerTest {
             "processApplication",
             "Process Application"
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -1508,18 +1508,19 @@ public class PostTaskReplicationMIControllerTest {
         TestAuthenticationCredentials leadJudgeForSpecificAccess =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
 
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "reviewSpecificAccessRequestJudiciary",
-            "Review Specific Access Request Judiciary"
-        );
-
+        String caseId = taskFunctionalTestsApiUtils.getGiven()
+            .iCreateWACcdCase("requests/ccd/wa_case_data_fixed_hearing_date.json");
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
             leadJudgeForSpecificAccess.getHeaders(),
-            taskVariables.getCaseId(),
+            caseId,
             WA_JURISDICTION
         );
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseWorkerWithJudgeRole.getHeaders());
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon()
+            .setupWATaskForGivenCaseAndRetrieveIds(caseId, "reviewSpecificAccessRequestJudiciary",
+                                                 "Review Specific Access Request Judiciary");
+
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, caseWorkerWithJudgeRole.getHeaders());
 
         String taskId = taskVariables.getTaskId();
         Response result = taskFunctionalTestsApiUtils.getRestApiActions().post(
@@ -1615,17 +1616,17 @@ public class PostTaskReplicationMIControllerTest {
 
     @Test
     public void should_cancel_task_and_set_termination_process_when_valid_cancellation_process_is_passed() {
-        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
-            "reviewSpecificAccessRequestJudiciary",
-            "Review Specific Access Request Judiciary"
-        );
         TestAuthenticationCredentials caseworkerForReadCredentials =
             authorizationProvider.getNewTribunalCaseworker(EMAIL_PREFIX_R3_5);
         taskFunctionalTestsApiUtils.getCommon().setupWAOrganisationalRoleAssignment(
             caseworkerForReadCredentials.getHeaders(), "judge");
 
+        TestVariables taskVariables = taskFunctionalTestsApiUtils.getCommon().setupWATaskAndRetrieveIds(
+            "reviewSpecificAccessRequestJudiciary",
+            "Review Specific Access Request Judiciary"
+        );
 
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables, caseworkerForReadCredentials.getHeaders());
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables, caseworkerForReadCredentials.getHeaders());
 
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getCommon().setupLeadJudgeForSpecificAccess(
@@ -1739,7 +1740,7 @@ public class PostTaskReplicationMIControllerTest {
             "processApplication",
             "Process Application"
         );
-        taskFunctionalTestsInitiationUtils.initiateTask(taskVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(taskVariables);
         String taskId = taskVariables.getTaskId();
         taskFunctionalTestsApiUtils.getGiven().iClaimATaskWithIdAndAuthorization(
             taskId,

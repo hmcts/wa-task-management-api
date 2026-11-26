@@ -23,4 +23,5 @@ bin/main/application.yaml
 .DS_Store
 
 /pacts/
-/bin/
+/bin/*
+!/bin/deploy-preview-camunda-definitions.sh

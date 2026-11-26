@@ -68,7 +68,7 @@ public class PostTaskForSearchCompletionControllerTest {
                 .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                           "processApplication",
                                           "process application");
-            taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
+            taskFunctionalTestsInitiationUtils.awaitTaskInitiated(testVariables);
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -139,7 +139,7 @@ public class PostTaskForSearchCompletionControllerTest {
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -167,7 +167,7 @@ public class PostTaskForSearchCompletionControllerTest {
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             "invalidCaseId",
@@ -195,7 +195,7 @@ public class PostTaskForSearchCompletionControllerTest {
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
@@ -223,7 +223,7 @@ public class PostTaskForSearchCompletionControllerTest {
             .setupWATaskAndRetrieveIds("requests/ccd/wa_case_data_fixed_hearing_date.json",
                                       "processApplication",
                                       "process application");
-        taskFunctionalTestsInitiationUtils.initiateTask(testVariables);
+        taskFunctionalTestsInitiationUtils.awaitTaskInitiated(testVariables);
 
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
             testVariables.getCaseId(),
