@@ -89,3 +89,15 @@ variable "is_qpa_enabled" {
   type        = string
   default     = false
 }
+
+variable "primary_pgsql_version" {
+  description = "Postgres version for primary database"
+  type        = string
+  default     = "14"
+}
+
+variable "replica_pgsql_version" {
+  description = "Postgres version for replica database"
+  type        = string
+  default     = "14"
+}
