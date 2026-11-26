@@ -69,5 +69,6 @@ java:
     DB_READER_USERNAME: "DTS CFT DB Access Reader"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: false
     WA_SEARCH_EMAIL: "wa-task-search-functional@fake.hmcts.net"
+    WA_S2S_AUTHORIZED_SERVICES: use_cnp_flux
   spotInstances:
     enabled: false
