@@ -10,6 +10,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -235,7 +236,7 @@ public class CFTTaskMapper {
             extractUnionOfPermissionsForUser(
                 taskResource.getTaskRoleResources(),
                 roleAssignments,
-                taskResource.getCaseId()
+                taskResource
             );
 
         return mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
@@ -287,27 +288,26 @@ public class CFTTaskMapper {
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments) {
-        Optional caseId = taskRoleResources.stream()
-            .filter(t -> t.getTaskResource() != null
-                && t.getTaskResource().getCaseId() != null).map(t -> t.getTaskResource().getCaseId())
+        Optional<TaskResource> taskResource = taskRoleResources.stream()
+            .map(TaskRoleResource::getTaskResource)
+            .filter(Objects::nonNull)
+            .filter(task -> task.getCaseId() != null)
             .findFirst();
-        if (caseId.isPresent()) {
+        if (taskResource.isPresent()) {
             return extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments,
-                                                    (String) caseId.get());
+                                                    taskResource.get());
         } else {
-            return new TreeSet<PermissionTypes>();
+            return new TreeSet<>();
         }
     }
 
     private Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments,
-                                                                 String caseId) {
+                                                                 TaskResource taskResource) {
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
-        if (caseId != null) {
+        if (taskResource.getCaseId() != null) {
             List<String> userRoleNames = roleAssignments.stream()
-                .filter(ra -> !ra.getRoleType().equals(RoleType.CASE) || ra.getAttributes() != null
-                    && ra.getAttributes().get("caseId") != null
-                    && ra.getAttributes().get("caseId").equals(caseId))
+                .filter(roleAssignment -> matchesTask(roleAssignment, taskResource))
                 .map(RoleAssignment::getRoleName)
                 .toList();
 
@@ -324,6 +324,35 @@ public class CFTTaskMapper {
         }
 
         return permissionsFound;
+    }
+
+    private boolean matchesTask(RoleAssignment roleAssignment, TaskResource taskResource) {
+        if (RoleType.CASE.equals(roleAssignment.getRoleType())) {
+            return roleAssignment.getAttributes() != null
+                   && roleAssignment.getAttributes().containsKey("caseId")
+                   && taskResource.getCaseId().equals(roleAssignment.getAttributes().get("caseId"));
+        }
+        if (RoleType.ORGANISATION.equals(roleAssignment.getRoleType())) {
+            Map<String, String> attributes = roleAssignment.getAttributes();
+            return attributes == null
+                   || (matchesAttribute(attributes, RoleAttributeDefinition.JURISDICTION,
+                                        taskResource.getJurisdiction())
+                       && matchesAttribute(attributes, RoleAttributeDefinition.CASE_TYPE,
+                                           taskResource.getCaseTypeId())
+                       && matchesAttribute(attributes, RoleAttributeDefinition.REGION,
+                                           taskResource.getRegion())
+                       && matchesAttribute(attributes, RoleAttributeDefinition.BASE_LOCATION,
+                                           taskResource.getLocation()));
+        }
+        return true;
+    }
+
+    private boolean matchesAttribute(Map<String, String> attributes,
+                                     RoleAttributeDefinition attributeDefinition,
+                                     String taskValue) {
+        String attributeName = attributeDefinition.value();
+        return !attributes.containsKey(attributeName)
+               || Objects.equals(taskValue, attributes.get(attributeName));
     }
 
     public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
@@ -767,4 +796,3 @@ public class CFTTaskMapper {
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
 }
-
