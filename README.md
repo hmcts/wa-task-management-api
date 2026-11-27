@@ -32,6 +32,57 @@ If the required permissions are not present then the request will not be fulfill
 
 ![task-management](access-management-process.png)
 
+## System-user task search
+
+`GET /task/searchByCaseId?case_id={caseId}` returns `{"tasks": [...]}` for the case and
+jurisdiction mapped to the authenticated system user. Both `Authorization` (IDAM)
+and `ServiceAuthorization` (S2S) headers are required. This endpoint uses the
+configured system-user mapping rather than ExUI role assignments. It returns all
+matching task states, with an empty list when none match.
+
+Configure the mapping under `search.jurisdictionUsers`. Probate uses
+`PROBATE_SEARCH_EMAIL`, supplied by the `probate-search-email` secret in the
+WA Key Vault. The secret must contain the dedicated Probate system user's email
+address. It is mapped in the base, preview and AAT Helm values. Provision that
+secret before deploying the Helm change. An empty configuration grants no search
+access. Email addresses are matched exactly against the
+IDAM user-info `sub` field (mapped to `UserInfo.email`).
+
+Probate calls this endpoint using its `probate_backend` S2S identity. This service
+is included in the application's default S2S allowlist. Environments that override
+`WA_S2S_AUTHORIZED_SERVICES` must also include `probate_backend` in their list.
+
+The controller checks IDAM user info on each request using the uncached
+`IdamService.getUserInfoForAuthorization` method. Standard IDAM 4xx responses,
+except 429 (rate limiting), or unavailable user details return 401 with
+`IDAM user not available`. A valid user with no configured jurisdiction receives 403 with
+`User does not belong to any jurisdiction`. IDAM dependency failures retain the
+existing downstream error handling. JWT and S2S validation remain unchanged.
+
+The happy-path functional test creates `wa-task-search-functional@fake.hmcts.net`
+using the existing IDAM helper and verifies that the API returns its WA task for
+the requested case. It cleans up the task and leaves user cleanup to IDAM.
+
+The WA mapping uses
+`${WA_SEARCH_EMAIL:wa-task-search-functional@fake.hmcts.net}` in `application.yaml`.
+When `WA_SEARCH_EMAIL` is absent, the functional-test email is authorized for
+jurisdiction `wa`. An explicitly supplied value overrides this default; an empty
+value disables the WA mapping. The default applies in every environment,
+including production, unless overridden. The preview and AAT Helm templates set
+the same email directly and do not reference the `wa-search-email` secret.
+
+The API deployment must use an image containing this configuration. Running the
+nightly functional test does not update the shared AAT API deployment, and a
+variable supplied to the Jenkins test runner does not configure that API.
+
+For local runs, the API uses the default email unless `WA_SEARCH_EMAIL` is set.
+Run the test with the usual functional-test credentials and `TEST_URL` pointing
+to that API:
+
+```shell
+./gradlew functional --tests '*GetSystemTaskSearchControllerTest'
+```
+
 ## Building and deploying the application
 
 ### Building the application

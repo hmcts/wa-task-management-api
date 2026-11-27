@@ -16,6 +16,8 @@ java:
           alias: app-insights-connection-string
         - name: wa-system-username
           alias: WA_SYSTEM_USERNAME
+        - name: probate-search-email
+          alias: PROBATE_SEARCH_EMAIL
         - name: wa-system-password
           alias: WA_SYSTEM_PASSWORD
         - name: wa-idam-client-secret
@@ -66,5 +68,6 @@ java:
     ENVIRONMENT: "{{ .Values.global.environment }}"
     DB_READER_USERNAME: "DTS CFT DB Access Reader"
     MANDATORY_TASK_FIELD_CHECK_ENABLED: false
+    WA_SEARCH_EMAIL: "wa-task-search-functional@fake.hmcts.net"
   spotInstances:
     enabled: false
